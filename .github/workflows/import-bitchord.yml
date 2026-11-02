@@ -1,0 +1,54 @@
+name: Import BitChord into BBT-Bit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/import-bitchord.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out BBT-Bit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Copy complete upstream Git tree into a review branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c import/bit-chord
+          git remote add upstream https://github.com/bagumamartin/BitChord.git
+          git fetch --depth=1 --no-tags upstream main
+          upstream_sha="$(git rev-parse FETCH_HEAD)"
+          # Checkout the *tracked* upstream Git tree, including all sources,
+          # binary assets, executable file modes, license files and gitlinks.
+          git checkout FETCH_HEAD -- .
+          mkdir -p docs
+          cat > docs/BBT-BIT-SOURCE.md <<EOF
+          # BBT-Bit – imported BitChord source
+
+          Upstream project: https://github.com/bagumamartin/BitChord
+
+          Upstream commit: ${upstream_sha}
+
+          This import preserves upstream source, licensing files, third-party
+          attribution and submodule references. The BitChord project is GPLv3;
+          individual dependencies may have additional terms. This repository
+          is a separately maintained derivative, not an official BitChord release.
+
+          The app still carries upstream internal identifiers and must be
+          rebranded, built, signed and tested before distribution.
+          EOF
+          git add -A
+          git commit -m "Import BitChord source from ${upstream_sha}"
+          git push --set-upstream origin import/bit-chord
