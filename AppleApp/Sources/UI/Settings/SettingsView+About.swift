@@ -123,7 +123,7 @@ extension SettingsView {
             SettingsToggleLine(
                 glyph: .video,
                 title: "Stop When Backgrounded",
-                subtitle: "Pauses playback when BitChord is hidden or deactivated on Mac; closing a window uses its own setting",
+                subtitle: "Pauses playback when BBT-Bit is hidden or deactivated on Mac; closing a window uses its own setting",
                 isOn: $stopBackground
             )
         }

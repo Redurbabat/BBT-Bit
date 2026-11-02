@@ -1,0 +1,71 @@
+name: Mirror verified optional AutoMix model assets
+
+on:
+  push:
+    branches: [feature/independent-bbt-bit]
+    paths:
+      - .github/workflows/bbt-bit-models.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Import verified MIT-licensed optional model assets into BBT-Bit releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/bbt-models
+          cd /tmp/bbt-models
+
+          mirror() {
+            local tag="$1" file="$2" expected_bytes="$3" expected_sha="$4" credits="$5" upstream_url="$6"
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "Existing BBT-Bit model release: $tag (marking as prerelease so app update checks ignore model assets)"
+              gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --prerelease
+              return
+            fi
+            curl -fSL --retry 3 --retry-all-errors --connect-timeout 30 -o "$file" "$upstream_url"
+            local actual_bytes actual_sha
+            actual_bytes="$(wc -c < "$file" | tr -d ' ')"
+            actual_sha="$(sha256sum "$file" | cut -d ' ' -f 1)"
+            [[ "$actual_bytes" == "$expected_bytes" && "$actual_sha" == "$expected_sha" ]] || {
+              echo "Model verification failed for $file" >&2
+              exit 1
+            }
+            {
+              echo "Optional BBT-Bit AutoMix model data (not an application release)."
+              echo
+              echo "Original asset: $upstream_url"
+              echo "Source/model credits: $credits"
+              echo "Model license: MIT; preserve model copyright and license notices."
+              echo "Size: $expected_bytes bytes"
+              echo "SHA-256: $expected_sha"
+              echo "This BBT-Bit-hosted copy was checked against the original asset hash."
+            } > notes.txt
+            gh release create "$tag" "$file" --repo "$GITHUB_REPOSITORY" \
+              --title "BBT-Bit optional model: $tag" \
+              --notes-file notes.txt --prerelease --latest=false
+            rm -f "$file" notes.txt
+          }
+
+          mirror "model-beat-this-final0-v1" "beat_this_full_int8.onnx" \
+            "23478460" "9f10e5efa37d3e120da2121141825fe54b23b487b32dd25a54f89039fd8f85cb" \
+            "Beat This! CPJKU authors Foscarin, Schlüter and Widmer; https://github.com/CPJKU/beat_this" \
+            "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx"
+
+          mirror "model-beat-this-final0-coreml-v1" "beat_this_final0_coreml.aar" \
+            "18818981" "4f545c60ac59282bd8601104a94ff4123f5304d4e5e233311f6ec67243975fff" \
+            "Beat This! CPJKU authors Foscarin, Schlüter and Widmer; https://github.com/CPJKU/beat_this" \
+            "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar"
+
+          mirror "model-umxhq-vocals-v1" "vocals_umxhq_int8.onnx" \
+            "23209009" "7eba6bebce0cc2e2d3b5c0e490a8074e66ce27f64170c6802b245740dcaf21ef" \
+            "open-unmix by Fabian-Robert Stöter and Antoine Liutkus; https://github.com/sigsep/open-unmix-pytorch" \
+            "https://github.com/bagumamartin/BitChord/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx"

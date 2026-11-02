@@ -17,12 +17,12 @@ DEST="$ROOT/native-core/fixtures/models"
 mkdir -p "$DEST"
 
 # Beat This! final0, dynamic int8 (CPJKU, MIT).
-BEAT_URL="https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx"
+BEAT_URL="https://github.com/Redurbabat/BBT-Bit/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx"
 BEAT_SHA="9f10e5efa37d3e120da2121141825fe54b23b487b32dd25a54f89039fd8f85cb"
 BEAT_BYTES=23478460
 
 # open-unmix umxhq vocals, dynamic int8 on MatMul/Gemm only (SigSep/Inria, MIT).
-VOCALS_URL="https://github.com/bagumamartin/BitChord/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx"
+VOCALS_URL="https://github.com/Redurbabat/BBT-Bit/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx"
 VOCALS_SHA="7eba6bebce0cc2e2d3b5c0e490a8074e66ce27f64170c6802b245740dcaf21ef"
 VOCALS_BYTES=23209009
 

@@ -365,7 +365,7 @@ struct InviteSheet: View {
                     // The link opens the app directly. It also carries the party
                     // server, so the people it reaches do not have to have configured
                     // a server of their own to find the party — which is the whole
-                    // reason it is a `bitchord://` link rather than just the code.
+                    // reason it is a `bbtbit://` link rather than just the code.
                     Text(PartyCopy.inviteFooter)
                 }
             }

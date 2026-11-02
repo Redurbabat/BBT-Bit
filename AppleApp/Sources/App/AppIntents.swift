@@ -218,7 +218,7 @@ enum AppIntentActions {
     }
 
     /// Open Search with the term already in the field — the same request shape a
-    /// `bitchord://search` link makes, so both roads end in the same place.
+    /// `bbtbit://search` link makes, so both roads end in the same place.
     static func search(query: String) throws -> String {
         let term = try cleaned(query)
         let appModel = AppServices.shared.appModel

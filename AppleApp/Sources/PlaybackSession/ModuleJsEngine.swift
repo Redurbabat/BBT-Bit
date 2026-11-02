@@ -82,7 +82,7 @@ final class ModuleJsEngine: NSObject, ModuleEngineImpl {
 
         init(moduleId: String, script: String, fetchBase: String) {
             queue = DispatchQueue(
-                label: "app.bitchord.BitChord.module.\(moduleId).\(UUID().uuidString)"
+                label: "com.babat.bbtbit.module.\(moduleId).\(UUID().uuidString)"
             )
             guard let context = JSContext() else {
                 // `JSContext()` has no failure path on Apple platforms, but the

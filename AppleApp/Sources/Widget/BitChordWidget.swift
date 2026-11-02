@@ -9,7 +9,7 @@ import AppIntents
 // WidgetStatePublisher. The extension never links native-core and never
 // touches the network. Tapping opens the player (deep link §9).
 
-private let groupDefaults = UserDefaults(suiteName: "group.app.bitchord.BitChord")
+private let groupDefaults = UserDefaults(suiteName: "group.com.babat.bbtbit")
 
 struct MediaWidgetEntry: TimelineEntry {
     let date: Date
@@ -24,7 +24,7 @@ struct MediaWidgetEntry: TimelineEntry {
     /// Upstream's last-played fallback: the widget is never blank after a
     /// first play, so an empty snapshot renders the placeholder, not nothing.
     static let empty = MediaWidgetEntry(
-        date: .now, title: "BitChord", artist: "Nothing queued",
+        date: .now, title: "BBT-Bit", artist: "Nothing queued",
         playing: false, canNext: false, canPrevious: false,
         artwork: nil, hasSession: false
     )
@@ -66,7 +66,7 @@ struct MediaWidgetView: View {
 
     var body: some View {
         content
-            .widgetURL(URL(string: "bitchord://open-player"))
+            .widgetURL(URL(string: "bbtbit://open-player"))
             .containerBackground(.fill.tertiary, for: .widget)
     }
 
@@ -120,7 +120,7 @@ struct MediaWidgetView: View {
             VStack(spacing: 6) {
                 Image(systemName: "music.note")
                     .foregroundStyle(.secondary)
-                Text("BitChord")
+                Text("BBT-Bit")
                     .font(.callout.weight(.semibold))
             }
         }
@@ -188,7 +188,7 @@ struct WidgetTransportIntent: AppIntent {
     init(command: String) { self.command = command }
 
     func perform() async throws -> some IntentResult {
-        UserDefaults(suiteName: "group.app.bitchord.BitChord")?.set(command, forKey: "widget.command")
+        UserDefaults(suiteName: "group.com.babat.bbtbit")?.set(command, forKey: "widget.command")
         return .result()
     }
 }

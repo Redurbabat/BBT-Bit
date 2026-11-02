@@ -7,7 +7,7 @@ final class PlaybackDebugLog: @unchecked Sendable {
     private let lock = NSLock()
     private var lines: [String] = []
     private let capacity: Int
-    private let writer = DispatchQueue(label: "app.bitchord.BitChord.diagnostics", qos: .utility)
+    private let writer = DispatchQueue(label: "com.babat.bbtbit.diagnostics", qos: .utility)
     private let directory: URL
     private let runFile: URL
     private let limit = 2 * 1024 * 1024

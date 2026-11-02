@@ -15,7 +15,7 @@ final class MacUpdateManager {
 
     private init() {
         controller = SPUStandardUpdaterController(
-            startingUpdater: true,
+            startingUpdater: false,
             updaterDelegate: nil,
             userDriverDelegate: nil
         )

@@ -12,7 +12,7 @@ enum SettingsDeepLink {
     /// Hyphens and underscores are accepted so section names remain readable in URLs.
     @discardableResult
     static func handle(_ url: URL) -> Bool {
-        guard url.scheme?.lowercased() == "bitchord",
+        guard url.scheme?.lowercased() == "bbtbit",
               url.host?.lowercased() == "settings" else { return false }
         let page = url.pathComponents.dropFirst().first
         let section = page.flatMap(SettingsSectionName.canonical) ?? SettingsView.SettingsSection.account.rawValue

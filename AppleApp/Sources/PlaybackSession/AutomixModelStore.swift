@@ -15,7 +15,7 @@ struct AutomixAccelerator: Sendable {
 }
 
 private let automixModelLog = OSLog(
-    subsystem: Bundle.main.bundleIdentifier ?? "com.bitchord.app",
+    subsystem: Bundle.main.bundleIdentifier ?? "com.babat.bbtbit",
     category: "Automix"
 )
 
@@ -82,7 +82,7 @@ final class AutomixModelStore {
             byteCount: 23_478_460,
             sha256: "9f10e5efa37d3e120da2121141825fe54b23b487b32dd25a54f89039fd8f85cb",
             // The owner's release asset; the tag is the pin, not a branch.
-            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx")!
+            url: URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx")!
         )
 
         // Core ML compilation of the same Beat This! final0 checkpoint (CPJKU,
@@ -97,7 +97,7 @@ final class AutomixModelStore {
             byteCount: 18_818_981,
             sha256: "4f545c60ac59282bd8601104a94ff4123f5304d4e5e233311f6ec67243975fff",
             // The owner's release asset; the tag is the pin, not a branch.
-            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar")!
+            url: URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar")!
         )
 
         /// The compiled bundle this archive yields. Kept next to the archive so
@@ -119,7 +119,7 @@ final class AutomixModelStore {
             byteCount: 23_209_009,
             sha256: "7eba6bebce0cc2e2d3b5c0e490a8074e66ce27f64170c6802b245740dcaf21ef",
             // The owner's release asset; the tag is the pin, not a branch.
-            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx")!
+            url: URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx")!
         )
     }
 
