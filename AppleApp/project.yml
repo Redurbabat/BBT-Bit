@@ -51,8 +51,8 @@ targets:
         # The Mac executable lives in Contents/MacOS while embedded frameworks
         # live in Contents/Frameworks; the iOS default runpath omits this parent.
         LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]: "$(inherited) @executable_path/../Frameworks"
-        # Resolve Music Understanding on OS 27+; leave Automix on Rust MIR below that.
-        OTHER_LDFLAGS: "$(inherited) -weak_framework MusicUnderstanding"
+        # MusicUnderstanding is imported only when the active SDK provides it.
+        # Do not force-link it: Xcode 26's iOS SDK has no framework to link.
     sources:
       - path: Sources
         excludes:
@@ -86,8 +86,6 @@ targets:
       - sdk: AVKit.framework
       - sdk: AVFoundation.framework
       - sdk: CoreMotion.framework
-      - sdk: MusicUnderstanding.framework
-        weak: true
       - sdk: Speech.framework
       - package: Sparkle
         product: Sparkle
