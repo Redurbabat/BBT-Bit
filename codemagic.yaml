@@ -75,7 +75,9 @@ workflows:
           cd "$CM_BUILD_DIR"
           APP_VERSION="$(sed -n 's/^[[:space:]]*MARKETING_VERSION: "\([^"]*\)".*/\1/p' AppleApp/project.yml | head -n 1)"
           test -n "$APP_VERSION"
-          ./scripts/package-ios-ipa.sh "$APP_VERSION" --output-dir build/ios/ipa
+          mkdir -p build/ios/logs
+          # Keep the full Xcode output as an artifact for diagnosing any future failure.
+          ./scripts/package-ios-ipa.sh "$APP_VERSION" --output-dir build/ios/ipa 2>&1 | tee build/ios/logs/archive.log
           ls -lh build/ios/ipa/BBT-Bit-*.ipa
           IPA="$(find build/ios/ipa -name 'BBT-Bit-*.ipa' -type f -print -quit)"
           test -n "$IPA"
@@ -86,4 +88,5 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - build/ios/ipa/*.zip
+      - build/ios/logs/*.log
       - /tmp/xcodebuild_logs/*.log
