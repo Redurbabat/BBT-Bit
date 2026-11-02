@@ -60,7 +60,7 @@ extension PlaybackController {
     }
 
     func pollWidgetCommands() {
-        guard let defaults = UserDefaults(suiteName: "group.app.bitchord.BitChord"),
+        guard let defaults = UserDefaults(suiteName: "group.com.babat.bbtbit"),
               let cmd = defaults.string(forKey: "widget.command") else { return }
         defaults.removeObject(forKey: "widget.command")
         switch cmd {

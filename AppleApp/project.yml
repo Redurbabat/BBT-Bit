@@ -47,7 +47,7 @@ targets:
     supportedDestinations: [iOS, macOS]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.bitchord.BitChord
+        PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit
         # The Mac executable lives in Contents/MacOS while embedded frameworks
         # live in Contents/Frameworks; the iOS default runpath omits this parent.
         LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]: "$(inherited) @executable_path/../Frameworks"
@@ -95,26 +95,25 @@ targets:
     info:
       path: BitChord-Info.plist
       properties:
-        CFBundleDisplayName: BitChord
+        CFBundleDisplayName: BBT-Bit
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         BitChordRevision: "$(BITCHORD_BUILD_REVISION)"
         LSApplicationCategoryType: public.app-category.music
-        SUFeedURL: https://raw.githubusercontent.com/bagumamartin/BitChord/main/appcast.xml
-        SUPublicEDKey: ZoHTuKtTzesqdu6L5WyVZRkdP3v9gHJExOoM9nBEvjU=
-        SUEnableAutomaticChecks: true
+        SUFeedURL: https://raw.githubusercontent.com/Redurbabat/BBT-Bit/main/appcast.xml
+        SUEnableAutomaticChecks: false
         SUAutomaticallyUpdate: false
         SUVerifyUpdateBeforeExtraction: true
         SURequireSignedFeed: true
         CFBundleURLTypes:
-          - CFBundleURLName: app.bitchord.BitChord
-            CFBundleURLSchemes: [bitchord]
+          - CFBundleURLName: com.babat.bbtbit
+            CFBundleURLSchemes: [bbtbit]
         # Handoff of playback: the activity type the payload is carried in. The
         # system only launches this app for an activity it has been told about,
         # so the type is declared here as well as written in
         # `PlaybackHandoffPayload.activityType`.
         NSUserActivityTypes:
-          - app.bitchord.playback
+          - com.babat.bbtbit.playback
         UIBackgroundModes:
           - audio
         UISupportedInterfaceOrientations:
@@ -128,9 +127,9 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         UILaunchScreen: {}
-        NSMotionUsageDescription: BitChord uses headphone motion to keep its spatial effect anchored when you turn your head.
-        NSPhotoLibraryAddUsageDescription: BitChord saves the lyric share cards you choose to add to Photos.
-        NSSpeechRecognitionUsageDescription: BitChord uses on-device speech recognition to align fetched lyrics with the playing audio. Audio is not sent to a server for alignment.
+        NSMotionUsageDescription: BBT-Bit uses headphone motion to keep its spatial effect anchored when you turn your head.
+        NSPhotoLibraryAddUsageDescription: BBT-Bit saves the lyric share cards you choose to add to Photos.
+        NSSpeechRecognitionUsageDescription: BBT-Bit uses on-device speech recognition to align fetched lyrics with the playing audio. Audio is not sent to a server for alignment.
     entitlements:
       path: BitChord.entitlements
       properties:
@@ -143,7 +142,7 @@ targets:
         com.apple.security.network.client: true
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.application-groups:
-          - group.app.bitchord.BitChord
+          - group.com.babat.bbtbit
         # iCloud key-value store: syncs the per-song lyrics provider choice (O1).
         com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
   BitChordWidget:
@@ -151,13 +150,13 @@ targets:
     supportedDestinations: [iOS, macOS]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.bitchord.BitChord.widget
+        PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit.widget
     sources:
       - Sources/Widget
     info:
       path: BitChordWidget-Info.plist
       properties:
-        CFBundleDisplayName: BitChord Widget
+        CFBundleDisplayName: BBT-Bit Widget
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         BitChordRevision: "$(BITCHORD_BUILD_REVISION)"
@@ -168,4 +167,4 @@ targets:
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
-          - group.app.bitchord.BitChord
+          - group.com.babat.bbtbit

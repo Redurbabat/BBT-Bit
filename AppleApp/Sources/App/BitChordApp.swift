@@ -229,7 +229,7 @@ struct BitChordApp: App {
                     }
                     // Handling lives here, on the scene, rather than on `RootView`.
                     // It was installed in both places, so whichever ran second
-                    // consumed the link and the other was dead — a `bitchord://`
+                    // consumed the link and the other was dead — a `bbtbit://`
                     // link reached the player only by accident of ordering. On the
                     // scene it runs before the view hierarchy exists, which is what
                     // a cold launch from a link actually needs.

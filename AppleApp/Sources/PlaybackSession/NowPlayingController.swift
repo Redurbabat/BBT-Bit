@@ -628,7 +628,7 @@ private final class ModernNowPlayingSession: NowPlayingSessionDriver {
 final class WidgetStatePublisher {
     func publish(entry: QueueEntry?, isPlaying: Bool, canNext: Bool, canPrevious: Bool) {
         guard let entry else { return }
-        let group = "group.app.bitchord.BitChord"
+        let group = "group.com.babat.bbtbit"
         // Unprovisioned App Groups hang cfprefsd on write — skip when the
         // container is missing rather than compiling DEBUG out entirely.
         guard FileManager.default.containerURL(
@@ -658,7 +658,7 @@ final class WidgetStatePublisher {
 
     nonisolated private static func artworkFileURL() -> URL? {
         guard let container = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.app.bitchord.BitChord"
+            forSecurityApplicationGroupIdentifier: "group.com.babat.bbtbit"
         ) else { return nil }
         return container.appendingPathComponent("widget-artwork.jpg")
     }

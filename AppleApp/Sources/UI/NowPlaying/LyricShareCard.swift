@@ -107,7 +107,7 @@ struct LyricShareCard: View {
             Spacer(minLength: 0)
 
             HStack {
-                Text("BitChord")
+                Text("BBT-Bit")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.white.opacity(0.55))
                 Spacer(minLength: 8)

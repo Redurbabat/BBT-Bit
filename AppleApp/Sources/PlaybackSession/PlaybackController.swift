@@ -81,7 +81,7 @@ struct TransitionWindow: Equatable, Sendable {
 
 enum PlaybackLatencySignposts {
     private static let log = OSLog(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.bitchord.app",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.babat.bbtbit",
         category: "PlaybackLatency"
     )
 

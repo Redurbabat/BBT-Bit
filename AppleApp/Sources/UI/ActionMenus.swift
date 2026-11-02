@@ -901,7 +901,7 @@ struct SpotifyCanvasSettingsView: View {
             } header: {
                 Text("Spotify Cookie")
             } footer: {
-                Text("Paste the sp_dc cookie from an open Spotify web session. BitChord uses it only to look up looping motion art. Leave blank to skip.")
+                Text("Paste the sp_dc cookie from an open Spotify web session. BBT-Bit uses it only to look up looping motion art. Leave blank to skip.")
             }
             Section {
                 Toggle("Auto-hide motion art", isOn: $autoHide)

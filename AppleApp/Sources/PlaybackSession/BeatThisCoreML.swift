@@ -17,7 +17,7 @@ final class BeatThisCoreML: BeatAccelerator, @unchecked Sendable {
     static let melBins = 128
 
     private static let log = OSLog(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.bitchord.app",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.babat.bbtbit",
         category: "Automix"
     )
 

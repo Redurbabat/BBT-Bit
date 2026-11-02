@@ -21,11 +21,11 @@ enum Keychain {
         #if DEBUG
         // The muted CLI diagnostic has its own container and credentials.
         if let identifier = Bundle.main.bundleIdentifier,
-           identifier.hasPrefix("app.bitchord.BitChord.queuevalidation") {
+           identifier.hasPrefix("com.babat.bbtbit.queuevalidation") {
             return identifier
         }
         #endif
-        return "app.bitchord.BitChord"
+        return "com.babat.bbtbit"
     }()
     private static let service = namespace + ".credentials"
     private static let synchronizableService = namespace

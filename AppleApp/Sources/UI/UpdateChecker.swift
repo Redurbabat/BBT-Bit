@@ -4,7 +4,7 @@ import Observation
 /// One latest-release record supplies version, notes and the platform download.
 @MainActor @Observable final class UpdateChecker {
     static let shared = UpdateChecker()
-    static let latestReleaseURL = URL(string: "https://github.com/bagumamartin/BitChord/releases/latest")!
+    static let latestReleaseURL = URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/latest")!
     private(set) var available: AppReleaseUpdate?
     private(set) var latest: AppReleaseUpdate?
     private(set) var checking = false
@@ -73,11 +73,11 @@ import Observation
     }
     private func fetchLatest() async -> AppReleaseUpdate? {
         do {
-            let data = try await fetch(URL(string: "https://api.github.com/repos/bagumamartin/BitChord/releases/latest")!)
+            let data = try await fetch(URL(string: "https://api.github.com/repos/Redurbabat/BBT-Bit/releases/latest")!)
             let payload = try JSONDecoder().decode(GitHubReleasePayload.self, from: data)
             guard !payload.draft, !payload.prerelease,
                   let page = URL(string: payload.html_url), page.scheme == "https", page.host == "github.com",
-                  page.path.hasPrefix("/bagumamartin/BitChord/releases/tag/") else { return nil }
+                  page.path.hasPrefix("/Redurbabat/BBT-Bit/releases/tag/") else { return nil }
             let version = payload.tag_name.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "^[vV]", with: "", options: .regularExpression)
             guard ReleaseIdentity(version: version, build: nil).compared(to: currentIdentity) != nil else { return nil }
             #if os(iOS)
@@ -85,7 +85,7 @@ import Observation
             #else
             let platform = "macos"
             #endif
-            let prefix = "/bagumamartin/BitChord/releases/download/\(payload.tag_name)/"
+            let prefix = "/Redurbabat/BBT-Bit/releases/download/\(payload.tag_name)/"
             let assets = payload.assets.filter { $0.url?.path.hasPrefix(prefix) == true }
             var manifest: ReleaseManifest?
             let manifests = assets.filter { $0.name == "release.json" }
@@ -110,7 +110,7 @@ import Observation
     private func fetch(_ url: URL) async throws -> Data {
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("BitChord Apple updater", forHTTPHeaderField: "User-Agent")
+        request.setValue("BBT-Bit Apple updater", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw URLError(.badServerResponse) }
         return data
