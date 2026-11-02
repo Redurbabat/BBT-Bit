@@ -1,0 +1,56 @@
+name: Prepare independent BBT-Bit source
+
+on:
+  push:
+    branches: [feature/independent-bbt-bit]
+    paths:
+      - .github/workflows/bbt-bit-independent.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  independence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install icon renderer
+        run: python3 -m pip install --user 'Pillow==11.3.0'
+      - name: Apply BBT-Bit identity and icon
+        run: python3 scripts/rebrand-bbt-bit.py
+      - name: Remove unused upstream comparison submodule and one-time importer
+        run: |
+          git rm -f -- .gitmodules vendor/bitchord-upstream
+          git rm -f -- .github/workflows/import-bitchord.yml
+      - name: Check independent runtime URLs and identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('AppleApp/project.yml').read_text()
+          assert 'CFBundleDisplayName: BBT-Bit' in p
+          assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
+          assert 'group.com.babat.bbtbit' in p
+          assert 'CFBundleURLSchemes: [bbtbit]' in p
+          assert 'bagumamartin/BitChord' not in p
+          for file in ['AppleApp/Sources/UI/UpdateChecker.swift', 'AppleApp/Sources/PlaybackSession/AutomixModelStore.swift', 'shared/src/commonMain/kotlin/com/music/bitchord/data/AppUpdateChecker.kt']:
+              assert 'bagumamartin/BitChord' not in Path(file).read_text(), file
+          assert not Path('.gitmodules').exists()
+          assert not Path('vendor/bitchord-upstream').exists()
+          for file in ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'docs/ORIGINAL_BITCHORD_README.md']:
+              assert Path(file).exists(), file
+          print('PASS: independent identity, runtime URLs and source notices')
+          PY
+          git add -A
+          git diff --cached --check
+      - name: Commit reviewable changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Give BBT-Bit its own Apple identity and update channel'
+          git push origin HEAD:feature/independent-bbt-bit
