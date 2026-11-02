@@ -1012,8 +1012,10 @@ struct PlaybackPillMount: ViewModifier {
     @ViewBuilder
     private func accessory(_ content: some View) -> some View {
         if #available(iOS 26.1, *) {
-            content.tabViewBottomAccessory(isEnabled: !keyboardUp) {
-                PlaybackAccessory()
+            content.tabViewBottomAccessory {
+                if !keyboardUp {
+                    PlaybackAccessory()
+                }
             }
         } else {
             content.tabViewBottomAccessory {
