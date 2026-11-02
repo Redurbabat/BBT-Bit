@@ -27,7 +27,8 @@ jobs:
           mirror() {
             local tag="$1" file="$2" expected_bytes="$3" expected_sha="$4" credits="$5" upstream_url="$6"
             if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-              echo "Existing BBT-Bit model release: $tag"
+              echo "Existing BBT-Bit model release: $tag (marking as prerelease so app update checks ignore model assets)"
+              gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --prerelease
               return
             fi
             curl -fSL --retry 3 --retry-all-errors --connect-timeout 30 -o "$file" "$upstream_url"
@@ -50,7 +51,7 @@ jobs:
             } > notes.txt
             gh release create "$tag" "$file" --repo "$GITHUB_REPOSITORY" \
               --title "BBT-Bit optional model: $tag" \
-              --notes-file notes.txt --latest=false
+              --notes-file notes.txt --prerelease --latest=false
             rm -f "$file" notes.txt
           }
 
