@@ -5,6 +5,7 @@ on:
     branches: [feature/independent-bbt-bit]
     paths:
       - .github/workflows/bbt-bit-independent.yml
+      - LICENSE
   workflow_dispatch:
 
 permissions:
