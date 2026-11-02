@@ -1,0 +1,52 @@
+name: Validate Codemagic iOS IPA configuration
+
+on:
+  push:
+    branches: [main, feature/codemagic-ios-ipa]
+    paths:
+      - codemagic.yaml
+      - scripts/package-ios-ipa.sh
+      - .github/workflows/validate-codemagic.yml
+  pull_request:
+    paths:
+      - codemagic.yaml
+      - scripts/package-ios-ipa.sh
+      - .github/workflows/validate-codemagic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install YAML parser
+        run: python3 -m pip install PyYAML
+      - name: Check workflow configuration and product identity
+        run: |
+          python3 - <<'PY'
+          import re, yaml
+          from pathlib import Path
+          cm = yaml.safe_load(Path('codemagic.yaml').read_text())
+          wf = cm['workflows']['bbt-bit-ios-ipa']
+          assert wf['instance_type'] == 'mac_mini_m2'
+          assert wf['max_build_duration'] >= 60
+          assert len(wf['scripts']) >= 5
+          assert any(p.endswith('*.ipa') for p in wf['artifacts'])
+          commands = '\n'.join(s['script'] for s in wf['scripts'])
+          for cmd in ('CONFIG=release ./scripts/build-shared-framework.sh',
+                      './scripts/build-native-core.sh',
+                      'xcodegen generate',
+                      './scripts/package-ios-ipa.sh'):
+              assert cmd in commands, cmd
+          p = Path('AppleApp/project.yml').read_text()
+          assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
+          assert 'CFBundleDisplayName: BBT-Bit' in p
+          assert re.search(r'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"', p)
+          assert 'BBT-Bit-$version-' in Path('scripts/package-ios-ipa.sh').read_text()
+          print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
+          PY
+          bash -n scripts/package-ios-ipa.sh
+          bash -n scripts/build-shared-framework.sh
+          bash -n scripts/build-native-core.sh

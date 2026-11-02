@@ -1,0 +1,89 @@
+# BBT-Bit: native iOS/iPadOS unsigned IPA, ready for subsequent signing.
+# The Xcode target is still internally called "BitChord" for compatibility.
+# Launch manually in Codemagic after connecting Redurbabat/BBT-Bit.
+workflows:
+  bbt-bit-ios-ipa:
+    name: BBT-Bit — iPhone/iPad unsigned IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    environment:
+      xcode: 26.0
+      java: 21
+    scripts:
+      - name: Check Apple toolchain and app identifier
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          xcodebuild -version
+          java -version
+          /usr/libexec/java_home -v 21
+          grep -q 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' AppleApp/project.yml
+          grep -q 'CFBundleDisplayName: BBT-Bit' AppleApp/project.yml
+
+      - name: Install XcodeGen, CMake and Rust
+        script: |
+          set -euo pipefail
+          export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
+          if ! command -v brew >/dev/null 2>&1; then
+            echo "Homebrew is required on the Codemagic Mac image" >&2
+            exit 1
+          fi
+          if ! command -v xcodegen >/dev/null 2>&1; then brew install xcodegen; fi
+          if ! command -v cmake >/dev/null 2>&1; then brew install cmake; fi
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal
+          fi
+          rustup default stable
+          rustup target add aarch64-apple-darwin aarch64-apple-ios
+          xcodegen --version
+          cmake --version
+          rustc --version
+          cargo --version
+          cd "$CM_BUILD_DIR"
+          chmod +x gradlew scripts/build-shared-framework.sh scripts/build-native-core.sh scripts/package-ios-ipa.sh
+
+      - name: Compile Kotlin/Native shared framework (Release)
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
+          export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
+          CONFIG=release ./scripts/build-shared-framework.sh
+
+      - name: Compile Rust native audio framework (iOS and macOS)
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
+          export NATIVE_TARGETS="aarch64-apple-darwin aarch64-apple-ios"
+          ./scripts/build-native-core.sh
+
+      - name: Generate native Xcode project
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          export PATH="/opt/homebrew/bin:$PATH"
+          xcodegen generate --spec AppleApp/project.yml
+          test -d AppleApp/BitChord.xcodeproj
+          test -d AppleApp/Frameworks/BitChordShared.xcframework
+          test -d AppleApp/Frameworks/NativeCoreFFI.xcframework
+          test -f AppleApp/Generated/NativeCore.swift
+
+      - name: Archive and package unsigned BBT-Bit IPA
+        script: |
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
+          APP_VERSION="$(sed -n 's/^[[:space:]]*MARKETING_VERSION: "\([^"]*\)".*/\1/p' AppleApp/project.yml | head -n 1)"
+          test -n "$APP_VERSION"
+          ./scripts/package-ios-ipa.sh "$APP_VERSION" --output-dir build/ios/ipa
+          ls -lh build/ios/ipa/BBT-Bit-*.ipa
+          IPA="$(find build/ios/ipa -name 'BBT-Bit-*.ipa' -type f -print -quit)"
+          test -n "$IPA"
+          unzip -p "$IPA" Payload/BitChord.app/Info.plist > /tmp/BBT-Bit-Info.plist
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /tmp/BBT-Bit-Info.plist)" = "com.babat.bbtbit"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/BBT-Bit-Info.plist)" = "BBT-Bit"
+          echo "OK: unsigned BBT-Bit IPA for iPhone and iPad"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/ipa/*.zip
+      - /tmp/xcodebuild_logs/*.log
