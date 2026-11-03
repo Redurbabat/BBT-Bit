@@ -29,6 +29,15 @@ extension NowPlayingView {
                 }
             )
             .tint(.white)
+            if controller.automixEnabled, let window = controller.smartTransitionWindow {
+                AutomixWeave(
+                    start: window.start, end: window.end,
+                    position: controller.position,
+                    tier: controller.analysisTier,
+                    reason: controller.transitionReason,
+                    isMixing: controller.smartMixInProgress
+                )
+            }
 
             HStack {
                 Text(Self.timestamp(controller.position))
