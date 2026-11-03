@@ -149,7 +149,7 @@ final class InnertubeStreamResolver: Sendable {
             if said.contains("temporarily unavailable") {
                 return "Playback is temporarily unavailable. Try again shortly."
             }
-            if said.contains("not a bot") {
+            if UserFacingRequestError.isYouTubeVerification(raw) {
                 return UserFacingRequestError.message(raw)
             }
             if said.contains("sign in") {
