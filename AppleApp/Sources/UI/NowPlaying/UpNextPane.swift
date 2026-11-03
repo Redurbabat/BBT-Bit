@@ -43,6 +43,13 @@ struct UpNextPane: View {
             if showsCurrentTrackHeader {
                 queueHeader
             }
+            if !horizonEntries.isEmpty {
+                QueueHorizon(entries: horizonEntries.map(\.entry)) { selected in
+                    guard horizonEntries.indices.contains(selected) else { return }
+                    controller.playQueueItem(at: horizonEntries[selected].index)
+                }
+                .padding(.horizontal, 24)
+            }
             HStack(alignment: .firstTextBaseline) {
                 Text("Queue")
                     .font(.title2.weight(.bold))
@@ -318,6 +325,10 @@ struct UpNextPane: View {
         .onDrop(of: [.text], delegate: QueueReorderDelegate(section: section, rows: rows, destIndex: index) { from, dest in
             move(IndexSet(integer: from), dest, rows: rows)
         })
+    }
+
+    private var horizonEntries: [QueueRow] {
+        Array((manualUpcoming + autoplayUpcoming).prefix(3))
     }
 
     private var autoplayStart: Int { controller.autoplaySectionStart }
