@@ -14,6 +14,15 @@ struct DownloadManagerView: View {
     var body: some View {
         NavigationStack {
             List {
+                if !store.jobs.isEmpty {
+                    DownloadBloom(
+                        active: store.activeCount,
+                        finished: store.jobs.filter { $0.status == .done }.count,
+                        failed: store.jobs.filter { $0.status == .failed }.count
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                }
                 if store.jobs.isEmpty && store.items.isEmpty {
                     Text("No downloads yet. Save a track from Now Playing or a collection menu.")
                         .foregroundStyle(.secondary)
