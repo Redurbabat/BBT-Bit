@@ -22,6 +22,11 @@ internal fun classifyPlayabilityFailures(failures: List<PlayabilityFailure>): St
     if (failures.any(PlayabilityFailure::isUnavailable)) {
         return StreamResolveException.Reason.UNAVAILABLE
     }
+    // Use only the reasons returned by the player clients that actually failed.
+    // A separate anonymous probe can be challenged even when signed-in playback works.
+    if (failures.any(PlayabilityFailure::isBotCheck)) {
+        return StreamResolveException.Reason.BOT_CHECKED
+    }
     return null
 }
 
@@ -53,6 +58,13 @@ private fun classifyPlayabilityFailure(
 
         else -> ClientFailureKind.PLAYABILITY
     }
+}
+
+private fun PlayabilityFailure.isBotCheck(): Boolean {
+    val normalizedReason = reason.orEmpty().lowercase()
+    return "not a bot" in normalizedReason ||
+        "confirm you are not a bot" in normalizedReason ||
+        "confirm you're not a bot" in normalizedReason
 }
 
 private fun PlayabilityFailure.isUnavailable(): Boolean {
