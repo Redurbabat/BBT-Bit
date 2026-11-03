@@ -10,21 +10,7 @@ import AppKit
 // Your data, miscellaneous and advanced options, About, and updates.
 extension SettingsView {
     func buildYourDataRows(_ rows: inout SettingsRows) {
-        #if os(iOS)
-        rows.row("iPhone-Selbsttest", "Test", "Diagnose", "15 Designs", "Prüfbericht", "JSON", "Automatisch", "Testbericht") {
-            PushLink {
-                LiquidMotionDeviceSelfTestView()
-            } label: {
-                SettingsLine(
-                    glyph: .precision,
-                    title: "iPhone-Selbsttest",
-                    subtitle: "15 Design-Vorschauen prüfen und JSON-Testbericht exportieren"
-                ) {
-                    EmptyView()
-                }
-            }
-        }
-        #endif
+
         #if os(iOS)
         rows.row("Echte Screenshots", "Live Screenshot", "Original", "Automatische Bildschirmaufnahmen", "PNG") {
             PushLink {
@@ -47,6 +33,21 @@ extension SettingsView {
                     glyph: .export,
                     title: "Design-Vorschauen",
                     subtitle: "Beispielbilder – keine echten App-Screenshots"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        #endif
+        #if os(iOS)
+        rows.row("Vorschau-Selbsttest", "Test", "Diagnose", "15 Designs", "Prüfbericht", "JSON", "Automatisch", "Testbericht") {
+            PushLink {
+                LiquidMotionDeviceSelfTestView()
+            } label: {
+                SettingsLine(
+                    glyph: .precision,
+                    title: "Vorschau-Selbsttest",
+                    subtitle: "Nur Beispielbilder prüfen – kein echter App-Funktionstest"
                 ) {
                     EmptyView()
                 }
