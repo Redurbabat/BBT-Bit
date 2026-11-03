@@ -10,6 +10,21 @@ import AppKit
 // Your data, miscellaneous and advanced options, About, and updates.
 extension SettingsView {
     func buildYourDataRows(_ rows: inout SettingsRows) {
+        #if os(iOS)
+        rows.row("Design-Fotos", "Liquid Motion", "Screenshots", "Fotos", "Bilder", "Vorschau", "Export", "Design") {
+            PushLink {
+                LiquidMotionDesignPhotosView()
+            } label: {
+                SettingsLine(
+                    glyph: .export,
+                    title: "Design-Fotos",
+                    subtitle: "Alle 15 Liquid-Motion-Änderungen automatisch als Fotos sichern"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        #endif
         rows.row("Replay", "top songs", "top artists", "stats", "year", "listening") {
             Button {
                 appModel.replayPresented = true
