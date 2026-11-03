@@ -36,7 +36,7 @@ struct ReplayTimeRiver: View {
                             VStack(spacing: 4) {
                                 Capsule()
                                     .fill(selectedHour == index ? Color.white : Color.cyan.opacity(0.75))
-                                    .frame(width: 20, height: max(8, 75 * value / maximum))
+                                    .frame(width: 20, height: CGFloat(max(8, 75 * value / maximum)))
                                     .frame(height: 80, alignment: .bottom)
                                 Text(index.isMultiple(of: 4) ? String(format: "%02d", index) : " ")
                                     .font(.system(size: 9, design: .monospaced))
