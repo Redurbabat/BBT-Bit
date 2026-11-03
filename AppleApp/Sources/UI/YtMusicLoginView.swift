@@ -335,7 +335,7 @@ enum SignInProfileLoader {
         request.httpBody = try? JSONSerialization.data(withJSONObject: ["context": ["client": client, "user": user, "request": ["useSsl": true]]])
         for (name, value) in [
             "Content-Type": "application/json", "Origin": origin, "X-Origin": origin,
-            "Referer": origin + "/", "User-Agent": SignInUserAgent.desktopSafari(),
+            "Referer": origin + "/", "User-Agent": SignInUserAgent.browser(),
             "X-YouTube-Client-Name": "67", "X-YouTube-Client-Version": version,
             "Cookie": cookie, "Authorization": Innertube.shared.sapisidHash(sapisid: secret, origin: origin)
         ] { request.setValue(value, forHTTPHeaderField: name) }
@@ -460,23 +460,19 @@ final class LoginWebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, W
         let config = WKWebViewConfiguration()
         config.websiteDataStore = store
         config.defaultWebpagePreferences.allowsContentJavaScript = true
-        // Google's own refusal of embedded web views: on iOS WebKit sends a
-        // *mobile* agent, and `accounts.google.com` answers that with "This
-        // browser or app may not be secure" before the password is ever typed.
-        // Upstream hits none of this because Android's `WebView` is a system
-        // browser Google allowlists, and it sets no agent of its own.
+        // The login must identify the actual platform. Earlier builds masked
+        // iPhone logins as desktop macOS Safari, causing Google's security page
+        // to report an unfamiliar Mac. Keep the WebKit page and the account-menu
+        // request on the same device-specific browser identity.
         //
-        // `applicationNameForUserAgent` would only *append* to the engine's agent,
-        // leaving the mobile one in front, so the whole string is replaced. See
-        // `SignInUserAgent` for why this is the shape it is and why
-        // `ASWebAuthenticationSession` is not the answer.
+        // Google may still reject an embedded WKWebView. Do not silently
+        // restore the desktop masquerade; a proper system-browser OAuth flow
+        // would be needed for a supported alternative.
         config.applicationNameForUserAgent = nil
         // The navigation delegate also refuses app schemes in popup requests.
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
         let webView = WKWebView(frame: .zero, configuration: config)
-        if SignInUserAgent.needsReplacing(defaultAgent: webView.customUserAgent ?? "") {
-            webView.customUserAgent = SignInUserAgent.desktopSafari()
-        }
+        webView.customUserAgent = SignInUserAgent.browser()
         store.httpCookieStore.add(self)
         webView.navigationDelegate = self
         webView.uiDelegate = self
