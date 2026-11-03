@@ -262,7 +262,24 @@ check("the Safari version is a plausible number",
 let iOSOwn = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) "
     + "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1"
 let macOwn = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)"
-check("an iOS engine's own agent is replaced", SignInUserAgent.needsReplacing(defaultAgent: iOSOwn))
+check("the iOS engine is already a valid mobile browser", !SignInUserAgent.needsReplacing(defaultAgent: iOSOwn))
+
+let phoneAgent = SignInUserAgent.mobileSafari(
+    osVersion: OperatingSystemVersion(majorVersion: 18, minorVersion: 5, patchVersion: 1)
+)
+let padAgent = SignInUserAgent.mobileSafari(
+    osVersion: OperatingSystemVersion(majorVersion: 18, minorVersion: 5, patchVersion: 1), isPad: true
+)
+check("iPhone sign-in identifies iPhone", phoneAgent.contains("(iPhone; CPU iPhone OS 18_5_1 like Mac OS X)"))
+check("iPad sign-in identifies iPad", padAgent.contains("(iPad; CPU OS 18_5_1 like Mac OS X)"))
+check("neither iOS device claims to be Macintosh", !phoneAgent.contains("(Macintosh;") && !padAgent.contains("(Macintosh;"))
+check("iOS agents carry the mobile Safari identity", phoneAgent.contains("Mobile/") && padAgent.contains("Mobile/"))
+check("both mobile browser agents are valid", SignInUserAgent.isAcceptable(phoneAgent) && SignInUserAgent.isAcceptable(padAgent))
+#if os(macOS)
+check("the Mac app retains its real Mac identity", SignInUserAgent.browser().contains("(Macintosh;"))
+#elseif os(iOS)
+check("the iOS app never uses a desktop Mac identity", !SignInUserAgent.browser().contains("(Macintosh;"))
+#endif
 // A macOS engine's agent is desktop but names no browser — no `Version/`, no
 // `Safari/` — so it is replaced too. Kept as a check because it is the case
 // where "already a desktop UA, leave it" would have been the wrong call.
