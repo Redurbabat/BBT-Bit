@@ -41,7 +41,8 @@ struct ReplayTimeRiver: View {
                                 Text(index.isMultiple(of: 4) ? String(format: "%02d", index) : " ")
                                     .font(.system(size: 9, design: .monospaced))
                             }
-                            .frame(width: 27, minHeight: 104)
+                            .frame(width: 27)
+                            .frame(minHeight: 104)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
