@@ -18,7 +18,7 @@ struct CanvasVeil: View {
                 CanvasPlayer(url: url, fallbackURL: fallbackURL, isPlaying: isPlaying)
                     .frame(width: side, height: side)
                     .mask(alignment: .leading) {
-                        Rectangle().frame(width: side * reveal)
+                        Rectangle().frame(width: side * CGFloat(reveal))
                     }
                     .allowsHitTesting(false)
             }
