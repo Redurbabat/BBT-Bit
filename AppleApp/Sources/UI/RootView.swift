@@ -92,6 +92,11 @@ struct RootView: View {
                         .zIndex(10)
                 }
             }
+            .onChange(of: appModel.settingsPresented) { _, isShown in
+                if !isShown && controller.current != nil && !appModel.nowPlayingPresented {
+                    LiquidLiveCaptureMarker.refresh("island")
+                }
+            }
     }
 
     private var presentedRoot: some View {
