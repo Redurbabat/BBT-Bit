@@ -43,9 +43,24 @@ struct BitChordApp: App {
         UserDefaults.standard.set(false, forKey: "show_music_videos")
     }
 
+    // XCUITest-only entry point. It bypasses onboarding and network activity
+    // to make physical-device preview tests repeatable without user accounts.
+    @ViewBuilder
+    private var launchRoot: some View {
+        #if DEBUG && os(iOS)
+        if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-designs") {
+            NavigationStack { LiquidMotionDeviceSelfTestView() }
+        } else {
+            RootView()
+        }
+        #else
+        RootView()
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
-            RootView()
+            launchRoot
                 #if os(macOS)
                 // Inside the environment calls below: the toolbar's button and
                 // sheet read the controller, auth and toast models.
@@ -58,6 +73,11 @@ struct BitChordApp: App {
                 .environment(toast)
                 .environment(party)
                 .task {
+                    #if DEBUG && os(iOS)
+                    if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-designs") {
+                        return
+                    }
+                    #endif
                     #if DEBUG
                     if ProcessInfo.processInfo.arguments.contains("--verify-queue") {
                         await controller.verifyQueueBehavior()
