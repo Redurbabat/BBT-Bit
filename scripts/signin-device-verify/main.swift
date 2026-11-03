@@ -27,7 +27,7 @@ check("iOS runtime does not use the Macintosh platform token",
       !SignInUserAgent.browser().contains("(Macintosh;"))
 #elseif os(macOS)
 check("native Mac app still identifies as Mac",
-      SignInUserAgent.browser().contains("(Macintosh;"))
+      SignInUserAgent.desktopSafari().contains("(Macintosh;"))
 #endif
 if failures != 0 { exit(1) }
 print("PASS: Safari device identity regression checks")
