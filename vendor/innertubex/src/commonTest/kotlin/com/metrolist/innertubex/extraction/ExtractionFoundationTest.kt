@@ -12,6 +12,38 @@ import kotlin.time.Duration.Companion.hours
 
 class ExtractionFoundationTest {
     @Test
+    fun botCheckRequiresAnActualPlayerRejection() {
+        assertEquals(
+            StreamResolveException.Reason.BOT_CHECKED,
+            classifyPlayabilityFailures(
+                listOf(PlayabilityFailure("LOGIN_REQUIRED", "Sign in to confirm you're not a bot")),
+            ),
+        )
+        assertEquals(
+            StreamResolveException.Reason.BOT_CHECKED,
+            classifyPlayabilityFailures(
+                listOf(PlayabilityFailure("LOGIN_REQUIRED", "Confirm you are not a bot")),
+            ),
+        )
+        // A generic login requirement is not evidence of a bot check.
+        assertNull(classifyPlayabilityFailures(listOf(PlayabilityFailure("LOGIN_REQUIRED", "Please sign in"))))
+        assertNull(classifyPlayabilityFailures(listOf(PlayabilityFailure("ERROR", "Player configuration expired"))))
+    }
+
+    @Test
+    fun knownTrackRestrictionsOutrankBotChecksOnOtherClients() {
+        val botCheck = PlayabilityFailure("LOGIN_REQUIRED", "Sign in to confirm you're not a bot")
+        assertEquals(
+            StreamResolveException.Reason.AGE_RESTRICTED,
+            classifyPlayabilityFailures(listOf(botCheck, PlayabilityFailure("AGE_CHECK_REQUIRED", "Confirm your age"))),
+        )
+        assertEquals(
+            StreamResolveException.Reason.UNAVAILABLE,
+            classifyPlayabilityFailures(listOf(botCheck, PlayabilityFailure("UNPLAYABLE", "Video unavailable"))),
+        )
+    }
+
+    @Test
     fun videoSelectorHonorsHeightCapAndDegradesAboveCap() {
         val formats =
             listOf(
