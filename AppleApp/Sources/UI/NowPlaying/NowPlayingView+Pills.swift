@@ -29,6 +29,13 @@ extension NowPlayingView {
                     suffix: albumSuffix
                 )
                 .shadow(color: .black.opacity(0.4), radius: 4, y: 1)
+                if pane == .main,
+                   controller.playingIndex > 0,
+                   controller.queue.indices.contains(controller.playingIndex - 1) {
+                    EchoTrail(previous: controller.queue[controller.playingIndex - 1]) {
+                        controller.playQueueItem(at: controller.playingIndex - 1)
+                    }
+                }
             }
             Spacer(minLength: 8)
             if auth.signedIn, controller.current?.videoId != nil {
