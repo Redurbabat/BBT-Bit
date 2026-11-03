@@ -13,6 +13,7 @@ import UIKit
 /// party on the left, the now-playing slot in the middle, the lyrics and queue
 /// panels, track actions, volume and AirPlay on the right.
 struct PlaybackPill: View {
+    @State private var handoffNotice = HandoffNoticeCenter.shared
     /// Squeezed between the tab button and Search after the iPhone's tab bar
     /// minimizes on scroll (iOS 26's inline bottom accessory, as in Music).
     var inline = false
@@ -25,11 +26,21 @@ struct PlaybackPill: View {
     #endif
 
     var body: some View {
-        #if os(macOS)
-        macOSPill
-        #else
-        iOSPill
-        #endif
+        Group {
+            #if os(macOS)
+            macOSPill
+            #else
+            iOSPill
+            #endif
+        }
+        .overlay(alignment: .top) {
+            if let title = handoffNotice.title {
+                HandoffComet(title: title)
+                    .offset(y: -55)
+                    .transition(.opacity)
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
     // ---- iOS: mini-player above the tab bar --------------------------------
