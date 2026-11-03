@@ -109,6 +109,20 @@ jobs:
           settings = Path('AppleApp/Sources/UI/Settings/SettingsView+About.swift').read_text()
           assert 'LiquidLiveScreenshotSettingsView()' in settings
           assert 'Beispielbilder – keine echten App-Screenshots' in settings
+          guide = Path('AppleApp/Sources/UI/LiquidMotion/LiquidPhotoWayfinderView.swift').read_text()
+          for id in ('island', 'dock', 'portal', 'lyrics', 'queue', 'signal', 'eq',
+                     'output', 'echo', 'automix', 'canvas', 'replay', 'downloads',
+                     'party', 'handoff'):
+              assert 'feature: .' + id in guide, id
+          assert guide.count('.init(feature: .') == 15
+          assert 'Foto-Wegweiser' in guide
+          assert 'arrow.down' in guide
+          assert 'HIER SOLL DAS FOTO ENTSTEHEN' in guide
+          assert 'Zum nächsten fehlenden Foto' in guide
+          assert 'recorder.captures.contains' in guide
+          assert 'LiquidPhotoWayfinderView()' in settings
+          assert 'LiquidPhotoWayfinderView()' in live
+          assert 'AppServices.shared.appModel.settingsPresented' in live
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
