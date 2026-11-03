@@ -104,6 +104,7 @@ final class PlaybackHandoff: NSObject, NSUserActivityDelegate {
             artist: payload.artist
         )
         controller.play([entry], at: 0, context: "Handoff")
+        HandoffNoticeCenter.shared.received(payload.title)
         if !payload.isPlaying {
             // A paused track must arrive paused. While the load is still in
             // flight this holds the pause until the first frame is ready.
