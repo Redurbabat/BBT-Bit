@@ -96,7 +96,7 @@ struct LiquidMotionDeviceSelfTestView: View {
                 }
             }
         }
-        .navigationTitle("Vorschau-Selbsttest"
+        .navigationTitle("Vorschau-Selbsttest")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedPreview) { feature in
             NavigationStack {

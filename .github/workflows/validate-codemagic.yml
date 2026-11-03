@@ -86,6 +86,7 @@ jobs:
           assert Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').exists()
           assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/BitChordApp.swift').read_text()
           assert 'Alle 15 Designs prüfen' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
+          assert '.navigationTitle("Vorschau-Selbsttest")' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
           # Real screenshots must capture the existing application window,
           # never generate 15 sample-data mockups and call them screenshots.
           live = Path('AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift').read_text()
@@ -130,3 +131,14 @@ jobs:
           bash -n scripts/build-native-core.sh
           bash -n scripts/ci-ios-native-cache.sh
           bash -n scripts/run-iphone-ui-tests.sh
+      - name: Parse newly added SwiftUI views without running a full iOS archive
+        run: |
+          set -euo pipefail
+          if command -v swiftc >/dev/null 2>&1; then
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidPhotoWayfinderView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
+            echo "SwiftUI syntax parse: PASS (type-check requires Xcode)"
+          else
+            echo "::warning::Swift compiler unavailable on this runner; Xcode type-check required"
+          fi
