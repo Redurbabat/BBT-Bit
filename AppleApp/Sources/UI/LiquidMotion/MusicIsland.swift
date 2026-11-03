@@ -111,5 +111,6 @@ struct MusicIsland: View {
             }
         )
         .accessibilityElement(children: .contain)
+        .background { LiquidLiveCaptureMarker(id: "island") }
     }
 }
