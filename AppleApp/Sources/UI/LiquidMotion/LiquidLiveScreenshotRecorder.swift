@@ -19,6 +19,12 @@ final class LiquidLiveScreenshotRecorder {
     private init() {}
 
     var shareFiles: [URL] {
+        if let directory {
+            let zip = directory.appendingPathComponent("BBT-Bit-Echte-Screenshots.zip")
+            if FileManager.default.fileExists(atPath: zip.path) {
+                return [zip]
+            }
+        }
         let images = captures.compactMap { capture -> URL? in
             guard let directory else { return nil }
             let file = directory.appendingPathComponent(capture.filename)
@@ -52,6 +58,21 @@ final class LiquidLiveScreenshotRecorder {
         sessionToken = UUID() // Cancel pending screen captures from this session.
         pending = []
         saveManifest()
+        saveArchive()
+    }
+
+    private func saveArchive() {
+        guard let directory, !captures.isEmpty else { return }
+        let files = captures.map { directory.appendingPathComponent($0.filename) }
+            + [directory.appendingPathComponent("BBT-Bit-Echte-Screenshots.json")]
+        do {
+            try BBTScreenshotZIP.create(
+                files: files,
+                at: directory.appendingPathComponent("BBT-Bit-Echte-Screenshots.zip")
+            )
+        } catch {
+            errorMessage = "ZIP-Erstellung fehlgeschlagen, einzelne PNG-Dateien sind noch verfügbar: \(error.localizedDescription)"
+        }
     }
 
     func discard() {
@@ -258,7 +279,7 @@ struct LiquidLiveScreenshotSettingsView: View {
                             if recorder.recording { recorder.finish() }
                             sharing = true
                         } label: {
-                            Label("Echte Screenshots teilen", systemImage: "square.and.arrow.up")
+                            Label("Screenshots als ZIP teilen", systemImage: "square.and.arrow.up")
                         }
                     }
                     if let error = recorder.errorMessage {
