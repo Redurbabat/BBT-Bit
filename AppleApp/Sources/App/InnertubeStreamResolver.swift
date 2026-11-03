@@ -132,7 +132,9 @@ final class InnertubeStreamResolver: Sendable {
         /// sent any, otherwise a statement of what failed and never the raw error.
         /// YouTube's "confirm you're not a bot": about the network, not the track.
         static func isBotCheck(_ error: Error) -> Bool {
-            ((error as? StreamError)?.raw ?? "\(error)").localizedCaseInsensitiveContains("not a bot")
+            UserFacingRequestError.isYouTubeVerification(
+                (error as? StreamError)?.raw ?? error.localizedDescription
+            )
         }
 
         static func say(_ raw: String) -> String {
