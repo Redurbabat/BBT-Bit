@@ -182,6 +182,15 @@ struct LyricsPane: View {
                         LyricsTranslationNote(outcome: translator.outcome)
                             .padding(.horizontal, 12)
                     }
+                    if let originalLines,
+                       originalLines.indices.contains(leadIndex),
+                       lines.indices.contains(leadIndex),
+                       originalLines[leadIndex].text != lines[leadIndex].text {
+                        LyricsMirror(original: originalLines[leadIndex].text,
+                                     translation: lines[leadIndex].text)
+                            .id(trackId)
+                            .padding(.horizontal, 12)
+                    }
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(alignment: .leading, spacing: 18) {
