@@ -315,6 +315,18 @@ extension NowPlayingView {
                 }
             }
             playerActionRow
+            if pane == .main {
+                InfinityDock(
+                    automixEnabled: controller.automixEnabled,
+                    onLyrics: { withAnimation(.easeInOut(duration: 0.2)) { pane = .lyrics } },
+                    onQueue: { withAnimation(.easeInOut(duration: 0.2)) { pane = .queue } },
+                    onOutput: { showOutputDevice = true },
+                    onEqualizer: { showEqualizerFromDock = true },
+                    onPipeline: { showPipeline = true },
+                    onAutomix: { controller.toggleAutomix() }
+                )
+                .padding(.horizontal, 24)
+            }
         }
         .padding(.top, 8)
         .padding(.bottom, 10)
