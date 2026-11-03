@@ -1,50 +1,46 @@
 import Foundation
+#if os(iOS)
+import UIKit
+#endif
 
-/// The user agent the sign-in web view identifies as.
+/// Browser identity for the sign-in page and its matching account-menu request.
 ///
-/// ## Why this exists at all
-///
-/// Google refuses to sign in from an embedded web view. The page in the report
-/// said so in as many words — "This browser or app may not be secure" — and it is
-/// Google's block, not a bug in the flow: `accounts.google.com` allowlists
-/// browser engines it recognises, Android's `WebView` is one of them, and Apple's
-/// `WKWebView` is not.
-///
-/// ## Why upstream never hits this
-///
-/// Upstream sets no user agent at all. It uses a stock `android.webkit.WebView`
-/// with the same login URL — byte for byte the same string — and Google accepts it,
-/// because on Android that engine *is* the system browser. So there is nothing
-/// upstream does that this is missing; the difference is the platform, and the
-/// remedy is to present the engine as a browser Google recognises.
-///
-/// ## Why not `ASWebAuthenticationSession`
-///
-/// That is Apple's standard for web sign-in, and it is the right answer for OAuth
-/// *because it hands back the URL it redirected to*. YouTube Music's sign-in
-/// redirects nowhere useful — it sets a cookie jar and lands on a page — so there
-/// is no callback to take. `ASWebAuthenticationSession` shares no cookie store
-/// with the app, and a `WKWebView` is the only thing on iOS that can both be
-/// accepted by Google and have its jar read afterwards. Which is also why
-/// upstream uses a web view rather than a custom tab.
-///
-/// ## Why the version in here is a constant
-///
-/// `Version/17.6` is the Safari version token, and it is the one part of the
-/// string that has to be a plausible number rather than a true one. Google
-/// identifies the *family* — Safari on macOS — and the token's job is to say so;
-/// nothing validates that it is current, and a wrong minor version is ignored
-/// where no version at all is not. It is a constant rather than a lookup because
-/// the true value is not reachable from an app: Safari's version is not public
-/// API, and inventing a mapping from the OS version to Safari's would be fake
-/// precision that also rots. It is isolated here so bumping it is one edit.
+/// Google can refuse authentication inside WKWebView. Pretending that an iPhone
+/// is a Mac did not make the login trustworthy; it also caused Google to list
+/// a misleading macOS device under recent account activity. This file now
+/// reports the actual platform. A genuine system-browser OAuth flow is needed
+/// if Google refuses the embedded sign-in; a false desktop identity is not a
+/// supported fallback.
 enum SignInUserAgent {
+    /// Use the same platform identity for the WebKit page and the signed
+    /// account-menu request. On iPad, explicitly use an iPad identity rather
+    /// than WebKit's optional desktop-style Macintosh identity.
+    static func browser() -> String {
+        #if os(iOS)
+        mobileSafari(isPad: UIDevice.current.userInterfaceIdiom == .pad)
+        #else
+        desktopSafari()
+        #endif
+    }
 
-    /// The whole string, for a WKWebView running on `osVersion`.
-    ///
-    /// `osVersion` is the *operating system* version and only appears in the
-    /// platform token, which Google does not read — it is there because a UA
-    /// without one is not shaped like a real one.
+    /// Mobile Safari-shaped identity with the *real* device family and iOS
+    /// version, never a Macintosh platform token. Pure so it can be regression
+    /// tested on macOS without a physical iPhone.
+    static func mobileSafari(
+        osVersion: OperatingSystemVersion = ProcessInfo.processInfo.operatingSystemVersion,
+        isPad: Bool = false
+    ) -> String {
+        let version = osVersion.patchVersion > 0
+            ? "\(osVersion.majorVersion)_\(osVersion.minorVersion)_\(osVersion.patchVersion)"
+            : "\(osVersion.majorVersion)_\(osVersion.minorVersion)"
+        let device = isPad ? "iPad; CPU OS" : "iPhone; CPU iPhone OS"
+        return "Mozilla/5.0 (\(device) \(version) like Mac OS X) "
+            + "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+            + "Version/\(osVersion.majorVersion).\(osVersion.minorVersion) "
+            + "Mobile/15E148 Safari/604.1"
+    }
+
+    /// Retained for the *real macOS application* only.
     static func desktopSafari(
         osVersion: OperatingSystemVersion = ProcessInfo.processInfo.operatingSystemVersion
     ) -> String {
@@ -57,41 +53,19 @@ enum SignInUserAgent {
             + " (bitchord; macOS \(major).\(minor).\(patch))"
     }
 
-    /// The Safari version token. See the type's note on why it is a constant.
     static let safariVersion = "17.6"
 
-    /// Whether the engine's own agent has to be replaced.
-    ///
-    /// The question is "will Google accept this one", not "is this a mobile one" —
-    /// a UA that is empty, or that is not Mozilla's, or that names no browser
-    /// family, is refused just as firmly as a phone's, and a check which only
-    /// spotted `Mobile/` would wave all of those through.
-    ///
-    /// Measured on both platforms, and the answer differs. A macOS `WKWebView`
-    /// already sends `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
-    /// AppleWebKit/605.1.15 (KHTML, like Gecko)` — desktop, but naming no
-    /// browser at all, so it is replaced too. An iOS one sends `Mozilla/5.0
-    /// (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML,
-    /// like Gecko) Mobile/15E148 Safari/604.1`, which is a phone.
-    ///
-    /// So in practice this replaces on both. It is a positive test rather than one
-    /// string comparison because the *shape* of an acceptable agent is the thing
-    /// that matters, and spelling the shape out is what makes a change to WebKit's
-    /// default visible here rather than only on a device.
+    /// A platform's own mobile browser identity is valid; do not reject it
+    /// merely because it is mobile. This is a syntax check, not an assurance
+    /// that Google's authentication service will accept an embedded web view.
     static func needsReplacing(defaultAgent: String) -> Bool {
         !isAcceptable(defaultAgent)
     }
 
-    /// Whether an agent already identifies as a browser Google recognises.
     static func isAcceptable(_ agent: String) -> Bool {
-        guard !agent.isEmpty else { return false }
-        guard !agent.contains("Mobile/") else { return false }
+        guard !agent.isEmpty, !agent.contains("\n"), !agent.contains("\r") else { return false }
         guard agent.hasPrefix("Mozilla/") else { return false }
-        // The Safari tokens are what name the family. WebKit's own macOS agent
-        // carries the WebKit build and nothing else, and a UA with a WebKit build
-        // and no browser named is a browser Google has no rule for.
-        guard agent.contains("Safari/") else { return false }
-        guard agent.contains("Version/") else { return false }
-        return true
+        guard agent.contains("AppleWebKit/"), agent.contains("Safari/") else { return false }
+        return agent.contains("Version/") || agent.contains("Mobile/")
     }
 }
