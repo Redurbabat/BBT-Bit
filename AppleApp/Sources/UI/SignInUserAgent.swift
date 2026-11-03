@@ -15,6 +15,7 @@ enum SignInUserAgent {
     /// Use the same platform identity for the WebKit page and the signed
     /// account-menu request. On iPad, explicitly use an iPad identity rather
     /// than WebKit's optional desktop-style Macintosh identity.
+    @MainActor
     static func browser() -> String {
         #if os(iOS)
         mobileSafari(isPad: UIDevice.current.userInterfaceIdiom == .pad)
