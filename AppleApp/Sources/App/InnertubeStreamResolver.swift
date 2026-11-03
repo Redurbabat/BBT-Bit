@@ -137,6 +137,10 @@ final class InnertubeStreamResolver: Sendable {
 
         static func say(_ raw: String) -> String {
             let said = raw.lowercased()
+            if said.contains("code=-1009") || said.contains("no network route") ||
+                said.contains("keine verbindung zum internet") {
+                return UserFacingRequestError.message(raw)
+            }
             if said.contains("signed-in playback:") {
                 return "Your signed-in session could not be restored. Check your connection or sign in again."
             }
@@ -144,7 +148,7 @@ final class InnertubeStreamResolver: Sendable {
                 return "Playback is temporarily unavailable. Try again shortly."
             }
             if said.contains("not a bot") {
-                return "YouTube is asking this network to confirm it isn’t a bot, so it won’t serve audio for now. Switching between Wi-Fi and mobile data, or waiting a while, usually clears it."
+                return UserFacingRequestError.message(raw)
             }
             if said.contains("sign in") {
                 return "YouTube is asking this device to sign in before it will serve anything. That is YouTube's gate rather than anything to do with the track."

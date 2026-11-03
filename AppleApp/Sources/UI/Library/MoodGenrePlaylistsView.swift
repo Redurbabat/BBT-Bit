@@ -85,6 +85,12 @@ struct MoodGenrePlaylistsView: View {
         }
         #endif
         .task(id: auth.sessionEpoch) { shelves = []; phase = .loading; await load() }
+        .onChange(of: NetworkQuality.shared.pathChanges) { oldValue, newValue in
+            guard newValue != oldValue, NetworkQuality.shared.connected else { return }
+            if case .failed = phase {
+                Task { await load(force: true) }
+            }
+        }
     }
 
     private func load(force: Bool = false) async {
@@ -100,7 +106,7 @@ struct MoodGenrePlaylistsView: View {
         } catch {
             guard generation == PageSession.generation(), !Task.isCancelled else { return }
             if !shelves.isEmpty { return }
-            phase = .failed(error.localizedDescription)
+            phase = .failed(UserFacingRequestError.message(error))
         }
     }
 }
@@ -132,7 +138,7 @@ final class MoodGenreLoader {
         } catch {
             guard generation == PageSession.generation(), requestID == id, !Task.isCancelled else { return }
             if case .loaded = phase { return }
-            phase = .failed(error.localizedDescription)
+            phase = .failed(UserFacingRequestError.message(error))
         }
     }
 
