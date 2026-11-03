@@ -75,16 +75,27 @@ struct RootView: View {
         let watchURL: URL?
     }
 
+    // Keep the root presentation and alert chains out of the same
+    // expression as Music Island. Otherwise Xcode's SwiftUI type checker
+    // times out while archiving the iPhone target.
     var body: some View {
+        decoratedRoot
+    }
+
+    private var musicIslandShell: some View {
         shell
-        .overlay(alignment: .top) {
-            if controller.current != nil && !appModel.nowPlayingPresented {
-                MusicIsland()
-                    .padding(.top, 8)
-                    .transition(.opacity)
-                    .zIndex(10)
+            .overlay(alignment: .top) {
+                if controller.current != nil && !appModel.nowPlayingPresented {
+                    MusicIsland()
+                        .padding(.top, 8)
+                        .transition(.opacity)
+                        .zIndex(10)
+                }
             }
-        }
+    }
+
+    private var presentedRoot: some View {
+        musicIslandShell
         .environment(\.rowSelection, rowSelection)
         .task {
             // First run only. Someone upgrading — signed in, or with a queue
@@ -219,6 +230,10 @@ struct RootView: View {
         }
         .sheet(item: $updateDetails) { release in UpdateSheet(release: release) }
         #endif
+    }
+
+    private var decoratedRoot: some View {
+        presentedRoot
         .onChange(of: tabBinding.wrappedValue) { old, new in
             #if os(iOS)
             // A regular-width iPad's field is a button that opens into a pill
