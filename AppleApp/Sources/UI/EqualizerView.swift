@@ -168,6 +168,8 @@ struct EqualizerView: View {
 
     private var manualBands: some View {
         VStack(spacing: 12) {
+            EQMembrane(bands: $bands, enabled: enabled)
+                .padding(.horizontal)
             HStack(alignment: .bottom, spacing: 8) {
                 ForEach(0..<7, id: \.self) { i in
                     VStack {
