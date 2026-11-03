@@ -147,14 +147,16 @@ extension NowPlayingView {
                 Haptics.play(.tap)
                 showOutputDevice = true
             } label: {
-                Image(systemName: "headphones")
-                    .scaledFont(size: 23, weight: .regular)
-                    .foregroundStyle(.white.opacity(0.88))
-                    .frame(width: outputPartyButtonWidth, height: 44)
-                    .contentShape(Rectangle())
+                OutputHaloGlyph(
+                    routeName: AudioRouteState.shared.name,
+                    spatialEnabled: AudioRouteState.shared.systemSpatialEnabled == true
+                )
+                .frame(width: outputPartyButtonWidth, height: 44)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Audio output")
+            .accessibilityValue(AudioRouteState.shared.name)
 
             pillDivider
 
