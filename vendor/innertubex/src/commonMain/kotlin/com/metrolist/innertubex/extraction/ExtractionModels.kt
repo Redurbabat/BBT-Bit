@@ -297,6 +297,7 @@ public class StreamResolveException(
 ) : IllegalStateException(message, cause) {
     public enum class Reason {
         NO_PLAYABLE_STREAM,
+        BOT_CHECKED,
         EXPLICIT_UNSUPPORTED,
         UNAVAILABLE,
         AGE_RESTRICTED,
