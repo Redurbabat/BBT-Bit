@@ -3,7 +3,7 @@ import SwiftUI
 
 /// A step-by-step, arrow-based route through the actual BBT-Bit app.
 /// It uses the same 15 feature IDs as the real-window screenshot recorder.
-private enum PhotoGuideDestination {
+private enum PhotoGuideDestination: Equatable {
     case home, player, lyrics, queue, replay, downloads, party
 }
 
