@@ -77,6 +77,14 @@ struct RootView: View {
 
     var body: some View {
         shell
+        .overlay(alignment: .top) {
+            if controller.current != nil && !appModel.nowPlayingPresented {
+                MusicIsland()
+                    .padding(.top, 8)
+                    .transition(.opacity)
+                    .zIndex(10)
+            }
+        }
         .environment(\.rowSelection, rowSelection)
         .task {
             // First run only. Someone upgrading — signed in, or with a queue
