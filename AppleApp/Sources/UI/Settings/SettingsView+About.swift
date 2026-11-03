@@ -12,6 +12,19 @@ extension SettingsView {
     func buildYourDataRows(_ rows: inout SettingsRows) {
 
         #if os(iOS)
+        rows.row("Foto-Wegweiser", "Pfeile", "Fotos", "15 Änderungen", "Anleitung", "Rundgang", "Guided") {
+            PushLink {
+                LiquidPhotoWayfinderView()
+            } label: {
+                SettingsLine(
+                    glyph: .replay,
+                    title: "Foto-Wegweiser",
+                    subtitle: "Mit Pfeilen durch alle 15 Änderungen – echte Fotos automatisch aufnehmen"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
         rows.row("Echte Screenshots", "Live Screenshot", "Original", "Automatische Bildschirmaufnahmen", "PNG") {
             PushLink {
                 LiquidLiveScreenshotSettingsView()
