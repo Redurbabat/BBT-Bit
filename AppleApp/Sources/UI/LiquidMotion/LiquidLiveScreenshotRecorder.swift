@@ -269,7 +269,7 @@ struct LiquidLiveScreenshotSettingsView: View {
                          ? "Aufnahme läuft – jetzt zurück zur App wechseln und die Änderungen öffnen."
                          : "Aufnahme nicht aktiv.")
                         .font(.footnote)
-                        .foregroundStyle(recorder.recording ? .green : .secondary)
+                        .foregroundStyle(recorder.recording ? Color.green : Color.secondary)
 
                     Text("\(recorder.captures.count) von 15 echten Screenshots gespeichert")
                         .font(.subheadline.weight(.semibold))
@@ -300,7 +300,7 @@ struct LiquidLiveScreenshotSettingsView: View {
                     }
                     HStack(spacing: 10) {
                         Image(systemName: found ? "checkmark.circle.fill" : "circle.dashed")
-                            .foregroundStyle(found ? .green : .secondary)
+                            .foregroundStyle(found ? Color.green : Color.secondary)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(feature.title)
                             Text(feature.location)
