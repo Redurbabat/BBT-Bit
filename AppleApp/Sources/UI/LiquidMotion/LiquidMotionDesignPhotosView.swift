@@ -6,7 +6,7 @@ import Photos
 // Captures each Liquid Motion concept on the user's iPhone with explicitly
 // synthetic inputs. These renders are visual reviews, not UI automation or
 // screenshots of an active player, party, download or Handoff session.
-private enum LiquidPhotoFeature: Int, CaseIterable, Identifiable {
+enum LiquidPhotoFeature: Int, CaseIterable, Identifiable {
     case automix, lyrics, signal, eq, replay, queue, downloads, output, party
     case canvas, handoff, echo, island, dock, portal
     var id: Int { rawValue }
@@ -67,7 +67,7 @@ private enum LiquidPhotoFeature: Int, CaseIterable, Identifiable {
     }
 }
 
-private struct LiquidPhotoCard: View {
+struct LiquidPhotoCard: View {
     let feature: LiquidPhotoFeature
 
     var body: some View {

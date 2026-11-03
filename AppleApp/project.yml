@@ -45,6 +45,9 @@ targets:
   BitChord:
     type: application
     supportedDestinations: [iOS, macOS]
+    scheme:
+      testTargets:
+        - BitChordUITests
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit
@@ -166,3 +169,15 @@ targets:
         com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
           - group.com.babat.bbtbit
+  BitChordUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: BitChord
+    dependencies:
+      - target: BitChord

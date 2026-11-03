@@ -7,12 +7,20 @@ on:
       - codemagic.yaml
       - scripts/package-ios-ipa.sh
       - scripts/ci-ios-native-cache.sh
+      - scripts/run-iphone-ui-tests.sh
+      - AppleApp/project.yml
+      - AppleApp/UITests/**
+      - AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
       - .github/workflows/validate-codemagic.yml
   pull_request:
     paths:
       - codemagic.yaml
       - scripts/package-ios-ipa.sh
       - scripts/ci-ios-native-cache.sh
+      - scripts/run-iphone-ui-tests.sh
+      - AppleApp/project.yml
+      - AppleApp/UITests/**
+      - AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
       - .github/workflows/validate-codemagic.yml
 
 permissions:
@@ -63,9 +71,19 @@ jobs:
           assert 'BBT-Bit-$version-' in package
           assert 'COMPILATION_CACHE_ENABLE_CACHING=YES' in package
           assert '--fast)' in package
+          # Verify real-device test target and launch-only harness are wired.
+          app = yaml.safe_load(Path('AppleApp/project.yml').read_text())
+          assert app['targets']['BitChordUITests']['type'] == 'bundle.ui-testing'
+          assert app['targets']['BitChordUITests']['platform'] == 'iOS'
+          assert 'BitChordUITests' in app['targets']['BitChord']['scheme']['testTargets']
+          assert Path('AppleApp/UITests/LiquidMotionUITests.swift').exists()
+          assert Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').exists()
+          assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/BitChordApp.swift').read_text()
+          assert 'Alle 15 Designs prüfen' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
           bash -n scripts/build-shared-framework.sh
           bash -n scripts/build-native-core.sh
           bash -n scripts/ci-ios-native-cache.sh
+          bash -n scripts/run-iphone-ui-tests.sh

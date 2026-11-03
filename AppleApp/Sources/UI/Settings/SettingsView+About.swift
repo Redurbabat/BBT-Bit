@@ -11,6 +11,21 @@ import AppKit
 extension SettingsView {
     func buildYourDataRows(_ rows: inout SettingsRows) {
         #if os(iOS)
+        rows.row("iPhone-Selbsttest", "Test", "Diagnose", "15 Designs", "Prüfbericht", "JSON", "Automatisch", "Testbericht") {
+            PushLink {
+                LiquidMotionDeviceSelfTestView()
+            } label: {
+                SettingsLine(
+                    glyph: .precision,
+                    title: "iPhone-Selbsttest",
+                    subtitle: "15 Design-Vorschauen prüfen und JSON-Testbericht exportieren"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        #endif
+        #if os(iOS)
         rows.row("Design-Fotos", "Liquid Motion", "Screenshots", "Fotos", "Bilder", "Vorschau", "Export", "Design") {
             PushLink {
                 LiquidMotionDesignPhotosView()
