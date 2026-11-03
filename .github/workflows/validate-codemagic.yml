@@ -6,11 +6,13 @@ on:
     paths:
       - codemagic.yaml
       - scripts/package-ios-ipa.sh
+      - scripts/ci-ios-native-cache.sh
       - .github/workflows/validate-codemagic.yml
   pull_request:
     paths:
       - codemagic.yaml
       - scripts/package-ios-ipa.sh
+      - scripts/ci-ios-native-cache.sh
       - .github/workflows/validate-codemagic.yml
 
 permissions:
@@ -29,24 +31,41 @@ jobs:
           import re, yaml
           from pathlib import Path
           cm = yaml.safe_load(Path('codemagic.yaml').read_text())
-          wf = cm['workflows']['bbt-bit-ios-ipa']
-          assert wf['instance_type'] == 'mac_mini_m2'
-          assert wf['max_build_duration'] >= 60
-          assert len(wf['scripts']) >= 5
-          assert any(p.endswith('*.ipa') for p in wf['artifacts'])
-          commands = '\n'.join(s['script'] for s in wf['scripts'])
-          for cmd in ('CONFIG=release ./scripts/build-shared-framework.sh',
-                      './scripts/build-native-core.sh',
-                      'xcodegen generate',
-                      './scripts/package-ios-ipa.sh'):
-              assert cmd in commands, cmd
+          fast = cm['workflows']['bbt-bit-ios-fast-ipa']
+          release = cm['workflows']['bbt-bit-ios-ipa']
+          assert fast['instance_type'] == release['instance_type'] == 'mac_mini_m2'
+          assert fast['max_build_duration'] >= 60
+          assert release['max_build_duration'] >= 60
+          assert 'triggering' in fast and 'triggering' not in release
+          assert fast['triggering']['events'] == ['pull_request']
+          for wf in (fast, release):
+              assert len(wf['scripts']) >= 5
+              assert any(p.endswith('*.ipa') for p in wf['artifacts'])
+              assert wf['cache']['cache_paths']
+              assert len(wf['cache']['cache_paths']) == len(set(wf['cache']['cache_paths']))
+              commands = '\n'.join(s['script'] for s in wf['scripts'])
+              for cmd in ('./scripts/ci-ios-native-cache.sh kotlin',
+                          './scripts/ci-ios-native-cache.sh rust',
+                          'xcodegen generate',
+                          './scripts/package-ios-ipa.sh'):
+                  assert cmd in commands, cmd
+          assert '--fast --output-dir' in '\n'.join(s['script'] for s in fast['scripts'])
+          assert '--fast --output-dir' not in '\n'.join(s['script'] for s in release['scripts'])
+          cache_script = Path('scripts/ci-ios-native-cache.sh').read_text()
+          assert 'BBT_NATIVE_CACHE_HIT' in cache_script
+          assert 'BBT_NATIVE_CACHE_MISS' in cache_script
+          assert 'shasum -a 256' in cache_script
           p = Path('AppleApp/project.yml').read_text()
           assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
           assert 'CFBundleDisplayName: BBT-Bit' in p
           assert re.search(r'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"', p)
-          assert 'BBT-Bit-$version-' in Path('scripts/package-ios-ipa.sh').read_text()
+          package = Path('scripts/package-ios-ipa.sh').read_text()
+          assert 'BBT-Bit-$version-' in package
+          assert 'COMPILATION_CACHE_ENABLE_CACHING=YES' in package
+          assert '--fast)' in package
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
           bash -n scripts/build-shared-framework.sh
           bash -n scripts/build-native-core.sh
+          bash -n scripts/ci-ios-native-cache.sh
