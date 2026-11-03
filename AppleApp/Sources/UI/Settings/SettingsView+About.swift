@@ -26,14 +26,27 @@ extension SettingsView {
         }
         #endif
         #if os(iOS)
-        rows.row("Design-Fotos", "Liquid Motion", "Screenshots", "Fotos", "Bilder", "Vorschau", "Export", "Design") {
+        rows.row("Echte Screenshots", "Live Screenshot", "Original", "Automatische Bildschirmaufnahmen", "PNG") {
+            PushLink {
+                LiquidLiveScreenshotSettingsView()
+            } label: {
+                SettingsLine(
+                    glyph: .export,
+                    title: "Echte Screenshots",
+                    subtitle: "Tatsächliche App-Bildschirme automatisch aufnehmen und teilen"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        rows.row("Design-Vorschauen", "Liquid Motion", "Design-Fotos", "Beispieldaten", "Vorschau", "Export") {
             PushLink {
                 LiquidMotionDesignPhotosView()
             } label: {
                 SettingsLine(
                     glyph: .export,
-                    title: "Design-Fotos",
-                    subtitle: "Alle 15 Liquid-Motion-Änderungen automatisch als Fotos sichern"
+                    title: "Design-Vorschauen",
+                    subtitle: "Beispielbilder – keine echten App-Screenshots"
                 ) {
                     EmptyView()
                 }
