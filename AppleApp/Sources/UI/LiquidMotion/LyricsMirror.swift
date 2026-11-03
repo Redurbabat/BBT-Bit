@@ -45,7 +45,7 @@ struct LyricsMirror: View {
             })
         }
         .padding(12)
-        .background(.ultraThinMaterial.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.13)))
     }
 
