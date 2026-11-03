@@ -29,6 +29,12 @@ struct ExploreView: View {
                 .task(id: auth.sessionEpoch) {
                     await moods.load(force: false)
                 }
+                .onChange(of: NetworkQuality.shared.pathChanges) { oldValue, newValue in
+                    guard newValue != oldValue, NetworkQuality.shared.connected else { return }
+                    if case .failed = moods.phase {
+                        Task { await moods.load(force: true) }
+                    }
+                }
         }
     }
 

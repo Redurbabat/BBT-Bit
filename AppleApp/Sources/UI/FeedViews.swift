@@ -98,8 +98,8 @@ final class FeedLoader {
             // A refused session is not a load failure the reader can retry: say
             // so once, and let the auth state (and every screen) follow.
             AuthController.reportIfSessionExpired(error)
-            if case .loaded = phase { refreshError = error.localizedDescription }
-            else { phase = .failed(error.localizedDescription) }
+            if case .loaded = phase { refreshError = UserFacingRequestError.message(error) }
+            else { phase = .failed(UserFacingRequestError.message(error)) }
         }
     }
 
@@ -121,7 +121,7 @@ final class FeedLoader {
         } catch {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             AuthController.reportIfSessionExpired(error)
-            refreshError = error.localizedDescription
+            refreshError = UserFacingRequestError.message(error)
         }
     }
 }

@@ -1,0 +1,23 @@
+name: BBT-Bit PR regression checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  network-regressions:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and test network error handling
+        run: bash scripts/check-network-errors.sh
+      - name: Validate release shell scripts
+        run: |
+          bash -n scripts/check-network-errors.sh
+          bash -n scripts/package-ios-ipa.sh

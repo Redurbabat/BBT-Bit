@@ -34,6 +34,12 @@ struct HomeView: View {
                 }
                 .refreshable { await loadFeed(force: true) }
                 .task(id: auth.sessionEpoch) { await loadFeed(force: false) }
+                .onChange(of: NetworkQuality.shared.pathChanges) { oldValue, newValue in
+                    guard newValue != oldValue, NetworkQuality.shared.connected else { return }
+                    if case .failed = feed.phase {
+                        Task { await loadFeed(force: true) }
+                    }
+                }
                 .onAppear {
                     // Upstream's onHomeShown refetches only when a play has
                     // been registered since the feed was fetched

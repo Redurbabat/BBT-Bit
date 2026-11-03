@@ -6,6 +6,15 @@ workflows:
     name: BBT-Bit — iPhone/iPad unsigned IPA
     instance_type: mac_mini_m2
     max_build_duration: 120
+    # Build every PR targeting main before it can be reviewed for merge.
+    triggering:
+      events:
+        - pull_request
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: false
+      cancel_previous_builds: true
     environment:
       xcode: 26.0
       java: 21
@@ -19,6 +28,7 @@ workflows:
           /usr/libexec/java_home -v 21
           grep -q 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' AppleApp/project.yml
           grep -q 'CFBundleDisplayName: BBT-Bit' AppleApp/project.yml
+          ./scripts/check-network-errors.sh
 
       - name: Install XcodeGen, CMake and Rust
         script: |
