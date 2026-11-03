@@ -20,6 +20,7 @@ struct ReplayTimeRiver: View {
         .padding(14)
         .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 18))
         .onChange(of: hourlyValues) { _, _ in selectedHour = nil }
+        .background { LiquidLiveCaptureMarker(id: "replay") }
     }
 
     private var header: some View {

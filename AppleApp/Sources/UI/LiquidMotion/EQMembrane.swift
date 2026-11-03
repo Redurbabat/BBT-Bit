@@ -58,5 +58,6 @@ struct EQMembrane: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Seven band EQ curve. Use the sliders below for VoiceOver and keyboard editing.")
+        .background { LiquidLiveCaptureMarker(id: "eq") }
     }
 }

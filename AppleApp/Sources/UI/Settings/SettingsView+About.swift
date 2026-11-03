@@ -10,15 +10,29 @@ import AppKit
 // Your data, miscellaneous and advanced options, About, and updates.
 extension SettingsView {
     func buildYourDataRows(_ rows: inout SettingsRows) {
+
         #if os(iOS)
-        rows.row("iPhone-Selbsttest", "Test", "Diagnose", "15 Designs", "Prüfbericht", "JSON", "Automatisch", "Testbericht") {
+        rows.row("Echte Screenshots", "Live Screenshot", "Original", "Automatische Bildschirmaufnahmen", "PNG") {
             PushLink {
-                LiquidMotionDeviceSelfTestView()
+                LiquidLiveScreenshotSettingsView()
             } label: {
                 SettingsLine(
-                    glyph: .precision,
-                    title: "iPhone-Selbsttest",
-                    subtitle: "15 Design-Vorschauen prüfen und JSON-Testbericht exportieren"
+                    glyph: .export,
+                    title: "Echte Screenshots",
+                    subtitle: "Tatsächliche App-Bildschirme automatisch aufnehmen und teilen"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        rows.row("Design-Vorschauen", "Liquid Motion", "Design-Fotos", "Beispieldaten", "Vorschau", "Export") {
+            PushLink {
+                LiquidMotionDesignPhotosView()
+            } label: {
+                SettingsLine(
+                    glyph: .export,
+                    title: "Design-Vorschauen",
+                    subtitle: "Beispielbilder – keine echten App-Screenshots"
                 ) {
                     EmptyView()
                 }
@@ -26,14 +40,14 @@ extension SettingsView {
         }
         #endif
         #if os(iOS)
-        rows.row("Design-Fotos", "Liquid Motion", "Screenshots", "Fotos", "Bilder", "Vorschau", "Export", "Design") {
+        rows.row("Vorschau-Selbsttest", "Test", "Diagnose", "15 Designs", "Prüfbericht", "JSON", "Automatisch", "Testbericht") {
             PushLink {
-                LiquidMotionDesignPhotosView()
+                LiquidMotionDeviceSelfTestView()
             } label: {
                 SettingsLine(
-                    glyph: .export,
-                    title: "Design-Fotos",
-                    subtitle: "Alle 15 Liquid-Motion-Änderungen automatisch als Fotos sichern"
+                    glyph: .precision,
+                    title: "Vorschau-Selbsttest",
+                    subtitle: "Nur Beispielbilder prüfen – kein echter App-Funktionstest"
                 ) {
                     EmptyView()
                 }

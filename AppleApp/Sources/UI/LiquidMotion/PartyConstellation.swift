@@ -59,5 +59,6 @@ struct PartyConstellation: View {
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
+        .background { LiquidLiveCaptureMarker(id: "party") }
     }
 }

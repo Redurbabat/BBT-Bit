@@ -45,5 +45,6 @@ struct HandoffComet: View {
         .overlay(Capsule().strokeBorder(.cyan.opacity(0.4), lineWidth: 1))
         .shadow(color: .cyan.opacity(0.2), radius: 12, y: 3)
         .accessibilityElement(children: .combine)
+        .background { LiquidLiveCaptureMarker(id: "handoff") }
     }
 }

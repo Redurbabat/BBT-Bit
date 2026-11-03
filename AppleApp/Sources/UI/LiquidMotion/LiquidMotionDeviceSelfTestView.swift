@@ -18,7 +18,7 @@ struct LiquidMotionDeviceSelfTestView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("15 Design-Vorschauen automatisch prüfen")
+                    Text("15 Beispiel-Vorschauen prüfen")
                         .font(.headline)
                     Text("BBT-Bit rendert alle 15 Design-Vorschauen auf deinem iPhone und prüft, ob jeweils ein gültiges PNG entsteht. Es werden keine Musikdateien, Konten oder Fotos gelesen.")
                         .font(.subheadline)
@@ -96,7 +96,7 @@ struct LiquidMotionDeviceSelfTestView: View {
                 }
             }
         }
-        .navigationTitle("iPhone-Selbsttest")
+        .navigationTitle("Vorschau-Selbsttest"
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedPreview) { feature in
             NavigationStack {

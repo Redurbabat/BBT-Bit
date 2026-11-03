@@ -90,6 +90,7 @@ struct LiquidPhotoCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             Spacer(minLength: 20)
             preview
+                .environment(\.liquidDesignSample, true)
                 .frame(maxWidth: .infinity)
                 .padding(15)
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 22))

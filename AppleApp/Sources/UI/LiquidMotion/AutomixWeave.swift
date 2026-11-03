@@ -79,5 +79,6 @@ struct AutomixWeave: View {
             }
         }
         .accessibilityElement(children: .contain)
+        .background { LiquidLiveCaptureMarker(id: "automix") }
     }
 }
