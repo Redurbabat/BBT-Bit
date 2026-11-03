@@ -45,6 +45,7 @@ struct NowPlayingView: View {
     /// from the pill while the track plays.
     @AppStorage("show_music_videos") var showMusicVideos = false
     @AppStorage("hide_status_bar_in_player") private var hideStatusBarInPlayer = false
+    @State var showEqualizerFromDock = false
     @State var showPipeline = false
     @State var showLyricsOffset = false
     @State var showLyricsSources = false
@@ -72,6 +73,11 @@ struct NowPlayingView: View {
         #endif
         .sheet(isPresented: $showPipeline) {
             AudioPipelineSheet()
+        }
+        .sheet(isPresented: $showEqualizerFromDock) {
+            NavigationStack {
+                EqualizerView().environment(controller)
+            }
         }
         .sheet(isPresented: $showOutputDevice) {
             OutputDeviceSheet()

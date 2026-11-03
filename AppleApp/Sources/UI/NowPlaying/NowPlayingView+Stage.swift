@@ -98,6 +98,15 @@ extension NowPlayingView {
                         .padding(.bottom, 12)
                 }
             }
+            .overlay(alignment: .topTrailing) {
+                if pane == .main {
+                    GlassQueuePortal {
+                        withAnimation(.easeInOut(duration: 0.22)) { pane = .queue }
+                    }
+                    .padding(.trailing, 16)
+                    .padding(.top, 10)
+                }
+            }
             .animation(.snappy(duration: 0.28), value: pane)
             // Additive sleeve swipe, upstream's vertical drag: up past 60pt
             // opens Up Next, down while a panel is up returns to the player.
@@ -315,6 +324,18 @@ extension NowPlayingView {
                 }
             }
             playerActionRow
+            if pane == .main {
+                InfinityDock(
+                    automixEnabled: controller.automixEnabled,
+                    onLyrics: { withAnimation(.easeInOut(duration: 0.2)) { pane = .lyrics } },
+                    onQueue: { withAnimation(.easeInOut(duration: 0.2)) { pane = .queue } },
+                    onOutput: { showOutputDevice = true },
+                    onEqualizer: { showEqualizerFromDock = true },
+                    onPipeline: { showPipeline = true },
+                    onAutomix: { controller.toggleAutomix() }
+                )
+                .padding(.horizontal, 24)
+            }
         }
         .padding(.top, 8)
         .padding(.bottom, 10)
