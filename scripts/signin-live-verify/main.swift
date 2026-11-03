@@ -125,7 +125,7 @@ func summary(_ text: String) -> String {
 
 print("sign-in: Google's own answer, from a real web view")
 
-let appAgent = SignInUserAgent.desktopSafari()
+let appAgent = SignInUserAgent.browser()
 print("  · agent under test: \(appAgent)")
 
 // The engine's own agent, for the record. On iOS this is a *mobile* one, and that
@@ -167,8 +167,8 @@ let mobileText = ask(
     loginURL, agent: mobileAgent, "document.body ? document.body.innerText : ''"
 )
 print("  · page said, with a mobile agent: \(summary(mobileText).isEmpty ? "(nothing)" : summary(mobileText))")
-check("a mobile agent is what the app is replacing",
-      SignInUserAgent.needsReplacing(defaultAgent: mobileAgent))
+check("a mobile Safari identity is valid without masquerading as a Mac",
+      !SignInUserAgent.needsReplacing(defaultAgent: mobileAgent))
 #if os(iOS)
 check("Google refuses a mobile agent in a web view", isRefusal(mobileText),
       isRefusal(mobileText) ? "refused, as expected" : "not refused — the fix is not proven")
