@@ -16,6 +16,7 @@ struct RootView: View {
     @Environment(AppModel.self) private var appModel
     @Environment(AuthController.self) private var auth
     @Environment(ToastCenter.self) private var toast
+    @Environment(\.openURL) private var openURL
     @State private var updateChecker = UpdateChecker.shared
     #if os(macOS)
     /// Which side panel is open beside the library, if any (M4).
@@ -67,6 +68,12 @@ struct RootView: View {
     @State private var rowSelection = RowSelection()
 
     @State private var updateDetails: AppReleaseUpdate?
+    @State private var verificationAlert: YouTubeVerificationAlert?
+
+    private struct YouTubeVerificationAlert {
+        let entryID: String?
+        let watchURL: URL?
+    }
 
     var body: some View {
         shell
@@ -247,7 +254,44 @@ struct RootView: View {
         // severity for a transient failure.
         .onChange(of: controller.lastError) { _, message in
             guard let message, !message.isEmpty else { return }
-            toast.show(message, kind: .failure)
+            if UserFacingRequestError.isYouTubeVerification(message) {
+                let entry = controller.current
+                verificationAlert = YouTubeVerificationAlert(
+                    entryID: entry?.id,
+                    watchURL: entry?.source.hasPrefix("yt:") == true
+                        ? UserFacingRequestError.youtubeWatchURL(forVideoID: entry?.videoId)
+                        : nil
+                )
+            } else {
+                toast.show(message, kind: .failure)
+            }
+        }
+        // A three-second, two-line toast hid the action users need on YouTube's
+        // network verification gate. Keep this message visible until dismissed,
+        // and let the listener explicitly retry or use YouTube itself.
+        .alert("YouTube verification required", isPresented: Binding(
+            get: { verificationAlert != nil },
+            set: { if !$0 { verificationAlert = nil } }
+        )) {
+            if let entryID = verificationAlert?.entryID {
+                Button("Try Again") {
+                    verificationAlert = nil
+                    guard controller.current?.id == entryID, controller.state == .stopped else { return }
+                    // The listener explicitly requested a new attempt; do not
+                    // reuse a previously refused stream URL or retry in a loop.
+                    controller.loadCurrent(controller.playingIndex,
+                                           refreshAutoplay: false, freshResolution: true)
+                }
+            }
+            if let url = verificationAlert?.watchURL {
+                Button("Open in YouTube") {
+                    verificationAlert = nil
+                    openURL(url)
+                }
+            }
+            Button("Close", role: .cancel) { verificationAlert = nil }
+        } message: {
+            Text("YouTube is asking for verification on this network. BBT-Bit cannot complete it. Try again later, or open this song in YouTube. If it happens only on mobile data, compare with Wi-Fi.")
         }
     }
 
