@@ -64,6 +64,7 @@ struct InfinityDock: View {
             }
         )
         .accessibilityElement(children: .contain)
+        .background { LiquidLiveCaptureMarker(id: "dock") }
     }
 
     private var transition: AnyTransition {
