@@ -69,7 +69,7 @@ final class LiquidLiveScreenshotRecorder {
         if !refresh && captures.contains(where: { $0.featureID == featureID }) { return }
         if !pending.insert(featureID).inserted { return }
         let token = sessionToken
-        let milliseconds: UInt64 = featureID == "handoff" ? 300 : 850
+        let milliseconds: Int64 = featureID == "handoff" ? 300 : 850
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(milliseconds))
             guard token == sessionToken, recording else {
@@ -200,6 +200,10 @@ struct LiquidLiveCaptureMarker: View {
     let id: String
     @Environment(\.liquidDesignSample) private var sample
 
+    @MainActor static func refresh(_ id: String) {
+        LiquidLiveScreenshotRecorder.shared.schedule(featureID: id, refresh: true)
+    }
+
     var body: some View {
         Color.clear
             .frame(width: 0, height: 0)
@@ -324,6 +328,7 @@ private struct LiquidWindowShareSheet: UIViewControllerRepresentable {
 /// macOS builds retain the existing UI but have no iPhone capture service.
 struct LiquidLiveCaptureMarker: View {
     let id: String
+    @MainActor static func refresh(_ id: String) {}
     var body: some View { EmptyView() }
 }
 #endif
