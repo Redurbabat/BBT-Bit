@@ -88,6 +88,7 @@ struct GlassQueuePortal: View {
             }
         }
         .shadow(color: .black.opacity(0.2), radius: expanded ? 16 : 7, y: 5)
+        .background { LiquidLiveCaptureMarker(id: "portal") }
     }
 
     private func change(_ next: Bool) {
