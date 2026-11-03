@@ -12,7 +12,7 @@ struct PartyConstellation: View {
             ZStack {
                 Ellipse()
                     .stroke(.secondary.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4, 5]))
-                    .frame(width: 260, height: 150)
+                    .frame(width: 220, height: 136)
                 Image(systemName: "music.note")
                     .font(.title)
                     .foregroundStyle(.cyan)
@@ -40,7 +40,7 @@ struct PartyConstellation: View {
                             }
                     }
                     .buttonStyle(.plain)
-                    .offset(x: CGFloat(cos(angle)) * 130, y: CGFloat(sin(angle)) * 75)
+                    .offset(x: CGFloat(cos(angle)) * 109, y: CGFloat(sin(angle)) * 68)
                     .accessibilityLabel("\(member.name), \(member.isHost ? "host" : "listener"), \(member.connected ? "connected" : "offline")")
                 }
             }
