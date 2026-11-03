@@ -344,6 +344,10 @@ struct ReplayView: View {
                 .foregroundStyle(.white)
                 .padding(.top, 8)
 
+            if summary.hourOfDay.count == 24 {
+                ReplayTimeRiver(hourlyValues: summary.hourOfDay)
+            }
+
             HStack(spacing: 10) {
                 statTile("Songs", summary.distinctSongs)
                 statTile("Artists", summary.distinctArtists)
