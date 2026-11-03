@@ -41,6 +41,13 @@ struct AudioPipelineSheet: View {
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.45))
                         .padding(.bottom, 14)
+                    SignalPrism(
+                        source: sourceName,
+                        decoder: decoderName,
+                        processing: samplePathVerdict,
+                        output: deviceName
+                    )
+                    .padding(.bottom, 16)
                     stage(0, "doc.text", "Track Info") {
                         row("Requested Source Quality", claimedQuality)
                         row("Measured Stream", measuredStream)
