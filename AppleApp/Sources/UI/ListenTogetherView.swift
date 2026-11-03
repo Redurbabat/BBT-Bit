@@ -67,6 +67,9 @@ struct ListenTogetherView: View {
     var body: some View {
         Form {
             if party.inParty {
+                Section("Listener constellation") {
+                    PartyConstellation()
+                }
                 codeSection
                 nowPlayingSection
                 transportSection
