@@ -11,6 +11,9 @@ on:
       - AppleApp/project.yml
       - AppleApp/UITests/**
       - AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
+      - AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
+      - AppleApp/Sources/UI/LiquidMotion/**
+      - AppleApp/Sources/UI/Settings/SettingsView+About.swift
       - .github/workflows/validate-codemagic.yml
   pull_request:
     paths:
@@ -21,6 +24,9 @@ on:
       - AppleApp/project.yml
       - AppleApp/UITests/**
       - AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
+      - AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
+      - AppleApp/Sources/UI/LiquidMotion/**
+      - AppleApp/Sources/UI/Settings/SettingsView+About.swift
       - .github/workflows/validate-codemagic.yml
 
 permissions:
@@ -80,6 +86,25 @@ jobs:
           assert Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').exists()
           assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/BitChordApp.swift').read_text()
           assert 'Alle 15 Designs prüfen' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
+          # Real screenshots must capture the existing application window,
+          # never generate 15 sample-data mockups and call them screenshots.
+          live = Path('AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift').read_text()
+          assert 'window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)' in live
+          assert 'UIGraphicsImageRenderer' in live
+          assert 'recording = true' in live
+          assert 'applicationSupportDirectory' in live
+          assert 'LiquidWindowShareSheet' in live
+          assert 'liquidDesignSample' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDesignPhotosView.swift').read_text()
+          expected = ['AutomixWeave', 'LyricsMirror', 'SignalPrism', 'EQMembrane',
+                      'ReplayTimeRiver', 'QueueHorizon', 'DownloadBloom', 'OutputHaloGlyph',
+                      'PartyConstellation', 'CanvasVeil', 'HandoffComet', 'EchoTrail',
+                      'MusicIsland', 'InfinityDock', 'GlassQueuePortal']
+          for feature in expected:
+              source = Path('AppleApp/Sources/UI/LiquidMotion', feature + '.swift').read_text()
+              assert 'LiquidLiveCaptureMarker(id:' in source, feature
+          settings = Path('AppleApp/Sources/UI/Settings/SettingsView+About.swift').read_text()
+          assert 'LiquidLiveScreenshotSettingsView()' in settings
+          assert 'Beispielbilder – keine echten App-Screenshots' in settings
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
