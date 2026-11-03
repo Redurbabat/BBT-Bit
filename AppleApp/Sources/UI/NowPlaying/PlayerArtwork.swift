@@ -26,7 +26,8 @@ struct SleeveArt: View {
         ZStack {
             ArtworkView(entry: entry, side: side)
             if let canvasURL {
-                CanvasPlayer(url: canvasURL, fallbackURL: fallbackURL, isPlaying: isPlaying && canvasActive)
+                CanvasVeil(url: canvasURL, fallbackURL: fallbackURL,
+                           isPlaying: isPlaying && canvasActive, side: side)
             }
         }
         .frame(width: side, height: side)
