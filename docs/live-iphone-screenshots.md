@@ -20,8 +20,8 @@ nachweisen. Sie werden künftig ausdrücklich "Design-Vorschauen" genannt.
 6. Klappe Music Island, Infinity Dock oder Glass Portal auf, um eine
    erneute Aufnahme mit erweitertem Zustand zu speichern.
 7. Gehe zurück zu Einstellungen → Echte Screenshots, drücke
-   **Aufnahme beenden** und **Echte Screenshots teilen**.
-8. Teile die PNG-Dateien und den JSON-Bericht über das iPhone-Teilenmenü.
+   **Aufnahme beenden** und **Screenshots als ZIP teilen**.
+8. Teile die ZIP-Datei (PNG-Screenshots und JSON-Bericht) über das iPhone-Teilenmenü.
 
 Die Dateien sind in Application Support/BBT-Bit-Live-Screenshots/<session-id>
 gespeichert. Es gibt **keinen automatischen Upload** und die App greift
