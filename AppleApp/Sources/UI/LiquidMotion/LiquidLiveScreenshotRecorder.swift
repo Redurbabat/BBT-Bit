@@ -87,6 +87,9 @@ final class LiquidLiveScreenshotRecorder {
     /// The view's context explicitly excludes the synthetic design gallery.
     func schedule(featureID: String, refresh: Bool = false) {
         guard recording, let feature = feature(for: featureID) else { return }
+        // Music Island remains mounted under the Settings overlay. Do not
+        // mislabel a screenshot of Settings as a live Music Island capture.
+        if featureID == "island" && AppServices.shared.appModel.settingsPresented { return }
         if !refresh && captures.contains(where: { $0.featureID == featureID }) { return }
         if !pending.insert(featureID).inserted { return }
         let token = sessionToken
@@ -242,6 +245,28 @@ struct LiquidLiveScreenshotSettingsView: View {
 
     var body: some View {
         List {
+            Section {
+                NavigationLink {
+                    LiquidPhotoWayfinderView()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                            .font(.title2)
+                            .foregroundStyle(.cyan)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Foto-Wegweiser mit Pfeilen")
+                                .font(.headline)
+                            Text("15 Stationen: wohin tippen, wann fotografieren und was bereits erledigt ist")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 7)
+                }
+                .accessibilityIdentifier("bbt.screenshots.guide")
+            } header: {
+                Text("Geführter Rundgang")
+            }
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Echte App-Screenshots")
