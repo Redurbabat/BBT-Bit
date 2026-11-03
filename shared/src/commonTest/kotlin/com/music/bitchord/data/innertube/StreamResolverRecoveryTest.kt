@@ -3,6 +3,7 @@ package com.music.bitchord.data.innertube
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import com.music.bitchord.data.http.RawHttpBytes
+import com.metrolist.innertubex.extraction.StreamResolveException
 import kotlin.test.*
 
 /** The production resolver shell around upstream extraction, with synthetic media. */
@@ -20,6 +21,73 @@ class StreamResolverRecoveryTest {
     }
     private fun stream(id: String) = StreamResolver.ResolvedStream(
         "https://media.invalid/$id", 128, "audio/mp4", mapOf("User-Agent" to "synthetic-profile"))
+
+    private fun botCheckFailure() = StreamResolveException(
+        StreamResolveException.Reason.BOT_CHECKED,
+        "YouTube asks this network to sign in to confirm it is not a bot",
+    )
+
+    @Test fun guestBotCheckBacksOffUntilSessionChanges() = runTest {
+        fixture {
+            var attempts = 0
+            StreamResolver.extraction = { id, _ ->
+                attempts++
+                if (id == "blocked") throw botCheckFailure()
+                stream(id)
+            }
+            assertFailsWith<StreamResolver.BotCheckException> { StreamResolver.resolve("blocked") }
+            // A second track must not send another player request during guest backoff.
+            assertFailsWith<StreamResolver.BotCheckException> { StreamResolver.resolve("other") }
+            assertEquals(1, attempts)
+
+            // Signing in is a new session: a guest's backoff cannot prevent its retry.
+            Innertube.cookie = "SAPISID=synthetic-account"
+            assertNotNull(StreamResolver.resolve("other"))
+            assertEquals(2, attempts)
+        }
+    }
+
+    @Test fun signedInBotCheckDoesNotBlockUnrelatedTracks() = runTest {
+        fixture {
+            Innertube.cookie = "SAPISID=synthetic-account"
+            var attempts = 0
+            StreamResolver.extraction = { id, _ ->
+                attempts++
+                if (id == "blocked") throw botCheckFailure()
+                stream(id)
+            }
+            assertFailsWith<StreamResolver.BotCheckException> { StreamResolver.resolve("blocked") }
+            assertNotNull(StreamResolver.resolve("other"))
+            assertEquals(2, attempts)
+        }
+    }
+
+    @Test fun unrelatedExtractionFailureIsNotMisdiagnosedAsBotCheck() = runTest {
+        fixture {
+            StreamResolver.extraction = { _, _ -> throw IllegalStateException("Cipher unavailable") }
+            val error = assertFailsWith<IllegalStateException> { StreamResolver.resolve("broken") }
+            assertEquals("Cipher unavailable", error.message)
+            StreamResolver.extraction = { id, _ -> stream(id) }
+            assertNotNull(StreamResolver.resolve("working"))
+        }
+    }
+
+    @Test fun ordinaryUnplayableResponseDoesNotCauseGuestBackoff() = runTest {
+        fixture {
+            StreamResolver.extraction = { id, _ ->
+                if (id == "broken") {
+                    throw StreamResolveException(
+                        StreamResolveException.Reason.NO_PLAYABLE_STREAM,
+                        "No playable stream found for this track.",
+                    )
+                }
+                stream(id)
+            }
+            val error = assertFailsWith<StreamResolveException> { StreamResolver.resolve("broken") }
+            assertEquals(StreamResolveException.Reason.NO_PLAYABLE_STREAM, error.reason)
+            assertNotNull(StreamResolver.resolve("working"))
+        }
+    }
 
     @Test fun openingRangeMustBePartialMediaAndCannotAcceptTruncatedFullBody() {
         val bytes = ByteArray(MIN_FIRST_RANGE_BYTES) { 7 }

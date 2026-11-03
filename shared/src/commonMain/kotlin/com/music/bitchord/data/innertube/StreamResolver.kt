@@ -1,13 +1,8 @@
 package com.music.bitchord.data.innertube
 import com.music.bitchord.data.DebugLog
+import com.metrolist.innertubex.extraction.StreamResolveException
 import com.music.bitchord.data.http.ProbeResult
-import com.music.bitchord.data.http.Http
 import com.music.bitchord.data.http.RawHttpBytes
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
 import kotlin.concurrent.atomics.AtomicReference
@@ -33,7 +28,9 @@ object StreamResolver {
         val generation = Innertube.sessionGeneration
         val key = "$generation|$videoId|$maxKbps"
         recent.snapshot()[key]?.takeIf { it.at.elapsedNow() < 20.seconds }?.let { return it.stream }
-        botCheckedUntil.load()?.takeIf { it.hasNotPassedNow() }?.let { throw BotCheckException() }
+        if (Innertube.cookie == null && botCheckedUntil.load()?.hasNotPassedNow() == true) {
+            throw BotCheckException()
+        }
         val candidate = scope.async(start = CoroutineStart.LAZY) {
             Innertube.checkSession(generation)
             val stream = try {
@@ -41,12 +38,16 @@ object StreamResolver {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {
-                if (isBotChecked(videoId)) throw BotCheckException()
+                // Classify only an actual extractor response. An extra anonymous
+                // ANDROID_VR request can falsely label unrelated or signed-in
+                // failures as a network-wide bot check.
+                if (e is StreamResolveException && e.reason == StreamResolveException.Reason.BOT_CHECKED) {
+                    Innertube.checkSession(generation)
+                    if (Innertube.cookie == null) rememberBotCheck()
+                    throw BotCheckException()
+                }
                 throw e
-            } ?: run {
-                if (isBotChecked(videoId)) throw BotCheckException()
-                error("No playable stream for $videoId")
-            }
+            } ?: error("No playable stream for $videoId")
             Innertube.checkSession(generation)
             // Validate on the first bounded media range, which is also the
             // first request capable of producing sound. A separate probe
@@ -82,14 +83,8 @@ object StreamResolver {
             abandoned?.cancel()
         }
     }
-    /**
-     * YouTube's "Sign in to confirm you're not a bot": a verdict on the network
-     * address, not on any track. Every client gets it, so walking clients,
-     * rebuilding the session or trying another copy only adds traffic from an
-     * address already under suspicion. It is told apart from an ordinary miss
-     * by one anonymous player request, and then nothing more is asked of
-     * YouTube for [BOT_CHECK_BACKOFF] — a network change or a little patience
-     * is what clears it.
+    /** Only a bot check reported by an attempted playback client triggers guest backoff.
+     * Signed-in sessions must not inherit an anonymous client's refusal.
      */
     class BotCheckException : IllegalStateException(
         "YouTube asks this network to sign in to confirm it is not a bot"
@@ -97,33 +92,9 @@ object StreamResolver {
     private val botCheckedUntil = AtomicReference<TimeMark?>(null)
     private val BOT_CHECK_BACKOFF = 120.seconds
 
-    private suspend fun isBotChecked(videoId: String): Boolean {
-        val reason = try {
-            val body = Http.client.post("https://www.youtube.com/youtubei/v1/player?prettyPrint=false") {
-                contentType(ContentType.Application.Json)
-                setBody(buildJsonObject {
-                    put("videoId", videoId)
-                    putJsonObject("context") {
-                        putJsonObject("client") {
-                            put("clientName", "ANDROID_VR")
-                            put("clientVersion", "1.65.10")
-                            put("androidSdkVersion", 32)
-                            put("hl", "en")
-                        }
-                    }
-                }.toString())
-            }.bodyAsText()
-            (Json.parseToJsonElement(body).jsonObject["playabilityStatus"] as? JsonObject)
-                ?.get("reason")?.jsonPrimitive?.contentOrNull.orEmpty()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (_: Throwable) {
-            return false
-        }
-        if (!reason.contains("not a bot", ignoreCase = true)) return false
+    private fun rememberBotCheck() {
         botCheckedUntil.store(TimeSource.Monotonic.markNow() + BOT_CHECK_BACKOFF)
-        DebugLog.w("YouTube is bot-checking this network; not asking again for ${BOT_CHECK_BACKOFF.inWholeSeconds}s")
-        return true
+        DebugLog.w("YouTube reported a bot check during playback; backing off guest requests for ${BOT_CHECK_BACKOFF.inWholeSeconds}s")
     }
 
     fun onSessionChanged() {

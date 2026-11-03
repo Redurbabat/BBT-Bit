@@ -650,6 +650,8 @@ class InnerTubeExtractor internal constructor(
                     message =
                         when (reason) {
                             StreamResolveException.Reason.AGE_RESTRICTED -> "This track is age-restricted."
+                            StreamResolveException.Reason.BOT_CHECKED ->
+                                "YouTube asks this network to sign in to confirm it is not a bot"
                             else -> "This track is unavailable."
                         },
                     diagnostics = diagnostics.snapshot(),
