@@ -94,6 +94,10 @@ jobs:
           assert 'recording = true' in live
           assert 'applicationSupportDirectory' in live
           assert 'LiquidWindowShareSheet' in live
+          archive = Path('AppleApp/Sources/UI/LiquidMotion/BBTScreenshotZIP.swift').read_text()
+          assert '0x04034B50' in archive and '0x02014B50' in archive
+          assert 'BBTScreenshotZIP.create(' in live
+          assert 'BBT-Bit-Echte-Screenshots.zip' in live
           assert 'liquidDesignSample' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDesignPhotosView.swift').read_text()
           expected = ['AutomixWeave', 'LyricsMirror', 'SignalPrism', 'EQMembrane',
                       'ReplayTimeRiver', 'QueueHorizon', 'DownloadBloom', 'OutputHaloGlyph',
