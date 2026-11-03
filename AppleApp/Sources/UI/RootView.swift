@@ -276,8 +276,11 @@ struct RootView: View {
             if let entryID = verificationAlert?.entryID {
                 Button("Try Again") {
                     verificationAlert = nil
-                    guard controller.current?.id == entryID else { return }
-                    controller.togglePlayPause()
+                    guard controller.current?.id == entryID, controller.state == .stopped else { return }
+                    // The listener explicitly requested a new attempt; do not
+                    // reuse a previously refused stream URL or retry in a loop.
+                    controller.loadCurrent(controller.playingIndex,
+                                           refreshAutoplay: false, freshResolution: true)
                 }
             }
             if let url = verificationAlert?.watchURL {
