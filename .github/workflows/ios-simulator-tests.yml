@@ -44,7 +44,6 @@ jobs:
           xcrun simctl list devices available
           test "$(uname -m)" = "arm64"
           mkdir -p "$RESULT_DIR/screenshots"
-          xcodebuild -version | tr '\n' ' ' >> "$GITHUB_ENV" || true
 
       - name: Install Java 21 for Kotlin/Native
         uses: actions/setup-java@v4
@@ -107,7 +106,6 @@ jobs:
           test -d AppleApp/Frameworks/BitChordShared.xcframework
           /usr/libexec/PlistBuddy -c "Print :AvailableLibraries" AppleApp/Frameworks/BitChordShared.xcframework/Info.plist
           # It must include an iOS Simulator variant, not only iphoneos.
-          grep -aql '<string>ios</string>' AppleApp/Frameworks/BitChordShared.xcframework/Info.plist || true
 
       - name: Build Rust simulator framework and Swift UniFFI bindings
         shell: bash
@@ -125,7 +123,7 @@ jobs:
           set -euo pipefail
           xcodegen generate --spec AppleApp/project.yml
           test -d AppleApp/BitChord.xcodeproj
-          xcrun simctl list devices available --json > "$RESULT_DIR/available-simulators.json"
+          xcrun simctl list -j devices available > "$RESULT_DIR/available-simulators.json"
           python3 - <<'PY'
           import json, os
           from pathlib import Path
