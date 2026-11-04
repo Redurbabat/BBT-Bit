@@ -99,6 +99,15 @@ struct PlaybackPill: View {
         }
         .padding(.horizontal, inline ? 8 : 12)
         .padding(.vertical, inline ? 4 : 8)
+        .background {
+            if controller.current != nil && !reduceTransparency && !reduceBlur {
+                CoverMorphMiniSurface(
+                    entry: controller.current,
+                    isPlaying: controller.isPlaying,
+                    inline: inline
+                )
+            }
+        }
         .modifier(MiniPlayerChrome(fill: chromeFill, reduceTransparency: reduceTransparency || reduceBlur))
         .overlay(alignment: .bottom) { progressHairline.clipShape(Capsule()) }
         .contentShape(.rect)
@@ -357,16 +366,29 @@ struct PlaybackPill: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(controller.current?.title ?? "Not Playing")
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(controller.current == nil ? .secondary : .primary)
+                .foregroundStyle(
+                    controller.current == nil ? Color.secondary :
+                    (isArtworkMiniTintActive ? Color.white : Color.primary)
+                )
                 .lineLimit(1)
             // Inline there is room for the title alone, as in Music.
             if !inline {
                 Text(controller.current?.artist ?? "Music you start appears here")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(isArtworkMiniTintActive ? Color.white.opacity(0.83) : Color.secondary)
                     .lineLimit(1)
             }
         }
+    }
+
+    /// On the iPhone, the artwork-linked mini-player uses white controls for
+    /// reliable contrast even when the app uses a light appearance.
+    private var isArtworkMiniTintActive: Bool {
+        #if os(iOS)
+        controller.current != nil && !isRegularWidth && !reduceTransparency && !reduceBlur
+        #else
+        false
+        #endif
     }
 
     // MARK: - The party
@@ -647,7 +669,9 @@ struct PlaybackPill: View {
             .buttonStyle(.plain)
             .frame(width: inline ? 34 : 40, height: inline ? 34 : 40)
             .foregroundStyle(
-                PartyStore.shared.state.controlsLocked ? Color.primary.opacity(0.3) : Color.primary
+                isArtworkMiniTintActive
+                    ? Color.white.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
+                    : Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
             )
             .disabled(!controller.canPlayNext || PartyStore.shared.state.controlsLocked)
             .accessibilityLabel("Next")
@@ -656,7 +680,7 @@ struct PlaybackPill: View {
                 partyButton.frame(width: 40, height: 40)
             }
         }
-        .foregroundStyle(.primary)
+        .foregroundStyle(isArtworkMiniTintActive ? Color.white : Color.primary)
     }
 
     private var padLeadingTransport: some View {
@@ -706,7 +730,9 @@ struct PlaybackPill: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(
-                PartyStore.shared.state.controlsLocked ? Color.primary.opacity(0.3) : Color.primary
+                isArtworkMiniTintActive
+                    ? Color.white.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
+                    : Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
             )
             .disabled(!controller.canPlayNext || PartyStore.shared.state.controlsLocked)
             .accessibilityLabel("Next")
