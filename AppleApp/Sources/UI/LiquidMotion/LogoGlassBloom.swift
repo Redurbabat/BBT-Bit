@@ -117,6 +117,8 @@ struct LogoGlassBloomIsland: View {
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bloom = LogoGlassBloomCoordinator.shared
+    @State private var trackGlint = false
+    @State private var glintRevision = 0
 
     private var isSpark: Bool { bloom.phase == .spark }
     private var isExpanded: Bool { bloom.phase == .expanded }
@@ -166,6 +168,20 @@ struct LogoGlassBloomIsland: View {
                     lineWidth: 0.9
                 )
         }
+        .overlay(alignment: .top) {
+            if trackGlint && !reduceMotion {
+                Capsule()
+                    .fill(LinearGradient(
+                        colors: [.clear, .cyan.opacity(0.85), .white.opacity(0.8), .clear],
+                        startPoint: .leading, endPoint: .trailing
+                    ))
+                    .frame(width: 100, height: 2)
+                    .blur(radius: 0.6)
+                    .accessibilityHidden(true)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+        }
         .overlay(alignment: .topLeading) {
             if isSpark {
                 Circle()
@@ -184,12 +200,32 @@ struct LogoGlassBloomIsland: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("bbt.logoGlassBloom")
         .background { LiquidLiveCaptureMarker(id: "island") }
+        .onChange(of: controller.current?.id) { _, newID in
+            guard newID != nil else { return }
+            flashTrackGlint()
+        }
         .onChange(of: bloom.phase) { _, newPhase in
             if newPhase == .expanded {
                 LiquidLiveCaptureMarker.refresh("island")
                 #if os(iOS)
                 UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                 #endif
+            }
+        }
+    }
+
+    private func flashTrackGlint() {
+        guard !reduceMotion else { return }
+        glintRevision += 1
+        let revision = glintRevision
+        withAnimation(.easeOut(duration: 0.18)) {
+            trackGlint = true
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(560))
+            guard revision == glintRevision else { return }
+            withAnimation(.easeOut(duration: 0.3)) {
+                trackGlint = false
             }
         }
     }
@@ -318,7 +354,7 @@ struct LogoGlassBloomIsland: View {
 
     private func handleSwipe(_ translation: CGSize) {
         let horizontal = abs(translation.width) > abs(translation.height) * 1.3
-        if horizontal && abs(translation.width) > 60 {
+        if horizontal && abs(translation.width) > 60 && !PartyStore.shared.state.controlsLocked {
             if translation.width < 0 && controller.canPlayNext {
                 controller.next()
                 bloom.keepOpenBriefly()
