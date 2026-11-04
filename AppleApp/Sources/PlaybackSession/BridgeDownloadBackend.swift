@@ -28,7 +28,9 @@ struct BridgeDownloadBackend: DownloadBackend {
         guard entry.source.hasPrefix("yt:"), let videoId = entry.videoId else {
             throw NSError(domain: "Download", code: 1, userInfo: [NSLocalizedDescriptionKey: "No enabled source supplied a downloadable copy of this recording."])
         }
-        let stream = try await InnertubeStreamResolver.shared.resolve(videoId: videoId, maxKbps: quality == "STANDARD" ? 128 : Int(Int32.max))
+        let stream = try await InnertubeStreamResolver.shared.resolve(
+            videoId: videoId, maxKbps: quality == "STANDARD" ? 128 : Int(Int32.max), background: true
+        )
         return try encode(url: stream.url, headers: stream.headers, provider: "youtube", identity: videoId,
             codec: stream.mimeType.lowercased().contains("opus") ? "Opus" : "AAC", kbps: stream.kbps,
             lossless: false, youtubeVideoId: videoId)

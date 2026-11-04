@@ -349,7 +349,7 @@ struct BitChordApp: App {
                 .environment(toast)
                 .environment(party)
                 .preferredColorScheme(appModel.preferredScheme)
-                .environment(\.locale, appModel.appLanguage.isEmpty ? .autoupdatingCurrent : Locale(identifier: appModel.appLanguage))
+                .environment(\.locale, AppLanguage.locale(for: appModel.appLanguage))
         }
         // One unified titlebar row, as System Settings has: the traffic
         // lights, back and forward, the title and the search field together,
@@ -455,7 +455,7 @@ final class AppModel {
     var queueRevealRequested = false
     var lyricsRevealRequested = false
     var themeMode = PlatformSettings.shared.getString(key: "theme_mode", default: "dark")
-    var appLanguage = PlatformSettings.shared.getString(key: "app_language", default: "")
+    var appLanguage = AppLanguage.identifier()
     var pinLimitAlert = false
     var playlistRename: PlaylistRenameRequest?
 

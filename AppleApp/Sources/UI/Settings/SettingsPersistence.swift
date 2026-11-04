@@ -160,7 +160,7 @@ struct SettingsExtrasPersist: ViewModifier {
             .onChange(of: stopBackground) { _, value in AppSettings.shared.setStopWhenBackgrounded(value: value) }
             .onChange(of: syllableSync) { _, value in AppSettings.shared.setPrioritizeSyllableSync(value: value) }
             .onChange(of: language) { _, value in
-                PlatformSettings.shared.putString(key: "app_language", value: value)
+                PlatformSettings.shared.putString(key: AppLanguage.preferenceKey, value: value)
                 appModel.appLanguage = value
             }
             .onChange(of: spotifyCookie) { _, value in AppSettings.shared.setSpotifySpdc(value: value) }

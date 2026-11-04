@@ -49,10 +49,12 @@ final class FixtureBackend: DownloadBackend, @unchecked Sendable {
     private(set) var transfers = 0
     var sharedRecording = false
     var resolutionFails = false
+    var resolutionError: YouTubeStreamError?
     var verificationFails = false
     private var resolutions = 0
     func resolve(_ entry: QueueEntry, quality: String) async throws -> String {
         lock.withLock { resolutions += 1 }
+        if let resolutionError { throw resolutionError }
         if resolutionFails { throw CocoaError(.fileReadUnknown) }
         let id = sharedRecording ? "shared-recording" : entry.id
         return "{\"url\":\"fixture://audio\",\"provider\":\"fixture\",\"recordingIdentity\":\"\(id)\",\"codec\":\"PCM\",\"kbps\":1411,\"lossless\":true}"
@@ -253,6 +255,20 @@ final class FixtureBackend: DownloadBackend, @unchecked Sendable {
         }
         failing.networkPolicyChanged()
         assert(failing.jobs[0].status == .failed && failedBackend.resolutionCount() == 3, "automatic retries stop after three attempts")
+        let noStreamBackend = FixtureBackend()
+        noStreamBackend.resolutionError = YouTubeStreamError(
+            message: "No compatible audio", raw: "No compatible audio [reason=NO_PLAYABLE_STREAM, player_requests=2]"
+        )
+        let noStream = DownloadStore(directory: root.appendingPathComponent("no-stream"), legacyDirectory: legacyRoot, backend: noStreamBackend)
+        _ = noStream.download(entries[0])
+        await noStream.waitUntilReady()
+        for _ in 0..<100 {
+            if noStream.jobs[0].status == .failed { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        noStream.networkPolicyChanged()
+        assert(noStream.jobs[0].status == .failed && noStreamBackend.resolutionCount() == 1,
+               "no-stream stops automatic retries while leaving the job available for manual retry")
         PlatformSettings.shared.putBoolean(key: "wifi_only_downloads", value: previousWifi)
         let segments = SponsorBlockStore.parse(Data("""
             [{"category":"music_offtopic","actionType":"skip","segment":[1,3]},

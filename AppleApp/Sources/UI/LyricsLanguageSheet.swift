@@ -33,8 +33,7 @@ struct LyricsLanguageSheet: View {
     }
 
     private var appDefaultTarget: LyricsTranslator.Language? {
-        let appLanguage = UserDefaults.standard.string(forKey: "app_language") ?? ""
-        let code = appLanguage.isEmpty ? Locale.current.identifier : appLanguage
+        let code = AppLanguage.locale(for: AppLanguage.identifier()).identifier
         let available = translator.languages(for: .translate)
         return available.first { $0.code.caseInsensitiveCompare(code) == .orderedSame }
             ?? available.first {
@@ -199,8 +198,7 @@ struct LyricsTranslateControl: View {
     }
 
     private var preferredTarget: LyricsTranslator.Language? {
-        let appLanguage = UserDefaults.standard.string(forKey: "app_language") ?? ""
-        let code = preferredLanguage.isEmpty ? (appLanguage.isEmpty ? Locale.current.identifier : appLanguage) : preferredLanguage
+        let code = preferredLanguage.isEmpty ? AppLanguage.locale(for: AppLanguage.identifier()).identifier : preferredLanguage
         let languages = translator.languages(for: .translate)
         return languages.first { $0.code.caseInsensitiveCompare(code) == .orderedSame }
             ?? languages.first { $0.code.split(separator: "-").first == code.split(whereSeparator: { $0 == "-" || $0 == "_" }).first }

@@ -30,34 +30,41 @@ struct VideoSideError: Error, LocalizedError {
 final class InnertubeStreamResolver: Sendable {
     static let shared = InnertubeStreamResolver()
 
-    func resolve(videoId: String, maxKbps: Int = Int.max) async throws -> ResolvedYouTubeStream {
+    func resolve(videoId: String, maxKbps: Int = Int.max, background: Bool = false) async throws -> ResolvedYouTubeStream {
         let request = ResolutionRequest()
         let payload: ResolvedYouTubeStream = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 request.install(continuation)
                 guard !Task.isCancelled else { request.cancel(); return }
-                let id = PlayerBridge.shared.resolveRequest(
-                    videoId: videoId,
-                    maxKbps: Swift.Int32(clamping: maxKbps == Int.max ? Int(Swift.Int32.max) : maxKbps),
-                    callback: ResolveCallbackAdapter { json, message in
-                        if let json {
-                            do {
-                                let decoded = try JSONDecoder().decode(StreamPayload.self, from: Data(json.utf8))
-                                request.finish(.success(ResolvedYouTubeStream(url: decoded.url, kbps: decoded.kbps,
-                                    mimeType: decoded.mimeType, headers: decoded.headers, durationSeconds: decoded.durationSeconds,
-                                    loudnessDb: decoded.loudnessDb, clientName: decoded.clientName)))
-                            } catch { request.finish(.failure(error)) }
+                let ceiling = Swift.Int32(clamping: maxKbps)
+                let callback = ResolveCallbackAdapter { json, message in
+                    if let json {
+                        do {
+                            let decoded = try JSONDecoder().decode(StreamPayload.self, from: Data(json.utf8))
+                            request.finish(.success(ResolvedYouTubeStream(url: decoded.url, kbps: decoded.kbps,
+                                mimeType: decoded.mimeType, headers: decoded.headers, durationSeconds: decoded.durationSeconds,
+                                loudnessDb: decoded.loudnessDb, clientName: decoded.clientName)))
+                        } catch { request.finish(.failure(error)) }
+                    } else {
+                        let raw = message ?? "Stream resolution failed"
+                        let error = StreamError(message: StreamError.say(raw), raw: raw)
+                        if error.reason == .cancelled {
+                            request.finish(.failure(CancellationError()))
                         } else {
-                            let raw = message ?? "Stream resolution failed"
-                            request.finish(.failure(StreamError(message: StreamError.say(raw), raw: raw)))
+                            request.finish(.failure(error))
                         }
-                    })
+                    }
+                }
+                let id = background
+                    ? PlayerBridge.shared.resolveBackgroundRequest(videoId: videoId, maxKbps: ceiling, callback: callback)
+                    : PlayerBridge.shared.resolveRequest(videoId: videoId, maxKbps: ceiling, callback: callback)
                 request.setID(id)
             }
         } onCancel: { request.cancel() }
 
         // The shared resolver transforms both direct and ciphered URLs before
         // probing. Applying the n transform again corrupts a verified URL.
+        try Task.checkCancellation()
         return payload
     }
 
@@ -101,72 +108,7 @@ final class InnertubeStreamResolver: Sendable {
         }
     }
 
-    struct StreamError: Error, LocalizedError {
-        /// The sentence a listener sees.
-        let message: String
-        /// What the shared module said, in full.
-        ///
-        /// Kept rather than discarded because it is the only place the per-client
-        /// reasons exist and they are what a bug report needs. Never shown: it
-        /// contains a video id and internal client names.
-        let raw: String
-
-        init(message: String, raw: String? = nil) {
-            self.message = message
-            self.raw = raw ?? message
-        }
-
-        var errorDescription: String? { message }
-
-        /// What to show a listener, from whatever the shared module said.
-        ///
-        /// The shared module's message names the track and every client that refused
-        /// it, which is the right thing for a log and the wrong thing to put in front
-        /// of somebody: a video id and a list of internal client names is not a
-        /// explanation. The two cases that are not "this one track is being awkward"
-        /// get their own sentences, because they are the two a listener can do
-        /// something about — and everything else gets one honest sentence rather than
-        /// five words that name a subsystem.
-        ///
-        /// Same rule as the party screen's `describe`: the server's own words when it
-        /// sent any, otherwise a statement of what failed and never the raw error.
-        /// YouTube's "confirm you're not a bot": about the network, not the track.
-        static func isBotCheck(_ error: Error) -> Bool {
-            UserFacingRequestError.isYouTubeVerification(
-                (error as? StreamError)?.raw ?? error.localizedDescription
-            )
-        }
-
-        static func say(_ raw: String) -> String {
-            let said = raw.lowercased()
-            if said.contains("code=-1009") || said.contains("no network route") ||
-                said.contains("keine verbindung zum internet") {
-                return UserFacingRequestError.message(raw)
-            }
-            if said.contains("signed-in playback:") {
-                return "Your signed-in session could not be restored. Check your connection or sign in again."
-            }
-            if said.contains("temporarily unavailable") {
-                return "Playback is temporarily unavailable. Try again shortly."
-            }
-            if UserFacingRequestError.isYouTubeVerification(raw) {
-                return UserFacingRequestError.message(raw)
-            }
-            if said.contains("sign in") {
-                return "YouTube is asking this device to sign in before it will serve anything. That is YouTube's gate rather than anything to do with the track."
-            }
-            if said.contains("needs to be reloaded") || said.contains("page needs") {
-                return "YouTube's player refused this connection. Trying again in a moment usually clears it."
-            }
-            if said.contains("unavailable") || said.contains("not available") {
-                return "That track isn’t available right now."
-            }
-            if said.contains("no signature timestamp") {
-                return "BitChord could not read YouTube’s player, so it could not open a stream. Check the connection and try again."
-            }
-            return "Couldn’t open a stream for that track."
-        }
-    }
+    typealias StreamError = YouTubeStreamError
 }
 
 private struct StreamPayload: Codable {

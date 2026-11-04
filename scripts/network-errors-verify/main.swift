@@ -7,6 +7,17 @@ func expect(_ actual: String, toContain expected: String) {
     }
 }
 
+let languageSuite = "bbt-language-\(UUID().uuidString)"
+let languageDefaults = UserDefaults(suiteName: languageSuite)!
+defer { languageDefaults.removePersistentDomain(forName: languageSuite) }
+assert(AppLanguage.identifier(in: languageDefaults) == "de")
+assert(AppLanguage.locale(for: AppLanguage.identifier(in: languageDefaults)).identifier == "de")
+languageDefaults.set("en", forKey: AppLanguage.preferenceKey)
+assert(AppLanguage.identifier(in: languageDefaults) == "en")
+languageDefaults.set("", forKey: AppLanguage.preferenceKey)
+assert(AppLanguage.identifier(in: languageDefaults).isEmpty)
+assert(AppLanguage.locale(for: AppLanguage.identifier(in: languageDefaults)).identifier == Locale.autoupdatingCurrent.identifier)
+
 let direct = NSError(domain: NSURLErrorDomain, code: -1009, userInfo: [:])
 expect(UserFacingRequestError.message(direct), toContain: "Settings > Cellular")
 
@@ -39,4 +50,14 @@ assert(UserFacingRequestError.youtubeWatchURL(forVideoID: "short") == nil)
 let unexpected = UserFacingRequestError.message("Error Domain=Other Code=42 UserInfo={secret=123}")
 assert(unexpected == "The request failed. Check your connection and try again.")
 assert(UserFacingRequestError.message("Server temporarily unavailable") == "Server temporarily unavailable")
+let noStreamRaw = "No playable stream [reason=NO_PLAYABLE_STREAM, player_requests=2, transport=progressive-only, outcomes=IOS/transport:hls-only]"
+let noStream = YouTubeStreamError(message: YouTubeStreamError.say(noStreamRaw), raw: noStreamRaw)
+assert(noStream.reason == .noPlayableStream && noStream.stopsAutomaticDownloadRetry && noStream.canTryCounterpart)
+expect(noStream.message, toContain: "compatible audio stream")
+assert(!noStream.message.contains("outcomes="))
+let network = YouTubeStreamError(message: "Network failed [reason=NETWORK, player_requests=2]")
+assert(network.reason == .network && !network.stopsAutomaticDownloadRetry && !network.canTryCounterpart)
+let ageRestricted = YouTubeStreamError(message: "Age verification [reason=AGE_RESTRICTED]")
+assert(ageRestricted.stopsAutomaticDownloadRetry && !ageRestricted.canTryCounterpart)
+assert(YouTubeStreamError.Reason(bridgeMessage: "[reason=CANCELLED]") == .cancelled)
 print("PASS: network error classification, privacy and recovery hints")

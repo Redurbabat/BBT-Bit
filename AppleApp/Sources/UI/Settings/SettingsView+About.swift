@@ -222,9 +222,9 @@ extension SettingsView {
                 }
             }
         }
-        rows.row("App Language", "language", "locale", "translate", "english", "spanish", "french", "german", "portuguese", "hindi", "japanese", "korean", "chinese") {
+        rows.row("App Language", "language", "sprache", "deutsch", "locale", "translate", "english", "spanish", "french", "german", "portuguese", "hindi", "japanese", "korean", "chinese") {
             Picker(selection: $language) {
-                Text("System").tag("")
+                Text("Device Language").tag("")
                 Text("English").tag("en")
                 Text("Spanish").tag("es")
                 Text("French").tag("fr")
@@ -235,7 +235,11 @@ extension SettingsView {
                 Text("Korean").tag("ko")
                 Text("Chinese").tag("zh-Hans")
             } label: {
-                SettingsLine(glyph: .theme, title: "App Language", subtitle: "Follows system unless you pick one") {
+                SettingsLine(
+                    glyph: .theme,
+                    title: AppLanguage.localized("App Language"),
+                    subtitle: AppLanguage.localized("German is the default. Choose Device Language to follow the device.")
+                ) {
                     EmptyView()
                 }
             }

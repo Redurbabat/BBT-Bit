@@ -82,7 +82,7 @@ struct SettingsView: View {
     @State var artistSignatures = PlatformSettings.shared.getBoolean(key: "artist_signatures_enabled", default: true)
     @State var artistSignaturesWikimediaUrl = PlatformSettings.shared.getString(key: "artist_signatures_wikimedia_url", default: "")
     @State var syllableSync = PlatformSettings.shared.getBoolean(key: "prioritize_syllable_sync", default: true)
-    @State var language = PlatformSettings.shared.getString(key: "app_language", default: "")
+    @State var language = AppLanguage.identifier()
     @State var spotifyCookie = PlatformSettings.shared.getString(key: "spotify_spdc_token", default: "")
     @State var replayGenres = PlatformSettings.shared.getBoolean(key: "replay_genres", default: true)
     @State var exportPresented = false

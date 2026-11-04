@@ -6,3 +6,9 @@
 - Nutze [Glass Bloom](../AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift) für logoabhängige Zustände und [Cover Morph](../AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift) für den gemeinsamen Artwork-Kontext. Dauerlauf, Blur und Schatten brauchen einen konkreten Zweck. Prüfe Interaktion unter laufender Wiedergabe.
 - iPhone-Treffflächen mindestens 44 × 44 pt. Gesten erhalten eine erreichbare Alternative. Prüfe VoiceOver-Labels, Fokus nach Präsentation und Rückkehr, Dynamic Type, Hell/Dunkel, Safe Areas, Rotation, iPad und macOS-Tastaturbedienung.
 - Das [UI-Kit Motion Lab](https://github.com/Redurbabat/UI-Kit/blob/5e47ef79093626e5da6b78713ab071250ae2a611/docs/design/BBT_BIT_MOTION_LAB.md) beschreibt Interaktionen. BBT-Bit verwendet die vorhandene SwiftUI-Navigation und echte Playerzustände. Vorschauen kennzeichnen Beispieldaten.
+
+## Sprache
+
+- Deutsch ist die App-Vorgabe, solange keine Sprachwahl gespeichert ist. Die Auswahl „Gerätesprache“ folgt dem System. Gespeicherte Sprachen haben Vorrang.
+- Pflege im [String-Katalog](../AppleApp/Resources/Localization/Localizable.xcstrings) zu neuen oder geänderten UI-Texten eine deutsche Fassung. Erhalte vorhandene Schlüssel, englische Quellwerte, Platzhalter und Übersetzungen. Das gilt auch für Fehlermeldungen, Dialoge und Accessibility-Labels.
+- Prüfe den betroffenen Nutzerweg mit Deutsch und einer zweiten gespeicherten Sprache. Teste längere deutsche Texte mit großer Schrift. Musik- und Künstlernamen erscheinen wie von der Quelle geliefert.

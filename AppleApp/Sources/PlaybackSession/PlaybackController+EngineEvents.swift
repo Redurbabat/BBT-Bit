@@ -281,7 +281,8 @@ extension PlaybackController {
     /// against it.
     @discardableResult
     func markUnplayable(_ entry: QueueEntry, after error: Error) -> Bool {
-        guard NetworkQuality.shared.connected else { return false }
+        guard NetworkQuality.shared.connected, !(error is CancellationError),
+              (error as? YouTubeStreamError)?.reason != .network else { return false }
         let nsError = error as NSError
         let message = error.localizedDescription
         guard nsError.domain != NSURLErrorDomain,

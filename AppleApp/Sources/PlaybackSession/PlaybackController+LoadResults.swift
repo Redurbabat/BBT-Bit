@@ -145,12 +145,15 @@ extension PlaybackController {
     }
 
     func loadDidFail(entry: QueueEntry, error: Error) {
+        let cancelled = error is CancellationError
         if let pending = pendingPlaybackLatency, pending.entryID == entry.id {
-            let resolved = pending.resolvedAt.map { String(format: "%.0fms", ($0 - pending.startedAt) * 1_000) } ?? "unresolved"
-            PlaybackDebugLog.shared.record(
-                "latency: tap→resolved \(resolved), first buffer unavailable, first audible unavailable (\(pending.cacheState), \(pending.client))",
-                about: entry.id
-            )
+            if !cancelled {
+                let resolved = pending.resolvedAt.map { String(format: "%.0fms", ($0 - pending.startedAt) * 1_000) } ?? "unresolved"
+                PlaybackDebugLog.shared.record(
+                    "latency: tap→resolved \(resolved), first buffer unavailable, first audible unavailable (\(pending.cacheState), \(pending.client))",
+                    about: entry.id
+                )
+            }
             pendingPlaybackLatency = nil
         }
         loadingGeneration = nil
@@ -173,14 +176,17 @@ extension PlaybackController {
         automaticLoadEntryId = nil
         // Preserve the actual failure stage in the shareable, credential-
         // redacted report; a temporary toast is insufficient on an iPhone.
-        debugLog.record(
-            "playback load FAILED kind=\(entry.videoId != nil ? "youtube" : "other") "
-                + "network=\(NetworkQuality.shared.connected ? "connected" : "offline") "
-                + "audio_session_active=\(AudioSessionManager.isActive) "
-                + "state=\(state) error=\(error.localizedDescription)",
-            about: entry.id
-        )
-        lastError = "Couldn't play “\(entry.title)” — \(error.localizedDescription)"
+        if !cancelled {
+            debugLog.record(
+                "playback load FAILED kind=\(entry.videoId != nil ? "youtube" : "other") "
+                    + "network=\(NetworkQuality.shared.connected ? "connected" : "offline") "
+                    + "audio_session_active=\(AudioSessionManager.isActive) "
+                    + "state=\(state) error=\(error.localizedDescription)",
+                about: entry.id
+            )
+            let format = AppLanguage.localized("Couldn't play “%@” — %@")
+            lastError = String(format: format, entry.title, error.localizedDescription)
+        }
         // Somebody (pause, another load, sleep, interruption) owns the
         // transport now; their state stands and only the message is new.
         // Tearing the engine down here would stop whatever they started.

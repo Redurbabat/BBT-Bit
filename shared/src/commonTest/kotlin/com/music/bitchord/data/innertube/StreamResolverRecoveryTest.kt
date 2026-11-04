@@ -4,6 +4,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import com.music.bitchord.data.http.RawHttpBytes
 import com.metrolist.innertubex.extraction.StreamResolveException
+import com.metrolist.innertubex.extraction.StreamAttemptDiagnostic
+import com.metrolist.innertubex.extraction.StreamDiagnostics
 import kotlin.test.*
 
 /** The production resolver shell around upstream extraction, with synthetic media. */
@@ -198,5 +200,83 @@ class StreamResolverRecoveryTest {
             assertNotEquals(StreamResolver.resolve("quality", 64), StreamResolver.resolve("quality", Int.MAX_VALUE))
             assertEquals(listOf(64, Int.MAX_VALUE), ceilings)
         }
+    }
+
+    @Test fun backgroundWaitersAreCancellableAndDoNotBlockForegroundPlayback() = runTest {
+        fixture {
+            val opened = CompletableDeferred<Unit>()
+            val release = CompletableDeferred<Unit>()
+            val queuedStarted = CompletableDeferred<Unit>()
+            StreamResolver.extraction = { id, _ ->
+                when (id) {
+                    "download" -> {
+                        opened.complete(Unit)
+                        release.await()
+                    }
+                    "prefetch" -> queuedStarted.complete(Unit)
+                }
+                stream(id)
+            }
+            val generation = Innertube.sessionGeneration
+            val active = async { StreamResolver.resolveBackground("download", 128, generation) }
+            opened.await()
+            val queued = async(start = CoroutineStart.UNDISPATCHED) {
+                StreamResolver.resolveBackground("prefetch", 128, generation)
+            }
+            assertNotNull(StreamResolver.resolve("tapped"))
+            assertFalse(queuedStarted.isCompleted)
+            queued.cancelAndJoin()
+            release.complete(Unit)
+            assertNotNull(active.await())
+            assertFalse(queuedStarted.isCompleted)
+            assertNotNull(StreamResolver.resolveBackground("prefetch", 128, generation))
+        }
+    }
+
+    @Test fun backgroundWorkFromPreviousAccountCannotStartAfterWaiting() = runTest {
+        fixture {
+            val opened = CompletableDeferred<Unit>()
+            val staleStarted = CompletableDeferred<Unit>()
+            StreamResolver.extraction = { id, _ ->
+                if (id == "active") {
+                    opened.complete(Unit)
+                    awaitCancellation()
+                }
+                if (id == "stale") staleStarted.complete(Unit)
+                stream(id)
+            }
+            val generation = Innertube.sessionGeneration
+            val active = async { StreamResolver.resolveBackground("active", 128, generation) }
+            opened.await()
+            val stale = async(start = CoroutineStart.UNDISPATCHED) {
+                StreamResolver.resolveBackground("stale", 128, generation)
+            }
+            Innertube.cookie = "SAPISID=synthetic-new-account"
+            assertFailsWith<CancellationException> { active.await() }
+            assertFailsWith<CancellationException> { stale.await() }
+            assertFalse(staleStarted.isCompleted)
+            assertNotNull(StreamResolver.resolveBackground("current", 128, Innertube.sessionGeneration))
+        }
+    }
+
+    @Test fun reportSeparatesRealRequestsFromSkippedProfilesAndRedactsRawFields() {
+        val failure = StreamResolveException(
+            reason = StreamResolveException.Reason.NO_PLAYABLE_STREAM,
+            message = "No compatible audio",
+            diagnostics = StreamDiagnostics(
+                attempts = listOf(
+                    StreamAttemptDiagnostic("IOS", "IOS", "private-agent", "selection:private reason"),
+                    StreamAttemptDiagnostic("IOS", "IOS", "private-agent", "transport:hls-only"),
+                    StreamAttemptDiagnostic("VISIONOS", "invalid/private-profile", "private-agent", "playability:private status"),
+                ),
+                usedAuthenticatedWatchPage = false,
+                playerRequests = 2,
+            ),
+        )
+        val message = failure.playbackDiagnostic()
+        assertContains(message, "player_requests=2")
+        assertContains(message, "IOS/transport:hls-only")
+        assertContains(message, "unknown/playability:other")
+        assertFalse(message.contains("private"))
     }
 }

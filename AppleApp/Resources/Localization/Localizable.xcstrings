@@ -109,7 +109,16 @@
     "ALBUM": {},
     "API key": {},
     "ARTIST": {},
-    "About": {},
+    "About": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über die App"
+          }
+        }
+      }
+    },
     "About the album": {
       "localizations": {
         "de": {
@@ -325,7 +334,16 @@
     "Accelerated Beat Detection": {},
     "Accelerated beat detection": {},
     "Access your playlists, library, and personalized mixes.": {},
-    "Account": {},
+    "Account": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto"
+          }
+        }
+      }
+    },
     "Account & Integrations": {},
     "Account & Settings": {},
     "Account and Settings": {},
@@ -547,7 +565,16 @@
     "Advanced Options": {},
     "AirPlay": {},
     "AirPlay & Bluetooth": {},
-    "Album": {},
+    "Album": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album"
+          }
+        }
+      }
+    },
     "Album artist": {},
     "Albums": {
       "localizations": {
@@ -761,6 +788,17 @@
       }
     },
     "An API key and shared secret are required to authorise. Don’t share them.": {},
+    "App Language": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Sprache"
+          }
+        }
+      }
+    },
     "Appearance": {
       "localizations": {
         "de": {
@@ -1007,6 +1045,17 @@
     "Automix Performance": {},
     "Automix Transitions": {},
     "Automix times every transition itself; the crossfade slider returns when Automix is off.": {},
+    "BBT-Bit cannot access the internet. On iPhone, check Settings > Cellular > BBT-Bit (allow mobile data), Wi-Fi, and VPN, then retry.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BBT-Bit hat keinen Internetzugriff. Prüfe auf dem iPhone unter Einstellungen → Mobilfunk → BBT-Bit die mobilen Daten sowie WLAN und VPN. Versuche es danach erneut."
+          }
+        }
+      }
+    },
     "BITCHORD": {},
     "BITCHORD REPLAY": {},
     "Back": {
@@ -1137,6 +1186,17 @@
     "BitChord %@ is out": {},
     "BitChord analyzes your tracks on-device to match beats, time crossfades, and prevent vocal clashes between songs.": {},
     "BitChord audio priority": {},
+    "BitChord could not read YouTube’s player, so it could not open a stream. Check the connection and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BBT-Bit konnte die YouTube-Playerdaten nicht lesen und deshalb keinen Stream öffnen. Prüfe die Verbindung und versuche es erneut."
+          }
+        }
+      }
+    },
     "BitChord installs from its releases page, so this opens it in your browser.": {},
     "BitChord watches the folder you choose for music files. Filtering keeps everything that is not a song out of the list.": {},
     "BitChord will still prefer its copy when the match is the same recording. It will not when it is not.": {},
@@ -1491,7 +1551,16 @@
         }
       }
     },
-    "Chinese": {},
+    "Chinese": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chinesisch"
+          }
+        }
+      }
+    },
     "Choose Another Folder": {},
     "Choose File": {},
     "Choose Folder": {},
@@ -1832,7 +1901,16 @@
     "Continue in Background": {},
     "Contour %@": {},
     "Controls": {},
-    "Copy": {},
+    "Copy": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieren"
+          }
+        }
+      }
+    },
     "Copy code": {
       "localizations": {
         "de": {
@@ -1936,6 +2014,39 @@
     "Core ML · Neural Engine": {},
     "Could not translate this lyric": {},
     "Couldn't load": {},
+    "Couldn't play “%@” — %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ konnte nicht abgespielt werden. %2$@"
+          }
+        }
+      }
+    },
+    "Couldn’t open a stream for that track.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diesen Titel konnte kein Stream geöffnet werden."
+          }
+        }
+      }
+    },
+    "Couldn’t reach YouTube to open the audio stream. Check your connection and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YouTube war beim Öffnen des Audiostreams nicht erreichbar. Prüfe deine Verbindung und versuche es erneut."
+          }
+        }
+      }
+    },
     "Create": {},
     "Create a party": {
       "localizations": {
@@ -2360,9 +2471,18 @@
       }
     },
     "Delete %@": {},
-    "Download Models": {},
-    "Finds the singing at the start and end of each track so two vocals do not overlap during a transition.": {},
     "Developer": {},
+    "Device Language": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerätesprache"
+          }
+        }
+      }
+    },
     "Diagnostic Reports": {},
     "Discard": {},
     "Disconnect": {
@@ -2691,10 +2811,22 @@
       }
     },
     "Download %@": {},
+    "Download Models": {},
     "Download Models (~123 MB)": {},
     "Download Models (~46.7 MB)": {},
     "Download and install updates automatically": {},
     "Download anyway": {},
+    "Download interrupted. Retry to start a new request.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Download wurde unterbrochen. Wähle „Erneut versuchen“, um eine neue Anfrage zu starten."
+          }
+        }
+      }
+    },
     "Downloaded collections": {},
     "Downloaded once and kept in BitChord's storage. Removing a model takes effect immediately: Automix falls back to tempo analysis without the beat model, and stops watching for vocal clashes without the vocal one.": {},
     "Downloading in Background — Done": {},
@@ -2788,6 +2920,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "下載"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads"
           }
         }
       }
@@ -3105,6 +3243,7 @@
     "Filter %@": {},
     "Filter downloads": {},
     "Filter this library": {},
+    "Finds the singing at the start and end of each track so two vocals do not overlap during a transition.": {},
     "Finish signing in": {},
     "Finishing sign-in to BitChord.": {},
     "First button": {
@@ -3541,6 +3680,17 @@
         }
       }
     },
+    "German is the default. Choose Device Language to follow the device.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch ist die Standardsprache. Wähle „Gerätesprache“, um der Systemsprache zu folgen."
+          }
+        }
+      }
+    },
     "GitHub": {},
     "Go Home": {},
     "Go to Library": {},
@@ -3615,6 +3765,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "印地語"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi"
           }
         }
       }
@@ -4673,7 +4829,16 @@
     },
     "Keep Both": {},
     "Keep Remote — Delete Local Copy": {},
-    "Korean": {},
+    "Korean": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koreanisch"
+          }
+        }
+      }
+    },
     "L": {},
     "Later": {
       "localizations": {
@@ -6997,7 +7162,16 @@
         }
       }
     },
-    "Now Playing": {},
+    "Now Playing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Wiedergabe"
+          }
+        }
+      }
+    },
     "Now playing": {
       "localizations": {
         "de": {
@@ -7212,7 +7386,27 @@
         }
       }
     },
-    "On": {},
+    "Offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        }
+      }
+    },
+    "On": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein"
+          }
+        }
+      }
+    },
     "On Device": {
       "localizations": {
         "de": {
@@ -8017,6 +8211,12 @@
             "state": "translated",
             "value": "暫停"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
         }
       }
     },
@@ -8558,6 +8758,17 @@
       }
     },
     "Playback Diagnostics": {},
+    "Playback is temporarily unavailable. Try again shortly.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiedergabe ist vorübergehend nicht verfügbar. Versuche es gleich noch einmal."
+          }
+        }
+      }
+    },
     "Playing": {
       "localizations": {
         "de": {
@@ -8752,6 +8963,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "播放列表"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playlists"
           }
         }
       }
@@ -11465,6 +11682,12 @@
             "state": "translated",
             "value": "歌曲"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel"
+          }
         }
       }
     },
@@ -12089,6 +12312,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "儲存空間"
+          }
+        }
+      }
+    },
+    "Stream resolution was cancelled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Suche nach einem Audiostream wurde abgebrochen."
           }
         }
       }
@@ -12926,6 +13160,17 @@
         }
       }
     },
+    "That track isn’t available right now.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Titel ist gerade nicht verfügbar."
+          }
+        }
+      }
+    },
     "That was **%@**.": {},
     "That works.": {},
     "The Core ML archive could not be opened.": {},
@@ -12934,12 +13179,34 @@
     "The beat model downloaded but could not be prepared for Core ML.": {},
     "The engine has not logged anything about “%@” yet.": {},
     "The folder you selected didn't contain any supported audio files.": {},
+    "The request failed. Check your connection and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Anfrage ist fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut."
+          }
+        }
+      }
+    },
     "The same Beat This! model, compiled for the Neural Engine. It falls back to the standard beat model on short tracks or if inference fails.": {},
     "The server answered and there is no audio in it. If you expected a folder here, it may be somewhere else on the share.": {},
     "The system picker routes this app's audio — AirPlay, Bluetooth and the device speaker.": {},
     "There isn't much from this month yet. Play a few songs and it will fill in.": {},
     "There was one **artist** you never got tired of.": {},
     "There was one **genre** you came back to again and again.": {},
+    "This YouTube track requires age verification.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser YouTube-Titel erfordert eine Altersbestätigung."
+          }
+        }
+      }
+    },
     "This connection is set below High quality, so streams are transcoded to fit that limit. Downloads are unaffected.": {
       "localizations": {
         "de": {
@@ -13158,7 +13425,16 @@
       }
     },
     "Tilt %@": {},
-    "Title": {},
+    "Title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel"
+          }
+        }
+      }
+    },
     "Top result": {},
     "Track": {},
     "Track Log": {},
@@ -13277,7 +13553,16 @@
         }
       }
     },
-    "Try again": {},
+    "Try again": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        }
+      }
+    },
     "Turn On": {},
     "Turn off to give BitChord audio priority. Other apps may pause.": {},
     "Turn on to keep other apps audible.": {},
@@ -13610,7 +13895,16 @@
     "Vocal + clash detection": {},
     "Vocal Detection": {},
     "Vocal model installed — without the beat model Automix falls back to tempo analysis": {},
-    "Volume": {},
+    "Volume": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lautstärke"
+          }
+        }
+      }
+    },
     "Volume Down": {},
     "Volume Up": {},
     "Waiting for Wi-Fi": {},
@@ -13943,6 +14237,50 @@
     "You played **%lld songs**, one was your anthem.": {},
     "You will show up as %@.": {},
     "YouTube Music": {},
+    "YouTube didn’t provide a compatible audio stream for this track.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YouTube hat für diesen Titel keinen kompatiblen Audiostream bereitgestellt."
+          }
+        }
+      }
+    },
+    "YouTube is asking this device to sign in before it will serve anything. That is YouTube's gate rather than anything to do with the track.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YouTube verlangt eine Anmeldung auf diesem Gerät, bevor die Wiedergabe möglich ist."
+          }
+        }
+      }
+    },
+    "YouTube is requiring verification for this network. BBT-Bit cannot complete that check for you; try again later or use the official YouTube Music service.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YouTube verlangt eine Bestätigung für dieses Netzwerk. BBT-Bit kann diese Bestätigung nicht für dich durchführen. Versuche es später erneut oder öffne YouTube Music."
+          }
+        }
+      }
+    },
+    "YouTube's player refused this connection. Trying again in a moment usually clears it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der YouTube-Player hat diese Verbindung abgelehnt. Versuche es in einem Moment erneut."
+          }
+        }
+      }
+    },
     "Your Data": {},
     "Your Replay": {
       "localizations": {
@@ -14370,6 +14708,17 @@
       }
     },
     "Your profile details couldn’t be loaded. You can still review and confirm them on the Google page.": {},
+    "Your signed-in session could not be restored. Check your connection or sign in again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Sitzung konnte nicht wiederhergestellt werden. Prüfe deine Verbindung oder melde dich erneut an."
+          }
+        }
+      }
+    },
     "Your songs live here": {},
     "album": {
       "extractionState": "stale",

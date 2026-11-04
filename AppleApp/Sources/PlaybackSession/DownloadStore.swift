@@ -550,8 +550,13 @@ final class DownloadStore {
                            (failure.domain == "Download" || (failure.domain == NSURLErrorDomain && failure.code == URLError.cannotDecodeContentData.rawValue)) {
                             self.jobs[i].youtubeFallback = true
                         }
-                        self.jobs[i].message = PlaybackDebugLog.sanitize(error.localizedDescription)
-                        if !NetworkQuality.shared.connected {
+                        let interrupted = error is CancellationError
+                        self.jobs[i].message = interrupted ? AppLanguage.localized("Download interrupted. Retry to start a new request.")
+                            : PlaybackDebugLog.sanitize(error.localizedDescription)
+                        if interrupted || (error as? YouTubeStreamError)?.stopsAutomaticDownloadRetry == true {
+                            self.jobs[i].status = .failed
+                            self.jobs[i].retryAt = nil
+                        } else if !NetworkQuality.shared.connected {
                             self.jobs[i].requiresNetwork = true
                             self.jobs[i].status = .queued
                             self.jobs[i].attempts = max(0, self.jobs[i].attempts - 1)
@@ -560,7 +565,7 @@ final class DownloadStore {
                             self.jobs[i].status = self.jobs[i].attempts < 3 ? .queued : .failed
                             self.jobs[i].retryAt = Date().addingTimeInterval(pow(2, Double(self.jobs[i].attempts)) * 2)
                         }
-                        PlaybackDebugLog.shared.record("download failed: \(error)", about: id)
+                        if !interrupted { PlaybackDebugLog.shared.record("download failed: \(error)", about: id) }
                     }
                 }
                 if self.taskVersions[id] == version { self.tasks.removeValue(forKey: id); self.taskVersions[id] = nil }

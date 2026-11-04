@@ -4,6 +4,8 @@ import com.metrolist.innertubex.extraction.StreamResolveException
 import com.music.bitchord.data.http.ProbeResult
 import com.music.bitchord.data.http.RawHttpBytes
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.json.*
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -23,7 +25,17 @@ object StreamResolver {
     private data class Flight(val job: Deferred<ResolvedStream>, val waiters: Int)
     private val inFlight = CowMap<String, Flight>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    // A download and queue warmup may each resolve many unrelated tracks. Keep
+    // one background lookup active without making a tapped song wait for it.
+    private val backgroundSlot = Semaphore(1)
     internal var extraction: suspend (String, Int) -> ResolvedStream? = { id, ceiling -> UpstreamPlaybackExtractor.extract(id, ceiling) }
+
+    internal suspend fun resolveBackground(videoId: String, maxKbps: Int, generation: Long): ResolvedStream? =
+        backgroundSlot.withPermit {
+            Innertube.checkSession(generation)
+            resolve(videoId, maxKbps)
+        }
+
     suspend fun resolve(videoId: String, maxKbps: Int = Int.MAX_VALUE): ResolvedStream? {
         val generation = Innertube.sessionGeneration
         val key = "$generation|$videoId|$maxKbps"
