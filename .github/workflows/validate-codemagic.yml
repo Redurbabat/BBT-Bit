@@ -140,6 +140,21 @@ jobs:
           assert '.onChange(of: canRevealLogoBloom)' in root
           assert 'bloom.logoTapped()' in mark
           assert 'bloom.logoHeld()' in mark
+          # Glass Bloom Motion: both files must type-check later on macOS,
+          # and all gestures, deep links and accessibility guards stay wired.
+          motion = Path('AppleApp/Sources/UI/LiquidMotion/GlassBloomMotionDetails.swift').read_text()
+          assert 'struct GlassBloomAtmosphere' in motion
+          assert 'struct GlassBloomSignalBars' in motion
+          assert 'struct GlassBloomStatusRow' in motion
+          assert 'struct GlassBloomSwipeHint' in motion
+          assert 'isLowPowerModeEnabled' in motion
+          assert 'GlassBloomStatusRow(playing: controller.isPlaying)' in bloom
+          assert 'GlassBloomAtmosphere(' in bloom
+          assert 'private func handleSwipe' in bloom
+          assert 'private func openQuickPane' in bloom
+          assert 'PartyStore.shared.state.controlsLocked' in bloom
+          assert 'bbt.glassBloom.lyrics' in bloom and 'bbt.glassBloom.queue' in bloom
+          assert 'flashTrackGlint()' in bloom
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
@@ -155,6 +170,7 @@ jobs:
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidPhotoWayfinderView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/GlassBloomMotionDetails.swift
             swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
             echo "SwiftUI syntax parse: PASS (type-check requires Xcode)"
