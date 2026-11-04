@@ -16,6 +16,7 @@ import com.music.bitchord.data.http.Http
 import io.ktor.client.statement.bodyAsText
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.time.Duration
 import kotlin.time.TimeSource
 import kotlin.time.TimeMark
 import kotlin.time.Duration.Companion.minutes
@@ -55,6 +56,27 @@ internal data class VideoSide(
     val profileId: String,
     val musicVideoType: String?,
 )
+
+/**
+ * Prevent simultaneous failures on unrelated media from repeatedly closing
+ * one shared InnerTube session. The caller owns synchronization; this class
+ * only tracks a monotonic cooldown and can be exercised without live network.
+ */
+internal class SharedExtractionRefreshGate(
+    private val cooldown: Duration = 20.seconds,
+) {
+    private var generation: Long = -1
+    private var refreshedAt: TimeMark? = null
+
+    fun shouldRefresh(currentGeneration: Long, now: TimeMark = TimeSource.Monotonic.markNow()): Boolean {
+        if (generation == currentGeneration && refreshedAt?.elapsedNow()?.let { it < cooldown } == true) {
+            return false
+        }
+        generation = currentGeneration
+        refreshedAt = now
+        return true
+    }
+}
 
 /** Same maintained extraction stack as Android upstream, on the shared Darwin transport. */
 @OptIn(ExperimentalAtomicApi::class)
@@ -111,15 +133,11 @@ internal object UpstreamPlaybackExtractor {
     suspend fun rebuildSession(videoId: String) {
         val generation = Innertube.sessionGeneration
         val didRebuild = lock.withLock {
-            val recentlyRebuilt = lastRebuildGeneration == generation &&
-                lastRebuildAt?.let { it.elapsedNow() < 20.seconds } == true
-            if (recentlyRebuilt) {
+            if (!refreshGate.shouldRefresh(generation)) {
                 false
             } else {
                 session?.let { it.innerTube.close(); it.cipher.dispose() }
                 session = null
-                lastRebuildAt = TimeSource.Monotonic.markNow()
-                lastRebuildGeneration = generation
                 true
             }
         }
@@ -136,8 +154,7 @@ internal object UpstreamPlaybackExtractor {
     }
     private val lock = Mutex()
     private var session: Session? = null
-    private var lastRebuildAt: TimeMark? = null
-    private var lastRebuildGeneration: Long = -1
+    private val refreshGate = SharedExtractionRefreshGate()
     private val logger = InnerTubeLogger { event ->
         // Library diagnostics may contain signed URLs. The shared redactor is
         // applied before anything reaches the system log; never print details maps.
