@@ -108,10 +108,7 @@ struct RootView: View {
             .overlay(alignment: .topLeading) {
                 if logoGlassBloom.isVisible
                     && controller.current != nil
-                    && !appModel.nowPlayingPresented
-                    && !appModel.settingsPresented
-                    && !onboardingPresented
-                    && !auth.loginPresented {
+                    && canRevealLogoBloom {
                     LogoGlassBloomIsland()
                         .padding(.leading, 45)
                         .padding(.top, 8)
@@ -136,17 +133,8 @@ struct RootView: View {
                 guard isPlaying && !wasPlaying && canRevealLogoBloom else { return }
                 logoGlassBloom.playbackStartedOrTrackChanged()
             }
-            .onChange(of: appModel.nowPlayingPresented) { _, presented in
-                if presented { logoGlassBloom.dismiss() }
-            }
-            .onChange(of: appModel.settingsPresented) { _, presented in
-                if presented { logoGlassBloom.dismiss() }
-            }
-            .onChange(of: onboardingPresented) { _, presented in
-                if presented { logoGlassBloom.dismiss() }
-            }
-            .onChange(of: auth.loginPresented) { _, presented in
-                if presented { logoGlassBloom.dismiss() }
+            .onChange(of: canRevealLogoBloom) { _, canShow in
+                if !canShow { logoGlassBloom.dismiss() }
             }
     }
 
@@ -154,6 +142,11 @@ struct RootView: View {
         controller.current != nil
             && !appModel.nowPlayingPresented
             && !appModel.settingsPresented
+            && !appModel.downloadManagerPresented
+            && !appModel.replayPresented
+            && !appModel.listenTogetherPresented
+            && !appModel.partyMembersPresented
+            && appModel.pendingDetail == nil
             && !onboardingPresented
             && !auth.loginPresented
     }
