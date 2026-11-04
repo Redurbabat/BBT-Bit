@@ -16,7 +16,7 @@ aufgesetzten Finger nicht erfassen.
 ## Implementierung im Review-Branch
 
 1. **Passiver Richtungsdetektor** auf den jeweils primären vertikalen
-   ScrollViews von Home und Explore. SwiftUI
+   ScrollViews von Home, Explore und der Library-Startseite. SwiftUI
    `onScrollPhaseChange` erkennt die aktive Fingerinteraktion;
    `onScrollGeometryChange` misst die Richtung auch bei einer
    **Umkehr innerhalb desselben Kontakts**. Dadurch werden keine
@@ -76,6 +76,7 @@ Zitterbewegung, Freigeben und erneute Richtungsänderung.
   falscher Player; vorhandener Track darf Glass Bloom zeigen.
 - Logo nach unten ziehen: Erweiterte Glasblase erscheint;
   Tippen und Long-Press weiterhin nutzbar.
+- Dasselbe in Home und der Bibliothek-Startseite wiederholen.
 - Eine Genre-Karte antippen, horizontalen Shelf wischen,
   Suche und Bibliothek öffnen: Gesten dürfen nicht
   geblockt sein, Tabs und Search bleiben native Controls.
