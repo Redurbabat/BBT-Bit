@@ -117,6 +117,8 @@ struct LogoGlassBloomIsland: View {
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bloom = LogoGlassBloomCoordinator.shared
+    @State private var trackGlint = false
+    @State private var glintRevision = 0
 
     private var isSpark: Bool { bloom.phase == .spark }
     private var isExpanded: Bool { bloom.phase == .expanded }
@@ -124,18 +126,38 @@ struct LogoGlassBloomIsland: View {
     private var radius: CGFloat { isSpark ? 23 : 25 }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: isExpanded ? 10 : 6) {
             header
             if isExpanded {
+                GlassBloomStatusRow(playing: controller.isPlaying)
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
+                Rectangle()
+                    .fill(.white.opacity(0.13))
+                    .frame(height: 0.5)
+                    .accessibilityHidden(true)
                 transport
                     .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
+                quickRoutes
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
+                GlassBloomSwipeHint()
+                    .padding(.top, 1)
+                    .transition(.opacity)
             }
         }
         .padding(.horizontal, isSpark ? 8 : 12)
         .padding(.vertical, isSpark ? 11 : 10)
         .frame(width: width, alignment: .leading)
         .frame(minHeight: 46)
-        .background { glassSurface }
+        .background {
+            glassSurface
+                .overlay {
+                    GlassBloomAtmosphere(
+                        playing: controller.isPlaying,
+                        expanded: isExpanded
+                    )
+                }
+                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+        }
         .overlay {
             RoundedRectangle(cornerRadius: radius, style: .continuous)
                 .strokeBorder(
@@ -145,6 +167,20 @@ struct LogoGlassBloomIsland: View {
                     ),
                     lineWidth: 0.9
                 )
+        }
+        .overlay(alignment: .top) {
+            if trackGlint && !reduceMotion {
+                Capsule()
+                    .fill(LinearGradient(
+                        colors: [.clear, .cyan.opacity(0.85), .white.opacity(0.8), .clear],
+                        startPoint: .leading, endPoint: .trailing
+                    ))
+                    .frame(width: 100, height: 2)
+                    .blur(radius: 0.6)
+                    .accessibilityHidden(true)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
         }
         .overlay(alignment: .topLeading) {
             if isSpark {
@@ -157,15 +193,39 @@ struct LogoGlassBloomIsland: View {
         .shadow(color: .purple.opacity(0.12), radius: 24, y: 9)
         .shadow(color: .black.opacity(0.21), radius: 12, y: 6)
         .fixedSize(horizontal: true, vertical: true)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 32)
+                .onEnded { handleSwipe($0.translation) }
+        )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("bbt.logoGlassBloom")
         .background { LiquidLiveCaptureMarker(id: "island") }
+        .onChange(of: controller.current?.id) { _, newID in
+            guard newID != nil else { return }
+            flashTrackGlint()
+        }
         .onChange(of: bloom.phase) { _, newPhase in
             if newPhase == .expanded {
                 LiquidLiveCaptureMarker.refresh("island")
                 #if os(iOS)
                 UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                 #endif
+            }
+        }
+    }
+
+    private func flashTrackGlint() {
+        guard !reduceMotion else { return }
+        glintRevision += 1
+        let revision = glintRevision
+        withAnimation(.easeOut(duration: 0.18)) {
+            trackGlint = true
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(560))
+            guard revision == glintRevision else { return }
+            withAnimation(.easeOut(duration: 0.3)) {
+                trackGlint = false
             }
         }
     }
@@ -186,6 +246,7 @@ struct LogoGlassBloomIsland: View {
                     else { bloom.expand() }
                 } label: {
                     ArtworkView(entry: controller.current, side: 38)
+                        .id(controller.current?.id)
                         .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(.white.opacity(0.14)))
                 }
@@ -194,10 +255,12 @@ struct LogoGlassBloomIsland: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(controller.current?.title ?? "Musik")
                         .font(.caption.weight(.semibold))
+                        .contentTransition(.opacity)
                         .lineLimit(1)
                         .foregroundStyle(.primary)
                     Text(controller.current?.artist ?? "")
                         .font(.caption2)
+                        .contentTransition(.opacity)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -251,6 +314,63 @@ struct LogoGlassBloomIsland: View {
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
         .padding(.top, 3)
+    }
+
+    private var quickRoutes: some View {
+        HStack(spacing: 9) {
+            Button {
+                openQuickPane(lyrics: true)
+            } label: {
+                Label("Lyrics", systemImage: "text.quote")
+                    .frame(maxWidth: .infinity, minHeight: 34)
+            }
+            .accessibilityIdentifier("bbt.glassBloom.lyrics")
+            Button {
+                openQuickPane(lyrics: false)
+            } label: {
+                Label("Queue", systemImage: "list.bullet")
+                    .frame(maxWidth: .infinity, minHeight: 34)
+            }
+            .accessibilityIdentifier("bbt.glassBloom.queue")
+        }
+        .font(.caption.weight(.medium))
+        .buttonStyle(.plain)
+        .padding(.top, 2)
+        .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func openQuickPane(lyrics: Bool) {
+        bloom.dismiss()
+        appModel.nowPlayingPresented = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            if lyrics {
+                appModel.lyricsRevealRequested = true
+            } else {
+                appModel.queueRevealRequested = true
+            }
+        }
+    }
+
+    private func handleSwipe(_ translation: CGSize) {
+        let horizontal = abs(translation.width) > abs(translation.height) * 1.3
+        if horizontal && abs(translation.width) > 60 && !PartyStore.shared.state.controlsLocked {
+            if translation.width < 0 && controller.canPlayNext {
+                controller.next()
+                bloom.keepOpenBriefly()
+            } else if translation.width > 0 && controller.canPlayPrevious {
+                controller.previous()
+                bloom.keepOpenBriefly()
+            }
+        } else if translation.height < -55 {
+            bloom.expand()
+        } else if translation.height > 55 {
+            if isExpanded {
+                bloom.collapse()
+            } else {
+                bloom.dismiss()
+            }
+        }
     }
 
     private func playbackControl(

@@ -131,7 +131,13 @@ struct RootView: View {
             }
             .onChange(of: controller.isPlaying) { wasPlaying, isPlaying in
                 guard isPlaying && !wasPlaying && canRevealLogoBloom else { return }
-                logoGlassBloom.playbackStartedOrTrackChanged()
+                if logoGlassBloom.isVisible {
+                    // Pressing Play inside the expanded Bloom must not
+                    // unexpectedly collapse the controls back to compact.
+                    logoGlassBloom.keepOpenBriefly()
+                } else {
+                    logoGlassBloom.playbackStartedOrTrackChanged()
+                }
             }
             .onChange(of: canRevealLogoBloom) { _, canShow in
                 if !canShow { logoGlassBloom.dismiss() }
