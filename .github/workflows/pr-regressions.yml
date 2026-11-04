@@ -2,14 +2,46 @@ name: BBT-Bit PR regression checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'review-only/**']
   push:
-    branches: [main]
+    branches: [main, 'codex/longterm-architecture-20261104']
 
 permissions:
   contents: read
 
 jobs:
+  repository-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate documentation, skills, version and module boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+            BASE_SHA="$(git merge-base HEAD origin/main)"
+          fi
+          echo "BASE_SHA=$BASE_SHA" >> "$GITHUB_ENV"
+          python -m pip install PyYAML==6.0.3
+          python scripts/check-repository.py --base "$BASE_SHA"
+          python scripts/repository-verify/check.py
+          python scripts/release-verify/check.py
+      - name: Scan introduced commits for secrets
+        if: ${{ !cancelled() }}
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.30.1 \
+            git --redact=100 --log-opts="$BASE_SHA..HEAD" /repo
+
   network-regressions:
     runs-on: macos-15
     timeout-minutes: 10

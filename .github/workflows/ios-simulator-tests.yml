@@ -4,18 +4,21 @@ on:
   pull_request:
     paths:
       - .github/workflows/ios-simulator-tests.yml
-      - AppleApp/project.yml
-      - AppleApp/UITests/**
-      - AppleApp/Sources/UI/LiquidMotion/**
-      - AppleApp/Sources/UI/NowPlaying/**
-      - AppleApp/Sources/UI/PlaybackPill.swift
-      - AppleApp/Sources/UI/ArtworkPalette.swift
-      - AppleApp/Sources/App/BitChordApp.swift
+      - AppleApp/**
       - scripts/build-shared-framework.sh
       - scripts/build-native-core.sh
       - scripts/ci-ios-simulator-report.py
+      - '*.gradle.kts'
+      - gradle/**
+      - gradle.properties
+      - gradlew
       - shared/**
+      - vendor/innertubex/**
       - native-core/**
+  push:
+    branches: ['codex/longterm-architecture-20261104']
+    paths:
+      - .github/workflows/ios-simulator-tests.yml
   workflow_dispatch:
 
 permissions:
@@ -68,6 +71,7 @@ jobs:
             bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install native tools (XcodeGen, CMake, Rust)
+        id: native_tools
         shell: bash
         run: |
           set -euo pipefail
@@ -217,3 +221,11 @@ jobs:
           path: ${{ runner.temp }}/BBT-Bit-Simulator-Results/
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Run shared Kotlin tests on Apple Silicon
+        if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
+        run: ./gradlew :shared:macosArm64Test
+
+      - name: Run native Rust tests with the pinned dependency graph
+        if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
+        run: cargo test --locked --manifest-path native-core/Cargo.toml

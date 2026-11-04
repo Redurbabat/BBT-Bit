@@ -34,6 +34,11 @@ There is no signed BBT-Bit IPA yet. Configure your own signing identity, then
 build and test before releasing. The new app identifier does not migrate data
 from an existing BitChord installation.
 
+## Contributing
+
+See [AI_START_HERE.md](AI_START_HERE.md) for architecture, agent skills,
+versioning and the test matrix.
+
 ## Credits and licenses
 
 The software remains GPLv3 where applicable. Copyright and original attribution
