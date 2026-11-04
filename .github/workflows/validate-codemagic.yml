@@ -182,6 +182,21 @@ jobs:
           assert 'CoverMorphFullBackdrop(entry: controller.current)' in fullLayout
           assert '.navigationTransition(.zoom(sourceID:' in zoomRoot
           assert 'NowPlayingTakeover' in zoomRoot
+          dock = Path('AppleApp/Sources/UI/LiquidMotion/DockScrollDirection.swift').read_text()
+          tracker = Path('AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift').read_text()
+          home = Path('AppleApp/Sources/UI/Library/HomeView.swift').read_text()
+          explore = Path('AppleApp/Sources/UI/Library/ExploreView.swift').read_text()
+          assert 'onScrollPhaseChange' in dock
+          assert 'onScrollGeometryChange' in dock
+          assert 'if phase == .interacting' in dock
+          assert 'keepExpanded = newDirection == .towardTop' in dock
+          assert 'struct DockDirectionTracker' in tracker
+          assert 'lastEmittedDirection' in tracker
+          assert 'DockScrollDirectionObserver()' in home and 'DockScrollDirectionObserver()' in explore
+          assert 'dockScroll.keepExpanded ? .never : .onScrollDown' in root
+          assert 'dockScroll.directionRevision' in root
+          assert 'DragGesture(minimumDistance: 14)' in mark
+          assert Path('scripts/test-dock-direction-tracker.swift').exists()
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
@@ -198,6 +213,10 @@ jobs:
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/GlassBloomMotionDetails.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/DockScrollDirection.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/Library/HomeView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/Library/ExploreView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
             swiftc -frontend -parse AppleApp/Sources/UI/DiagnosticReportsView.swift
