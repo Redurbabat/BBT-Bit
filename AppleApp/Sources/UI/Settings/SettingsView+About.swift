@@ -10,6 +10,63 @@ import AppKit
 // Your data, miscellaneous and advanced options, About, and updates.
 extension SettingsView {
     func buildYourDataRows(_ rows: inout SettingsRows) {
+
+        #if os(iOS)
+        rows.row("Foto-Wegweiser", "Pfeile", "Fotos", "15 Änderungen", "Anleitung", "Rundgang", "Guided") {
+            PushLink {
+                LiquidPhotoWayfinderView()
+            } label: {
+                SettingsLine(
+                    glyph: .replay,
+                    title: "Foto-Wegweiser",
+                    subtitle: "Mit Pfeilen durch alle 15 Änderungen – echte Fotos automatisch aufnehmen"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        rows.row("Echte Screenshots", "Live Screenshot", "Original", "Automatische Bildschirmaufnahmen", "PNG") {
+            PushLink {
+                LiquidLiveScreenshotSettingsView()
+            } label: {
+                SettingsLine(
+                    glyph: .export,
+                    title: "Echte Screenshots",
+                    subtitle: "Tatsächliche App-Bildschirme automatisch aufnehmen und teilen"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        rows.row("Design-Vorschauen", "Liquid Motion", "Design-Fotos", "Beispieldaten", "Vorschau", "Export") {
+            PushLink {
+                LiquidMotionDesignPhotosView()
+            } label: {
+                SettingsLine(
+                    glyph: .export,
+                    title: "Design-Vorschauen",
+                    subtitle: "Beispielbilder – keine echten App-Screenshots"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        #endif
+        #if os(iOS)
+        rows.row("Vorschau-Selbsttest", "Test", "Diagnose", "15 Designs", "Prüfbericht", "JSON", "Automatisch", "Testbericht") {
+            PushLink {
+                LiquidMotionDeviceSelfTestView()
+            } label: {
+                SettingsLine(
+                    glyph: .precision,
+                    title: "Vorschau-Selbsttest",
+                    subtitle: "Nur Beispielbilder prüfen – kein echter App-Funktionstest"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+        #endif
         rows.row("Replay", "top songs", "top artists", "stats", "year", "listening") {
             Button {
                 appModel.replayPresented = true

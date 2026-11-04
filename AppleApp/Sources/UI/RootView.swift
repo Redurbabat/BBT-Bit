@@ -40,6 +40,8 @@ struct RootView: View {
     @State private var homeFeed = FeedLoader(.home)
     #if os(iOS)
     @Namespace private var nowPlayingZoom
+    @State private var logoGlassBloom = LogoGlassBloomCoordinator.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceLogoMotion
     /// Regular width is the iPad layout — on any device. A Max phone turned
     /// sideways is a regular-width window too, and it has the room.
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -75,9 +77,21 @@ struct RootView: View {
         let watchURL: URL?
     }
 
+    // Keep the root presentation and alert chains out of the same
+    // expression as Music Island. Otherwise Xcode's SwiftUI type checker
+    // times out while archiving the iPhone target.
     var body: some View {
-        shell
-        .overlay(alignment: .top) {
+        decoratedRoot
+    }
+
+    // iPhone: the floating music surface grows out of the native top-left
+    // BBT-Bit logo. It is absent by default; the logo or a playback event
+    // reveals it temporarily. iPad / macOS navigation remains independent.
+    private var musicIslandShell: some View {
+        #if os(iOS)
+        logoBloomShell
+        #else
+        shell.overlay(alignment: .top) {
             if controller.current != nil && !appModel.nowPlayingPresented {
                 MusicIsland()
                     .padding(.top, 8)
@@ -85,6 +99,67 @@ struct RootView: View {
                     .zIndex(10)
             }
         }
+        #endif
+    }
+
+    #if os(iOS)
+    private var logoBloomShell: some View {
+        shell
+            .overlay(alignment: .topLeading) {
+                if logoGlassBloom.isVisible
+                    && controller.current != nil
+                    && canRevealLogoBloom {
+                    LogoGlassBloomIsland()
+                        .padding(.leading, 45)
+                        .padding(.top, 8)
+                        .transition(reduceLogoMotion ? .opacity :
+                            .asymmetric(
+                                insertion: .scale(scale: 0.36, anchor: .topLeading).combined(with: .opacity),
+                                removal: .scale(scale: 0.34, anchor: .topLeading).combined(with: .opacity)
+                            )
+                        )
+                        .zIndex(10)
+                }
+            }
+            .onChange(of: controller.current?.id) { _, trackID in
+                guard trackID != nil else {
+                    logoGlassBloom.dismiss()
+                    return
+                }
+                guard canRevealLogoBloom else { return }
+                logoGlassBloom.playbackStartedOrTrackChanged()
+            }
+            .onChange(of: controller.isPlaying) { wasPlaying, isPlaying in
+                guard isPlaying && !wasPlaying && canRevealLogoBloom else { return }
+                if logoGlassBloom.isVisible {
+                    // Pressing Play inside the expanded Bloom must not
+                    // unexpectedly collapse the controls back to compact.
+                    logoGlassBloom.keepOpenBriefly()
+                } else {
+                    logoGlassBloom.playbackStartedOrTrackChanged()
+                }
+            }
+            .onChange(of: canRevealLogoBloom) { _, canShow in
+                if !canShow { logoGlassBloom.dismiss() }
+            }
+    }
+
+    private var canRevealLogoBloom: Bool {
+        controller.current != nil
+            && !appModel.nowPlayingPresented
+            && !appModel.settingsPresented
+            && !appModel.downloadManagerPresented
+            && !appModel.replayPresented
+            && !appModel.listenTogetherPresented
+            && !appModel.partyMembersPresented
+            && appModel.pendingDetail == nil
+            && !onboardingPresented
+            && !auth.loginPresented
+    }
+    #endif
+
+    private var presentedRoot: some View {
+        musicIslandShell
         .environment(\.rowSelection, rowSelection)
         .task {
             // First run only. Someone upgrading — signed in, or with a queue
@@ -219,6 +294,10 @@ struct RootView: View {
         }
         .sheet(item: $updateDetails) { release in UpdateSheet(release: release) }
         #endif
+    }
+
+    private var decoratedRoot: some View {
+        presentedRoot
         .onChange(of: tabBinding.wrappedValue) { old, new in
             #if os(iOS)
             // A regular-width iPad's field is a button that opens into a pill

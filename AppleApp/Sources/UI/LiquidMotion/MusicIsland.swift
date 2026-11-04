@@ -111,5 +111,9 @@ struct MusicIsland: View {
             }
         )
         .accessibilityElement(children: .contain)
+        .background { LiquidLiveCaptureMarker(id: "island") }
+        .onChange(of: level) { _, _ in
+            LiquidLiveCaptureMarker.refresh("island")
+        }
     }
 }

@@ -45,5 +45,6 @@ struct QueueHorizon: View {
                 }
             }
         }
+        .background { LiquidLiveCaptureMarker(id: "queue") }
     }
 }

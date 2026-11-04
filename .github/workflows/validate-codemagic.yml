@@ -6,11 +6,27 @@ on:
     paths:
       - codemagic.yaml
       - scripts/package-ios-ipa.sh
+      - scripts/ci-ios-native-cache.sh
+      - scripts/run-iphone-ui-tests.sh
+      - AppleApp/project.yml
+      - AppleApp/UITests/**
+      - AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
+      - AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
+      - AppleApp/Sources/UI/LiquidMotion/**
+      - AppleApp/Sources/UI/Settings/SettingsView+About.swift
       - .github/workflows/validate-codemagic.yml
   pull_request:
     paths:
       - codemagic.yaml
       - scripts/package-ios-ipa.sh
+      - scripts/ci-ios-native-cache.sh
+      - scripts/run-iphone-ui-tests.sh
+      - AppleApp/project.yml
+      - AppleApp/UITests/**
+      - AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
+      - AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
+      - AppleApp/Sources/UI/LiquidMotion/**
+      - AppleApp/Sources/UI/Settings/SettingsView+About.swift
       - .github/workflows/validate-codemagic.yml
 
 permissions:
@@ -29,24 +45,149 @@ jobs:
           import re, yaml
           from pathlib import Path
           cm = yaml.safe_load(Path('codemagic.yaml').read_text())
-          wf = cm['workflows']['bbt-bit-ios-ipa']
-          assert wf['instance_type'] == 'mac_mini_m2'
-          assert wf['max_build_duration'] >= 60
-          assert len(wf['scripts']) >= 5
-          assert any(p.endswith('*.ipa') for p in wf['artifacts'])
-          commands = '\n'.join(s['script'] for s in wf['scripts'])
-          for cmd in ('CONFIG=release ./scripts/build-shared-framework.sh',
-                      './scripts/build-native-core.sh',
-                      'xcodegen generate',
-                      './scripts/package-ios-ipa.sh'):
-              assert cmd in commands, cmd
+          fast = cm['workflows']['bbt-bit-ios-fast-ipa']
+          release = cm['workflows']['bbt-bit-ios-ipa']
+          assert fast['instance_type'] == release['instance_type'] == 'mac_mini_m2'
+          assert fast['max_build_duration'] >= 60
+          assert release['max_build_duration'] >= 60
+          assert 'triggering' in fast and 'triggering' not in release
+          assert fast['triggering']['events'] == ['pull_request']
+          for wf in (fast, release):
+              assert len(wf['scripts']) >= 5
+              assert any(p.endswith('*.ipa') for p in wf['artifacts'])
+              assert wf['cache']['cache_paths']
+              assert len(wf['cache']['cache_paths']) == len(set(wf['cache']['cache_paths']))
+              commands = '\n'.join(s['script'] for s in wf['scripts'])
+              for cmd in ('./scripts/ci-ios-native-cache.sh kotlin',
+                          './scripts/ci-ios-native-cache.sh rust',
+                          'xcodegen generate',
+                          './scripts/package-ios-ipa.sh'):
+                  assert cmd in commands, cmd
+          assert '--fast --output-dir' in '\n'.join(s['script'] for s in fast['scripts'])
+          assert '--fast --output-dir' not in '\n'.join(s['script'] for s in release['scripts'])
+          cache_script = Path('scripts/ci-ios-native-cache.sh').read_text()
+          assert 'BBT_NATIVE_CACHE_HIT' in cache_script
+          assert 'BBT_NATIVE_CACHE_MISS' in cache_script
+          assert 'shasum -a 256' in cache_script
           p = Path('AppleApp/project.yml').read_text()
           assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
           assert 'CFBundleDisplayName: BBT-Bit' in p
           assert re.search(r'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"', p)
-          assert 'BBT-Bit-$version-' in Path('scripts/package-ios-ipa.sh').read_text()
+          package = Path('scripts/package-ios-ipa.sh').read_text()
+          assert 'BBT-Bit-$version-' in package
+          assert 'COMPILATION_CACHE_ENABLE_CACHING=YES' in package
+          assert '--fast)' in package
+          # Verify real-device test target and launch-only harness are wired.
+          app = yaml.safe_load(Path('AppleApp/project.yml').read_text())
+          assert app['targets']['BitChordUITests']['type'] == 'bundle.ui-testing'
+          assert app['targets']['BitChordUITests']['platform'] == 'iOS'
+          assert 'BitChordUITests' in app['targets']['BitChord']['scheme']['testTargets']
+          assert Path('AppleApp/UITests/LiquidMotionUITests.swift').exists()
+          assert Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').exists()
+          assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/BitChordApp.swift').read_text()
+          assert 'Alle 15 Designs prüfen' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
+          assert '.navigationTitle("Vorschau-Selbsttest")' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
+          # Real screenshots must capture the existing application window,
+          # never generate 15 sample-data mockups and call them screenshots.
+          live = Path('AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift').read_text()
+          assert 'window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)' in live
+          assert 'UIGraphicsImageRenderer' in live
+          assert 'recording = true' in live
+          assert 'applicationSupportDirectory' in live
+          assert 'LiquidWindowShareSheet' in live
+          archive = Path('AppleApp/Sources/UI/LiquidMotion/BBTScreenshotZIP.swift').read_text()
+          assert '0x04034B50' in archive and '0x02014B50' in archive
+          assert 'BBTScreenshotZIP.create(' in live
+          assert 'BBT-Bit-Echte-Screenshots.zip' in live
+          assert 'liquidDesignSample' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDesignPhotosView.swift').read_text()
+          expected = ['AutomixWeave', 'LyricsMirror', 'SignalPrism', 'EQMembrane',
+                      'ReplayTimeRiver', 'QueueHorizon', 'DownloadBloom', 'OutputHaloGlyph',
+                      'PartyConstellation', 'CanvasVeil', 'HandoffComet', 'EchoTrail',
+                      'MusicIsland', 'InfinityDock', 'GlassQueuePortal']
+          for feature in expected:
+              source = Path('AppleApp/Sources/UI/LiquidMotion', feature + '.swift').read_text()
+              assert 'LiquidLiveCaptureMarker(id:' in source, feature
+          settings = Path('AppleApp/Sources/UI/Settings/SettingsView+About.swift').read_text()
+          assert 'LiquidLiveScreenshotSettingsView()' in settings
+          assert 'Beispielbilder – keine echten App-Screenshots' in settings
+          guide = Path('AppleApp/Sources/UI/LiquidMotion/LiquidPhotoWayfinderView.swift').read_text()
+          for id in ('island', 'dock', 'portal', 'lyrics', 'queue', 'signal', 'eq',
+                     'output', 'echo', 'automix', 'canvas', 'replay', 'downloads',
+                     'party', 'handoff'):
+              assert 'feature: .' + id in guide, id
+          assert guide.count('.init(feature: .') == 15
+          assert 'Foto-Wegweiser' in guide
+          assert 'arrow.down' in guide
+          assert 'HIER SOLL DAS FOTO ENTSTEHEN' in guide
+          assert 'Zum nächsten fehlenden Foto' in guide
+          assert 'recorder.captures.contains' in guide
+          assert 'LiquidPhotoWayfinderView()' in settings
+          assert 'LiquidPhotoWayfinderView()' in live
+          assert 'AppServices.shared.appModel.settingsPresented' in live
+          # Glass Bloom must not regress to an always-visible centered island.
+          bloom = Path('AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift').read_text()
+          root = Path('AppleApp/Sources/UI/RootView.swift').read_text()
+          mark = Path('AppleApp/Sources/UI/AccountProfileSheet.swift').read_text()
+          assert 'enum LogoGlassBloomPhase' in bloom
+          assert 'LogoGlassBloomCoordinator' in bloom
+          assert '.glassEffect(.regular, in: shape)' in bloom
+          assert 'case .idle' in bloom and 'case .spark' in bloom
+          assert '.seconds(8)' in bloom and '.seconds(4)' in bloom
+          assert 'LiquidLiveCaptureMarker(id: "island")' in bloom
+          assert 'LogoGlassBloomIsland()' in root
+          assert '.overlay(alignment: .topLeading)' in root
+          assert 'logoGlassBloom.isVisible' in root
+          assert '.onChange(of: canRevealLogoBloom)' in root
+          assert 'bloom.logoTapped()' in mark
+          assert 'bloom.logoHeld()' in mark
+          # Glass Bloom Motion: both files must type-check later on macOS,
+          # and all gestures, deep links and accessibility guards stay wired.
+          motion = Path('AppleApp/Sources/UI/LiquidMotion/GlassBloomMotionDetails.swift').read_text()
+          assert 'struct GlassBloomAtmosphere' in motion
+          assert 'struct GlassBloomSignalBars' in motion
+          assert 'struct GlassBloomStatusRow' in motion
+          assert 'struct GlassBloomSwipeHint' in motion
+          assert 'isLowPowerModeEnabled' in motion
+          assert 'GlassBloomStatusRow(playing: controller.isPlaying)' in bloom
+          assert 'GlassBloomAtmosphere(' in bloom
+          assert 'private func handleSwipe' in bloom
+          assert 'private func openQuickPane' in bloom
+          assert 'PartyStore.shared.state.controlsLocked' in bloom
+          assert 'bbt.glassBloom.lyrics' in bloom and 'bbt.glassBloom.queue' in bloom
+          assert 'flashTrackGlint()' in bloom
+          diagnostics = Path('AppleApp/Sources/UI/DiagnosticReportsView.swift').read_text()
+          playbackSettings = Path('AppleApp/Sources/UI/Settings/SettingsView+Playback.swift').read_text()
+          loadResults = Path('AppleApp/Sources/PlaybackSession/PlaybackController+LoadResults.swift').read_text()
+          assert 'Warum spielt die Musik nicht?' in diagnostics
+          assert 'controller.lastError' in diagnostics
+          assert 'AudioSessionManager.isActive' in diagnostics
+          assert 'NetworkQuality.shared.connected' in diagnostics
+          assert 'bbt.playbackDiagnosis.saveReport' in diagnostics
+          assert 'freshResolution: true' in diagnostics
+          assert 'rows.row("Musik spielt nicht?"' in playbackSettings
+          assert 'playback load FAILED' in loadResults
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
           bash -n scripts/build-shared-framework.sh
           bash -n scripts/build-native-core.sh
+          bash -n scripts/ci-ios-native-cache.sh
+          bash -n scripts/run-iphone-ui-tests.sh
+      - name: Parse newly added SwiftUI views without running a full iOS archive
+        run: |
+          set -euo pipefail
+          if command -v swiftc >/dev/null 2>&1; then
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidPhotoWayfinderView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/GlassBloomMotionDetails.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/DiagnosticReportsView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Playback.swift
+            swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+LoadResults.swift
+            echo "SwiftUI syntax parse: PASS (type-check requires Xcode)"
+          else
+            echo "::warning::Swift compiler unavailable on this runner; Xcode type-check required"
+          fi

@@ -171,6 +171,15 @@ extension PlaybackController {
             return
         }
         automaticLoadEntryId = nil
+        // Preserve the actual failure stage in the shareable, credential-
+        // redacted report; a temporary toast is insufficient on an iPhone.
+        debugLog.record(
+            "playback load FAILED kind=\(entry.videoId != nil ? "youtube" : "other") "
+                + "network=\(NetworkQuality.shared.connected ? "connected" : "offline") "
+                + "audio_session_active=\(AudioSessionManager.isActive) "
+                + "state=\(state) error=\(error.localizedDescription)",
+            about: entry.id
+        )
         lastError = "Couldn't play “\(entry.title)” — \(error.localizedDescription)"
         // Somebody (pause, another load, sleep, interruption) owns the
         // transport now; their state stands and only the message is new.

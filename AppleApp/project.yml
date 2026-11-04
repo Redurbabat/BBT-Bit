@@ -45,6 +45,9 @@ targets:
   BitChord:
     type: application
     supportedDestinations: [iOS, macOS]
+    scheme:
+      testTargets:
+        - BitChordUITests
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit
@@ -126,7 +129,7 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         UILaunchScreen: {}
         NSMotionUsageDescription: BBT-Bit uses headphone motion to keep its spatial effect anchored when you turn your head.
-        NSPhotoLibraryAddUsageDescription: BBT-Bit saves the lyric share cards you choose to add to Photos.
+        NSPhotoLibraryAddUsageDescription: BBT-Bit saves lyric share cards and Liquid Motion design previews to Photos only when you choose to export them.
         NSSpeechRecognitionUsageDescription: BBT-Bit uses on-device speech recognition to align fetched lyrics with the playing audio. Audio is not sent to a server for alignment.
     entitlements:
       path: BitChord.entitlements
@@ -166,3 +169,15 @@ targets:
         com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
           - group.com.babat.bbtbit
+  BitChordUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: BitChord
+    dependencies:
+      - target: BitChord

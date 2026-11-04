@@ -580,10 +580,43 @@ struct PageHistoryButtons: View {
 }
 #endif
 
-/// Root-page brand mark: upstream FrostedTopBar's leading BitChord logo,
-/// sized and positioned for native Apple navigation bars across all primary tabs.
+/// A real native toolbar anchor for the transient Glass Bloom. The mark
+/// remains visible even without music; taps are enabled only for a real track.
 struct TopBarLeadingMark: View {
+    #if os(iOS)
+    @Environment(PlaybackController.self) private var controller
+    @State private var bloom = LogoGlassBloomCoordinator.shared
+    #endif
+
     var body: some View {
+        #if os(iOS)
+        if controller.current != nil {
+            Button {
+                bloom.logoTapped()
+            } label: {
+                logoImage
+                    .opacity(bloom.isVisible ? 0.16 : 1)
+                    .scaleEffect(bloom.phase == .spark ? 1.06 : 1)
+            }
+            .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .frame(minWidth: 44, minHeight: 44)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.48)
+                    .onEnded { _ in bloom.logoHeld() }
+            )
+            .accessibilityLabel("BBT-Bit: Glass Bloom öffnen")
+            .accessibilityHint("Tippen für die Music Island, halten für die Musiksteuerung")
+            .accessibilityIdentifier("bbt.logoGlassBloom.trigger")
+        } else {
+            logoImage
+        }
+        #else
+        logoImage
+        #endif
+    }
+
+    private var logoImage: some View {
         Image(.bchLogo)
             .resizable()
             .scaledToFit()
