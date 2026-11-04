@@ -2,7 +2,7 @@
 
 ## Vor jeder Änderung
 
-1. Branch, Arbeitsbaum und letzte Commits prüfen. Für den Architekturauftrag gilt der zugewiesene Branch aus [AGENTS.md](../AGENTS.md). Einen neueren Stand von `main` nur nach Prüfung der Überschneidungen in den eigenen Branch übernehmen.
+1. Branch, Arbeitsbaum und letzte Commits nach [AGENTS.md](../AGENTS.md) prüfen. Einen neueren Stand von `main` nur nach Prüfung der Überschneidungen in den eigenen Branch übernehmen.
 2. Aufgabe und Abnahme klären. Vorhandene Funktion, Architektur, bekannte Probleme, Datenflüsse und Tests suchen. Passenden Skill lesen.
 3. Risiken für Nutzerdaten, Wiedergabe, Navigation, Kompatibilität und parallele Arbeit benennen. Bei derselben Datei mit einem zweiten Agenten die Überschneidung festhalten und beide Absichten beim Review erhalten.
 
@@ -11,7 +11,7 @@
 1. Bei einem Fehler einen reproduzierbaren Fall isolieren und möglichst zuerst einen Test schreiben, der am alten Verhalten scheitert. Kleine Änderungen über den normalen Aufrufpfad prüfen. Fixtures ausdrücklich als solche kennzeichnen.
 2. Die Prüfungen der betroffenen Zeilen aus dem [Testplan](TESTPLAN.md) ausführen. Pro Nachweis Befehl, Ergebnis, Revision, Plattform und Artefakt nennen. Fehlende Prüfungen als `NICHT GETESTET` eintragen.
 3. Erfüllte Aufgaben mit betroffenen Dateien, Zweck, Testbelegen und verbleibenden Risiken in [ERLEDIGTE-AUFGABEN.md](../ERLEDIGTE-AUFGABEN.md) erfassen. Teilaufgaben und fehlende Abnahmekriterien bleiben in [AUFGABEN.md](../AUFGABEN.md). Entscheidungen, Fehler, Lücken und Herkunft separat pflegen. Versionsdaten nur nach den [Release-Regeln](RELEASE.md) ändern.
-4. Vor dem Commit erneut den Branch und den gestagten Diff prüfen. Größere Änderungen für einen Draft-PR mit geeignetem Review-Ziel vorbereiten. Der Text enthält Umfang, Abnahmekriterien, Prüfmatrix, offene Nachweise, Risiken und Überschneidungen. Für den langfristigen Branch wird das Review-Ziel bei der gemeinsamen Integrationsprüfung festgelegt.
+4. Vor dem Commit erneut den Branch und den gestagten Diff prüfen. Größere Änderungen für einen Draft-PR mit dem vereinbarten Review-Ziel vorbereiten. Der Text enthält Umfang, Abnahmekriterien, Prüfmatrix, offene Nachweise, Risiken und Überschneidungen.
 
 ## Skill-Auswahl
 
