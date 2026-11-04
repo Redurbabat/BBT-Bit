@@ -15,3 +15,7 @@
 | `git diff --cached --check` und gestagter Diff mit `gitleaks stdin --redact=100` | `BESTANDEN`, keine Funde |
 | Swift, Kotlin/Native, Rust und iOS-Simulator | `NICHT GETESTET` auf diesem Windows-Rechner. Die Apple-CI-Nachweise stehen in [AUFGABEN.md](AUFGABEN.md). |
 | Echtes iPhone, Signierung und Auslieferung | `NICHT GETESTET`. Dafür ist ein signierter Build und ein Geräteprüflauf erforderlich. |
+
+Die [GitHub-Regressionen für `c294252`](https://github.com/Redurbabat/BBT-Bit/actions/runs/41833137474) sind `BESTANDEN`. Die Jobs prüften Netzwerkfehler, Google-Anmeldeidentität, Release-Shellsyntax, Doku, Skills, Version, Modulgrenzen, Herkunft und Geheimnisse.
+
+Der [Apple-Silicon-Lauf für `c294252`](https://github.com/Redurbabat/BBT-Bit/actions/runs/41833137485) erreichte `SYNTAX GEPRÜFT` für die ausgewählten Swift-Dateien. Simulator-, Kotlin- und Rust-Ergebnisse stehen in diesem Lauf. BBT-001 bleibt bis zur Auswertung offen.
