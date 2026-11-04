@@ -31,7 +31,7 @@ permissions:
 
 # Do not spawn multiple expensive macOS/iOS Simulator builds for one PR.
 concurrency:
-  group: bbt-ios-sim-${{ github.event.pull_request.number || github.ref }}
+  group: bbt-ios-sim-${{ github.event.pull_request.number || github.ref }}-${{ inputs.extractor_only && 'extractor' || 'full' }}
   cancel-in-progress: true
 
 jobs:
@@ -49,6 +49,8 @@ jobs:
           java-version: '21'
       - name: Test progressive audio extraction
         run: bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*'
+      - name: Test shared playback resolver recovery
+        run: bash gradlew :shared:macosArm64Test --tests '*StreamResolverRecoveryTest'
 
   ui-tests-on-simulator:
     if: '!inputs.extractor_only'
@@ -130,7 +132,13 @@ jobs:
           done
           echo "Swift files parsed; iOS SDK type checking happens during Xcode build."
 
+      - name: Verify Swift error handling and stream recovery
+        run: |
+          bash scripts/check-network-errors.sh
+          bash scripts/check-stream-recovery.sh
+
       - name: Build Kotlin/Native iPhone Simulator framework
+        id: kotlin_framework
         shell: bash
         run: |
           set -euo pipefail
@@ -140,6 +148,7 @@ jobs:
           # It must include an iOS Simulator variant, not only iphoneos.
 
       - name: Build Rust simulator framework and Swift UniFFI bindings
+        id: rust_framework
         shell: bash
         run: |
           set -euo pipefail
@@ -242,6 +251,10 @@ jobs:
           path: ${{ runner.temp }}/BBT-Bit-Simulator-Results/
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Verify native download recovery and existing offline files
+        if: ${{ !cancelled() && steps.kotlin_framework.outcome == 'success' && steps.rust_framework.outcome == 'success' }}
+        run: bash scripts/check-downloads.sh
 
       - name: Run shared Kotlin tests on Apple Silicon
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}

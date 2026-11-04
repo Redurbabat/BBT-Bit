@@ -657,6 +657,10 @@ class InnerTubeExtractor internal constructor(
                     diagnostics = diagnostics.snapshot(),
                 )
             }
+        }
+        if (!diagnostics.sawPlayableResponse || hints.requiresProgressiveAudio) {
+            // An unsupported transport from one profile does not establish
+            // that a different profile, whose request timed out, had no audio.
             diagnostics.requestFailures.lastOrNull()?.let { failure ->
                 throw StreamResolveException(
                     reason = StreamResolveException.Reason.NETWORK,
@@ -826,6 +830,21 @@ class InnerTubeExtractor internal constructor(
                 ),
         )
 
+        val progressiveAudioOnly = hints.requiresProgressiveAudio && tvBearerCredential == null
+        var selectedProgressiveAudio: ExtractedStream? = null
+        val acceptProgressiveAudio: (suspend (ClientResult) -> Boolean)? =
+            if (progressiveAudioOnly) {
+                { result ->
+                    selectedProgressiveAudio =
+                        selectStream(
+                            listOf(result), videoId, hints, clientPlaybackNonce, playerConfig, totalStartMs,
+                            allowCipherProcessing, audioQuality, diagnostics,
+                        )
+                    selectedProgressiveAudio != null
+                }
+            } else {
+                null
+            }
         val playerStart = Clock.System.now().toEpochMilliseconds()
         val batch =
             clientDirector.fetchPlayerResponses(
@@ -840,6 +859,7 @@ class InnerTubeExtractor internal constructor(
                 requestBudget = diagnostics.requestBudget,
                 prefetchedPoToken = prefetchedPoToken,
                 tvBearerCredential = tvBearerCredential,
+                acceptProgressiveAudio = acceptProgressiveAudio,
             )
         diagnostics.failures += batch.failures
         diagnostics.requestFailures += batch.requestFailures
@@ -860,6 +880,49 @@ class InnerTubeExtractor internal constructor(
             return null
         }
 
+        if (progressiveAudioOnly) {
+            return selectedProgressiveAudio?.let { stream ->
+                stream.copy(streamDiagnostics = diagnostics.snapshot()).also {
+                    it.perceptualLoudnessDb = stream.perceptualLoudnessDb
+                    it.mediaMetadata = stream.mediaMetadata
+                }
+            }
+        }
+        selectStream(
+            results, videoId, hints, clientPlaybackNonce, playerConfig, totalStartMs,
+            allowCipherProcessing, audioQuality, diagnostics,
+        )?.let { return it }
+
+        val failedProfiles =
+            results.flatMap { listOf(it.profileId, it.clientName) }.filter(String::isNotBlank).toSet()
+        val nextExcludedClients = excludedClients + failedProfiles
+        if (nextExcludedClients.size == excludedClients.size) return null
+        logger.d(TAG, "retrying after unusable response", details = mapOf("excludedCount" to failedProfiles.size.toString()))
+        return extractWithConfig(
+            videoId = videoId,
+            hints = hints,
+            excludedClients = nextExcludedClients,
+            clientPlaybackNonce = clientPlaybackNonce,
+            playerConfig = playerConfig,
+            totalStartMs = totalStartMs,
+            allowCipherProcessing = allowCipherProcessing,
+            audioQuality = audioQuality,
+            diagnostics = diagnostics,
+            tvBearerCredential = tvBearerCredential,
+        )
+    }
+
+    private suspend fun selectStream(
+        results: List<ClientResult>,
+        videoId: String,
+        hints: ContentHints,
+        clientPlaybackNonce: String,
+        playerConfig: PlayerConfig,
+        totalStartMs: Long,
+        allowCipherProcessing: Boolean,
+        audioQuality: AudioQuality,
+        diagnostics: ExtractionDiagnostics,
+    ): ExtractedStream? {
         for (result in results) {
             val response = result.response
             val requireBoundedRange = requiresBoundedMediaRange(result.clientName)
@@ -1445,26 +1508,7 @@ class InnerTubeExtractor internal constructor(
         }
 
         logger.d(TAG, "playable clients produced no usable audio")
-        val failedProfiles =
-            results
-                .flatMap { result -> listOf(result.profileId, result.clientName) }
-                .filter(String::isNotBlank)
-                .toSet()
-        val nextExcludedClients = excludedClients + failedProfiles
-        if (nextExcludedClients.size == excludedClients.size) return null
-        logger.d(TAG, "retrying after unusable response", details = mapOf("excludedCount" to failedProfiles.size.toString()))
-        return extractWithConfig(
-            videoId = videoId,
-            hints = hints,
-            excludedClients = nextExcludedClients,
-            clientPlaybackNonce = clientPlaybackNonce,
-            playerConfig = playerConfig,
-            totalStartMs = totalStartMs,
-            allowCipherProcessing = allowCipherProcessing,
-            audioQuality = audioQuality,
-            diagnostics = diagnostics,
-            tvBearerCredential = tvBearerCredential,
-        )
+        return null
     }
 
     private class ExtractionDiagnostics(
@@ -1481,6 +1525,7 @@ class InnerTubeExtractor internal constructor(
             StreamDiagnostics(
                 attempts = attempts.takeLast(32),
                 usedAuthenticatedWatchPage = usedAuthenticatedWatchPage,
+                playerRequests = requestBudget.consumed,
             )
     }
 
@@ -1649,6 +1694,9 @@ class InnerTubeExtractor internal constructor(
                 (it.encodedPath.startsWith("/manifest/") || it.encodedPath.startsWith("/api/manifest/"))
         } == true
 }
+
+private val ContentHints.requiresProgressiveAudio: Boolean
+    get() = !wantVideo && !allowHls && !allowSabr
 
 internal fun requiresBoundedMediaRange(clientName: String): Boolean =
     clientName == "ANDROID_VR" || clientName == "IOS" || clientName == "TVHTML5_SIMPLY"

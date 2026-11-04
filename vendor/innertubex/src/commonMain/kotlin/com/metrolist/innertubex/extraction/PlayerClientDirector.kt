@@ -23,6 +23,8 @@ import com.metrolist.innertubex.w
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
@@ -98,6 +100,7 @@ internal class PlayerClientDirector(
         requestBudget: PlayerRequestBudget? = null,
         prefetchedPoToken: Deferred<PoTokenResult?>? = null,
         tvBearerCredential: TvBearerCredential? = null,
+        acceptProgressiveAudio: (suspend (ClientResult) -> Boolean)? = null,
     ): PlayerResponseBatch {
         val startTime = Clock.System.now().toEpochMilliseconds()
         val initialSession = innerTube.sessionSnapshot()
@@ -203,6 +206,12 @@ internal class PlayerClientDirector(
                 ?.let { requestSession = it }
             val selectedClient = declaredClient.withPlayerConfigVersion(playerConfig)
             val client = selectedClient.client
+            if (acceptProgressiveAudio != null && client.useSabr) {
+                attempts += StreamAttemptDiagnostic(
+                    client.clientName, selectedClient.manifest?.id, client.userAgent, "transport:sabr-disabled",
+                )
+                continue
+            }
             // A visitor-less automatic legacy probe says nothing about its visitor-backed playback health.
             if (usesAutomaticCatalog && selectedClient.manifest?.id == "VISIONOS_0_1" &&
                 requestVisitorData.isNullOrBlank() && hints.playbackClientOverrideId == null
@@ -271,7 +280,7 @@ internal class PlayerClientDirector(
             attempts +=
                 StreamAttemptDiagnostic(
                     clientName = client.clientName,
-                    profileId = attempt?.let { selectedClient.profileId(it.usedPoToken) },
+                    profileId = attempt?.let { selectedClient.profileId(it.usedPoToken) } ?: selectedClient.manifest?.id,
                     userAgent = client.userAgent,
                     outcome =
                         when {
@@ -281,6 +290,20 @@ internal class PlayerClientDirector(
 
                             attempt != null -> {
                                 "playable_response"
+                            }
+
+                            acceptProgressiveAudio != null && attemptResult.tokenUnavailable -> {
+                                "po_token_unavailable"
+                            }
+
+                            acceptProgressiveAudio != null &&
+                                attemptResult.observedResponse?.playabilityStatus?.status == "OK" -> {
+                                val data = attemptResult.observedResponse.streamingData
+                                when {
+                                    !data?.serverAbrStreamingUrl.isNullOrBlank() -> "transport:sabr-only"
+                                    !data?.dashManifestUrl.isNullOrBlank() -> "transport:dash-only"
+                                    else -> "no_progressive_audio"
+                                }
                             }
 
                             attemptResult.observedResponse != null && client.clientName in TRANSPORT_PROBE_CLIENT_NAMES -> {
@@ -323,6 +346,27 @@ internal class PlayerClientDirector(
                         "client response skipped",
                         details = mapOf("client" to client.clientName, "profile" to result.profileId),
                     )
+                    continue
+                }
+                if (acceptProgressiveAudio != null) {
+                    val playability = attempt.response.playabilityStatus
+                    if (playability.status != "OK") {
+                        failures += PlayabilityFailure(playability.status, playability.reason)
+                        attempts[attempts.lastIndex] = attempts.last().copy(outcome = "playability:${playability.status}")
+                        continue
+                    }
+                    playableResults += result
+                    val outcome =
+                        when {
+                            !hasUsableAudioFormat(attempt.response) -> "transport:hls-only"
+                            requiresBoundedMediaRange(client.clientName) && !hints.allowBoundedRange -> "transport:bounded-range-disabled"
+                            acceptProgressiveAudio(result) -> "progressive:selected"
+                            else -> "progressive:unusable"
+                        }
+                    attempts[attempts.lastIndex] = attempts.last().copy(outcome = outcome)
+                    if (outcome == "progressive:selected") {
+                        return PlayerResponseBatch(listOf(result), failures, requestFailures, attempts)
+                    }
                     continue
                 }
                 playableResults += result
@@ -862,6 +906,7 @@ internal class PlayerClientDirector(
                     )
                 }
             } catch (error: TimeoutCancellationException) {
+                currentCoroutineContext().ensureActive()
                 throw PlayerRequestTimeoutException(client.clientName, playerRequestTimeoutMs, error)
             }
         key?.let { requestBudget.remember(it, response) }
@@ -1285,7 +1330,7 @@ internal data class PlayerRequestKey(
  */
 @OptIn(ExperimentalAtomicApi::class)
 internal class PlayerRequestBudget(
-    initial: Int,
+    private val initial: Int,
 ) {
     private val responses = mutableMapOf<PlayerRequestKey, PlayerResponse?>()
     private val healthReports = mutableSetOf<Pair<String, String>>()
@@ -1310,6 +1355,8 @@ internal class PlayerRequestBudget(
 
     val remaining: Int
         get() = remainingCount.load()
+    val consumed: Int
+        get() = initial - remaining
 
     fun consume() {
         while (true) {

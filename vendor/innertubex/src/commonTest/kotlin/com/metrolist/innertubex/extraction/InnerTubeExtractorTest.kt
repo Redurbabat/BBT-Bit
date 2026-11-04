@@ -1392,8 +1392,7 @@ class InnerTubeExtractorTest {
     @Test
     fun progressiveAudioContinuesAfterHlsOnlyPlayerResponse() =
         runBlocking {
-            val hlsOnly = """{"playabilityStatus":{"status":"OK"},"streamingData":{"hlsManifestUrl":"https://www.youtube.com/api/manifest/hls.m3u8"}}"""
-            assertProgressiveAudioFallback(hlsOnly)
+            assertProgressiveAudioFallback(HLS_ONLY_RESPONSE)
         }
 
     @Test
@@ -1402,8 +1401,26 @@ class InnerTubeExtractorTest {
             assertProgressiveAudioFallback(DIRECT_RESPONSE.replace("r.googlevideo.com", "invalid.example"))
         }
 
-    private suspend fun assertProgressiveAudioFallback(firstResponse: String) {
-        val first = YouTubeClient.VISIONOS
+    @Test
+    fun progressiveAudioSkipsDisabledSabrProfile() =
+        runBlocking {
+            assertProgressiveAudioFallback(SABR_RESPONSE, first = YouTubeClient.VISIONOS_SABR)
+        }
+
+    @Test
+    fun progressiveAudioDoesNotTreatAnIncompleteNetworkSearchAsNoStream() =
+        runBlocking {
+            val failure = assertFailsWith<StreamResolveException> {
+                assertProgressiveAudioFallback(HLS_ONLY_RESPONSE) { error("Synthetic request failure") }
+            }
+            assertEquals(StreamResolveException.Reason.NETWORK, failure.reason)
+        }
+
+    private suspend fun assertProgressiveAudioFallback(
+        firstResponse: String,
+        first: YouTubeClient = YouTubeClient.VISIONOS,
+        secondResponse: () -> String = { DIRECT_RESPONSE },
+    ) {
         val second = YouTubeClient.VISIONOS_0_1
         val requests = mutableListOf<String>()
         val client =
@@ -1412,7 +1429,7 @@ class InnerTubeExtractorTest {
                 requests += version
                 val body = when (version) {
                     first.clientVersion -> firstResponse
-                    second.clientVersion -> DIRECT_RESPONSE
+                    second.clientVersion -> secondResponse()
                     else -> error("Unexpected player profile")
                 }
                 respond(body, HttpStatusCode.OK, headersOf("Content-Type", "application/json"))
@@ -1431,7 +1448,10 @@ class InnerTubeExtractorTest {
                 )
             assertEquals(251, assertNotNull(stream).itag)
             assertTrue(stream.audioUrl.startsWith("https://r.googlevideo.com/videoplayback"))
-            assertEquals(listOf(first.clientVersion, second.clientVersion), requests)
+            val expected = listOfNotNull(first.clientVersion.takeUnless { first.useSabr }, second.clientVersion)
+            assertEquals(expected, requests)
+            assertEquals(expected.size, stream.streamDiagnostics?.playerRequests)
+            assertEquals("progressive:selected", stream.streamDiagnostics?.attempts?.last()?.outcome)
         } finally {
             client.close()
         }
@@ -1882,6 +1902,9 @@ class InnerTubeExtractorTest {
     }
 
     private companion object {
+        const val HLS_ONLY_RESPONSE =
+            """{"playabilityStatus":{"status":"OK"},"streamingData":{"hlsManifestUrl":"https://www.youtube.com/api/manifest/hls.m3u8"}}"""
+
         val DIRECT_RESPONSE =
             """
             {"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"video","title":"Track title","author":"Artist","channelId":"channel","lengthSeconds":"60","musicVideoType":"MUSIC_VIDEO_TYPE_ATV","viewCount":"42","thumbnail":{"thumbnails":[{"url":"https://i.ytimg.com/vi/video/default.jpg","width":120,"height":90}]}},"playerConfig":{"audioConfig":{"loudnessDb":-5.0,"perceptualLoudnessDb":-8.5}},"streamingData":{"adaptiveFormats":[{"itag":251,"url":"https://r.googlevideo.com/videoplayback?expire=9999999999","mimeType":"audio/webm; codecs=\"opus\"","bitrate":128000}]}}

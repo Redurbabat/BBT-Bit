@@ -13,4 +13,4 @@ Vor jeder Übernahme Herkunft, exakte Version oder Revision, Lizenztext, Rechte 
 
 ## Lokale InnerTubeX-Änderungen
 
-Der YouTube-Reparaturbranch ergänzt eigene Regressionsfixtures für die Auswahl progressiver Audioantworten in der bestehenden GPLv3-Kopie von InnerTubeX. Die Herkunft und Lizenz des eingebundenen Codes stehen in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Der YouTube-Reparaturbranch ergänzt in der bestehenden GPLv3-Kopie von InnerTubeX die Kandidatenauswahl für progressive Audioantworten, redigierbare Diagnosekategorien und eigene Regressionsfixtures. Die Herkunft und Lizenz des eingebundenen Codes stehen in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

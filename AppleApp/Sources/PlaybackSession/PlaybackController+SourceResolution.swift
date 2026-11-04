@@ -345,9 +345,15 @@ extension PlaybackController {
         _ entry: QueueEntry, videoId: String, prefs: ResolvePrefs,
         lookup: Task<QualityUpgrade.Candidate?, Never>, error: Error
     ) async throws -> ResolvedSource {
+        try Task.checkCancellation()
+        if error is CancellationError {
+            lookup.cancel()
+            throw error
+        }
         if let stream = await lookup.value { QualityUpgrade.shelve(videoId, stream: stream) }
-        // The counterpart is another YouTube ask, which a bot check refuses too.
-        if !InnertubeStreamResolver.StreamError.isBotCheck(error),
+        try Task.checkCancellation()
+        // A second YouTube request cannot recover network or access denials.
+        if (error as? InnertubeStreamResolver.StreamError)?.canTryCounterpart == true,
            let twin = await counterpart(of: entry, videoId: videoId) {
             do {
                 var source = try await resolveYouTube(videoId: twin, prefs: prefs)
@@ -355,6 +361,8 @@ extension PlaybackController {
                 PlaybackDebugLog.shared.record("YouTube refused; playing its counterpart \(twin)", about: videoId)
                 return source
             } catch {
+                try Task.checkCancellation()
+                if error is CancellationError { throw error }
                 PlaybackDebugLog.shared.record("counterpart \(twin) failed too: \(error.localizedDescription)", about: videoId)
             }
         }
@@ -427,9 +435,9 @@ extension PlaybackController {
         }
         /// Rung 2: a rebuilt session, asked once.
         func rebuildAndResolve(after error: Error) async throws -> ResolvedYouTubeStream {
-            // A bot check is the network's verdict; a new session asks again
-            // from the same address and only adds to the suspicion.
-            guard !rebuilt, !InnertubeStreamResolver.StreamError.isBotCheck(error) else { throw error }
+            try Task.checkCancellation()
+            // Only actual first-range refusals justify refreshing the session.
+            guard !rebuilt else { throw error }
             rebuilt = true
             PlaybackDebugLog.shared.record(
                 "no client would serve this track (\(refusedClients.isEmpty ? "extraction failed" : refusedClients.joined(separator: ", "))); rebuilding the session and asking again",
@@ -438,6 +446,7 @@ extension PlaybackController {
             await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
                 PlayerBridge.shared.rebuildSession(videoId: videoId, callback: DoneAdapter { done.resume() })
             }
+            try Task.checkCancellation()
             refusedClients.removeAll()
             do {
                 return try await InnertubeStreamResolver.shared.resolve(videoId: videoId, maxKbps: prefs.maxKbps)
@@ -457,9 +466,8 @@ extension PlaybackController {
             do {
                 return try await InnertubeStreamResolver.shared.resolve(videoId: videoId, maxKbps: prefs.maxKbps)
             } catch {
-                // The catalogue ran out of clients before the budget did.
                 record(error)
-                return try await rebuildAndResolve(after: error)
+                throw error
             }
         }
         var stream: ResolvedYouTubeStream
@@ -467,7 +475,7 @@ extension PlaybackController {
             stream = try await InnertubeStreamResolver.shared.resolve(videoId: videoId, maxKbps: prefs.maxKbps)
         } catch {
             record(error)
-            stream = try await rebuildAndResolve(after: error)
+            throw error
         }
         var resolvedAt = ProcessInfo.processInfo.systemUptime
         var rangeRetry = 0
@@ -491,6 +499,8 @@ extension PlaybackController {
                     origin: .youtube, youtubeVideoId: videoId
                 )
             } catch {
+                try Task.checkCancellation()
+                if error is CancellationError { throw error }
                 let reason = (error as? InnertubeStreamResolver.StreamError)?.message
                 let rejected = StreamDownloadBridge.shared.isInvalidFirstRange(message: reason)
                     || StreamDownloadBridge.shared.isRefusal(message: reason)
@@ -665,7 +675,7 @@ extension PlaybackController {
                 guard stillQueued else { continue }
                 let videoId = String(entry.source.dropFirst(3))
                 if await StreamFileCache.shared.path(for: videoId, allowQualityFallback: true) != nil { continue }
-                _ = try? await InnertubeStreamResolver.shared.resolve(videoId: videoId, maxKbps: prefs.maxKbps)
+                _ = try? await InnertubeStreamResolver.shared.resolve(videoId: videoId, maxKbps: prefs.maxKbps, background: true)
             }
         }
     }

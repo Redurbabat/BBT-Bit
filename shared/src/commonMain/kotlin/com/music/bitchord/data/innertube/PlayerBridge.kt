@@ -2,6 +2,7 @@ package com.music.bitchord.data.innertube
 
 import com.music.bitchord.data.DebugLog
 import com.metrolist.innertubex.extraction.StreamResolveException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -57,13 +58,20 @@ object PlayerBridge {
     }
 
     /** Cancellable replacement; older one-result entry points remain available. */
-    fun resolveRequest(videoId: String, maxKbps: Int, callback: ResolveCallback): Long {
+    fun resolveRequest(videoId: String, maxKbps: Int, callback: ResolveCallback): Long =
+        startResolve(videoId, maxKbps, background = false, callback = callback)
+
+    fun resolveBackgroundRequest(videoId: String, maxKbps: Int, callback: ResolveCallback): Long =
+        startResolve(videoId, maxKbps, background = true, callback = callback)
+
+    private fun startResolve(videoId: String, maxKbps: Int, background: Boolean, callback: ResolveCallback): Long {
         val id = ids.addAndFetch(1)
         val generation = Innertube.sessionGeneration
         val job = bridgeScope.launch(start = CoroutineStart.LAZY) {
             try {
                 Innertube.checkSession(generation)
-                val resolved = StreamResolver.resolve(videoId, maxKbps)
+                val resolved = (if (background) StreamResolver.resolveBackground(videoId, maxKbps, generation)
+                    else StreamResolver.resolve(videoId, maxKbps))
                     ?: throw IllegalStateException("No playable stream for $videoId")
                 val payload = StreamPayload(
                     url = resolved.url,
@@ -76,6 +84,10 @@ object PlayerBridge {
                 )
                 Innertube.checkSession(generation)
                 callback.onResult(json.encodeToString(StreamPayload.serializer(), payload), null)
+            } catch (_: CancellationException) {
+                callback.onResult(null, "[reason=CANCELLED]")
+            } catch (e: StreamResolver.BotCheckException) {
+                callback.onResult(null, "${e.message} [reason=BOT_CHECKED]")
             } catch (e: StreamResolver.PermanentlyUnplayableException) {
                 // A verdict, not a failure. Carried in the message so the caller can
                 // show it as a sentence rather than an error, which is the whole
@@ -86,10 +98,8 @@ object PlayerBridge {
                 // Explicitly expose the extractor's categorized refusal in
                 // on-device reports without logging URLs, headers, cookies,
                 // visitorData, PO tokens, user agents or player challenge text.
-                val count = e.diagnostics?.attempts?.size ?: 0
-                val category = e.reason.name
-                val detail = " [reason=$category, client_attempts=$count, transport=progressive-only]"
-                DebugLog.w("$videoId: stream extraction failed ($category; $count attempts; progressive-only)")
+                val detail = e.playbackDiagnostic()
+                DebugLog.w("$videoId: stream extraction failed$detail")
                 callback.onResult(null, (e.message ?: "No playable stream found.") + detail)
             } catch (e: Throwable) {
                 DebugLog.e("resolve failed for $videoId", e)
@@ -236,4 +246,38 @@ object PlayerBridge {
         val durationSeconds: Long? = null,
         val clientName: String = "unknown",
     )
+}
+
+private val diagnosticProfile = Regex("[A-Za-z0-9_.-]{1,64}")
+private val knownPlayability = setOf(
+    "OK", "UNPLAYABLE", "VIDEO_UNAVAILABLE", "LOGIN_REQUIRED", "AGE_CHECK_REQUIRED",
+    "AGE_VERIFICATION_REQUIRED", "CONTENT_CHECK_REQUIRED", "LIVE_STREAM_OFFLINE", "ERROR",
+)
+
+internal fun StreamResolveException.playbackDiagnostic(): String {
+    val requests = diagnostics?.playerRequests?.toString() ?: "unknown"
+    val outcomes = diagnostics?.attempts.orEmpty().asSequence()
+        .filterNot { it.outcome.startsWith("selection:") }
+        .map { attempt ->
+            val profile = (attempt.profileId ?: attempt.clientName).takeIf(diagnosticProfile::matches) ?: "unknown"
+            val outcome = when (val value = attempt.outcome) {
+                "transport:sabr-disabled", "transport:hls-only", "transport:sabr-only", "transport:dash-only",
+                "transport:bounded-range-disabled", "no_progressive_audio",
+                "progressive:selected", "progressive:unusable", "po_token_unavailable",
+                "playable_response", "no_playable_response" -> value
+                "request:PlayerRequestTimeoutException", "request:HttpRequestTimeoutException",
+                "request:ConnectTimeoutException", "request:SocketTimeoutException" -> "request_timeout"
+                else -> when {
+                    value.startsWith("request:") -> "request_failure"
+                    value.startsWith("playability:") -> {
+                        val status = value.substringAfter(':').takeIf { it in knownPlayability } ?: "other"
+                        "playability:$status"
+                    }
+                    else -> "other"
+                }
+            }
+            "$profile/$outcome"
+        }.distinct().toList().takeLast(12)
+    return " [reason=${reason.name}, player_requests=$requests, transport=progressive-only" +
+        (if (outcomes.isEmpty()) "" else ", outcomes=${outcomes.joinToString("|")}") + "]"
 }

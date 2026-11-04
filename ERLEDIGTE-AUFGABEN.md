@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-04 · Progressive YouTube-Kandidatenauswahl und Wiederholungen
+
+Die Auswahl prüft eine Antwort auf progressives Audio, bevor sie weitere Profile verwirft. Kotlin, Swift und Downloadtests decken die betroffenen Übergänge ab. Der Kotlin-JVM-Test zeigte zwei Fehlschläge vor der Änderung und sieben bestandene Fälle mit dem Fix. Der Live-Nachweis und der native Prüfstand sind separat erfasst. [Fehleranalyse und Prüfstand](docs/claude-youtube-playback-handoff-20261104.md#analyse-und-prüfstand-des-reparaturbranches)
+
 ## 2026-11-04 · Agenten- und Prüfgrundlage
 
 - Die Dokumente trennen Arbeitsregeln, offene und abgeschlossene Arbeit, Entscheidungen, Fehler, Lücken und Fremdcode. Die Skills verbinden SwiftUI- und BBT-Bit-Aufgaben mit bestehenden Einstiegspunkten und Tests.

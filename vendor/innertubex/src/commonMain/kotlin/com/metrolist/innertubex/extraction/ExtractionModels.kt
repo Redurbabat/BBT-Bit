@@ -287,6 +287,7 @@ public data class StreamAttemptDiagnostic(
 public data class StreamDiagnostics(
     val attempts: List<StreamAttemptDiagnostic>,
     val usedAuthenticatedWatchPage: Boolean,
+    val playerRequests: Int = 0,
 )
 
 public class StreamResolveException(
