@@ -40,14 +40,21 @@ struct DockScrollDirectionObserver: ViewModifier {
             content
                 .onScrollPhaseChange { _, phase, context in
                     if phase == .interacting {
-                        tracker.begin(at: offset(context.geometry))
+                        let g = context.geometry
+                        let value = g.contentOffset.y + g.contentInsets.top
+                        let highest = max(0, g.contentSize.height + g.contentInsets.top +
+                                             g.contentInsets.bottom - g.containerSize.height)
+                        tracker.begin(at: min(max(0, value), highest))
                         coordinator.beganDragging()
                     } else if tracker.isInteracting {
                         tracker.end()
                     }
                 }
                 .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                    offset(geometry)
+                    let value = geometry.contentOffset.y + geometry.contentInsets.top
+                    let highest = max(0, geometry.contentSize.height + geometry.contentInsets.top +
+                                         geometry.contentInsets.bottom - geometry.containerSize.height)
+                    return min(max(0, value), highest)
                 } action: { _, newOffset in
                     if let direction = tracker.sample(newOffset) {
                         coordinator.moved(direction)
@@ -58,16 +65,5 @@ struct DockScrollDirectionObserver: ViewModifier {
         }
     }
 
-    /// Clamp rubber-band overscroll at both ends so a short bounce at the
-    /// content edge never looks like a deliberate direction reversal.
-    private func offset(_ geometry: ScrollGeometry) -> CGFloat {
-        let value = geometry.contentOffset.y + geometry.contentInsets.top
-        let highest = max(
-            0,
-            geometry.contentSize.height + geometry.contentInsets.top +
-                geometry.contentInsets.bottom - geometry.containerSize.height
-        )
-        return min(max(0, value), highest)
-    }
 }
 #endif
