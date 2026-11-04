@@ -16,9 +16,11 @@ import com.music.bitchord.data.http.Http
 import io.ktor.client.statement.bodyAsText
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.time.Duration
 import kotlin.time.TimeSource
 import kotlin.time.TimeMark
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -54,6 +56,27 @@ internal data class VideoSide(
     val profileId: String,
     val musicVideoType: String?,
 )
+
+/**
+ * Prevent simultaneous failures on unrelated media from repeatedly closing
+ * one shared InnerTube session. The caller owns synchronization; this class
+ * only tracks a monotonic cooldown and can be exercised without live network.
+ */
+internal class SharedExtractionRefreshGate(
+    private val cooldown: Duration = 20.seconds,
+) {
+    private var generation: Long = -1
+    private var refreshedAt: TimeMark? = null
+
+    fun shouldRefresh(currentGeneration: Long, now: TimeMark = TimeSource.Monotonic.markNow()): Boolean {
+        if (generation == currentGeneration && refreshedAt?.elapsedNow()?.let { it < cooldown } == true) {
+            return false
+        }
+        generation = currentGeneration
+        refreshedAt = now
+        return true
+    }
+}
 
 /** Same maintained extraction stack as Android upstream, on the shared Darwin transport. */
 @OptIn(ExperimentalAtomicApi::class)
@@ -101,10 +124,26 @@ internal object UpstreamPlaybackExtractor {
      * a token bound to an old challenge) than a track that cannot play, and the
      * clients it refused deserve one more ask once the session is new.
      */
+    // A failed direct-stream lookup can trigger this for every queued song
+    // and prefetch in the same instant. Closing the shared InnerTube session
+    // again and again cancels unrelated requests (seen as
+    // "TimeoutCoroutine was cancelled") and turns one unusable track into an
+    // extraction storm. Only the first reset in a short window can rebuild the
+    // shared session; later failures retain the already refreshed session.
     suspend fun rebuildSession(videoId: String) {
-        lock.withLock {
-            session?.let { it.innerTube.close(); it.cipher.dispose() }
-            session = null
+        val generation = Innertube.sessionGeneration
+        val didRebuild = lock.withLock {
+            if (!refreshGate.shouldRefresh(generation)) {
+                false
+            } else {
+                session?.let { it.innerTube.close(); it.cipher.dispose() }
+                session = null
+                true
+            }
+        }
+        if (!didRebuild) {
+            DebugLog.d("$videoId: shared extraction session already refreshed; keeping current session")
+            return
         }
         while (true) {
             val old = excluded.load()
@@ -115,6 +154,7 @@ internal object UpstreamPlaybackExtractor {
     }
     private val lock = Mutex()
     private var session: Session? = null
+    private val refreshGate = SharedExtractionRefreshGate()
     private val logger = InnerTubeLogger { event ->
         // Library diagnostics may contain signed URLs. The shared redactor is
         // applied before anything reaches the system log; never print details maps.
