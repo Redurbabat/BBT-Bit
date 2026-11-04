@@ -605,8 +605,21 @@ struct TopBarLeadingMark: View {
                 LongPressGesture(minimumDuration: 0.48)
                     .onEnded { _ in bloom.logoHeld() }
             )
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 14)
+                    .onEnded { value in
+                        // An iPhone cannot sense a finger hovering near its
+                        // logo like the macOS Dock senses a mouse pointer.
+                        // Pulling down directly on the logo is the physical
+                        // touch equivalent and opens full transport controls.
+                        if value.translation.height > 30
+                            && abs(value.translation.height) > abs(value.translation.width) {
+                            bloom.logoHeld()
+                        }
+                    }
+            )
             .accessibilityLabel("BBT-Bit: Glass Bloom öffnen")
-            .accessibilityHint("Tippen für die Music Island, halten für die Musiksteuerung")
+            .accessibilityHint("Tippen für die Musikblase, halten oder nach unten ziehen für die Musiksteuerung. Beim Hochscrollen erscheint sie auch automatisch.")
             .accessibilityIdentifier("bbt.logoGlassBloom.trigger")
         } else {
             logoImage

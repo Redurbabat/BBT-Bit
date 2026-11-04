@@ -43,6 +43,9 @@ struct ExploreView: View {
         switch moods.phase {
         case .loading:
             ScrollView { moodGrid.padding(.horizontal, 24).padding(.vertical, 20) }
+                #if os(iOS)
+                .modifier(DockScrollDirectionObserver())
+                #endif
         case .failed(let message):
             EmptyStateView(
                 icon: Image(.bchExplore),
@@ -56,6 +59,9 @@ struct ExploreView: View {
                 .padding(.horizontal, 24)
                 .padding(.vertical, 20)
             }
+            #if os(iOS)
+            .modifier(DockScrollDirectionObserver())
+            #endif
         }
     }
 
