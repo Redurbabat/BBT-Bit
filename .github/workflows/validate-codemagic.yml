@@ -137,7 +137,7 @@ jobs:
           assert 'LogoGlassBloomIsland()' in root
           assert '.overlay(alignment: .topLeading)' in root
           assert 'logoGlassBloom.isVisible' in root
-          assert '.onChange(of: appModel.nowPlayingPresented)' in root
+          assert '.onChange(of: canRevealLogoBloom)' in root
           assert 'bloom.logoTapped()' in mark
           assert 'bloom.logoHeld()' in mark
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
