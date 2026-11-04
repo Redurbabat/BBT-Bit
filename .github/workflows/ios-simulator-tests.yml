@@ -157,6 +157,16 @@ jobs:
             swiftc -frontend -parse "$file"
           done
           echo "Swift files parsed; iOS SDK type checking happens during Xcode build."
+          # Pure model regression: tests reversal while ONE finger remains down.
+          swiftc AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift \
+                 scripts/test-dock-direction-tracker.swift \
+                 -o "$RUNNER_TEMP/bbt-dock-direction-test"
+          "$RUNNER_TEMP/bbt-dock-direction-test"
+          swiftc -frontend -parse AppleApp/Sources/UI/Library/HomeView.swift
+          swiftc -frontend -parse AppleApp/Sources/UI/Library/ExploreView.swift
+          swiftc -frontend -parse AppleApp/Sources/UI/Library/LibraryLandingView.swift
+          swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
+          swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
 
       - name: Verify Swift error handling and stream recovery
         run: |
