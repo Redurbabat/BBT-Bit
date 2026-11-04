@@ -40,14 +40,14 @@ struct DockScrollDirectionObserver: ViewModifier {
             content
                 .onScrollPhaseChange { _, phase, context in
                     if phase == .interacting {
-                        tracker.begin(at: context.geometry.contentOffset.y)
+                        tracker.begin(at: offset(context.geometry))
                         coordinator.beganDragging()
                     } else if tracker.isInteracting {
                         tracker.end()
                     }
                 }
                 .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                    geometry.contentOffset.y
+                    offset(geometry)
                 } action: { _, newOffset in
                     if let direction = tracker.sample(newOffset) {
                         coordinator.moved(direction)
@@ -56,6 +56,18 @@ struct DockScrollDirectionObserver: ViewModifier {
         } else {
             content
         }
+    }
+
+    /// Clamp rubber-band overscroll at both ends so a short bounce at the
+    /// content edge never looks like a deliberate direction reversal.
+    private func offset(_ geometry: ScrollGeometry) -> CGFloat {
+        let value = geometry.contentOffset.y + geometry.contentInsets.top
+        let highest = max(
+            0,
+            geometry.contentSize.height + geometry.contentInsets.top +
+                geometry.contentInsets.bottom - geometry.containerSize.height
+        )
+        return min(max(0, value), highest)
     }
 }
 #endif
