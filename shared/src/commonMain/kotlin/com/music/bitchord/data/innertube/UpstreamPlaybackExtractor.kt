@@ -19,6 +19,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.TimeSource
 import kotlin.time.TimeMark
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -101,10 +102,30 @@ internal object UpstreamPlaybackExtractor {
      * a token bound to an old challenge) than a track that cannot play, and the
      * clients it refused deserve one more ask once the session is new.
      */
+    // A failed direct-stream lookup can trigger this for every queued song
+    // and prefetch in the same instant. Closing the shared InnerTube session
+    // again and again cancels unrelated requests (seen as
+    // "TimeoutCoroutine was cancelled") and turns one unusable track into an
+    // extraction storm. Only the first reset in a short window can rebuild the
+    // shared session; later failures retain the already refreshed session.
     suspend fun rebuildSession(videoId: String) {
-        lock.withLock {
-            session?.let { it.innerTube.close(); it.cipher.dispose() }
-            session = null
+        val generation = Innertube.sessionGeneration
+        val didRebuild = lock.withLock {
+            val recentlyRebuilt = lastRebuildGeneration == generation &&
+                lastRebuildAt?.let { it.elapsedNow() < 20.seconds } == true
+            if (recentlyRebuilt) {
+                false
+            } else {
+                session?.let { it.innerTube.close(); it.cipher.dispose() }
+                session = null
+                lastRebuildAt = TimeSource.Monotonic.markNow()
+                lastRebuildGeneration = generation
+                true
+            }
+        }
+        if (!didRebuild) {
+            DebugLog.d("$videoId: shared extraction session already refreshed; keeping current session")
+            return
         }
         while (true) {
             val old = excluded.load()
@@ -115,6 +136,8 @@ internal object UpstreamPlaybackExtractor {
     }
     private val lock = Mutex()
     private var session: Session? = null
+    private var lastRebuildAt: TimeMark? = null
+    private var lastRebuildGeneration: Long = -1
     private val logger = InnerTubeLogger { event ->
         // Library diagnostics may contain signed URLs. The shared redactor is
         // applied before anything reaches the system log; never print details maps.
