@@ -190,7 +190,7 @@ jobs:
           assert 'onScrollGeometryChange' in dock
           assert 'if phase == .interacting' in dock
           assert 'keepExpanded = newDirection == .towardTop' in dock
-          assert 'struct DockDirectionTracker' in tracker
+          assert 'final class DockDirectionTracker' in tracker
           assert 'lastEmittedDirection' in tracker
           assert 'DockScrollDirectionObserver()' in home and 'DockScrollDirectionObserver()' in explore
           assert 'dockScroll.keepExpanded ? .never : .onScrollDown' in root
