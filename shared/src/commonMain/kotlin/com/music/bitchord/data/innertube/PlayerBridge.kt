@@ -1,6 +1,7 @@
 package com.music.bitchord.data.innertube
 
 import com.music.bitchord.data.DebugLog
+import com.metrolist.innertubex.extraction.StreamResolveException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -80,6 +81,16 @@ object PlayerBridge {
                 // show it as a sentence rather than an error, which is the whole
                 // reason it is its own type.
                 callback.onResult(null, e.message ?: "This track cannot be played")
+            } catch (e: StreamResolveException) {
+                // The current Apple Rust loader accepts progressive sources.
+                // Explicitly expose the extractor's categorized refusal in
+                // on-device reports without logging URLs, headers, cookies,
+                // visitorData, PO tokens, user agents or player challenge text.
+                val count = e.diagnostics?.attempts?.size ?: 0
+                val category = e.reason.name
+                val detail = " [reason=$category, client_attempts=$count, transport=progressive-only]"
+                DebugLog.w("$videoId: stream extraction failed ($category; $count attempts; progressive-only)")
+                callback.onResult(null, (e.message ?: "No playable stream found.") + detail)
             } catch (e: Throwable) {
                 DebugLog.e("resolve failed for $videoId", e)
                 callback.onResult(null, e.message ?: e.toString())
