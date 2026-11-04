@@ -115,6 +115,7 @@ jobs:
           "$RUNNER_TEMP/bbt-dock-direction-test"
           swiftc -frontend -parse AppleApp/Sources/UI/Library/HomeView.swift
           swiftc -frontend -parse AppleApp/Sources/UI/Library/ExploreView.swift
+          swiftc -frontend -parse AppleApp/Sources/UI/Library/LibraryLandingView.swift
           swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
           swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
 
