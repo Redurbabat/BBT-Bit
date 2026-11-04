@@ -124,6 +124,22 @@ jobs:
           assert 'LiquidPhotoWayfinderView()' in settings
           assert 'LiquidPhotoWayfinderView()' in live
           assert 'AppServices.shared.appModel.settingsPresented' in live
+          # Glass Bloom must not regress to an always-visible centered island.
+          bloom = Path('AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift').read_text()
+          root = Path('AppleApp/Sources/UI/RootView.swift').read_text()
+          mark = Path('AppleApp/Sources/UI/AccountProfileSheet.swift').read_text()
+          assert 'enum LogoGlassBloomPhase' in bloom
+          assert 'LogoGlassBloomCoordinator' in bloom
+          assert '.glassEffect(.regular, in: shape)' in bloom
+          assert 'case .idle' in bloom and 'case .spark' in bloom
+          assert '.seconds(8)' in bloom and '.seconds(4)' in bloom
+          assert 'LiquidLiveCaptureMarker(id: "island")' in bloom
+          assert 'LogoGlassBloomIsland()' in root
+          assert '.overlay(alignment: .topLeading)' in root
+          assert 'logoGlassBloom.isVisible' in root
+          assert '.onChange(of: canRevealLogoBloom)' in root
+          assert 'bloom.logoTapped()' in mark
+          assert 'bloom.logoHeld()' in mark
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
@@ -138,6 +154,9 @@ jobs:
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidPhotoWayfinderView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
             echo "SwiftUI syntax parse: PASS (type-check requires Xcode)"
           else
             echo "::warning::Swift compiler unavailable on this runner; Xcode type-check required"
