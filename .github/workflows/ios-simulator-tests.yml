@@ -7,6 +7,9 @@ on:
       - AppleApp/project.yml
       - AppleApp/UITests/**
       - AppleApp/Sources/UI/LiquidMotion/**
+      - AppleApp/Sources/UI/NowPlaying/**
+      - AppleApp/Sources/UI/PlaybackPill.swift
+      - AppleApp/Sources/UI/ArtworkPalette.swift
       - AppleApp/Sources/App/BitChordApp.swift
       - scripts/build-shared-framework.sh
       - scripts/build-native-core.sh
@@ -93,7 +96,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in AppleApp/Sources/UI/LiquidMotion/*.swift AppleApp/UITests/*.swift; do
+          for file in AppleApp/Sources/UI/LiquidMotion/*.swift \
+                      AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift \
+                      AppleApp/Sources/UI/PlaybackPill.swift \
+                      AppleApp/UITests/*.swift; do
             swiftc -frontend -parse "$file"
           done
           echo "Swift files parsed; iOS SDK type checking happens during Xcode build."
