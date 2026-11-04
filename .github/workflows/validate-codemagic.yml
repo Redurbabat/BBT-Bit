@@ -166,6 +166,22 @@ jobs:
           assert 'freshResolution: true' in diagnostics
           assert 'rows.row("Musik spielt nicht?"' in playbackSettings
           assert 'playback load FAILED' in loadResults
+          miniCover = Path('AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift').read_text()
+          miniPill = Path('AppleApp/Sources/UI/PlaybackPill.swift').read_text()
+          fullLayout = Path('AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift').read_text()
+          zoomRoot = Path('AppleApp/Sources/UI/RootView.swift').read_text()
+          assert 'struct CoverMorphMiniSurface' in miniCover
+          assert 'struct CoverMorphFullBackdrop' in miniCover
+          assert 'ArtworkPalette.pageTint' in miniCover
+          assert 'ArtworkCache.shared.load' in miniCover
+          assert 'accessibilityReduceTransparency' in miniCover
+          assert 'accessibilityReduceMotion' in miniCover
+          assert 'CoverMorphMiniSurface(' in miniPill
+          assert 'controller.duration > 0' in miniPill
+          assert 'NowPlayingZoomSource()' in miniPill
+          assert 'CoverMorphFullBackdrop(entry: controller.current)' in fullLayout
+          assert '.navigationTransition(.zoom(sourceID:' in zoomRoot
+          assert 'NowPlayingTakeover' in zoomRoot
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
@@ -187,6 +203,9 @@ jobs:
             swiftc -frontend -parse AppleApp/Sources/UI/DiagnosticReportsView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Playback.swift
             swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+LoadResults.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/PlaybackPill.swift
             echo "SwiftUI syntax parse: PASS (type-check requires Xcode)"
           else
             echo "::warning::Swift compiler unavailable on this runner; Xcode type-check required"
