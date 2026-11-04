@@ -75,6 +75,9 @@ struct HomeView: View {
         switch feed.phase {
         case .loading:
             ScrollView { HomeFeedSkeleton() }
+                #if os(iOS)
+                .modifier(DockScrollDirectionObserver())
+                #endif
         case .failed(let message):
             EmptyStateView(
                 icon: Image(.bchMusicNote),
@@ -113,6 +116,9 @@ struct HomeView: View {
                 .padding(.vertical, 20)
             }
             .modifier(ExternalScrollPosition(position: scrollPosition))
+            #if os(iOS)
+            .modifier(DockScrollDirectionObserver())
+            #endif
         }
     }
 
