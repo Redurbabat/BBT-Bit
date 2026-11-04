@@ -186,6 +186,7 @@ jobs:
           tracker = Path('AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift').read_text()
           home = Path('AppleApp/Sources/UI/Library/HomeView.swift').read_text()
           explore = Path('AppleApp/Sources/UI/Library/ExploreView.swift').read_text()
+          libraryLanding = Path('AppleApp/Sources/UI/Library/LibraryLandingView.swift').read_text()
           assert 'onScrollPhaseChange' in dock
           assert 'onScrollGeometryChange' in dock
           assert 'if phase == .interacting' in dock
@@ -193,6 +194,7 @@ jobs:
           assert 'final class DockDirectionTracker' in tracker
           assert 'lastEmittedDirection' in tracker
           assert 'DockScrollDirectionObserver()' in home and 'DockScrollDirectionObserver()' in explore
+          assert 'DockScrollDirectionObserver()' in libraryLanding
           assert 'dockScroll.keepExpanded ? .never : .onScrollDown' in root
           assert 'dockScroll.directionRevision' in root
           assert 'DragGesture(minimumDistance: 14)' in mark
@@ -217,6 +219,7 @@ jobs:
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift
             swiftc -frontend -parse AppleApp/Sources/UI/Library/HomeView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/Library/ExploreView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/Library/LibraryLandingView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
             swiftc -frontend -parse AppleApp/Sources/UI/DiagnosticReportsView.swift
