@@ -28,9 +28,6 @@ jobs:
     name: Build BBT-Bit and tap 15 design previews on iPhone Simulator
     runs-on: macos-26
     timeout-minutes: 105
-    env:
-      RESULT_DIR: ${{ runner.temp }}/BBT-Bit-Simulator-Results
-      RESULT_BUNDLE: ${{ runner.temp }}/BBT-Bit-UI.xcresult
     steps:
       - name: Checkout BBT-Bit
         uses: actions/checkout@v4
@@ -39,6 +36,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo "RESULT_DIR=$RUNNER_TEMP/BBT-Bit-Simulator-Results" >> "$GITHUB_ENV"
+          echo "RESULT_BUNDLE=$RUNNER_TEMP/BBT-Bit-UI.xcresult" >> "$GITHUB_ENV"
+          export RESULT_DIR="$RUNNER_TEMP/BBT-Bit-Simulator-Results"
           uname -m
           xcodebuild -version
           xcrun simctl list devices available
