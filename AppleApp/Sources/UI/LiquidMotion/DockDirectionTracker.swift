@@ -9,14 +9,14 @@ enum DockScrollDirection: Equatable {
 
 /// Offline-testable hysteresis; excludes tiny scroll noise and initial layout
 /// adjustments. SwiftUI's scroll phase determines whether a finger is active.
-struct DockDirectionTracker {
+final class DockDirectionTracker {
     private(set) var isInteracting = false
     private var previousOffset: CGFloat?
     private var pendingDirection: DockScrollDirection?
     private var pendingDistance: CGFloat = 0
     private var lastEmittedDirection: DockScrollDirection?
 
-    mutating func begin(at offset: CGFloat) {
+    func begin(at offset: CGFloat) {
         isInteracting = true
         previousOffset = offset
         pendingDirection = nil
@@ -24,7 +24,7 @@ struct DockDirectionTracker {
         lastEmittedDirection = nil
     }
 
-    mutating func end() {
+    func end() {
         isInteracting = false
         previousOffset = nil
         pendingDirection = nil
@@ -32,7 +32,7 @@ struct DockDirectionTracker {
         lastEmittedDirection = nil
     }
 
-    mutating func sample(_ offset: CGFloat) -> DockScrollDirection? {
+    func sample(_ offset: CGFloat) -> DockScrollDirection? {
         guard isInteracting, let previousOffset else { return nil }
         self.previousOffset = offset
         let delta = offset - previousOffset
