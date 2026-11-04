@@ -21,22 +21,23 @@ on:
       - .github/workflows/ios-simulator-tests.yml
   workflow_dispatch:
     inputs:
-      extractor_only:
-        description: Run only the Kotlin playback extractor regressions
-        type: boolean
-        default: false
+      mode:
+        description: Choose the native simulator, Kotlin, or host regression suite
+        type: choice
+        options: [full, extractor, host]
+        default: full
 
 permissions:
   contents: read
 
 # Do not spawn multiple expensive macOS/iOS Simulator builds for one PR.
 concurrency:
-  group: bbt-ios-sim-${{ github.event.pull_request.number || github.ref }}-${{ inputs.extractor_only && 'extractor' || 'full' }}
+  group: bbt-ios-sim-${{ github.event.pull_request.number || github.ref }}-${{ inputs.mode || 'full' }}
   cancel-in-progress: true
 
 jobs:
   extractor-regressions:
-    if: inputs.extractor_only
+    if: inputs.mode == 'extractor'
     runs-on: macos-26
     timeout-minutes: 25
     steps:
@@ -52,8 +53,33 @@ jobs:
       - name: Test shared playback resolver recovery
         run: bash gradlew :shared:macosArm64Test --tests '*StreamResolverRecoveryTest'
 
+  host-regressions:
+    if: inputs.mode == 'host'
+    runs-on: macos-15-intel
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify Swift error handling and stream recovery
+        run: |
+          bash scripts/check-network-errors.sh
+          bash scripts/check-stream-recovery.sh
+      - name: Parse changed Swift playback paths
+        run: |
+          xcrun swiftc -frontend -parse \
+            AppleApp/Sources/App/InnertubeStreamResolver.swift \
+            AppleApp/Sources/PlaybackSession/BridgeDownloadBackend.swift \
+            AppleApp/Sources/PlaybackSession/DownloadStore.swift \
+            AppleApp/Sources/PlaybackSession/PlaybackController+EngineEvents.swift \
+            AppleApp/Sources/PlaybackSession/PlaybackController+LoadResults.swift \
+            AppleApp/Sources/PlaybackSession/PlaybackController+SourceResolution.swift
+      - name: Run Rust decoder, buffer and mixer tests on macOS
+        if: ${{ !cancelled() }}
+        run: cargo test --locked --manifest-path native-core/Cargo.toml
+
   ui-tests-on-simulator:
-    if: '!inputs.extractor_only'
+    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
     name: Build BBT-Bit and tap 15 design previews on iPhone Simulator
     runs-on: macos-26
     timeout-minutes: 105
