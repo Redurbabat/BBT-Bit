@@ -52,7 +52,7 @@ final class LogoGlassBloomCoordinator {
     func collapse() {
         guard isVisible else { return }
         revealTask?.cancel()
-        withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
+        withAnimation(motion(.spring(response: 0.42, dampingFraction: 0.86))) {
             phase = .compact
         }
         scheduleHide()
@@ -66,7 +66,7 @@ final class LogoGlassBloomCoordinator {
     func dismiss() {
         revealTask?.cancel()
         hideTask?.cancel()
-        withAnimation(.spring(response: 0.40, dampingFraction: 0.87)) {
+        withAnimation(motion(.spring(response: 0.40, dampingFraction: 0.87))) {
             phase = .idle
         }
     }
@@ -75,23 +75,27 @@ final class LogoGlassBloomCoordinator {
         revealTask?.cancel()
         hideTask?.cancel()
         if phase == .idle {
-            withAnimation(.easeOut(duration: 0.16)) {
+            withAnimation(motion(.easeOut(duration: 0.16))) {
                 phase = .spark
             }
             revealTask = Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(180))
                 guard !Task.isCancelled else { return }
-                withAnimation(.spring(response: 0.52, dampingFraction: 0.76)) {
+                withAnimation(motion(.spring(response: 0.52, dampingFraction: 0.76))) {
                     phase = expanded ? .expanded : .compact
                 }
                 scheduleHide()
             }
         } else {
-            withAnimation(.spring(response: 0.48, dampingFraction: 0.82)) {
+            withAnimation(motion(.spring(response: 0.48, dampingFraction: 0.82))) {
                 phase = expanded ? .expanded : .compact
             }
             scheduleHide()
         }
+    }
+
+    private func motion(_ animation: Animation) -> Animation {
+        UIAccessibility.isReduceMotionEnabled ? .easeOut(duration: 0.12) : animation
     }
 
     private func scheduleHide() {
@@ -178,14 +182,15 @@ struct LogoGlassBloomIsland: View {
                     .accessibilityHidden(true)
             } else {
                 Button {
-                    bloom.expand()
+                    if isExpanded { bloom.dismiss() }
+                    else { bloom.expand() }
                 } label: {
                     ArtworkView(entry: controller.current, side: 38)
                         .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(.white.opacity(0.14)))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Music Island erweitern")
+                .accessibilityLabel(isExpanded ? "Glass Bloom schließen" : "Music Island erweitern")
                 VStack(alignment: .leading, spacing: 3) {
                     Text(controller.current?.title ?? "Musik")
                         .font(.caption.weight(.semibold))
