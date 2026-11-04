@@ -326,7 +326,7 @@ struct RootView: View {
         }
         #endif
         .preferredColorScheme(appModel.preferredScheme)
-        .environment(\.locale, appModel.appLanguage.isEmpty ? .autoupdatingCurrent : Locale(identifier: appModel.appLanguage))
+        .environment(\.locale, AppLanguage.locale(for: appModel.appLanguage))
         .overlay {
             // One host, at the top of the tree, so a notice raised from a sheet or
             // a context menu is never clipped by the view that raised it. Same

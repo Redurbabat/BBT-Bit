@@ -551,7 +551,7 @@ final class DownloadStore {
                             self.jobs[i].youtubeFallback = true
                         }
                         let interrupted = error is CancellationError
-                        self.jobs[i].message = interrupted ? "Download interrupted. Retry to start a new request."
+                        self.jobs[i].message = interrupted ? AppLanguage.localized("Download interrupted. Retry to start a new request.")
                             : PlaybackDebugLog.sanitize(error.localizedDescription)
                         if interrupted || (error as? YouTubeStreamError)?.stopsAutomaticDownloadRetry == true {
                             self.jobs[i].status = .failed

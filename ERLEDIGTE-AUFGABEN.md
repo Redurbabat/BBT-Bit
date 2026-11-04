@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-04 · Deutsch als App-Vorgabe
+
+[AGENTS.md](AGENTS.md) legt Englisch für Codebezeichner und Deutsch für Texte an Menschen fest. App, Einstellungen und Liedtext-Übersetzung verwenden dieselbe Sprachvorgabe. Gespeicherte Einstellungen haben Vorrang. Die Katalogprüfung bestätigte 36 neue deutsche Einträge, die vorhandenen Übersetzungen und die Platzhalter der geänderten Meldungen. Der Swift-Test für Deutsch, eine gespeicherte Sprache und Gerätesprache ist eingerichtet. **iOS und macOS NICHT GETESTET.** Ältere App-Texte ohne deutschen Katalogeintrag können weiterhin englisch erscheinen. [Sprachregeln](docs/DESIGN_SYSTEM.md#sprache)
+
 ## 2026-11-04 · Progressive YouTube-Kandidatenauswahl und Wiederholungen
 
 Die Auswahl prüft eine Antwort auf progressives Audio, bevor sie weitere Profile verwirft. Kotlin, Swift und Downloadtests decken die betroffenen Übergänge ab. Der Kotlin-JVM-Test zeigte zwei Fehlschläge vor der Änderung und sieben bestandene Fälle mit dem Fix. Der Live-Nachweis und der native Prüfstand sind separat erfasst. [Fehleranalyse und Prüfstand](docs/claude-youtube-playback-handoff-20261104.md#analyse-und-prüfstand-des-reparaturbranches)

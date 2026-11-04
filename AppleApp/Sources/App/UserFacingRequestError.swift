@@ -16,7 +16,7 @@ enum UserFacingRequestError {
         let lower = raw.lowercased()
         if isOffline(lower) { return offlineMessage }
         if isYouTubeVerification(raw) {
-            return "YouTube is requiring verification for this network. BBT-Bit cannot complete that check for you; try again later or use the official YouTube Music service."
+            return AppLanguage.localized("YouTube is requiring verification for this network. BBT-Bit cannot complete that check for you; try again later or use the official YouTube Music service.")
         }
         // The FFI bridge can include a full NSError dump (request URLs, task
         // identifiers and nested UserInfo). Those belong in diagnostics, not UI.
@@ -24,7 +24,7 @@ enum UserFacingRequestError {
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if firstLine.isEmpty || firstLine.count > 220 ||
             firstLine.contains("UserInfo=") || firstLine.contains("Error Domain=") {
-            return "The request failed. Check your connection and try again."
+            return AppLanguage.localized("The request failed. Check your connection and try again.")
         }
         return firstLine
     }
@@ -62,8 +62,9 @@ enum UserFacingRequestError {
         lower.contains("keine verbindung zum internet")
     }
 
-    private static let offlineMessage =
-        "BBT-Bit cannot access the internet. On iPhone, check Settings > Cellular > BBT-Bit (allow mobile data), Wi-Fi, and VPN, then retry."
+    private static var offlineMessage: String {
+        AppLanguage.localized("BBT-Bit cannot access the internet. On iPhone, check Settings > Cellular > BBT-Bit (allow mobile data), Wi-Fi, and VPN, then retry.")
+    }
 }
 
 struct YouTubeStreamError: Error, LocalizedError {
@@ -127,41 +128,41 @@ struct YouTubeStreamError: Error, LocalizedError {
         }
         switch Reason(bridgeMessage: raw) {
         case .noPlayableStream, .explicitUnsupported:
-            return "YouTube didn’t provide a compatible audio stream for this track."
+            return AppLanguage.localized("YouTube didn’t provide a compatible audio stream for this track.")
         case .ageRestricted:
-            return "This YouTube track requires age verification."
+            return AppLanguage.localized("This YouTube track requires age verification.")
         case .unavailable:
-            return "That track isn’t available right now."
+            return AppLanguage.localized("That track isn’t available right now.")
         case .network:
-            return "Couldn’t reach YouTube to open the audio stream. Check your connection and try again."
+            return AppLanguage.localized("Couldn’t reach YouTube to open the audio stream. Check your connection and try again.")
         case .cancelled:
-            return "Stream resolution was cancelled."
+            return AppLanguage.localized("Stream resolution was cancelled.")
         case .botChecked:
             return UserFacingRequestError.message("YouTube is requiring verification for this network")
         case nil:
             break
         }
         if said.contains("signed-in playback:") {
-            return "Your signed-in session could not be restored. Check your connection or sign in again."
+            return AppLanguage.localized("Your signed-in session could not be restored. Check your connection or sign in again.")
         }
         if said.contains("temporarily unavailable") {
-            return "Playback is temporarily unavailable. Try again shortly."
+            return AppLanguage.localized("Playback is temporarily unavailable. Try again shortly.")
         }
         if UserFacingRequestError.isYouTubeVerification(raw) {
             return UserFacingRequestError.message(raw)
         }
         if said.contains("sign in") {
-            return "YouTube is asking this device to sign in before it will serve anything. That is YouTube's gate rather than anything to do with the track."
+            return AppLanguage.localized("YouTube is asking this device to sign in before it will serve anything. That is YouTube's gate rather than anything to do with the track.")
         }
         if said.contains("needs to be reloaded") || said.contains("page needs") {
-            return "YouTube's player refused this connection. Trying again in a moment usually clears it."
+            return AppLanguage.localized("YouTube's player refused this connection. Trying again in a moment usually clears it.")
         }
         if said.contains("unavailable") || said.contains("not available") {
-            return "That track isn’t available right now."
+            return AppLanguage.localized("That track isn’t available right now.")
         }
         if said.contains("no signature timestamp") {
-            return "BitChord could not read YouTube’s player, so it could not open a stream. Check the connection and try again."
+            return AppLanguage.localized("BitChord could not read YouTube’s player, so it could not open a stream. Check the connection and try again.")
         }
-        return "Couldn’t open a stream for that track."
+        return AppLanguage.localized("Couldn’t open a stream for that track.")
     }
 }

@@ -7,6 +7,17 @@ func expect(_ actual: String, toContain expected: String) {
     }
 }
 
+let languageSuite = "bbt-language-\(UUID().uuidString)"
+let languageDefaults = UserDefaults(suiteName: languageSuite)!
+defer { languageDefaults.removePersistentDomain(forName: languageSuite) }
+assert(AppLanguage.identifier(in: languageDefaults) == "de")
+assert(AppLanguage.locale(for: AppLanguage.identifier(in: languageDefaults)).identifier == "de")
+languageDefaults.set("en", forKey: AppLanguage.preferenceKey)
+assert(AppLanguage.identifier(in: languageDefaults) == "en")
+languageDefaults.set("", forKey: AppLanguage.preferenceKey)
+assert(AppLanguage.identifier(in: languageDefaults).isEmpty)
+assert(AppLanguage.locale(for: AppLanguage.identifier(in: languageDefaults)).identifier == Locale.autoupdatingCurrent.identifier)
+
 let direct = NSError(domain: NSURLErrorDomain, code: -1009, userInfo: [:])
 expect(UserFacingRequestError.message(direct), toContain: "Settings > Cellular")
 
