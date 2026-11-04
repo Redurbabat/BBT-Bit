@@ -1390,6 +1390,54 @@ class InnerTubeExtractorTest {
         }
 
     @Test
+    fun progressiveAudioContinuesAfterHlsOnlyPlayerResponse() =
+        runBlocking {
+            val hlsOnly = """{"playabilityStatus":{"status":"OK"},"streamingData":{"hlsManifestUrl":"https://www.youtube.com/api/manifest/hls.m3u8"}}"""
+            assertProgressiveAudioFallback(hlsOnly)
+        }
+
+    @Test
+    fun progressiveAudioContinuesAfterUnusableMediaUrl() =
+        runBlocking {
+            assertProgressiveAudioFallback(DIRECT_RESPONSE.replace("r.googlevideo.com", "invalid.example"))
+        }
+
+    private suspend fun assertProgressiveAudioFallback(firstResponse: String) {
+        val first = YouTubeClient.VISIONOS
+        val second = YouTubeClient.VISIONOS_0_1
+        val requests = mutableListOf<String>()
+        val client =
+            HttpClient(MockEngine { request ->
+                val version = checkNotNull(request.headers["X-YouTube-Client-Version"])
+                requests += version
+                val body = when (version) {
+                    first.clientVersion -> firstResponse
+                    second.clientVersion -> DIRECT_RESPONSE
+                    else -> error("Unexpected player profile")
+                }
+                respond(body, HttpStatusCode.OK, headersOf("Content-Type", "application/json"))
+            }) {
+                install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+            }
+        try {
+            val fallback =
+                object : ClientFallbackStrategy {
+                    override fun resolveClients(hints: ContentHints) = listOf(first, second)
+                }
+            val stream =
+                extractor(client, fallback).extract(
+                    "video",
+                    ContentHints(isExplicit = true).withStreamCapabilities(allowHls = false, allowSabr = false),
+                )
+            assertEquals(251, assertNotNull(stream).itag)
+            assertTrue(stream.audioUrl.startsWith("https://r.googlevideo.com/videoplayback"))
+            assertEquals(listOf(first.clientVersion, second.clientVersion), requests)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
     fun hlsManifestIsSelectedOnlyFromApprovedEndpoint() =
         runBlocking {
             val response =

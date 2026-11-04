@@ -10,3 +10,7 @@ Das bestehende Inventar für BitChord, InnerTubeX, die YouTube-Solver, Kotlin/Na
 | [Gitleaks 8.30.1](https://github.com/gitleaks/gitleaks/tree/v8.30.1) | Geheimnisprüfung der neu hinzugekommenen Commits mit maskierten Funden. | MIT, Prüfwerkzeug. |
 
 Vor jeder Übernahme Herkunft, exakte Version oder Revision, Lizenztext, Rechte Dritter, Einbauort, Zweck und Auswirkungen auf Datenflüsse erfassen. Bei Laufzeitabhängigkeiten auch App-Hinweise und die aufgelöste Abhängigkeitsliste aktualisieren. Bei unklarer Lizenz zuerst die Rechte klären.
+
+## Lokale InnerTubeX-Änderungen
+
+Der YouTube-Reparaturbranch ergänzt eigene Regressionsfixtures für die Auswahl progressiver Audioantworten in der bestehenden GPLv3-Kopie von InnerTubeX. Die Herkunft und Lizenz des eingebundenen Codes stehen in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

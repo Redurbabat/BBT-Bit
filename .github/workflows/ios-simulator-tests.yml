@@ -20,6 +20,11 @@ on:
     paths:
       - .github/workflows/ios-simulator-tests.yml
   workflow_dispatch:
+    inputs:
+      extractor_only:
+        description: Run only the Kotlin playback extractor regressions
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -30,7 +35,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  extractor-regressions:
+    if: inputs.extractor_only
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Test progressive audio extraction
+        run: bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*'
+
   ui-tests-on-simulator:
+    if: '!inputs.extractor_only'
     name: Build BBT-Bit and tap 15 design previews on iPhone Simulator
     runs-on: macos-26
     timeout-minutes: 105
@@ -225,6 +246,10 @@ jobs:
       - name: Run shared Kotlin tests on Apple Silicon
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
         run: ./gradlew :shared:macosArm64Test
+
+      - name: Run Kotlin playback extractor regressions on Apple Silicon
+        if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
+        run: ./gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*'
 
       - name: Run native Rust tests with the pinned dependency graph
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
