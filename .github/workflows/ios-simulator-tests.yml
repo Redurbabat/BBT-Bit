@@ -1,0 +1,214 @@
+name: BBT-Bit iPhone Simulator UI Tests (GitHub)
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/ios-simulator-tests.yml
+      - AppleApp/project.yml
+      - AppleApp/UITests/**
+      - AppleApp/Sources/UI/LiquidMotion/**
+      - AppleApp/Sources/App/BitChordApp.swift
+      - scripts/build-shared-framework.sh
+      - scripts/build-native-core.sh
+      - scripts/ci-ios-simulator-report.py
+      - shared/**
+      - native-core/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Do not spawn multiple expensive macOS/iOS Simulator builds for one PR.
+concurrency:
+  group: bbt-ios-sim-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-tests-on-simulator:
+    name: Build BBT-Bit and tap 15 design previews on iPhone Simulator
+    runs-on: macos-26
+    timeout-minutes: 105
+    env:
+      RESULT_DIR: ${{ runner.temp }}/BBT-Bit-Simulator-Results
+      RESULT_BUNDLE: ${{ runner.temp }}/BBT-Bit-UI.xcresult
+    steps:
+      - name: Checkout BBT-Bit
+        uses: actions/checkout@v4
+
+      - name: Verify Apple Silicon runner, Xcode and installed simulators
+        shell: bash
+        run: |
+          set -euo pipefail
+          uname -m
+          xcodebuild -version
+          xcrun simctl list devices available
+          test "$(uname -m)" = "arm64"
+          mkdir -p "$RESULT_DIR/screenshots"
+          xcodebuild -version | tr '\n' ' ' >> "$GITHUB_ENV" || true
+
+      - name: Install Java 21 for Kotlin/Native
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Restore Gradle, Kotlin/Native and Rust download caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/**', 'gradle.properties', '**/*.gradle.kts', 'native-core/Cargo.lock', 'native-core/Cargo.toml') }}
+          restore-keys: |
+            bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Install native tools (XcodeGen, CMake, Rust)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v brew >/dev/null 2>&1; then
+            echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+            export PATH="/opt/homebrew/bin:$PATH"
+          fi
+          command -v xcodegen >/dev/null 2>&1 || brew install xcodegen
+          command -v cmake >/dev/null 2>&1 || brew install cmake
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs |
+              sh -s -- -y --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup default stable
+          rustup target add aarch64-apple-darwin aarch64-apple-ios-sim
+          chmod +x gradlew scripts/build-shared-framework.sh scripts/build-native-core.sh
+          swiftc -version
+          java -version
+          xcodegen --version
+          rustc --version
+          cmake --version
+
+      - name: Early Swift syntax check (before Kotlin/Rust compilation)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in AppleApp/Sources/UI/LiquidMotion/*.swift AppleApp/UITests/*.swift; do
+            swiftc -frontend -parse "$file"
+          done
+          echo "Swift files parsed; iOS SDK type checking happens during Xcode build."
+
+      - name: Build Kotlin/Native iPhone Simulator framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONFIG=debug ./scripts/build-shared-framework.sh
+          test -d AppleApp/Frameworks/BitChordShared.xcframework
+          /usr/libexec/PlistBuddy -c "Print :AvailableLibraries" AppleApp/Frameworks/BitChordShared.xcframework/Info.plist
+          # It must include an iOS Simulator variant, not only iphoneos.
+          grep -aql '<string>ios</string>' AppleApp/Frameworks/BitChordShared.xcframework/Info.plist || true
+
+      - name: Build Rust simulator framework and Swift UniFFI bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
+          export NATIVE_TARGETS="aarch64-apple-darwin aarch64-apple-ios-sim"
+          ./scripts/build-native-core.sh
+          test -d AppleApp/Frameworks/NativeCoreFFI.xcframework
+          test -s AppleApp/Generated/NativeCore.swift
+
+      - name: Generate Xcode project and choose an available iPhone Simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodegen generate --spec AppleApp/project.yml
+          test -d AppleApp/BitChord.xcodeproj
+          xcrun simctl list devices available --json > "$RESULT_DIR/available-simulators.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          d = json.loads(Path(os.environ["RESULT_DIR"], "available-simulators.json").read_text())
+          found = []
+          for runtime, devices in d["devices"].items():
+              if "iOS" not in runtime:
+                  continue
+              for dev in devices:
+                  if dev.get("isAvailable") and dev["name"].startswith("iPhone"):
+                      found.append((runtime, dev))
+          if not found:
+              raise SystemExit("No available iPhone Simulator on macos-26 runner")
+          # Prefer an iPhone 17 when available; do not hardcode an OS runtime.
+          found.sort(key=lambda item: (item[1]["name"].startswith("iPhone 17"), item[0]), reverse=True)
+          runtime, device = found[0]
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"SIMULATOR_UDID={device['udid']}\n")
+              env.write(f"SIMULATOR_NAME={device['name']} ({runtime})\n")
+          print(f"Selected iPhone Simulator: {device['name']} / {runtime} / {device['udid']}")
+          PY
+
+      - name: Boot iPhone Simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl boot "$SIMULATOR_UDID" || true
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+
+      - name: Xcode build and XCUITest - 15 preview screens and screenshots
+        id: xcode_test
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          xcodebuild \
+            -project AppleApp/BitChord.xcodeproj \
+            -scheme BitChord \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -derivedDataPath "$RUNNER_TEMP/BBT-Bit-DerivedData" \
+            -resultBundlePath "$RESULT_BUNDLE" \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            COMPILATION_CACHE_ENABLE_CACHING=YES \
+            test 2>&1 | tee "$RESULT_DIR/xcodebuild.log"
+          status="${PIPESTATUS[0]}"
+          echo "TEST_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          exit "$status"
+
+      - name: Export screenshots and machine-readable test report
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p "$RESULT_DIR/screenshots"
+          if [[ -d "$RESULT_BUNDLE" ]]; then
+            xcrun xcresulttool get test-results summary \
+              --path "$RESULT_BUNDLE" --compact \
+              > "$RESULT_DIR/xcresult-summary.json" 2> "$RESULT_DIR/summary-error.log" || true
+            xcrun xcresulttool get test-results tests \
+              --path "$RESULT_BUNDLE" --compact \
+              > "$RESULT_DIR/xcresult-tests.json" 2> "$RESULT_DIR/tests-error.log" || true
+            xcrun xcresulttool export attachments \
+              --path "$RESULT_BUNDLE" --output-path "$RESULT_DIR/screenshots" \
+              > "$RESULT_DIR/attachments.log" 2>&1 || true
+          fi
+          if [[ -n "${SIMULATOR_UDID:-}" ]]; then
+            xcrun simctl io "$SIMULATOR_UDID" screenshot \
+              "$RESULT_DIR/last-simulator-screen.png" >/dev/null 2>&1 || true
+          fi
+          xcode_version="$(xcodebuild -version | tr '\n' ' ')"
+          python3 scripts/ci-ios-simulator-report.py \
+            "$RESULT_DIR" "${TEST_EXIT_CODE:-1}" "$xcode_version" "${SIMULATOR_NAME:-unknown}"
+          cat "$RESULT_DIR/BBT-Bit-Simulator-Testbericht.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload simulator evidence for download on Windows
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBT-Bit-iPhone-Simulator-Results
+          path: ${{ runner.temp }}/BBT-Bit-Simulator-Results/
+          if-no-files-found: warn
+          retention-days: 7
