@@ -41,6 +41,7 @@ struct RootView: View {
     #if os(iOS)
     @Namespace private var nowPlayingZoom
     @State private var logoGlassBloom = LogoGlassBloomCoordinator.shared
+    @State private var dockScroll = DockScrollCoordinator.shared
     @Environment(\.accessibilityReduceMotion) private var reduceLogoMotion
     /// Regular width is the iPad layout — on any device. A Max phone turned
     /// sideways is a regular-width window too, and it has the room.
@@ -141,6 +142,17 @@ struct RootView: View {
             }
             .onChange(of: canRevealLogoBloom) { _, canShow in
                 if !canShow { logoGlassBloom.dismiss() }
+            }
+            // Logo-origin playback controls can now wake when the user reverses
+            // an existing scroll gesture, without a separate tap on the logo.
+            // Never invent a track or overlay a modal view.
+            .onChange(of: dockScroll.directionRevision) { _, _ in
+                if dockScroll.direction == .towardTop {
+                    guard canRevealLogoBloom, !logoGlassBloom.isVisible else { return }
+                    logoGlassBloom.playbackStartedOrTrackChanged()
+                } else if logoGlassBloom.phase != .expanded {
+                    logoGlassBloom.dismiss()
+                }
             }
     }
 
@@ -1090,6 +1102,7 @@ struct PlaybackPillMount: ViewModifier {
     /// is up the iPhone's pill rides on top of it instead (the iPad's per-tab
     /// inset does that on its own).
     @State private var keyboardUp = false
+    @State private var dockScroll = DockScrollCoordinator.shared
     #endif
 
     func body(content: Content) -> some View {
@@ -1107,7 +1120,16 @@ struct PlaybackPillMount: ViewModifier {
             // iPhone from 26: Music's own bottom accessory, full width. A scroll
             // down minimizes the tab bar and the pill drops into it, between
             // the selected tab and Search.
-            accessory(content.tabBarMinimizeBehavior(.onScrollDown))
+            // A single continuous finger-down reversal doesn't always restore
+            // the system's onScrollDown bar. A passive scroll observer on Home /
+            // Explore briefly requests .never when movement turns upward.
+            // Native tabs, Search, accessibility and the inline player remain
+            // provided by TabView, never a second homemade navigation bar.
+            accessory(
+                content.tabBarMinimizeBehavior(
+                    dockScroll.keepExpanded ? .never : .onScrollDown
+                )
+            )
                 .overlay(alignment: .bottom) {
                     if keyboardUp {
                         PlaybackPill()
