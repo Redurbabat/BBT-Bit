@@ -68,8 +68,12 @@ final class LiquidMotionUITests: XCTestCase {
             screenshot.lifetime = .keepAlways
             add(screenshot)
             close.tap()
-            XCTAssertTrue(shareReport.waitForExistence(timeout: 12),
-                          "Test screen disappeared after closing preview \(index)")
+            // The JSON share button sits at the top of a lazy List. After
+            // scrolling to preview 6+ it is off-screen and may be recycled.
+            // Assert the actual page, not a virtualized off-screen button.
+            let page = app.navigationBars["Vorschau-Selbsttest"]
+            XCTAssertTrue(page.waitForExistence(timeout: 12),
+                          "Self-test screen disappeared after closing preview \(index)")
         }
     }
 }
