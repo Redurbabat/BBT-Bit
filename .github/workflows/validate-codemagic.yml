@@ -155,6 +155,17 @@ jobs:
           assert 'PartyStore.shared.state.controlsLocked' in bloom
           assert 'bbt.glassBloom.lyrics' in bloom and 'bbt.glassBloom.queue' in bloom
           assert 'flashTrackGlint()' in bloom
+          diagnostics = Path('AppleApp/Sources/UI/DiagnosticReportsView.swift').read_text()
+          playbackSettings = Path('AppleApp/Sources/UI/Settings/SettingsView+Playback.swift').read_text()
+          loadResults = Path('AppleApp/Sources/PlaybackSession/PlaybackController+LoadResults.swift').read_text()
+          assert 'Warum spielt die Musik nicht?' in diagnostics
+          assert 'controller.lastError' in diagnostics
+          assert 'AudioSessionManager.isActive' in diagnostics
+          assert 'NetworkQuality.shared.connected' in diagnostics
+          assert 'bbt.playbackDiagnosis.saveReport' in diagnostics
+          assert 'freshResolution: true' in diagnostics
+          assert 'rows.row("Musik spielt nicht?"' in playbackSettings
+          assert 'playback load FAILED' in loadResults
           print('Codemagic YAML, build dependencies and BBT-Bit IPA naming: PASS')
           PY
           bash -n scripts/package-ios-ipa.sh
@@ -173,6 +184,9 @@ jobs:
             swiftc -frontend -parse AppleApp/Sources/UI/LiquidMotion/GlassBloomMotionDetails.swift
             swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
             swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/DiagnosticReportsView.swift
+            swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Playback.swift
+            swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+LoadResults.swift
             echo "SwiftUI syntax parse: PASS (type-check requires Xcode)"
           else
             echo "::warning::Swift compiler unavailable on this runner; Xcode type-check required"

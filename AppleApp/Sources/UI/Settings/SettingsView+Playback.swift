@@ -93,6 +93,9 @@ extension SettingsView {
             Text("Non-music segments and audible boundaries are always used by Automix.")
                 .font(.caption).foregroundStyle(.secondary)
         }
+        rows.row("Musik spielt nicht?", "Wiedergabe", "Audio", "Abspielproblem", "Stream", "Diagnose", "Fehler") {
+            PushLink("Musik spielt nicht?") { DiagnosticReportsView() }
+        }
         rows.row("Diagnostic Reports", "debug", "log", "report", "diagnostics") {
             PushLink("Diagnostic Reports") { DiagnosticReportsView() }
         }
