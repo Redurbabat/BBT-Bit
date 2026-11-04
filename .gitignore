@@ -29,9 +29,23 @@ native-core/fixtures/automix/*.wav
 native-core/fixtures/automix/*.flac
 native-core/fixtures/automix/*.aiff
 
-# Working parity/audit notes — kept locally, deliberately never published.
-# The release specs at the repo root (*.md) are the tracked documents.
-docs/
+# Keep new working notes private unless explicitly added to the public manuals.
+/docs/*
+!/docs/ARCHITEKTUR.md
+!/docs/DATENREGELN.md
+!/docs/TESTPLAN.md
+!/docs/DESIGN_SYSTEM.md
+!/docs/AGENT_WORKFLOW.md
+!/docs/RELEASE.md
+
+# Local secrets and signing material
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*.mobileprovision
+*.provisionprofile
 
 .DS_Store
 
