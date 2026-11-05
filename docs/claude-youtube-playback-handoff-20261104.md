@@ -104,3 +104,33 @@ Detaillierte Berichte (mehrere Songs/Downloads):
 - Der [Apple-Silicon-Lauf für den Fix](https://github.com/Redurbabat/BBT-Bit/actions/runs/41882806296) umfasst Kotlin/Native, Xcode und die iOS-Prüfung. Der alternative [Intel-Lauf für Swift und Rust](https://github.com/Redurbabat/BBT-Bit/actions/runs/41883326163) wurde laut GitHub vor dem Start wegen Abrechnung oder Ausgabenlimit abgebrochen. Für diese Prüfungen liegt noch kein Ergebnis vor.
 - Der Prüfweg nutzt den bestehenden Simulator-Workflow. `:innertubex:macosArm64Test` und `:shared:macosArm64Test` prüfen Extraktion, Netzfehler, Abbruch und Kontowechsel. Swift-Prüfungen prüfen Fehlermeldung, Download-Retry und vorhandene Offline-Dateien. `cargo test --locked` prüft unter anderem Decoder und Puffer.
 - **ECHTGERÄT NICHT GETESTET.** Für BBT-002 den signierten Reparaturbuild auf dem iPhone verwenden. Der Nachweis braucht eine aufgelöste YouTube-Quelle, erste Audio-Bytes, einen positiven Audiopuffer, hörbare Ausgabe und steigende Position. Vorschau und Fixtures werden separat gewertet.
+
+## Nachuntersuchung am 5. November 2026
+
+### Gerätebefund und Ursache
+
+Der erneut vorgelegte private Gerätebericht zeigt den neueren Resolver mit echten `player_requests` und durchgehend `playability:ERROR`. Der aktive Lauf meldet eine erfolgreich aktivierte Audiositzung, aber keinen aufgelösten YouTube-Stream und keinen Audiopuffer. Der Bericht enthält keine API-Sprachkennung und keine genaue App-Revision. Die Datei und ihre Rohdaten bleiben außerhalb des Repositorys.
+
+Der Apple-Einstieg [DefaultYouTubeLocale.native.kt](../vendor/innertubex/src/nativeMain/kotlin/com/metrolist/innertubex/models/DefaultYouTubeLocale.native.kt) übergab `NSLocale.preferredLanguages`, beispielsweise `de-CH`, unverändert als `context.client.hl`. Ein kontrollierter Live-Vergleich mit dem unveränderten Extractor und dem öffentlichen [Training-Season-Musikvideo](https://www.youtube.com/watch?v=ZjBZ8MUnB0E) isoliert diesen Fehler. Client, Titel, Inhaltsregion `CH` und HTTP-Transport waren gleich, nur `hl` wurde geändert.
+
+| API-Sprache | Beobachtetes Ergebnis |
+| --- | --- |
+| `de-CH` | Player-HTTP 200, `playabilityStatus=ERROR`, keine Audioformate, danach `NO_PLAYABLE_STREAM`. Das entspricht dem Fehlerbild des Geräteberichts. |
+| `de` | Player-HTTP 200, `playabilityStatus=OK`, 17 adaptive Formate. Auswahl `VISIONOS_0_1__nopo`, `audio/webm`, Länge 3.829.518 Bytes. Die erste echte Range liefert HTTP 206, `Content-Range: bytes 0-65535/3829518` und 65.536 Bytes. |
+
+Dies belegt einen konkreten Fehler im Apple-Anfrageaufbau. Weil die Gerätesprache im alten Bericht fehlt, bleibt die Bestätigung am korrigierten iPhone-Build erforderlich. HLS und SABR bleiben für die Rust-Wiedergabe ausgeschaltet.
+
+### Korrektur
+
+- Eine gemeinsame, testbare Umwandlung bildet regionale Gerätesprachen wie `de-CH`, `de-DE` oder `de-AT` auf `de` ab. Unterstützte Sprachvarianten und chinesische Schriftvarianten werden berücksichtigt. Die Inhaltsregion `gl`, die gespeicherte App-Sprache und Kontodaten bleiben erhalten.
+- Der Kotlin-Framework-Cache berücksichtigt jetzt auch `vendor/innertubex`. Sonst könnte gerade diese Änderung ausschließlich im Vendor-Modul ein altes Apple-Framework weiterverwenden.
+- Der Gerätebericht nennt künftig zusätzlich `BitChordRevision` und die bevorzugte Gerätesprache. Der native macOS-Prüfprozess unterstützt `VERIFY_APPLE_LANGUAGE` ohne Änderung gespeicherter Systemeinstellungen.
+
+### Prüfstand
+
+- **Vor der Korrektur FEHLGESCHLAGEN:** Drei der vier Locale-Tests und der neue Extractor-Test `progressiveAudioUsesSupportedGermanDeviceLanguage`. Letzterer erhielt wie der Live-Vergleich `NO_PLAYABLE_STREAM`.
+- **Nach der Korrektur BESTANDEN:** 12 isolierte Kotlin-JVM-Regressionen mit den Produktionsquellen. Befehl `jvmTest --tests '*YouTubeLocaleTest' --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*InnerTubeSessionTest.requestLanguageHeader*'`. Der Testadapter ersetzt Apple-Plattformfunktionen und JavaScript, die HTTP-Fixtures prüfen den echten serialisierten Player-Request.
+- **BESTANDEN:** `gradlew.bat --offline --no-daemon :shared:compileCommonMainKotlinMetadata`, einschließlich `:innertubex:compileNativeMainKotlinMetadata`. Dies ist kein ausführbarer iOS-Build.
+- **BESTANDEN:** `python scripts/native-cache-verify/check.py`. Der vorherige Stand lieferte nach einer Extractor-Änderung fälschlich `BBT_NATIVE_CACHE_HIT`. Der korrigierte Stand baut bei Änderungen an Extractor, dessen Gradle-Konfiguration und Shared-Quellen neu und behält den Cache bei einer reinen Swift-Änderung.
+- Der Live-HTTP-Vergleich verwendet den echten Extractor mit einem JVM-HTTP-Adapter, ohne Nutzerkonto und ohne Ausgabe signierter URLs. Er belegt die Serverantwort und Audio-Bytes, keine Darwin-/Swift-/Rust-Verknüpfung.
+- **ECHTGERÄT NICHT GETESTET:** Hörbare Ausgabe, fortschreitende Wiedergabezeit, Bluetooth, Hintergrund und vorhandene Offline-Dateien brauchen den neuen signierten iPhone-Build. Native Swift-/Rust-/Simulator-Nachweise werden getrennt von den obigen Prüfungen erfasst.

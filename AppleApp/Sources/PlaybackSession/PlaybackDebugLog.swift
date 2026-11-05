@@ -22,7 +22,8 @@ final class PlaybackDebugLog: @unchecked Sendable {
             try? FileManager.default.createDirectory(at: self.directory, withIntermediateDirectories: true)
             let old = self.runFiles()
             for file in old.dropLast(4) { try? FileManager.default.removeItem(at: file) }
-            self.append("RUN START version=\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "development") build=\(Bundle.main.infoDictionary?["CFBundleVersion"] ?? "unknown") os=\(ProcessInfo.processInfo.operatingSystemVersionString)\n")
+            // Revision und Gerätesprache machen gleich nummerierte Reparaturbuilds unterscheidbar.
+            self.append("RUN START version=\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "development") build=\(Bundle.main.infoDictionary?["CFBundleVersion"] ?? "unknown") revision=\(Bundle.main.infoDictionary?["BitChordRevision"] ?? "unknown") language=\(Locale.preferredLanguages.first ?? "unknown") os=\(ProcessInfo.processInfo.operatingSystemVersionString)\n")
         }
         for name in ["NSApplicationWillTerminateNotification", "UIApplicationWillTerminateNotification"] {
             observers.append(NotificationCenter.default.addObserver(forName: .init(name), object: nil, queue: nil) { [weak self] _ in self?.markCleanExit() })

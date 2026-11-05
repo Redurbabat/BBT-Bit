@@ -14,3 +14,23 @@ data class YouTubeLocale(
         return if (regionalTag == fallback) regionalTag else "$regionalTag,$fallback;q=0.9"
     }
 }
+
+/** Gerätesprachen sind BCP-47-Tags, aber der Player akzeptiert nur seine UI-Sprachen.
+ * Beispielsweise führt hl=de-CH zu playabilityStatus=ERROR statt zu Audioformaten.
+ * Die Inhaltsregion bleibt unabhängig davon erhalten.
+ */
+internal fun systemYouTubeLocale(languageTag: String, countryCode: String): YouTubeLocale {
+    val parts = languageTag.substringBefore('@').trim().replace('_', '-').lowercase().split('-')
+    val language = parts.first().ifBlank { "en" }
+    val languageParts = parts.drop(1).takeWhile { it.length != 1 }.toSet()
+    val apiLanguage = when {
+        language == "zh" && "hk" in languageParts -> "zh-HK"
+        language == "zh" && ("hant" in languageParts || "tw" in languageParts) -> "zh-TW"
+        language == "zh" -> "zh-CN"
+        language == "en" && "gb" in languageParts -> "en-GB"
+        language == "es" && "419" in languageParts -> "es-419"
+        language == "pt" && "pt" in languageParts -> "pt-PT"
+        else -> language
+    }
+    return YouTubeLocale(gl = countryCode.uppercase(), hl = apiLanguage)
+}

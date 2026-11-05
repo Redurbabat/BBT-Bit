@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-05 · YouTube-Anfragen bei deutscher Gerätesprache
+
+Der neue Gerätebericht führte zur fehlerhaften Übergabe regionaler Apple-Sprachkennungen. Im kontrollierten Live-Vergleich scheiterte `hl=de-CH`, während derselbe Titel mit `hl=de` und unverändertem `gl=CH` echte progressive Audio-Bytes lieferte. Die Umwandlung ist korrigiert, 12 gezielte Kotlin-Fixtures und der Metadatenbau der echten Module bestehen. Ein zusätzlicher Cachetest verhindert veraltete Extractor-Frameworks. Der korrigierte iPhone-Build bleibt **ECHTGERÄT NICHT GETESTET**. [Befund, Änderungen und Prüfstand](docs/claude-youtube-playback-handoff-20261104.md#nachuntersuchung-am-5-november-2026)
+
 ## 2026-11-04 · Deutsch als App-Vorgabe
 
 [AGENTS.md](AGENTS.md) legt Englisch für Codebezeichner und Deutsch für Texte an Menschen fest. App, Einstellungen und Liedtext-Übersetzung verwenden dieselbe Sprachvorgabe. Gespeicherte Einstellungen haben Vorrang. Die Katalogprüfung bestätigte 36 neue deutsche Einträge, die vorhandenen Übersetzungen und die Platzhalter der geänderten Meldungen. Der Swift-Test für Deutsch, eine gespeicherte Sprache und Gerätesprache ist eingerichtet. **iOS und macOS NICHT GETESTET.** Ältere App-Texte ohne deutschen Katalogeintrag können weiterhin englisch erscheinen. [Sprachregeln](docs/DESIGN_SYSTEM.md#sprache)
