@@ -1,6 +1,16 @@
 import Foundation
 import BitChordShared
 
+// Nur für diesen Prüfprozess: den iOS-Sprachfall ohne Änderung gespeicherter Einstellungen nachstellen.
+if let language = ProcessInfo.processInfo.environment["VERIFY_APPLE_LANGUAGE"] {
+    UserDefaults.standard.setVolatileDomain(["AppleLanguages": [language]], forName: UserDefaults.argumentDomain)
+    guard Locale.preferredLanguages.first == language else {
+        fputs("Die gewünschte Gerätesprache konnte im Prüfprozess nicht gesetzt werden.\n", stderr)
+        exit(2)
+    }
+    print("Prüfung mit Gerätesprache \(language)")
+}
+
 // Playback resolution, against YouTube.
 //
 // The one thing in this app that cannot be checked with a fixture: whether a

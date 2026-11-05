@@ -29,6 +29,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -1388,6 +1390,39 @@ class InnerTubeExtractorTest {
             }
             client.close()
         }
+
+    @Test
+    fun progressiveAudioUsesSupportedGermanDeviceLanguage() = runBlocking {
+        var requests = 0
+        val client = HttpClient(MockEngine { request ->
+            requests++
+            val body = Json.parseToJsonElement((request.body as io.ktor.http.content.TextContent).text).jsonObject
+            val context = body.getValue("context").jsonObject.getValue("client").jsonObject
+            assertEquals("CH", context.getValue("gl").jsonPrimitive.content)
+            assertEquals("de-CH,de;q=0.9", request.headers[HttpHeaders.AcceptLanguage])
+            // Entspricht dem Live-Befund: HTTP 200, aber Player-ERROR bei hl=de-CH.
+            val response = if (context.getValue("hl").jsonPrimitive.content == "de") DIRECT_RESPONSE
+                else """{"playabilityStatus":{"status":"ERROR","reason":"This video is unavailable."}}"""
+            respond(response, HttpStatusCode.OK, headersOf("Content-Type", "application/json"))
+        }) {
+            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+        }
+        val innerTube = InnerTube(client, retryDelay = {}).also {
+            it.locale = com.metrolist.innertubex.models.systemYouTubeLocale("de-CH", "CH")
+        }
+        try {
+            val extractor = makeExtractor(client, innerTube, CountingParser(freshVisitorPerFetch = true),
+                ContentAwareFallbackStrategy(), AudioOnlyCipherService)
+            val stream = assertNotNull(extractor.extract("video", ContentHints()
+                .withStreamCapabilities(allowHls = false, allowSabr = false)))
+            assertEquals(251, stream.itag)
+            assertEquals(1, requests)
+            assertEquals(1, stream.streamDiagnostics?.playerRequests)
+        } finally {
+            innerTube.close()
+            client.close()
+        }
+    }
 
     @Test
     fun progressiveAudioContinuesAfterHlsOnlyPlayerResponse() =

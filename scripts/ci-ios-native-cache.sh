@@ -15,7 +15,9 @@ mkdir -p "$CACHE_ROOT"
 
 case "$kind" in
   kotlin)
-    source_paths=(shared gradle gradlew gradle.properties settings.gradle.kts build.gradle.kts buildSrc build-logic scripts/build-shared-framework.sh scripts/ci-ios-native-cache.sh)
+    # Das Shared-Framework enthält auch das in settings.gradle.kts eingebundene
+    # InnerTubeX-Modul. Dessen Quell- und Buildänderungen müssen den Cache verwerfen.
+    source_paths=(shared vendor/innertubex gradle gradlew gradle.properties settings.gradle.kts build.gradle.kts buildSrc build-logic scripts/build-shared-framework.sh scripts/ci-ios-native-cache.sh)
     output_paths=(AppleApp/Frameworks/BitChordShared.xcframework)
     ;;
   rust)

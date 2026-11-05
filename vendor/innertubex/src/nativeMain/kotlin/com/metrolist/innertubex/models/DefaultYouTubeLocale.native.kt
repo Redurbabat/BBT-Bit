@@ -13,8 +13,8 @@ internal actual fun defaultYouTubeLocale(): YouTubeLocale {
             ?.takeIf(String::isNotBlank)
             ?: current.localeIdentifier
     val preferred = NSLocale(language)
-    return YouTubeLocale(
-        gl = (preferred.countryCode ?: current.countryCode).orEmpty().uppercase(),
-        hl = language.substringBefore('@').replace('_', '-'),
+    return systemYouTubeLocale(
+        languageTag = language,
+        countryCode = (preferred.countryCode ?: current.countryCode).orEmpty(),
     )
 }

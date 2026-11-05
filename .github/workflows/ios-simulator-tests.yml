@@ -49,7 +49,7 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Test progressive audio extraction
-        run: bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*'
+        run: bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
       - name: Test shared playback resolver recovery
         run: bash gradlew :shared:macosArm64Test --tests '*StreamResolverRecoveryTest'
 
@@ -69,6 +69,7 @@ jobs:
         run: |
           xcrun swiftc -frontend -parse \
             AppleApp/Sources/App/InnertubeStreamResolver.swift \
+            AppleApp/Sources/PlaybackSession/PlaybackDebugLog.swift \
             AppleApp/Sources/PlaybackSession/BridgeDownloadBackend.swift \
             AppleApp/Sources/PlaybackSession/DownloadStore.swift \
             AppleApp/Sources/PlaybackSession/PlaybackController+EngineEvents.swift \
@@ -298,7 +299,7 @@ jobs:
 
       - name: Run Kotlin playback extractor regressions on Apple Silicon
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
-        run: ./gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*'
+        run: ./gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
 
       - name: Run native Rust tests with the pinned dependency graph
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
