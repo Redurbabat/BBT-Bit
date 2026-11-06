@@ -734,13 +734,11 @@ struct SearchView: View {
             if horizontalSizeClass != .regular {
                 phoneSearchField
             }
-            // The phone keeps upstream's picker above the results, up only
-            // while the field is empty: once something is typed the page is
-            // about the results, and the picker would only push them down. On a
-            // regular-width iPad and on the Mac it lives in the titlebar,
-            // beside the search field, where it pushes nothing and stays
-            // reachable.
-            if horizontalSizeClass != .regular, term.isEmpty {
+            // Die Suchquelle bleibt bei jeder Eingabe an derselben Stelle.
+            // Früher verschwand der Picker beim ersten Buchstaben und ließ
+            // die Ergebnisse samt Tastaturfokus nach oben springen.
+            // iPad und Mac behalten den Switcher in der Toolbar.
+            if horizontalSizeClass != .regular {
                 sourceSwitcher
                     .padding(.horizontal, 16)
                     .padding(.bottom, 10)
