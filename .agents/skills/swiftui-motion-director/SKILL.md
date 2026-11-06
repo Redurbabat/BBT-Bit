@@ -13,6 +13,10 @@ Kläre Nutzerziel, Häufigkeit und Auslöser. Beim Variantenentwurf skizziere Ca
 
 Teste Einstieg, Ausstieg, Abbruch, schnelle Wiederholung und neue Ziele während der Animation. Prüfe reduzierte Bewegung, Fokus und Gestenkonflikte. Bewerte ruhende Darstellung und Echtgeräte-Performance separat.
 
+## Apple-API-Parität statt statischem Nachbau
+
+Bevor eine neue Gestenanimation hinzugefügt wird, prüfen, ob `tabBarMinimizeBehavior`, `tabViewBottomAccessoryPlacement`, `matchedTransitionSource`, `navigationTransition(.zoom)` und `accessibilityReduceMotion` bereits den Vorgang abdecken. Beim Suchfokus ab iOS 26.1 den nativen Accessory über `tabViewBottomAccessory(isEnabled: !keyboardUp)` ausschalten und nur das bestehende Keyboard-Pill per `safeAreaInset` anzeigen. Der 26.0-Fallback bleibt. Keine zusätzlichen dauerhaft eingeblendeten Dock- oder Tab-Bar-Overlays. [Apple-API-Abgleich](../../../docs/apple-native-ui-adoption.md) · [iPhone-Tests](../../../docs/TESTPLAN.md).
+
 ## RED-Morph-Motion: Scroll-Mini-Player ist verbindlich
 
 Die Referenz vom 06.11.2026 zeigt **eine einzige native Bewegungskette**, keine zwei fest montierten Leisten: große Tab-Leiste mit Bottom-Accessory-Pill → bei Abwärtsscrollen kompakte Tab-Leiste mit Inline-Pill → bei Aufwärtsscrollen wieder große Tab-Leiste mit Pill darüber. Schnelle Richtungswechsel müssen umkehrbar sein. Das Pill bleibt über den Zustandswechsel dasselbe bedienbare Wiedergabeelement. Eine dauerhaft deaktivierte Minimierung (`.tabBarMinimizeBehavior(.never)`) oder ein zweiter künstlicher Dock widerspricht der Vorgabe.
