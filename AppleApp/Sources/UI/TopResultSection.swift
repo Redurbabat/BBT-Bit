@@ -146,32 +146,53 @@ struct TopResultSection: View {
     }
 
     /// Upstream's `TopResultCard` button pair: Play and Add to Playlist.
+    /// Abgestufte Aktionstasten: nebeneinander, solange der intrinsische
+    /// Text passt; auf schmalen Geräten oder mit großer Schrift untereinander.
+    /// Beide Aktionen bleiben auch im vertikalen Layout mindestens 44 pt hoch.
     private var actionsRow: some View {
-        HStack(spacing: 10) {
-            Button(action: play) {
-                Label("Play", systemImage: "play.fill")
-                    .font(.callout.weight(.semibold))
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                playButton
+                addToPlaylistButton
             }
-            .buttonStyle(.bordered)
-            Button {
-                if let videoId = hit.videoId {
-                    RecentSearchStore.record(RecentSearchEntity(
-                        id: videoId, title: hit.title,
-                        subtitle: hit.subtitle ?? "",
-                        artworkUrl: hit.thumbnailUrl,
-                        entityType: "TRACK"
-                    ))
-                    appModel.playlistPicker = PlaylistPickerRequest(
-                        videoId: videoId, title: hit.title
-                    )
-                }
-            } label: {
-                Label("Add to Playlist", systemImage: "text.badge.plus")
-                    .font(.callout.weight(.semibold))
+            .fixedSize(horizontal: true, vertical: false)
+
+            VStack(alignment: .leading, spacing: 8) {
+                playButton
+                addToPlaylistButton
             }
-            .buttonStyle(.bordered)
-            .disabled(hit.videoId == nil)
         }
+    }
+
+    private var playButton: some View {
+        Button(action: play) {
+            Label("Play", systemImage: "play.fill")
+                .font(.callout.weight(.semibold))
+                .frame(minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private var addToPlaylistButton: some View {
+        Button {
+            if let videoId = hit.videoId {
+                RecentSearchStore.record(RecentSearchEntity(
+                    id: videoId, title: hit.title,
+                    subtitle: hit.subtitle ?? "",
+                    artworkUrl: hit.thumbnailUrl,
+                    entityType: "TRACK"
+                ))
+                appModel.playlistPicker = PlaylistPickerRequest(
+                    videoId: videoId, title: hit.title
+                )
+            }
+        } label: {
+            Label("Add to Playlist", systemImage: "text.badge.plus")
+                .font(.callout.weight(.semibold))
+                .frame(minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .disabled(hit.videoId == nil)
     }
 
     @ViewBuilder
