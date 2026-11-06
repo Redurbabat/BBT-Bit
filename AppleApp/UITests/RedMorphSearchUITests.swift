@@ -1,5 +1,6 @@
 #if os(iOS)
 import XCTest
+import UIKit
 
 /// Echter SwiftUI-Suchbildschirm mit Debug-Launchargument, keine simulierte
 /// Wiedergabe und kein externer Sucherfolg als Testvoraussetzung.
