@@ -46,11 +46,13 @@ struct AutomixWeave: View {
             .frame(minHeight: 44)
             .contentShape(Capsule())
             .background {
-                if reduceTransparency {
-                    Capsule().fill(.black.opacity(0.92))
-                } else {
-                    Capsule().fill(.ultraThinMaterial)
-                }
+                Capsule()
+                    .fill(Color.black.opacity(reduceTransparency ? 0.92 : 0.72))
+                    .background {
+                        if !reduceTransparency {
+                            Capsule().fill(.ultraThinMaterial)
+                        }
+                    }
             }
             .overlay {
                 Capsule().strokeBorder(.white.opacity(0.18), lineWidth: 0.5)
@@ -94,7 +96,11 @@ struct AutomixWeave: View {
                     }
                 }
             }
+            #if os(iOS)
             .presentationDetents([.height(280), .medium])
+            #else
+            .frame(minWidth: 340, minHeight: 280)
+            #endif
         }
         .background { LiquidLiveCaptureMarker(id: "automix") }
     }
