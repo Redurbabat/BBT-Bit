@@ -34,7 +34,12 @@ struct TopResultSection: View {
     private var card: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                artwork
+                Button(action: play) {
+                    artwork
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(hit.title)
+                .accessibilityHint("Plays the top result")
                 details
                 Menu {
                     menu
@@ -57,8 +62,9 @@ struct TopResultSection: View {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .strokeBorder(.separator.opacity(0.35), lineWidth: 0.5)
         )
-        .contentShape(Rectangle())
-        .onTapGesture(perform: play)
+        // Keine Tap-Geste auf der gesamten Karte: sie konnte unabhängig
+        // von den eingebetteten Buttons "Play" auslösen, etwa beim Hinzufügen
+        // zur Playlist. Artwork, Titel und Play besitzen eigene Aktionen.
         .liftPreview {
             menu
         } preview: {
@@ -113,10 +119,15 @@ struct TopResultSection: View {
 
     private var details: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(hit.title)
-                .font(.headline.weight(.semibold))
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
+            Button(action: play) {
+                Text(hit.title)
+                    .font(.headline.weight(.semibold))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Plays the top result")
             if let subtitle = hit.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
                     .font(.subheadline)
