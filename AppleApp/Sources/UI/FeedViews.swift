@@ -306,7 +306,7 @@ struct ShelfCardTap<Content: View>: View {
         Button {
             controller.playRadio(QueueEntry.youtube(
                 videoId: videoId, title: card.title, artist: card.subtitle ?? "",
-                thumbnailUrl: card.thumbnailUrl
+                thumbnailUrl: card.thumbnailUrl, isVideo: card.isVideo
             ))
         } label: {
             content
