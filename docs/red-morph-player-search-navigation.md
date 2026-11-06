@@ -80,8 +80,10 @@ Eine Quellprüfung bestätigte im GitHub-Branch die erwarteten Aufrufstellen und
 - **Player-Aktionsleiste:** Auch der Wechsel zwischen Ausgabe- und Queue-Werkzeugen verwendet bei `Reduce Motion` keine Skalierungsanimation. Die Player-Mehr-Schaltfläche und das Top-Result-Menü haben eine mindestens 44 × 44 pt große Interaktionsfläche.
 - **Tastatur und Mini-Player:** Das iPhone-Safe-Area-Inset nutzt die vorhandene Mini-Player-Darstellung ohne zusätzliche Glasbeschichtung. Die tatsächliche Tastaturhöhe und die Navigation müssen noch auf dem Simulator bestätigt werden.
 - **Lokalisierung:** Neu eingeführte UI-Bezeichner für Suche, Player-Werkzeuge und Automix verwenden englische Ausgangsschlüssel mit deutschen Übersetzungen in `Localizable.xcstrings`. Vorhandene Übersetzungen anderer Sprachen bleiben unverändert; für neue Schlüssel sind diese Sprachen noch nicht übersetzt.
-- **XCUITest:** Der Clear-Button wird über die sprachunabhängige Kennung `bbt.search.clear` angesprochen. Der Test ist im Repository vorhanden, wurde aber noch nicht auf einem Simulator ausgeführt.
+- **XCUITest:** Der iPhone-Clear-Button trägt nun selbst die sprachunabhängige Kennung `bbt.search.clear` (zuvor versehentlich nur am macOS-Feld gesetzt). Der Test prüft zusätzlich die erneute Fokussierung nach dem Löschen. Der Test ist im Repository vorhanden, wurde aber noch nicht auf einem Simulator ausgeführt.
 - **Geltungsbereich:** Kein Eingriff in Streaming, Rust-Audio-Engine, Persistenz, Konten oder Nutzerdaten. Es gibt weiterhin keinen Nachweis eines erfolgreichen Apple-SDK-Typechecks, einer signierten IPA oder hörbarer Wiedergabe.
+
+**CI-Kontingent:** Der Projektinhaber hat bestätigt, dass aktuell keine Build-Tokens verfügbar sind. Daher werden keine zusätzlichen GitHub-Actions- oder Codemagic-Läufe manuell ausgelöst. Die Ursache der fehlenden Runner-Zuweisung ist mit dem ausgeschöpften Kontingent vereinbar, wurde aber nicht durch eine Abrechnungs-API separat bestätigt. Sobald Kapazität verfügbar ist, müssen die normalen Workflows und der echte iPhone-Test nachgeholt werden.
 
 ## Grenzen und nächste Schritte
 
