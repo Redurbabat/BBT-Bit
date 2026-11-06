@@ -913,6 +913,9 @@ struct SearchView: View {
                     }
                 }
                 .listStyle(.plain)
+                // Top-Ergebnis und Songliste gehören zu einem zusammenhängenden
+                // Ergebnisstrom: keine große Systemlücke zwischen den Sections.
+                .listSectionSpacing(.compact)
                 .listSectionSeparator(.hidden)
                 .scrollContentBackground(.hidden)
                 // Upstream's `scrollResetTrigger`: one list whose contents change,
