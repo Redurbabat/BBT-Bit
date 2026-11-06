@@ -19,7 +19,7 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 | Home: `hideTopPicks` | AUSSTEHEND | Im aktuellen Home ist keine eigene Top-Picks-Leiste nachgewiesen; keine funktionslose Einstellung hinzufügen |
 | Home: `hideHomeMoods` | AUSSTEHEND | Aktuell Mood/Genre in Explore vorhanden; Home-Shelf-Existenz prüfen |
 | `squareVideoThumbnails` | AUSSTEHEND | Video-Identifikation und Artwork-Sizing in SwiftUI sauber definieren |
-| Prefer Music Only / Video→Audio | **DOPPELT** | Bereits vorhandene native Quellauflösung gegenüber upstream `MusicOnlyPlayback.kt`; Nutzerentscheidung erforderlich |
+| Prefer Music Only / Video→Audio | **FREIGEGEBEN, TEILWEISE PORTIERT** | Nutzerentscheidung: Originalverhalten. Der native Resolver wartet jetzt maximal 15 Sekunden, startet den Original-YouTube-Fallback nur nach Miss/Timeout/Identitätsfehler und scheitert nicht mehr an unnötiger Videoauflösung bei verifizierter Audioquelle. Die echte Audio-Song-ID einschließlich Queue-/Now-Playing-Metadaten und Konvertierung des nächsten Songs sind **noch nicht portiert**. |
 | Autoplay / Empfehlungen / Recents | **TEILWEISE DOPPELT** | Bestehende Queue-, Home- und History-Implementierung erhalten; Änderungen in `Autoplay.kt` selektiv prüfen |
 | Crossfade, Automix-Vorschau | **DOPPELT/TEILWEISE** | Rust-Mixer und native Automix-Details mit neuem Originalverhalten vergleichen; Nutzerentscheidung zu UI-Variante |
 | SourceResolver, Song-Matching, StreamLengthProbe | AUSSTEHEND – priorisiert | Gemeinsamer Kotlin-Resolver, Streamdauer, Titel/Künstler/Album-Matching und realistische Tests; `NO_PLAYABLE_STREAM` getrennt nachweisen |
@@ -39,6 +39,19 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 - `AppleApp/Sources/UI/Settings/SettingsView.swift` und `SettingsView+Appearance.swift`: Schalter für „Hide Recently Played“.
 - `AppleApp/Sources/UI/Library/HomeView.swift`: Filtern der angezeigten Recents-Shelf; Skeleton ebenfalls ausgeblendet. Server-/lokaler Verlauf und Queue bleiben unverändert.
 - `AppleApp/Resources/Localization/Localizable.xcstrings`: deutsche Übersetzung der neuen Beschriftung und Beschreibung.
+
+## Freigabe und Portierungsschritt 2: Prefer Music Only
+
+Entscheidung des Maintainers vom 06.11.2026: **Das Verhalten von Original-BitChord v1.9.1 übernehmen und nativ an BBT-Bit anpassen.**
+
+Bereits umgesetzt:
+
+- `PlaybackController+SourceResolution.swift`: bevorzugten Audiokandidaten prüfen, ohne gleichzeitig auf den ursprünglichen YouTube-Stream zu warten; 15-Sekunden-Grenze entsprechend `MusicOnlyPlayback.ANSWER_TIMEOUT_MS`; keine Videoauflösung bei erfolgreich verifizierter Ersatzquelle.
+- Bei fehlendem, verspätetem, nicht verifiziertem oder nicht gepuffertem Audiokandidaten wird der Originalstream als Audio-Rückfall versucht. Bei Abbruch entfällt der Rückfall.
+- `AppSettings.kt`: irreführende Aussage entfernt, dass das Video immer zuerst startet.
+- `scripts/source-priority-verify/check.swift`: drei zusätzliche Race-Fälle (Audio gewinnt ohne Fallback; Miss; Timeout).
+
+**Nicht als vollständige Originalparität ausgeben:** Upstream ersetzt die Video-Queue-Zeile mit der eigenen YouTube-Music-Audio-Song-ID (Titel, Artwork, Quelle), behält den Queue-Platz bei und bereitet auch den nächsten Titel um. Der derzeitige BBT-Bit-Resolver bevorzugt einen verifizierten Audio-Stream, aktualisiert aber die Video-Queue-Zeile nicht auf diese Audio-Song-ID. Dafür sind ein separater, getesteter Catalogue-Audio-Version-Resolver sowie atomare Queue-/Handoff-Anpassungen nötig. Keine spekulative Übernahme ohne Nachweis auf echtem Playback-Pfad.
 
 ## Tests / Nachweise
 
@@ -61,10 +74,10 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 
 ## Entscheidungspunkte vor Eingriffen in bereits vorhandene Funktionen
 
-1. Prefer Music Only / Musikvideo-Konvertierung: BBT-Bit-Implementierung beibehalten und upstream-Fixes ergänzen oder Originalverhalten ersetzen?
+1. Prefer Music Only / Musikvideo-Konvertierung: **ENTSCHIEDEN – Originalverhalten, nativ portieren**. Vollständige Queue-ID-Umstellung und Next-Track-Konvertierung offen.
 2. Autoplay und Empfehlungen: bestehende native Queue als führend belassen oder Originalverhalten maßgebend machen?
 3. Automix/Crossfade: Rust-Engine behalten und Verbesserungen portieren oder die Übergangslogik stärker ändern?
 4. Player-Themes / RED Morph: native RED-Morph-Oberfläche belassen und neue Optionen ergänzen oder das Originaldesign übernehmen?
 5. Glass-Performance: bestehende Reduce-Blur-/Performance-Modi ergänzen oder Originalschalter separat anbieten?
 
-**Bis zur Entscheidung keine doppelten Playback-, Player- oder Automix-Pfade implementieren.**
+**Bei verbleibenden Doppelungen keine parallelen Playback-, Player- oder Automix-Pfade ohne Entscheidung implementieren.**
