@@ -15,7 +15,7 @@ Teste Einstieg, Ausstieg, Abbruch, schnelle Wiederholung und neue Ziele während
 
 ## Apple-API-Parität statt statischem Nachbau
 
-Bevor eine neue Gestenanimation hinzugefügt wird, prüfen, ob `tabBarMinimizeBehavior`, `tabViewBottomAccessoryPlacement`, `matchedTransitionSource`, `navigationTransition(.zoom)` und `accessibilityReduceMotion` bereits den Vorgang abdecken. Beim Suchfokus ab iOS 26.1 den nativen Accessory über `tabViewBottomAccessory(isEnabled: !keyboardUp)` ausschalten und nur das bestehende Keyboard-Pill per `safeAreaInset` anzeigen. Der 26.0-Fallback bleibt. Keine zusätzlichen dauerhaft eingeblendeten Dock- oder Tab-Bar-Overlays. [Apple-API-Abgleich](../../../docs/apple-native-ui-adoption.md) · [iPhone-Tests](../../../docs/TESTPLAN.md).
+Bevor eine neue Gestenanimation hinzugefügt wird, prüfen, ob `tabBarMinimizeBehavior`, `tabViewBottomAccessoryPlacement`, `matchedTransitionSource`, `navigationTransition(.zoom)` und `accessibilityReduceMotion` bereits den Vorgang abdecken. Beim Suchfokus ab iOS 26.1 und **nur mit Xcode 26.2+ (`#if compiler(>=6.2.3)`)** den nativen Accessory über `tabViewBottomAccessory(isEnabled: !keyboardUp)` ausschalten und nur das bestehende Keyboard-Pill per `safeAreaInset` anzeigen. Der ältere SDK-/iOS-26.0-Fallback bleibt. Keine zusätzlichen dauerhaft eingeblendeten Dock- oder Tab-Bar-Overlays. [Apple-API-Abgleich](../../../docs/apple-native-ui-adoption.md) · [iPhone-Tests](../../../docs/TESTPLAN.md).
 
 ## RED-Morph-Motion: Scroll-Mini-Player ist verbindlich
 
