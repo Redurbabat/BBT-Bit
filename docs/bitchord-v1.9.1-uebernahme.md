@@ -50,6 +50,7 @@ Bereits umgesetzt:
 - Bei fehlendem, verspätetem, nicht verifiziertem oder nicht gepuffertem Audiokandidaten wird der Originalstream als Audio-Rückfall versucht. Bei Abbruch entfällt der Rückfall.
 - `AppSettings.kt`: irreführende Aussage entfernt, dass das Video immer zuerst startet.
 - `scripts/source-priority-verify/check.swift`: drei zusätzliche Race-Fälle (Audio gewinnt ohne Fallback; Miss; Timeout).
+- Die native Quellauflösung deaktiviert `Prefer Music Only` bei `PartyStore.shared.inParty`, analog zur upstream-Regel. Ein Parteibeitritt während des Lookups verhindert das Anwenden einer privaten Musikversion.
 
 **Nicht als vollständige Originalparität ausgeben:** Upstream ersetzt die Video-Queue-Zeile mit der eigenen YouTube-Music-Audio-Song-ID (Titel, Artwork, Quelle), behält den Queue-Platz bei und bereitet auch den nächsten Titel um. Der derzeitige BBT-Bit-Resolver bevorzugt einen verifizierten Audio-Stream, aktualisiert aber die Video-Queue-Zeile nicht auf diese Audio-Song-ID. Dafür sind ein separater, getesteter Catalogue-Audio-Version-Resolver sowie atomare Queue-/Handoff-Anpassungen nötig. Keine spekulative Übernahme ohne Nachweis auf echtem Playback-Pfad.
 
@@ -58,7 +59,9 @@ Bereits umgesetzt:
 - Original-Diff: GitHub-API-Vergleich erfolgreich (17 Commits, 94 Dateien).
 - BBT-Bit-Branch-Diff: GitHub-Vergleich bestätigt ausschließlich die genannten Dateien.
 - JSON-Syntax der geänderten String-Catalog-Datei: geprüft.
-- Swift-Syntaxprüfung: **NICHT GETESTET**.
+- Isolierter Swift-Actor-Test: **BESTANDEN** (4 Race-Szenarien mit einer manuell nachgebildeten Kopie von `PlaybackSourceRace` unter Linux). Dies prüft das Ablaufmodell, **nicht** die tatsächliche geänderte Repository-Datei, die App oder eine Apple-Zielplattform.
+- Der im Repository ergänzte `scripts/source-priority-verify/check.swift` wurde **NICHT AUSGEFÜHRT** (macOS-/Xcode-Testumgebung nicht verfügbar).
+- Swift-Syntaxprüfung der geänderten App-Dateien: **NICHT GETESTET**.
 - Kotlin-Kompilierung: **NICHT GETESTET**.
 - Apple-Xcode-Build: **NICHT GETESTET**.
 - Simulator- und echter iPhone-/iPad-/Mac-Test: **NICHT GETESTET**.
