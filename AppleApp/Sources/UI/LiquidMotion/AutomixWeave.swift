@@ -29,7 +29,7 @@ struct AutomixWeave: View {
             HStack(spacing: 9) {
                 Image(systemName: "waveform.path")
                     .font(.caption.weight(.semibold))
-                Text(isMixing ? "Automix · Übergang läuft" : "Automix · Übergang geplant")
+                Text(isMixing ? "Automix läuft" : "Automix")
                     .lineLimit(1)
                 Spacer(minLength: 4)
                 if isMixing {
