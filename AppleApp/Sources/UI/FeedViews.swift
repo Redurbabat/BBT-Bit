@@ -380,7 +380,13 @@ struct ShelfCardView: View {
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
-                ArtworkView(url: card.thumbnailUrl, data: nil, side: artworkSide)
+                ArtworkView(
+                    url: card.thumbnailUrl, data: nil, side: artworkSide,
+                    fill: card.isVideo
+                )
+                    // Wie im Original sind Home-Musikvideos 16:9 statt
+                    // quadratischer Albumcover; die Kartenbreite bleibt stabil.
+                    .frame(width: artworkSide, height: card.isVideo ? artworkSide * 9 / 16 : artworkSide)
                     .clipShape(.rect(cornerRadius: 10, style: .continuous))
                     .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
                     .modifier(NowPlayingCardAccent(
