@@ -264,6 +264,9 @@ extension NowPlayingView {
         }
         .buttonStyle(.plain)
         .help("More")
+        // Der bestehende Live-Screenshot-Marker bleibt nach dem Entfernen
+        // des Dock-Regals beim neuen Zugang zu den Player-Werkzeugen.
+        .background { LiquidLiveCaptureMarker(id: "dock") }
     }
 
     static func timestamp(_ seconds: Double) -> String {
