@@ -59,6 +59,8 @@ Auf `feature/red-morph-player-search-navigation` prüft `python3 scripts/check-r
 python3 scripts/check-native-island-source.py
 ```
 
+**Regression P-008 (Album-Optional-Typ):** `QueueEntry.albumName` ist `String?`. Alle vier Signaturen in `NowPlayingController`/`ModernNowPlaying` müssen `albumName: String?` annehmen. Der MediaPlayer-Metadateneintrag darf nur einen nichtleeren String enthalten; das moderne `MusicContent` erhält einen normalisierten String. Die Quellprüfung kontrolliert diese Typen, **aber nur ein echter Xcode-Swift-Typecheck belegt Kompilierbarkeit**. Zusätzlich aus einer Playlist und dem obersten Suchergebnis jeweils einen Song abspielen, `Add to Playlist` getrennt betätigen und kontrollieren, dass das Hinzufügen keine Wiedergabe auslöst; lokale sowie YouTube-Titel ohne Albumnamen müssen funktionieren.
+
 Der Befehl ist im CI-PR-Workflow eingetragen, wurde hier aber **NICHT AUSGEFÜHRT**. Statische Quellprüfung beweist keine Sichtbarkeit der Insel. Auf einem echten Dynamic-Island-iPhone müssen Songtitel, Interpret, Albumcover, Pause/Play, Skip, Hintergrund, Unterbrechungen und Apple-Systempriorität **mit tatsächlich hörbarer Musik** geprüft werden. Die Einstellung „Play Alongside Other Apps“ ausdrücklich in beiden Zuständen testen, **nicht** automatisch verändern. Alle Details in [Dynamic Island × RED Morph](native-dynamic-island-red-morph.md).
 
 **Status:** Apple-SDK-Kompilierung, Simulator, Hardware-Island, signierte IPA und Audiowiedergabe: **NICHT GETESTET**; keine zusätzlichen kostenpflichtigen CI-Läufe.
