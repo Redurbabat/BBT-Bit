@@ -59,8 +59,11 @@ checks = {
     "Tastatur-Inset ohne doppelte Glasfläche": (
         ".safeAreaInset(edge: .bottom, spacing: 0)" in root
         and "PlaybackPill(inline: true)\n                            .frame(maxWidth: 440)" in root
+        and "#if compiler(>=6.2.3)" in root
+        and "#else\n        if #available(iOS 26.1, *)" in root
         and "if #available(iOS 26.1, *)" in root
         and "content.tabViewBottomAccessory(isEnabled: !keyboardUp)" in root
+        and "if !keyboardUp {\n                    PlaybackAccessory()" in root
         and "content.tabViewBottomAccessory {\n                PlaybackAccessory()" in root
     ),
     "Native Tab-Leiste und Mini-Player minimieren beim Scrollen": (
