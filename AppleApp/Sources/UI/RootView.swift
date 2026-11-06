@@ -1105,6 +1105,7 @@ struct PlaybackPillMount: ViewModifier {
     /// is up the iPhone's pill rides on top of it instead (the iPad's per-tab
     /// inset does that on its own).
     @State private var keyboardUp = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #endif
 
     func body(content: Content) -> some View {
@@ -1143,10 +1144,10 @@ struct PlaybackPillMount: ViewModifier {
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-                    withAnimation(.smooth(duration: 0.25)) { keyboardUp = true }
+                    withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { keyboardUp = true }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                    withAnimation(.smooth(duration: 0.25)) { keyboardUp = false }
+                    withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { keyboardUp = false }
                 }
         } else {
             fallbackMount(content)
