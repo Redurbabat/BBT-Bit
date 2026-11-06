@@ -375,7 +375,7 @@ struct ShelfCardActionButtons: View {
         if let videoId = card.videoId, !videoId.isEmpty {
             SongActionButtons(entry: QueueEntry.youtube(
                 videoId: videoId, title: card.title, artist: card.subtitle ?? "",
-                thumbnailUrl: card.thumbnailUrl
+                thumbnailUrl: card.thumbnailUrl, isVideo: card.isVideo
             ))
         } else {
             BrowseActionButtons(card: card)
@@ -397,7 +397,7 @@ struct BrowseActionButtons: View {
         if let videoId = card.videoId, !videoId.isEmpty {
             let entry = QueueEntry.youtube(
                 videoId: videoId, title: card.title, artist: card.subtitle ?? "",
-                thumbnailUrl: card.thumbnailUrl
+                thumbnailUrl: card.thumbnailUrl, isVideo: card.isVideo
             )
             Button("Play") { controller.playRadio(entry) }
             Button("Play Next") { controller.playNext(entry) }
