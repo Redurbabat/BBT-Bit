@@ -278,8 +278,10 @@ extension PlaybackController {
                     lookup.cancel()
                     throw CancellationError()
                 } catch {
+                    // Do not write provider error text here: signed URLs and
+                    // request headers may contain credentials.
                     PlaybackDebugLog.shared.record(
-                        "music-only candidate unavailable: \(error.localizedDescription)", about: videoId
+                        "music-only candidate unavailable; using original upload", about: videoId
                     )
                 }
             } else if case .cancelled = decision {
