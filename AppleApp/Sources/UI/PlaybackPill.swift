@@ -836,7 +836,7 @@ private struct MacNowPlayingSlot<Artwork: View, Info: View>: View {
         }
         .frame(height: 44)
         .clipped()
-        .animation(.easeInOut(duration: 0.16), value: scrubbing)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: scrubbing)
     }
 
     private func clock(_ seconds: Double, remaining: Bool = false) -> String {
