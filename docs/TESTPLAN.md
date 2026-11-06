@@ -27,13 +27,13 @@ Sie prüfen: vollständige Kopie nach Codex/Claude inklusive Referenzen, Dry-Run
 
 ## Originale Apple-API: Bottom Accessory und Such-Tastatur
 
-Nach dem [Apple-API-Abgleich](apple-native-ui-adoption.md) muss `PlaybackPillMount` ab **iOS 26.1** `tabViewBottomAccessory(isEnabled: !keyboardUp)` verwenden, den iOS-26.0-Fallback erhalten und ein kompaktes Keyboard-Pill über `safeAreaInset` anbieten. Überprüfe die Quellbedingungen mit:
+Nach dem [Apple-API-Abgleich](apple-native-ui-adoption.md) muss `PlaybackPillMount` die neue API **nur mit Xcode 26.2+** über `#if compiler(>=6.2.3)` verwenden; zur Laufzeit erst ab iOS 26.1. Da Codemagic aktuell **Xcode 26.0** nutzt, muss der vorhandene Fallback auch für ältere SDKs erhalten bleiben und ein kompaktes Keyboard-Pill über `safeAreaInset` anbieten. Überprüfe die Quellbedingungen mit:
 
 ```bash
 python3 scripts/check-red-morph-source.py
 ```
 
-**iPhone-Abnahme:** (1) Mit Song in „Jetzt hören“ scrollen: Tab-Leiste und Mini-Player gemeinsam hinein-/herausgleiten lassen. (2) Suche und Tastatur öffnen: genau **ein** Player über Tastatur, keine leere Bottom-Accessory-Leiste. (3) Tastatur schließen: native Leiste mit Player wieder sichtbar und Zoom zum Vollplayer funktioniert. (4) iOS 26.0 und 26.1+ getrennt testen; im 26.0-Fallback insbesondere Duplikate/Überdeckung prüfen. (5) Reduce Motion, VoiceOver, Dynamic Type und tatsächlich hörbare Wiedergabe überprüfen.
+**iPhone-Abnahme:** (1) Mit Song in „Jetzt hören“ scrollen: Tab-Leiste und Mini-Player gemeinsam hinein-/herausgleiten lassen. (2) Suche und Tastatur öffnen: genau **ein** Player über Tastatur, keine leere Bottom-Accessory-Leiste. (3) Tastatur schließen: native Leiste mit Player wieder sichtbar und Zoom zum Vollplayer funktioniert. (4) iOS 26.0 und 26.1+ **sowie Xcode 26.0 und Xcode 26.2+** getrennt testen; im alten SDK-Fallback insbesondere Duplikate/Überdeckung prüfen. (5) Reduce Motion, VoiceOver, Dynamic Type und tatsächlich hörbare Wiedergabe überprüfen.
 
 **Status:** Codeänderung auf dem Branch, GitHub-Quellvergleich möglich. Der Python-Befehl ist **NICHT AUSGEFÜHRT**; Swift-Kompilierung, Simulator und iPhone **NICHT GETESTET**.
 
