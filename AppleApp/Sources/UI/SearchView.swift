@@ -290,30 +290,7 @@ private struct TopRow<Row: View>: ViewModifier {
     }
 }
 
-private struct CompactPhoneSearchDrawer: ViewModifier {
-    let isCompact: Bool
-    @Binding var query: String
-    @Binding var isPresented: Bool
-    var focused: FocusState<Bool>.Binding
-    var onSubmit: () -> Void
 
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if isCompact {
-            content
-                .searchable(
-                    text: $query,
-                    isPresented: $isPresented,
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: "Artists, Songs, Lyrics, and More"
-                )
-                .searchFocused(focused)
-                .onSubmit(of: .search, onSubmit)
-        } else {
-            content
-        }
-    }
-}
 #endif
 
 struct SearchView: View {
@@ -340,7 +317,6 @@ struct SearchView: View {
     @State private var suggestions: [String] = []
     @State private var searchError: String?
     @State private var attempted = false
-    @State private var isSearchPresented = false
     /// Focus for the native search field, including tab reselect and deep links.
     @FocusState private var searchFieldFocused: Bool
     @State private var suggestTask: Task<Void, Never>?
@@ -496,7 +472,7 @@ struct SearchView: View {
                     #endif
                 }
                 #if os(iOS)
-                .navigationBarTitleDisplayMode(titleRow ? .inline : .automatic)
+                .navigationBarTitleDisplayMode(titleRow || horizontalSizeClass != .regular ? .inline : .automatic)
                 .modifier(TopRow(enabled: titleRow) {
                     HStack(spacing: 16) {
                         Text("Search")
@@ -510,18 +486,6 @@ struct SearchView: View {
                     .padding(.bottom, 8)
                 })
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
-                .modifier(CompactPhoneSearchDrawer(
-                    isCompact: horizontalSizeClass != .regular,
-                    query: $query,
-                    isPresented: $isSearchPresented,
-                    focused: $searchFieldFocused,
-                    onSubmit: {
-                        Task {
-                            await performSearch()
-                            searchFieldFocused = false
-                        }
-                    }
-                ))
                 #endif
                 .task(id: initialQuery) {
                     guard let initialQuery,
@@ -561,11 +525,6 @@ struct SearchView: View {
                     if !term.isEmpty { setIPadSearchExpanded(true, focus: false) }
                 }
                 #endif
-                .onChange(of: isSearchPresented) { _, presented in
-                    if !presented && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        resetToHistory()
-                    }
-                }
                 .onChange(of: appModel.focusSearch) { _, focus in
                     guard focus else { return }
                     focusTheField()
@@ -627,9 +586,6 @@ struct SearchView: View {
         }
         #endif
         Task { @MainActor in
-            #if os(iOS)
-            isSearchPresented = true
-            #endif
             searchFieldFocused = true
         }
     }
@@ -772,6 +728,12 @@ struct SearchView: View {
     private var resultsColumn: some View {
         VStack(spacing: 0) {
             #if os(iOS)
+            // Ein festes Suchfeld im Seiteninhalt statt des iOS-26-Such-Drawers
+            // am unteren Tab-Rand. So konkurriert die Texteingabe nicht mit
+            // der nativen Tab-Bar und dem Playback-Pill.
+            if horizontalSizeClass != .regular {
+                phoneSearchField
+            }
             // The phone keeps upstream's picker above the results, up only
             // while the field is empty: once something is typed the page is
             // about the results, and the picker would only push them down. On a
@@ -807,6 +769,48 @@ struct SearchView: View {
         }
         #endif
     }
+
+    #if os(iOS)
+    /// RED Morph: iPhone-Suche mit einem stabilen Eingabefeld oberhalb
+    /// der Ergebnisse. Die State-/Task-Pipeline der bisherigen Suche bleibt.
+    private var phoneSearchField: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            TextField("Künstler, Songs, Songtexte suchen", text: $query)
+                .textFieldStyle(.plain)
+                .submitLabel(.search)
+                .focused($searchFieldFocused)
+                .onSubmit {
+                    Task {
+                        await performSearch()
+                        searchFieldFocused = false
+                    }
+                }
+                .accessibilityIdentifier("bbt.search.field")
+            if !query.isEmpty {
+                Button {
+                    query = ""
+                    searchFieldFocused = true
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Suche löschen")
+            }
+        }
+        .padding(.horizontal, 14)
+        .frame(minHeight: 52)
+        .chromeGlass(in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 10)
+    }
+    #endif
 
     /// The field's catalogue picker, YouTube Music or the addons the listener
     /// enabled. Flipping answers whatever is already in the field again with the
