@@ -28,7 +28,7 @@ struct TopResultSection: View {
                 .padding(.horizontal, 24)
         }
         .padding(.top, 12)
-        .padding(.bottom, 20)
+        .padding(.bottom, 8)
     }
 
     private var card: some View {
@@ -52,10 +52,10 @@ struct TopResultSection: View {
             actionsRow
         }
         .padding(14)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(.separator.opacity(0.5), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(.separator.opacity(0.35), lineWidth: 0.5)
         )
         .contentShape(Rectangle())
         .onTapGesture(perform: play)
@@ -67,9 +67,8 @@ struct TopResultSection: View {
                 roundArtwork: hit.browseType?.uppercased() == "ARTIST"
             )
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(hit.title), \(hit.subtitle ?? "")")
-        .accessibilityHint("Plays the top result")
+        // Aktionen bleiben für VoiceOver einzeln erreichbar.
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder
