@@ -25,7 +25,7 @@ enum LiquidPhotoFeature: Int, CaseIterable, Identifiable {
         case .handoff: "Handoff Comet"
         case .echo: "Echo Trail"
         case .island: "Music Island"
-        case .dock: "Infinity Dock"
+        case .dock: "Player-Werkzeuge"
         case .portal: "Glass Portal"
         }
     }
