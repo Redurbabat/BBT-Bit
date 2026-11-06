@@ -50,12 +50,15 @@ checks = {
         "MPNowPlayingInfoCenter.default().nowPlayingInfo = info" in native
         and "MPRemoteCommandCenter.shared()" in native
         and "MPNowPlayingInfoPropertyPlaybackRate" in native
-        and "MPMediaItemPropertyAlbumTitle: albumName" in native
+        and "info[MPMediaItemPropertyAlbumTitle] = albumName" in native
+        and "if let albumName, !albumName.isEmpty" in native
     ),
     "Albumtitel im neuen nativen MusicContent": (
         "albumName: albumName, type: .audio" in native
-        and "self.albumName = albumName" in native
+        and 'self.albumName = albumName ?? ""' in native
         and 'albumName: "Fixture Album"' in native
+        and re.search(r"var albumName: String\\?", read("AppleApp/Sources/PlaybackSession/QueueEntry.swift")) is not None
+        and len(re.findall(r"albumName: String\\?, duration: Double", native)) == 4
     ),
     "Alle acht Metadaten-Übergaben enthalten Albumname": (
         len(calls) == 8 and all(present for _, present in calls)
