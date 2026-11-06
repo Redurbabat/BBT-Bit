@@ -400,7 +400,8 @@ private struct RecentTrackRow: View {
                 }
             } label: {
                 HStack(spacing: 12) {
-                    ArtworkView(url: card.thumbnailUrl, data: nil, side: 48)
+                    ArtworkView(url: card.thumbnailUrl, data: nil, side: 48, fill: card.isVideo)
+                        .frame(width: 48, height: card.isVideo ? 27 : 48)
                         .clipShape(.rect(cornerRadius: 7, style: .continuous))
                         .modifier(NowPlayingCardAccent(
                             isCurrent: isCurrentTrack,
