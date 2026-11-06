@@ -98,7 +98,7 @@ extension PlaybackController {
         loadedSourceHeaders = [:]
         sourceHeadersByPath.removeAll(keepingCapacity: true)
         nowPlaying.update(
-            id: entry.id, title: entry.title, artist: entry.artist,
+            id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName,
             duration: 0, artworkData: entry.artworkData,
             thumbnailUrl: entry.thumbnailUrl, isPlaying: false, position: position
         )
