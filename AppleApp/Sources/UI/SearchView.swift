@@ -776,7 +776,7 @@ struct SearchView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            TextField("Künstler, Songs, Songtexte suchen", text: $query)
+            TextField("Search artists, songs and lyrics", text: $query)
                 .textFieldStyle(.plain)
                 .submitLabel(.search)
                 .focused($searchFieldFocused)
@@ -798,7 +798,7 @@ struct SearchView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Suche löschen")
+                .accessibilityLabel("Clear search")
             }
         }
         .padding(.horizontal, 14)
