@@ -1130,15 +1130,18 @@ struct PlaybackPillMount: ViewModifier {
                     dockScroll.keepExpanded ? .never : .onScrollDown
                 )
             )
-                .overlay(alignment: .bottom) {
+                // Das kompakte Pill belegt oberhalb der Tastatur echten
+                // Safe-Area-Platz, statt die Suchergebnisse zu überdecken.
+                // Der native Bottom Accessory wird währenddessen ausgeblendet.
+                .safeAreaInset(edge: .bottom, spacing: 0) {
                     if keyboardUp {
-                        PlaybackPill()
-                            // The accessory's glass is the tab bar's; out here
-                            // the pill would otherwise have none.
+                        PlaybackPill(inline: true)
                             .chromeGlass(in: Capsule())
-                            .padding(.horizontal, 10)
-                            .padding(.bottom, 8)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .frame(maxWidth: 440)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .frame(maxWidth: .infinity)
+                            .transition(.opacity)
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
