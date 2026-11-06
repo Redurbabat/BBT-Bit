@@ -22,6 +22,7 @@ struct NowPlayingView: View {
     @Environment(AppModel.self) var appModel
     @Environment(PartyStore.self) var party
     @Environment(\.dismiss) var dismiss
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
