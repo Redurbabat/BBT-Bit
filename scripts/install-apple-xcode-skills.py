@@ -109,7 +109,7 @@ def local_git_exclude(names: list[str]) -> None:
             file.write("\n".join(missing) + "\n")
 
 
-def install(source: Path, replace: bool, dry_run: bool) -> None:
+def install(source: Path, replace: bool, dry_run: bool, xcode_version: str | None = None) -> None:
     skills = exported_skills(source)
     manifest = load_manifest()
     managed = manifest["managed"]
@@ -161,7 +161,9 @@ def install(source: Path, replace: bool, dry_run: bool) -> None:
         print(f"IMPORTIERT: {name} (Codex und Claude, lokal; nicht im Git-Commit)")
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(
-        json.dumps({"source": "local Xcode export", "managed": managed},
+        json.dumps({"source": "local Xcode export",
+                    "xcode_version": xcode_version or "not recorded (supplied export)",
+                    "managed": managed},
                    ensure_ascii=False, sort_keys=True, indent=2) + "\n",
         encoding="utf-8",
     )
@@ -185,7 +187,10 @@ def main() -> int:
                 command = ["xcrun", "agent", "skills", "export", "--output-dir", export]
                 print("Exportiere Apple-Skills aus der lokal gewählten Xcode-Version ...")
                 subprocess.run(command, check=True)
-                install(Path(export), options.replace_existing, options.dry_run)
+                version = subprocess.run(
+                    ["xcodebuild", "-version"], capture_output=True, text=True, check=True
+                ).stdout.strip()
+                install(Path(export), options.replace_existing, options.dry_run, version)
         else:
             install(options.source.expanduser(), options.replace_existing, options.dry_run)
         return 0
