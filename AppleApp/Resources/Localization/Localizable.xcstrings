@@ -3697,6 +3697,26 @@
     "HDMI": {},
     "Headphone": {},
     "Headphones": {},
+    "Hide Home Videos": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikvideos auf der Startseite ausblenden"
+          }
+        }
+      }
+    },
+    "Hide music videos on Listen Now without removing them from Search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blendet Musikvideos auf der Startseite aus; in der Suche bleiben sie verfügbar"
+          }
+        }
+      }
+    },
     "Hide Recently Played": {
       "localizations": {
         "de": {
