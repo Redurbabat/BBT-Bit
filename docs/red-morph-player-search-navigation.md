@@ -129,6 +129,14 @@ Die statische Quellprüfung kontrolliert diese Anbindung nun. Verifikation auf e
 
 Das Projekt unterstützt ab diesem Branch einen **lokalen Vollimport** aller von Xcode 27+ exportierten Apple-Agent-Skills ([Anleitung](APPLE_XCODE_SKILLS.md)). SwiftUI Specialist, SwiftUI-Neuerungen, adaptive UIKit-/App-Größen, Gerätetests, Testmodernisierung und Sicherheitsprüfungen können ergänzend helfen. Die Inhalte wurden hier **nicht aus Xcode exportiert oder installiert**. Sie ersetzen keine BBT-Bit-Vorgabe: E-006 native Suche und E-007 gemeinsamer Mini-Player/Tab-Bar-Scroll-Morph aus dem Nutzer-Referenzvideo haben Vorrang. UI-/Audiotests bleiben **NICHT GETESTET**.
 
+## Originale Apple Dynamic Island statt eigener Musik-Live-Activity (06.11.2026)
+
+**Verbindliche RED-Morph-Vorgabe:** Die obere Hardware-Dynamic-Island wird durch Apples **native Now-Playing-Medienoberfläche** betrieben, nicht durch ein über den oberen Bildschirmrand gezeichnetes SwiftUI-Overlay oder eine parallele Music-Live-Activity. BBT-Bit unterstützt den Systemweg über `MediaPlayer` unter iOS 18–26 und über `NowPlaying.MediaSession` unter iOS 27+ (wenn das Framework im SDK verfügbar ist). Damit bleiben Sperrbildschirm, Kontrollzentrum, Systemtransport und Island dieselbe Wiedergabesitzung. Bei fremder Audio-App oder aktivem `mixWithOtherAudio` entscheidet iOS über die Systempriorität; die App erzwingt keine fremde Wiedergabesteuerung.
+
+**Direkte Verbesserung:** `QueueEntry.albumName` wird nun an `NowPlayingController.prepareForPlayback`/`update` übertragen, über `MPMediaItemPropertyAlbumTitle` beziehungsweise `MusicContent(albumName:)` veröffentlicht und bei Songwechseln aktualisiert. Bestehende alte ActivityKit-Karten werden weiterhin lediglich bereinigt, nicht erneut erzeugt. Die **Logo Glass Bloom** bleibt ein getrenntes, zeitlich begrenztes App-internes RED-Morph-Element und **nicht** die Hardware-Island. Die native Mini-Player-/Tab-Bar-Scrollanimation unten bleibt bestehen.
+
+[Technische Implementierung, Systemgrenzen und iPhone-Prüfmatrix](native-dynamic-island-red-morph.md). Statischer Test `python3 scripts/check-native-island-source.py` wird im PR-Workflow vorbereitet. **Dynamic Island auf echtem iPhone, SwiftUI-/NowPlaying-SDK-Kompilierung und hörbare Ausgabe: NICHT GETESTET.**
+
 ## Grenzen und nächste Schritte
 
 - Suche-/Tastaturverhalten im Simulator messen und Safe-Area-Inset gegebenenfalls an die reale iOS-26/27-Keyboard-Animation anpassen.
