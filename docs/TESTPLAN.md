@@ -39,6 +39,18 @@ Auf `feature/red-morph-player-search-navigation` prüft `python3 scripts/check-r
 
 **Prüfstatus (06.11.2026):** Quelländerung implementiert. Swift-Compile, Simulator, iPhone-Echtgerät, 3D-Zoom und hörbare Wiedergabe: **NICHT GETESTET**. Laut Projektinhaber sind die Build-Tokens ausgeschöpft; keine zusätzlichen CI-Läufe starten.
 
+## Apple Dynamic Island / RED Morph
+
+**Systemoberfläche, nicht eigenes SwiftUI-Overlay.** Die Apple-Dynamic-Island nutzt dieselben Now-Playing-Metadaten und Transportbefehle wie Sperrbildschirm und Kontrollzentrum. Vor dem Xcode-Build kann das neue Standardbibliothek-Skript prüfen, dass iOS-18–26- und iOS-27-Pfade, Albumtitel, Legacy-Live-Activity-Bereinigung, alle acht Metadatenübergaben und der RED-Morph-Zoom vorhanden sind:
+
+```bash
+python3 scripts/check-native-island-source.py
+```
+
+Der Befehl ist im CI-PR-Workflow eingetragen, wurde hier aber **NICHT AUSGEFÜHRT**. Statische Quellprüfung beweist keine Sichtbarkeit der Insel. Auf einem echten Dynamic-Island-iPhone müssen Songtitel, Interpret, Albumcover, Pause/Play, Skip, Hintergrund, Unterbrechungen und Apple-Systempriorität **mit tatsächlich hörbarer Musik** geprüft werden. Die Einstellung „Play Alongside Other Apps“ ausdrücklich in beiden Zuständen testen, **nicht** automatisch verändern. Alle Details in [Dynamic Island × RED Morph](native-dynamic-island-red-morph.md).
+
+**Status:** Apple-SDK-Kompilierung, Simulator, Hardware-Island, signierte IPA und Audiowiedergabe: **NICHT GETESTET**; keine zusätzlichen kostenpflichtigen CI-Läufe.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
