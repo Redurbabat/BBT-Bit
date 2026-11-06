@@ -1163,17 +1163,16 @@ struct PlaybackPillMount: ViewModifier {
     }
 
     #if os(iOS)
-    /// The bottom accessory, stood down from 26.1 while the pill rides the
-    /// keyboard, so there is only ever one pill (and one zoom source for Now
-    /// Playing). On 26.0 the covered one stays mounted.
+    /// Apples isEnabled-Variante deaktiviert den nativen Bottom Accessory
+    /// während der Such-Tastatur vollständig. Das Keyboard-Inset stellt genau
+    /// ein kompaktes Pill bereit; kein zweiter Zoom-Ursprung bleibt sichtbar.
+    /// iOS 26.0 behält den bestehenden kompatiblen Accessory-Pfad.
     @available(iOS 26.0, *)
     @ViewBuilder
     private func accessory(_ content: some View) -> some View {
         if #available(iOS 26.1, *) {
-            content.tabViewBottomAccessory {
-                if !keyboardUp {
-                    PlaybackAccessory()
-                }
+            content.tabViewBottomAccessory(isEnabled: !keyboardUp) {
+                PlaybackAccessory()
             }
         } else {
             content.tabViewBottomAccessory {
