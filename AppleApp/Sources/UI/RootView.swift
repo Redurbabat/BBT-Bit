@@ -1131,8 +1131,10 @@ struct PlaybackPillMount: ViewModifier {
                 // Der native Bottom Accessory wird währenddessen ausgeblendet.
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if keyboardUp {
+                        // PlaybackPill besitzt bereits seinen eigenen
+                        // MiniPlayerChrome mit Reduce-Transparency-Fallback.
+                        // Kein zweites Material über denselben Bedienelementen.
                         PlaybackPill(inline: true)
-                            .chromeGlass(in: Capsule())
                             .frame(maxWidth: 440)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 6)
