@@ -21,6 +21,7 @@ struct HomeView: View {
     /// `homeListState` outside its tab switch for the same reason).
     var scrollPosition: Binding<ScrollPosition>? = nil
     @AppStorage("hide_recents") private var hideRecents = false
+    @AppStorage("hide_home_videos") private var hideHomeVideos = false
 
     var body: some View {
         PageStack {
@@ -87,7 +88,15 @@ struct HomeView: View {
                 buttonTitle: "Retry"
             ) { Task { await feed.load() } }
         case .loaded(let shelves):
-            let visibleShelves = hideRecents ? shelves.filter { !isRecentsShelf($0) } : shelves
+            let withoutRecents = hideRecents ? shelves.filter { !isRecentsShelf($0) } : shelves
+            // Der Originalfeed bleibt erhalten; nur die sichtbaren Videos und
+            // dadurch leere Regale verschwinden bei eingeschalteter Option.
+            let visibleShelves = hideHomeVideos ? withoutRecents.compactMap { shelf -> FeedShelf? in
+                let items = shelf.items.filter { !$0.isVideo }
+                return items.isEmpty ? nil : FeedShelf(
+                    title: shelf.title, items: items, subtitle: shelf.subtitle
+                )
+            } : withoutRecents
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     if !auth.signedIn {
@@ -386,7 +395,7 @@ private struct RecentTrackRow: View {
                 if let videoId = card.videoId, !videoId.isEmpty {
                     controller.playRadio(QueueEntry.youtube(
                         videoId: videoId, title: card.title, artist: card.subtitle ?? "",
-                        thumbnailUrl: card.thumbnailUrl
+                        thumbnailUrl: card.thumbnailUrl, isVideo: card.isVideo
                     ), context: "Recents")
                 }
             } label: {
