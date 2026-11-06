@@ -145,6 +145,8 @@ data class ShelfItem(
     val thumbnailUrl: String?,
     val videoId: String? = null,
     val browseId: String? = null,
+    /** Abspielbarer Musikvideo-Upload statt normaler Katalogaufnahme. */
+    val isVideo: Boolean = false,
 )
 
 @Serializable
