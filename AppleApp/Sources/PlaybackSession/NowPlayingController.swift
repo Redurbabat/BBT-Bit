@@ -119,7 +119,7 @@ final class NowPlayingController {
 
     /// Called only for an explicit play intent, after activation and a paused
     /// engine load have succeeded, before engine.play().
-    func prepareForPlayback(id: String, title: String, artist: String, albumName: String, duration: Double,
+    func prepareForPlayback(id: String, title: String, artist: String, albumName: String?, duration: Double,
                             artworkData: Data?, thumbnailUrl: String?, position: Double,
                             canNext: Bool, canPrevious: Bool, canSeek: Bool) {
 #if os(iOS) && canImport(NowPlaying)
@@ -131,7 +131,7 @@ final class NowPlayingController {
 #endif
     }
 
-    func update(id: String, title: String, artist: String, albumName: String, duration: Double,
+    func update(id: String, title: String, artist: String, albumName: String?, duration: Double,
                 artworkData: Data?, thumbnailUrl: String?, isPlaying: Bool,
                 position: Double? = nil) {
         // iOS 27 publishes exclusively through the MediaSession (see init:
@@ -154,11 +154,15 @@ final class NowPlayingController {
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: title,
             MPMediaItemPropertyArtist: artist,
-            MPMediaItemPropertyAlbumTitle: albumName,
             MPMediaItemPropertyPlaybackDuration: duration,
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? Double(PlatformSettings.shared.getFloat(key: "playback_speed", default: 1)) : 0.0,
             MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue,
         ]
+        // QueueEntry.albumName ist optional. Fehlende Albumdaten dürfen
+        // weder einen Typfehler noch eine leere System-Metadatenzeile erzeugen.
+        if let albumName, !albumName.isEmpty {
+            info[MPMediaItemPropertyAlbumTitle] = albumName
+        }
         if let position {
             info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position
         } else if let old = MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] {
@@ -456,7 +460,7 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
         NSLog("[BitChord] %@", message)
     }
 
-    func prepare(id: String, title: String, artist: String, albumName: String, duration: Double,
+    func prepare(id: String, title: String, artist: String, albumName: String?, duration: Double,
                  artworkData: Data?, thumbnailUrl: String?, position: Double,
                  canNext: Bool, canPrevious: Bool, canSeek: Bool) {
         update(id: id, title: title, artist: artist, albumName: albumName, duration: duration,
@@ -477,14 +481,14 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
         record("audio playback started")
     }
 
-    func update(id: String, title: String, artist: String, albumName: String, duration: Double,
+    func update(id: String, title: String, artist: String, albumName: String?, duration: Double,
                 artworkData: Data?, thumbnailUrl: String?, isPlaying: Bool,
                 position: Double?) {
         let elapsed = position ?? (contentID == id ? nil : 0)
         contentID = id
         self.title = title
         self.artist = artist
-        self.albumName = albumName
+        self.albumName = albumName ?? ""
         self.duration = duration
         self.artworkData = artworkData
         self.artworkURL = thumbnailUrl
