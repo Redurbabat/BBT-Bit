@@ -15,6 +15,20 @@
 | UI manuell | Navigation und Rückkehr, Lade-/Fehlerzustände, Dynamic Type, VoiceOver, Reduce Motion, Reduce Transparency, Hell/Dunkel, Safe Areas und Gesten. | Gerätegröße, OS, Eingabemethode und betroffenen Nutzerweg vermerken. |
 | Release | `python scripts/release-verify/check.py` und [Artefaktprüfung](RELEASE.md). | Fixture prüft gepaarte Metadaten und Checksummen. Für ein Release die echten Artefakte und das Update prüfen. |
 
+## RED Morph ohne Build-Tokens
+
+Der Design-Branch `feature/red-morph-player-search-navigation` verwendet vor einem Apple-Build folgenden **zusätzlichen statischen** Prüfschritt:
+
+```bash
+python3 scripts/check-red-morph-source.py
+```
+
+Dieser Befehl prüft elf Quellinvarianten: oberes iPhone-Suchfeld, persistenter Suchquellen-Picker, Accessibility-IDs, getrennte Top-Ergebnis-Aktionen, keine Infinity-Dock-Reihe im Live-Player, Automix in der Zeitzeile, Tastatur-Safe-Area, native Tab-Leiste, Reduce Motion, XCUITest-Startweg und deutsche UI-Texte. Er benötigt weder Xcode noch Build-Tokens. Ein grünes Ergebnis belegt **keine** Swift-Kompilierung und **keinen** funktionierenden Musikplayer.
+
+Der UI-Test `AppleApp/UITests/RedMorphSearchUITests.swift` startet über `--bbt-ui-test-search` die echte Suchansicht. Er verifiziert Textfeldposition und Tastaturfreiraum, die sprachunabhängige Löschaktion sowie einen XCTest-Screenshot. Vor Freigabe zusätzlich in der normalen App **mit Mini-Player und Tab-Leiste** navigieren, die Tastatur öffnen/schließen, Top-Result/Playlist getrennt antippen und Player-Panes mit Reduce Motion, VoiceOver und großer Schrift prüfen.
+
+**CI-Limit (06.11.2026):** Laut Projektinhaber sind derzeit keine Build-Tokens verfügbar. Keine manuelle Wiederholung der kostenpflichtigen Jobs. Lokale Xcode- und Echtgerätetests bleiben `NICHT GETESTET`, solange keine Apple-Hardware bzw. Runner mit erfolgreichem Resultat zur Verfügung steht.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
