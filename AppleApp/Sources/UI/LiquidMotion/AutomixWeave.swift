@@ -43,7 +43,7 @@ struct AutomixWeave: View {
             .font(.caption.weight(.medium))
             .foregroundStyle(.white)
             .padding(.horizontal, 12)
-            .frame(minHeight: 34)
+            .frame(minHeight: 44)
             .contentShape(Capsule())
             .background {
                 if reduceTransparency {
@@ -58,7 +58,7 @@ struct AutomixWeave: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(isMixing ? "Automix Übergang läuft" : "Automix Übergang geplant")
-        .accessibilityValue(isMixing ? "\(Int((progress * 100).rounded())) Prozent" : "Wartet auf Übergangsfenster")
+        .accessibilityValue(isMixing ? "\(Int((progress * 100).rounded())) Prozent" : "Übergang geplant")
         .accessibilityHint("Öffnet Details zum echten Automix-Übergangsfenster")
         .sheet(isPresented: $showsDetails) {
             NavigationStack {
