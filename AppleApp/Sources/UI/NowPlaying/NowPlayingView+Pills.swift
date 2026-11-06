@@ -67,7 +67,7 @@ extension NowPlayingView {
                 outputPartyPill
             }
         }
-        .transition(.opacity.combined(with: .scale(scale: 0.94)))
+        .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.94)))
     }
 
     /// Which of the three panes is showing.
