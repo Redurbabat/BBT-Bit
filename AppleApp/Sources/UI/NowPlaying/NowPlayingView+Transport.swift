@@ -268,9 +268,12 @@ extension NowPlayingView {
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
                 .background(.white.opacity(0.14), in: Circle())
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help("More")
+        .accessibilityLabel("Mehr Player-Werkzeuge")
         // Der bestehende Live-Screenshot-Marker bleibt nach dem Entfernen
         // des Dock-Regals beim neuen Zugang zu den Player-Werkzeugen.
         .background { LiquidLiveCaptureMarker(id: "dock") }
