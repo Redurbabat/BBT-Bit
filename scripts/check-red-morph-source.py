@@ -17,6 +17,10 @@ def source(path: str) -> str:
 
 search = source("AppleApp/Sources/UI/SearchView.swift")
 root = source("AppleApp/Sources/UI/RootView.swift")
+pill = source("AppleApp/Sources/UI/PlaybackPill.swift")
+home = source("AppleApp/Sources/UI/Library/HomeView.swift")
+explore = source("AppleApp/Sources/UI/Library/ExploreView.swift")
+dock = source("AppleApp/Sources/UI/LiquidMotion/DockScrollDirection.swift")
 top = source("AppleApp/Sources/UI/TopResultSection.swift")
 stage = source("AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift")
 transport = source("AppleApp/Sources/UI/NowPlaying/NowPlayingView+Transport.swift")
@@ -62,6 +66,13 @@ checks = {
         and "@State private var dockScroll = DockScrollCoordinator.shared" in root
         and "dockScroll.keepExpanded ? .never : .onScrollDown" in root
         and "content.tabBarMinimizeBehavior(.never)" not in root
+        and ".modifier(DockScrollDirectionObserver())" in home
+        and ".modifier(DockScrollDirectionObserver())" in explore
+        and "keepExpanded = newDirection == .towardTop" in dock
+        and "inline: placement == .inline" in root
+        and ".modifier(NowPlayingZoomSource())" in pill
+        and "matchedTransitionSource(id: NowPlayingZoom.sourceID" in pill
+        and ".navigationTransition(.zoom(sourceID: NowPlayingZoom.sourceID" in root
     ),
     "Reduce Motion im Player-Layout": (
         "reduceMotion ? nil : .easeInOut" in layouts
