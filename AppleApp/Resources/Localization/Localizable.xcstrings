@@ -1,6 +1,196 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Search artists, songs and lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Künstler, Songs und Songtexte suchen"
+          }
+        }
+      }
+    },
+    "Clear search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche löschen"
+          }
+        }
+      }
+    },
+    "Music tools": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musik-Werkzeuge"
+          }
+        }
+      }
+    },
+    "Audio tools": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio-Werkzeuge"
+          }
+        }
+      }
+    },
+    "Audio pipeline": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio-Pipeline"
+          }
+        }
+      }
+    },
+    "Disable Automix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix ausschalten"
+          }
+        }
+      }
+    },
+    "Enable Automix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix einschalten"
+          }
+        }
+      }
+    },
+    "More player tools": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehr Player-Werkzeuge"
+          }
+        }
+      }
+    },
+    "Automix running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix läuft"
+          }
+        }
+      }
+    },
+    "Automix transition running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix-Übergang läuft"
+          }
+        }
+      }
+    },
+    "Automix transition planned": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix-Übergang geplant"
+          }
+        }
+      }
+    },
+    "Planned transition": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übergang geplant"
+          }
+        }
+      }
+    },
+    "Open real Automix transition details": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet Details zum echten Automix-Übergangsfenster"
+          }
+        }
+      }
+    },
+    "Transition running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übergang läuft"
+          }
+        }
+      }
+    },
+    "Next transition": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Übergang"
+          }
+        }
+      }
+    },
+    "Time window": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitfenster"
+          }
+        }
+      }
+    },
+    "Progress": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt"
+          }
+        }
+      }
+    },
+    "Analysis": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse"
+          }
+        }
+      }
+    },
+    "Search source": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchquelle"
+          }
+        }
+      }
+    },
     "": {},
     "%@": {},
     "%@ couldn't load": {},
@@ -557,7 +747,16 @@
       }
     },
     "Add to %lld": {},
-    "Add to Playlist": {},
+    "Add to Playlist": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zur Playlist hinzufügen"
+          }
+        }
+      }
+    },
     "Add to Playlist…": {},
     "Add to Queue": {},
     "Address": {},
@@ -1029,7 +1228,16 @@
       }
     },
     "Audio Quality": {},
-    "Audio output": {},
+    "Audio output": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audioausgabe"
+          }
+        }
+      }
+    },
     "Audio quality, playback, appearance": {},
     "Authorise Last.fm": {},
     "Auto-hide keeps the still sleeve when no motion clip was found. Prefer Spotify asks Spotify's catalogue first when looking one up.": {},
@@ -6018,7 +6226,16 @@
     "Looking up…": {},
     "Lossless includes Hi-Res when an enabled source supplies it. Audio Pipeline shows the format actually decoded.": {},
     "Loudest around %@": {},
-    "Lyrics": {},
+    "Lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songtexte"
+          }
+        }
+      }
+    },
     "Lyrics Offset": {},
     "Lyrics Offset…": {},
     "Lyrics Sources": {},
@@ -8977,7 +9194,16 @@
     "Playlists you save show up here.": {},
     "Playlists, albums and artists you save show up here.": {},
     "Plays on this account show up here, newest first.": {},
-    "Plays the top result": {},
+    "Plays the top result": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielt das Top-Ergebnis ab"
+          }
+        }
+      }
+    },
     "Plays this track": {},
     "Podcasts": {},
     "Podcasts you follow show up here.": {},
@@ -13435,7 +13661,16 @@
         }
       }
     },
-    "Top result": {},
+    "Top result": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top-Ergebnis"
+          }
+        }
+      }
+    },
     "Track": {},
     "Track Log": {},
     "Track Log…": {},
