@@ -300,6 +300,7 @@ struct SearchView: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(AuthController.self) private var auth
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #if os(macOS)
     /// Settings is a scene on the Mac, not an in-app cover.
     @Environment(\.openSettings) private var openSettings
@@ -638,10 +639,19 @@ struct SearchView: View {
         guard wanted != appModel.iPadSearchExpanded || wanted != pillOpen else { return }
         pillGeneration &+= 1
         let generation = pillGeneration
-        guard animated else {
+        guard animated && !reduceMotion else {
             pillOpen = wanted
             pillRoomy = wanted
             appModel.iPadSearchExpanded = wanted
+            // Bei Reduce Motion keine künstliche Ausklapp-Animation;
+            // das Feld nach der nächsten Layout-Aktualisierung fokussieren.
+            if wanted && focus {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(60))
+                    guard generation == pillGeneration else { return }
+                    searchFieldFocused = true
+                }
+            }
             return
         }
         Task { @MainActor in
@@ -1559,7 +1569,7 @@ struct SearchView: View {
                             generator.prepare()
                             generator.selectionChanged()
                             #endif
-                            withAnimation(.snappy(duration: 0.25)) {
+                            withAnimation(reduceMotion ? nil : .snappy(duration: 0.25)) {
                                 scope = entry
                             }
                         }
