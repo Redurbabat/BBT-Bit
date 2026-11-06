@@ -18,7 +18,7 @@ DOCS = (
     "AGENTS.md", "CLAUDE.md", "AI_START_HERE.md", "version.md", "AUFGABEN.md",
     "ERLEDIGTE-AUFGABEN.md", "ENTSCHEIDUNGEN.md", "PROBLEME.md", "LUECKEN.md",
     "FREMDCODE.md", "docs/ARCHITEKTUR.md", "docs/DATENREGELN.md", "docs/TESTPLAN.md",
-    "docs/DESIGN_SYSTEM.md", "docs/AGENT_WORKFLOW.md", "docs/RELEASE.md",
+    "docs/DESIGN_SYSTEM.md", "docs/AGENT_WORKFLOW.md", "docs/APPLE_XCODE_SKILLS.md", "docs/RELEASE.md",
 )
 SKILLS = {
     "swiftui-component-smith", "swiftui-motion-director", "swiftui-idea-lab",
