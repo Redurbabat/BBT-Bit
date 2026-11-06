@@ -56,8 +56,12 @@ checks = {
         ".safeAreaInset(edge: .bottom, spacing: 0)" in root
         and "PlaybackPill(inline: true)\n                            .frame(maxWidth: 440)" in root
     ),
-    "Native Tab-Leiste minimiert nicht beim Scrollen": (
-        "content.tabBarMinimizeBehavior(.never)" in root
+    "Native Tab-Leiste und Mini-Player minimieren beim Scrollen": (
+        "private struct PlaybackAccessory: View" in root
+        and ".tabViewBottomAccessory" in root
+        and "@State private var dockScroll = DockScrollCoordinator.shared" in root
+        and "dockScroll.keepExpanded ? .never : .onScrollDown" in root
+        and "content.tabBarMinimizeBehavior(.never)" not in root
     ),
     "Reduce Motion im Player-Layout": (
         "reduceMotion ? nil : .easeInOut" in layouts
