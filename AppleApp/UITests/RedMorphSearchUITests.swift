@@ -36,7 +36,8 @@ final class RedMorphSearchUITests: XCTestCase {
         add(screenshot)
 
         field.typeText("A")
-        let clearButton = app.buttons["Suche löschen"]
+        // Die ID bleibt unter Englisch, Deutsch und weiteren App-Sprachen stabil.
+        let clearButton = app.buttons["bbt.search.clear"]
         XCTAssertTrue(clearButton.waitForExistence(timeout: 8),
                       "Der Clear-Button ist beim Bearbeiten nicht erreichbar.")
         clearButton.tap()
