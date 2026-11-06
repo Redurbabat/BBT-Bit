@@ -101,6 +101,14 @@ Auf ausdrücklichen Wunsch wurde die separate Suchleiste im iPhone-Seiteninhalt 
 
 Der nur für das entfernte iPhone-Suchfeld entwickelte XCUITest wurde gelöscht; die statische Quellprüfung prüft nun die **wieder integrierte native Suche**. Ältere Abschnitte dieses Dokuments beschreiben den zwischenzeitlichen Stand und sind durch diese Rücknahme überholt. Die tatsächliche Darstellung ist weiterhin **NICHT GETESTET**.
 
+## Wiederhergestellte Mini-Player-Scroll-Animation (Nutzerfeedback, 06.11.2026)
+
+Die zwischenzeitlich eingeführte `content.tabBarMinimizeBehavior(.never)`-Einstellung unterband die gewohnte Animation beim Herunterscrollen auf dem iPhone: Die Tab-Leiste blieb offen und der Mini-Player wechselte nicht mehr in die kompakte native Bottom-Accessory-Position. Der Auslöser war die zuvor abgetrennte Suche, die inzwischen ebenfalls zurückgenommen wurde.
+
+`PlaybackPillMount` verwendet wieder den vorhandenen `DockScrollCoordinator.shared` und `dockScroll.keepExpanded ? .never : .onScrollDown`. Damit wird beim Scrollen nach unten die **native** Tab-Bar-Mini-Player-Kopplung aktiviert und bei Scrollrichtungswechsel wieder aufgeklappt. Die neuere Keyboard-`safeAreaInset`-Absicherung und die Reduce-Motion-Umgebung bleiben erhalten. Keine zusätzliche Custom-Tab-Leiste, kein Eingriff in Streaming oder Player-Engine.
+
+Die statische Quellprüfung kontrolliert diese Anbindung nun. Verifikation auf echter iPhone-Hardware, insbesondere schnelle Scrollumkehr, Such-Tastatur und Zoom zum Vollplayer: **NICHT GETESTET**. Siehe `docs/TESTPLAN.md`.
+
 ## Grenzen und nächste Schritte
 
 - Suche-/Tastaturverhalten im Simulator messen und Safe-Area-Inset gegebenenfalls an die reale iOS-26/27-Keyboard-Animation anpassen.
