@@ -329,6 +329,7 @@ object HomeBridge {
                     thumbnailUrl = it.thumbnailUrl,
                     videoId = it.videoId,
                     browseId = null,
+                    isVideo = it.isVideo,
                 )
             },
         )
