@@ -35,6 +35,8 @@ jobs:
           python scripts/check-repository.py --base "$BASE_SHA"
           python scripts/repository-verify/check.py
           python scripts/release-verify/check.py
+      - name: Check RED-Morph-Quellinvarianten (ohne Apple-Build)
+        run: python3 scripts/check-red-morph-source.py
       - name: Scan introduced commits for secrets
         if: ${{ !cancelled() }}
         run: |
