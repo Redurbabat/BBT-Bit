@@ -23,7 +23,7 @@ DOCS = (
 SKILLS = {
     "swiftui-component-smith", "swiftui-motion-director", "swiftui-idea-lab",
     "swiftui-ux-auditor", "bbt-player", "bbt-streaming", "bbt-audio-engine",
-    "bbt-liquid-motion", "bbt-ios-testing", "bbt-release",
+    "bbt-liquid-motion", "bbt-ios-testing", "bbt-release", "bbt-apple-xcode",
 }
 FRAMEWORKS = {"BitChordShared", "NativeCoreFFI"}
 PROJECT = "AppleApp/project.yml"
