@@ -4,6 +4,19 @@
 **Review:** [Draft-PR #49](https://github.com/Redurbabat/BBT-Bit/pull/49)  
 **Ziel:** Eine zusammenhängende, ruhige Such- und Wiedergabeoberfläche; keine Änderung der Audio- oder Datenarchitektur.
 
+## Verbindliche Referenzanimation und Fehlerchronik (06.11.2026)
+
+Die vom Nutzer geteilte iPhone-Aufnahme und das anschließend bereitgestellte Referenzvideo legen den gewünschten **nativen** Ablauf fest. Das Referenzvideo ist eine Gesprächsreferenz und wird **nicht** ins öffentliche Repository übernommen:
+
+1. **Ausgeklappt:** Der Mini-Player liegt als ein einziges `tabViewBottomAccessory` **oberhalb** der normalen Tab-Leiste; Cover, Wiedergabe und Songinformationen bleiben bedienbar.
+2. **Abwärtsscrollen:** Die System-Tab-Leiste minimiert; derselbe Mini-Player gleitet in die **Inline-Position der kompakten Tab-Leiste** (`tabViewBottomAccessoryPlacement == .inline`). Kein feststehender zweiter Player, keine konkurrierende Custom-Leiste.
+3. **Aufwärtsscrollen / Richtungsumkehr:** Die Leiste expandiert wieder und das Pill steht darüber. Die `DockScrollCoordinator`-Logik erhält schnelle Richtungswechsel.
+4. **Mini-Player → Vollplayer → zurück:** `matchedTransitionSource` und `navigationTransition(.zoom(...))` erhalten den zusammenhängenden Artwork-/Player-Übergang. Such-Tastatur, Safe Area, Reduce Motion und laufende Audiowiedergabe dürfen nicht beeinträchtigt werden.
+
+**Was schiefging:** Zuerst wurde die zuvor integrierte iPhone-Suche durch ein separates Feld ersetzt. Danach wurde zur Ruhigstellung der unteren Navigation `content.tabBarMinimizeBehavior(.never)` dauerhaft gesetzt. Das trennte die Suche optisch ab und beseitigte die vom Nutzer erwartete Scroll-Animation. Beide Änderungen wurden nach konkretem Nutzerfeedback auf diesem Feature-Branch **im Quellcode zurückgenommen**; nicht auf `main` gemergt. Siehe [Entscheidungen E-006/E-007](../ENTSCHEIDUNGEN.md) und [Probleme P-004/P-005](../PROBLEME.md).
+
+**Status:** Die Soll-Implementierung ist im Quellcode wieder angeschlossen, aber auf einem neuen iPhone-Build **NICHT GETESTET**. Ein Screenshot des alten installierten Builds beweist nicht, dass die Korrektur bereits auf dem Gerät ist. Keine CI-Neustarts bei ausgeschöpftem Build-Kontingent.
+
 ## Ausgangslage
 
 Die iPhone-Aufnahmen vom 06.11.2026 zeigen drei verbesserungswürdige Zustände:
@@ -14,12 +27,12 @@ Die iPhone-Aufnahmen vom 06.11.2026 zeigen drei verbesserungswürdige Zustände:
 
 Weitere Beobachtungen: doppelte Zugänge zu Queue und Lyrics, deaktivierter „Lyrics off“-Platzhalter und konkurrierende Glasflächen.
 
-## Implementierter Zwischenschritt
+## Aktueller Implementierungsstand (Quellcode; nicht auf dem Gerät freigegeben)
 
 - `NowPlayingView+Stage.swift`: keine zusätzliche Dock-Reihe im Player-Deck; der Lyrics-Streifen erscheint auf dem iPhone nur im Hauptplayer bei ladenden oder vorhandenen Lyrics, nicht mehr über der Queue.
 - `NowPlayingView+Transport.swift`: die sechs bisherigen Werkzeugaktionen sind über das vorhandene Mehr-Menü erreichbar. Equalizer, Pipeline, Audioausgabe und Automix rufen die bisherigen Zustände/Aktionen auf. Die vorhandenen direkten Lyrics- und Queue-Zugänge bleiben erhalten.
-- `RootView.swift`: während Tastatureingabe ein kompakter Mini-Player in einer `safeAreaInset` statt in einem überdeckenden `overlay`. Der Bottom Accessory wird auf unterstützten iOS-Versionen im Tastaturzustand ausgeblendet. Die iPhone-Tab-Leiste minimiert beim Scrollen nicht mehr automatisch (`tabBarMinimizeBehavior(.never)`); Navigation und Wiedergabe bleiben zwei stabile Ebenen.
-- `SearchView.swift`: `listSectionSpacing(.compact)` und die Entfernung der eigenen Top-Result-Section reduzieren den Abstand zwischen Top-Ergebnis und Ergebnisteilen. Das iPhone hat ein festes SwiftUI-Suchfeld oberhalb der Resultate statt eines Such-Drawers unter der Tab-Bar; der Quellen-Picker bleibt auch beim Tippen stehen. Auf dem iPad bleibt die bestehende Toolbar-Suche erhalten und erhält bei erneutem Antippen zuverlässig Fokus.
+- `RootView.swift`: während Tastatureingabe ein kompakter Mini-Player in einer `safeAreaInset` statt in einem überdeckenden `overlay`; auf unterstützten iOS-Versionen wird der native Bottom Accessory im Tastaturzustand ausgeblendet. **Beim normalen Scrollen minimiert die native Tab-Leiste weiterhin automatisch**: `tabBarMinimizeBehavior(dockScroll.keepExpanded ? .never : .onScrollDown)`. Das Playback-Pill wechselt über den System-Bottom-Accessory-Placement in die Inline-Darstellung.
+- `SearchView.swift`: `listSectionSpacing(.compact)` und die Entfernung der eigenen Top-Result-Section reduzieren den Abstand zwischen Top-Ergebnis und Ergebnisteilen. Nach Nutzerfeedback wurde **die ursprüngliche native iPhone-Suche** mit `CompactPhoneSearchDrawer`, `.searchable(... .navigationBarDrawer(displayMode: .always))`, `isSearchPresented` und `role: .search` wiederhergestellt; der Quellen-Picker erscheint bei leerem Suchbegriff wie zuvor. Die iPad-Toolbar-Suche bleibt erhalten.
 - `TopResultSection.swift`: geringere untere Randabstände, ruhigeres Material und separat erreichbare Aktionen. Die zuvor auf der gesamten Karte liegende Tap-Geste wurde durch explizite Wiedergabeknöpfe auf Artwork und Titel ersetzt, sodass Playlist- und Menüinteraktionen nicht zugleich Wiedergabe auslösen sollen. Die Aktionsknöpfe wechseln per `ViewThatFits` bei geringem Platz auf eine vertikale Anordnung und bleiben mindestens 44 pt hoch.
 - `InfinityDock.swift`: kompakte Werkzeugmenü-Komponente als vorhandene Designvorschau, **nicht mehr im Now-Playing-Deck montiert**.
 - `AutomixWeave.swift`: statt der zweiten farbigen Vollbreiten-Leiste ein 44-pt-Status für das tatsächliche Übergangsfenster. Details öffnen eine native Ansicht. Der Status liegt jetzt mittig in der Zeitzeile mit fester Mindesthöhe; das Erscheinen eines Übergangsfensters erzeugt keine zusätzliche Zeile.
@@ -36,12 +49,13 @@ Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
 3. **Kontinuität.** Mini-Player und Vollplayer verwenden denselben Artwork-Kontext. Werkzeuge verändern nicht die Transportposition.
 4. **Unterbrechbarkeit.** Aktionen und Zurück-Navigation dürfen nicht durch Morph-Animationen blockiert werden.
 5. **Nur eine primäre Funktion je Ebene.** Songtitel und Transport im Player; erweiterte Audio-Werkzeuge im Mehr-Menü; Queue und Lyrics direkt erreichbar.
+6. **Native Scroll-Kopplung ist eine Pflichtfunktion.** Tab-Bar und Mini-Player wechseln beim Abwärtsscrollen gemeinsam in den Inline-Zustand und beim Hochscrollen zurück. Keine dauerhafte `.never`-Minimierung, keine zweite Dock-Leiste und keine abgetrennte iPhone-Suche. Der Mini-Player bleibt die Zoom-Quelle zum Vollplayer.
 
 ## Plattformkonzept und tatsächlicher Stand
 
 | Plattform | Beabsichtigtes Verhalten | Implementierungsstand dieses Branches |
 | --- | --- | --- |
-| iPhone | Native Suche; keyboard-safe kompaktes Pill; aufgeräumter Vollplayer, festes Transport-Deck | SwiftUI-Quellcode geändert; Gerätetest offen |
+| iPhone | Wiederhergestellte native Suche; systemgekoppeltes Scroll-Pill mit Inline-Modus; keyboard-safe Pill; Vollplayer-Zoom; festes Transport-Deck | SwiftUI-Quellcode geändert; Scroll-Animation und Gerätetest offen |
 | iPad | Quelle und Suche in adaptiver Toolbar, Player-Inhalte neben Sidebar, keine doppelte Dock-Reihe | Gemeinsamer Stage-Code geändert; iPad-Test offen |
 | macOS | Tastatur-/Pointer-Zugang, Toolbar und Inspector statt aufgeblasener iPhone-Ansicht | Gemeinsames Mehr-Menü geändert; Mac-Test offen |
 | Windows | Eigenständige Desktop-Navigation, Fokuszustände und Player-/Inspector-Aufteilung nach RED Morph | **Nur Designkonzept**. BBT-Bit hat in diesem Branch kein Windows-UI-Target |
@@ -52,6 +66,9 @@ Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
 | --- | --- | --- |
 | iPhone: Suche fokussieren und Tastatur öffnen | Mini-Player kompakt oberhalb Tastatur; Ergebnisliste nicht verdeckt | NICHT GETESTET |
 | iPhone: Tastatur schließen | Ein nativer Mini-Player; keine doppelte Wiedergabeleiste | NICHT GETESTET |
+| iPhone: „Jetzt hören“/„Entdecken“ nach unten scrollen | Tab-Bar wird kompakt; dasselbe Pill wechselt **inline** in die native Leiste, keine feste zweite Pill-Reihe | NICHT GETESTET |
+| iPhone: innerhalb derselben Geste nach oben umkehren | Native Tab-Bar klappt mit Mini-Player wieder auf, ohne Sprung oder Duplikat | NICHT GETESTET |
+| iPhone: Mini-Player öffnen und Vollplayer schließen | Zusammenhängender Zoom vom Pill zum Vollplayer und zurück; keine Wiedergabeunterbrechung | NICHT GETESTET |
 | Suche: Filter wechseln, scrollen, Top-Ergebnis abspielen | Keine große Leerfläche; Suche und Wiedergabe bleiben funktionsfähig | NICHT GETESTET |
 | Player: Mehr-Menü öffnen und schließen | Artwork, Seek und Transport behalten Position | NICHT GETESTET |
 | Player: EQ, Pipeline, Output, Automix | Alle bisherigen Aktionen funktionieren; Automix spiegelt Zustand korrekt | NICHT GETESTET |
@@ -80,17 +97,16 @@ Eine Quellprüfung bestätigte im GitHub-Branch die erwarteten Aufrufstellen und
 - **Player-Aktionsleiste:** Auch der Wechsel zwischen Ausgabe- und Queue-Werkzeugen verwendet bei `Reduce Motion` keine Skalierungsanimation. Die Player-Mehr-Schaltfläche und das Top-Result-Menü haben eine mindestens 44 × 44 pt große Interaktionsfläche.
 - **Tastatur und Mini-Player:** Das iPhone-Safe-Area-Inset nutzt die vorhandene Mini-Player-Darstellung ohne zusätzliche Glasbeschichtung. Die tatsächliche Tastaturhöhe und die Navigation müssen noch auf dem Simulator bestätigt werden.
 - **Lokalisierung:** Neu eingeführte UI-Bezeichner für Suche, Player-Werkzeuge und Automix verwenden englische Ausgangsschlüssel mit deutschen Übersetzungen in `Localizable.xcstrings`. Vorhandene Übersetzungen anderer Sprachen bleiben unverändert; für neue Schlüssel sind diese Sprachen noch nicht übersetzt.
-- **XCUITest:** Der iPhone-Clear-Button trägt nun selbst die sprachunabhängige Kennung `bbt.search.clear` (zuvor versehentlich nur am macOS-Feld gesetzt). Der Test prüft zusätzlich die erneute Fokussierung nach dem Löschen. Der Test ist im Repository vorhanden, wurde aber noch nicht auf einem Simulator ausgeführt.
+- **XCUITest:** Der zwischenzeitliche Test für die inzwischen verworfene separate iPhone-Suchleiste wurde entfernt. Die aktuelle native Suche und die Scroll-/Zoom-Animation benötigen neue gerätebasierte Regressionstests; **NICHT GETESTET**.
 - **Geltungsbereich:** Kein Eingriff in Streaming, Rust-Audio-Engine, Persistenz, Konten oder Nutzerdaten. Es gibt weiterhin keinen Nachweis eines erfolgreichen Apple-SDK-Typechecks, einer signierten IPA oder hörbarer Wiedergabe.
 
 **CI-Kontingent:** Der Projektinhaber hat bestätigt, dass aktuell keine Build-Tokens verfügbar sind. Daher werden keine zusätzlichen GitHub-Actions- oder Codemagic-Läufe manuell ausgelöst. Die Ursache der fehlenden Runner-Zuweisung ist mit dem ausgeschöpften Kontingent vereinbar, wurde aber nicht durch eine Abrechnungs-API separat bestätigt. Sobald Kapazität verfügbar ist, müssen die normalen Workflows und der echte iPhone-Test nachgeholt werden.
 
 ## Tokenfreie Quellprüfungen (06.11.2026)
 
-- Neu: `python3 scripts/check-red-morph-source.py` (Standardbibliothek, keine Apple-SDKs und keine Netzwerkverbindung). Das Skript prüft **elf Quellinvarianten**. Die gleichen elf Invarianten wurden mit den aktuellen GitHub-Dateiinhalten über die verbundene Repository-Schnittstelle geprüft: **11/11 Quelltexte stimmen mit dem beabsichtigten Aufbau überein**. Das ist **keine** ausgeführte Python-Prozessprüfung auf einem Checkout und **kein** Swift-Typecheck.
+- `python3 scripts/check-red-morph-source.py` (Standardbibliothek, keine Apple-SDKs und keine Netzwerkverbindung) prüft aktuell **acht Quellinvarianten**, einschließlich integrierter nativer Suche, Scroll-Observer, `DockScrollCoordinator`, `.onScrollDown`, `tabViewBottomAccessoryPlacement`/Inline und Zoom-Quelle/-Ziel. Die acht entsprechenden Bedingungen wurden anhand der GitHub-Quellen manuell gegengeprüft: **8/8 strukturelle Bedingungen vorhanden**. Das ist **kein ausgeführter Python-Prozess auf einem Checkout** und kein Swift-Typecheck.
 - Der normale Workflow `.github/workflows/pr-regressions.yml` führt dieses Skript nach der Repository-Verifikation aus, sobald GitHub Actions wieder Runner bereitstellt. Laufzeit und Erfolg dieser CI-Stufe: **NICHT GETESTET**.
-- Bestehender iPhone-XCUITest `AppleApp/UITests/RedMorphSearchUITests.swift` mit DEBUG-Startroute `--bbt-ui-test-search`: sucht das echte SwiftUI-Suchfeld per `bbt.search.field`, prüft seine Position relativ zur Tastatur, erstellt ein XCTest-Screenshot-Artefakt und kontrolliert den `bbt.search.clear`-Button. **NICHT GETESTET** (Build-Kontingent leer).
-- Der XcodeGen-Testtarget `BitChordUITests` umfasst `AppleApp/UITests`, sodass der neue Test bei einer neuen Projektgenerierung automatisch enthalten ist. Typechecking/Start: **NICHT GETESTET**.
+- Der temporäre `RedMorphSearchUITests.swift` für die entfernte eigene iPhone-Suchleiste wurde gelöscht. **Kein automatisierter UI-Test für den wiederhergestellten nativen Scroll-/Suchweg erfolgreich ausgeführt**; neue Geräte-/Simulatortests aus `docs/TESTPLAN.md` erforderlich.
 - Neu eingeführte UI-Schlüssel für Suche, Werkzeuge und Automix liegen mit deutscher Übersetzung in `Localizable.xcstrings`; die JSON-Datei wurde nach dem Bearbeiten erfolgreich geparst. Übersetzungen für andere Sprachen sind nicht vollständig.
 
 **Freigabegrenze:** Ohne Xcode-Build, echten Simulator und hörbaren Gerätetest ist RED Morph eine implementierte, statisch geprüfte UI-Änderung, **kein freigegebenes App-Release**.
