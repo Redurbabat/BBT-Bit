@@ -815,6 +815,7 @@ struct SearchView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
+                .accessibilityIdentifier("bbt.search.clear")
             }
         }
         .padding(.horizontal, 14)
