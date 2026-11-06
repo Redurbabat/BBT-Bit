@@ -153,7 +153,11 @@ jobs:
           for file in AppleApp/Sources/UI/LiquidMotion/*.swift \
                       AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Transport.swift \
                       AppleApp/Sources/UI/PlaybackPill.swift \
+                      AppleApp/Sources/UI/SearchView.swift \
+                      AppleApp/Sources/UI/TopResultSection.swift \
                       AppleApp/UITests/*.swift; do
             swiftc -frontend -parse "$file"
           done
