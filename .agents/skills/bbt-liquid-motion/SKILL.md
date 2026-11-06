@@ -13,6 +13,10 @@ Nutze [Designsystem](../../../docs/DESIGN_SYSTEM.md) für Verfügbarkeit, Materi
 
 Prüfe [Cover-Morph-Sequenz](../../../docs/cover-morph-video-comparison.md), [Glass-Bloom-Ablauf](../../../docs/glass-bloom-motion-lab.md), schnelle Richtungswechsel, Reduce Motion und Transparenz. Dokumentiere Zwischenbilder sowie App-Zustand und Gerät.
 
+## Systeminsel und Logo-Bloom unterscheiden
+
+Die **originale Apple Dynamic Island** wird ausschließlich durch Apples Now-Playing-Medienintegration mit der echten aktiven Wiedergabesitzung gefüllt. `LogoGlassBloomIsland` bleibt eine App-interne, temporäre Animation am BBT-Bit-Logo, nicht die Hardware-Insel; sie darf System-Now-Playing weder ersetzen noch als zweite eigene Music-Live-Activity duplizieren. Die bestehende RED-Morph-Tab-Bar-/Mini-Player-Animation am unteren Rand ist davon unabhängig und bleibt verbindlich. Apple bestimmt die Form, Animation und Priorität der Hardware-Island. [Technik und Abnahme](../../../docs/native-dynamic-island-red-morph.md).
+
 ## Verbindliche iPhone-Referenz: Mini-Player und Tab-Leiste (RED Morph, 06.11.2026)
 
 Das vom Nutzer bereitgestellte Referenzvideo ist die Vorgabe für den **nativen, gekoppelten** Ablauf unter iOS 26+: Im Ruhezustand liegt das Playback-Pill oberhalb der großen Tab-Leiste. Beim Abwärtsscrollen in „Jetzt hören“/„Entdecken“ minimiert die System-Tab-Leiste; der **selbe Mini-Player** wechselt flüssig in die Inline-Position der kompakten Tab-Leiste. Beim Scrollen aufwärts (auch bei Richtungswechsel innerhalb einer Geste) klappen beide wieder gemeinsam auf. Tippen/Ziehen am Mini-Player öffnet den Vollplayer mit Zoom; Herunterziehen kehrt zur Quelle zurück. Das Video bleibt Gesprächsreferenz, keine Medienkopie ins Repository.
