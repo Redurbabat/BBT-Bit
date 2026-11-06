@@ -16,11 +16,11 @@ Weitere Beobachtungen: doppelte Zugänge zu Queue und Lyrics, deaktivierter „L
 
 ## Implementierter Zwischenschritt
 
-- `NowPlayingView+Stage.swift`: keine zusätzliche Dock-Reihe im Player-Deck; der Lyrics-Streifen erscheint nur bei ladenden oder vorhandenen Lyrics.
+- `NowPlayingView+Stage.swift`: keine zusätzliche Dock-Reihe im Player-Deck; der Lyrics-Streifen erscheint auf dem iPhone nur im Hauptplayer bei ladenden oder vorhandenen Lyrics, nicht mehr über der Queue.
 - `NowPlayingView+Transport.swift`: die sechs bisherigen Werkzeugaktionen sind über das vorhandene Mehr-Menü erreichbar. Equalizer, Pipeline, Audioausgabe und Automix rufen die bisherigen Zustände/Aktionen auf. Die vorhandenen direkten Lyrics- und Queue-Zugänge bleiben erhalten.
 - `RootView.swift`: während Tastatureingabe ein kompakter Mini-Player in einer `safeAreaInset` statt in einem überdeckenden `overlay`. Der Bottom Accessory wird auf unterstützten iOS-Versionen im Tastaturzustand ausgeblendet. Die iPhone-Tab-Leiste minimiert beim Scrollen nicht mehr automatisch (`tabBarMinimizeBehavior(.never)`); Navigation und Wiedergabe bleiben zwei stabile Ebenen.
-- `SearchView.swift`: `listSectionSpacing(.compact)` und die Entfernung der eigenen Top-Result-Section reduzieren den Abstand zwischen Top-Ergebnis und Ergebnisteilen.
-- `TopResultSection.swift`: geringere untere Randabstände, ruhigeres Material und separat erreichbare Aktionen. Die zuvor auf der gesamten Karte liegende Tap-Geste wurde durch explizite Wiedergabeknöpfe auf Artwork und Titel ersetzt, sodass Playlist- und Menüinteraktionen nicht zugleich Wiedergabe auslösen sollen.
+- `SearchView.swift`: `listSectionSpacing(.compact)` und die Entfernung der eigenen Top-Result-Section reduzieren den Abstand zwischen Top-Ergebnis und Ergebnisteilen. Das iPhone hat ein festes SwiftUI-Suchfeld oberhalb der Resultate statt eines Such-Drawers unter der Tab-Bar; der Quellen-Picker bleibt auch beim Tippen stehen. Auf dem iPad bleibt die bestehende Toolbar-Suche erhalten und erhält bei erneutem Antippen zuverlässig Fokus.
+- `TopResultSection.swift`: geringere untere Randabstände, ruhigeres Material und separat erreichbare Aktionen. Die zuvor auf der gesamten Karte liegende Tap-Geste wurde durch explizite Wiedergabeknöpfe auf Artwork und Titel ersetzt, sodass Playlist- und Menüinteraktionen nicht zugleich Wiedergabe auslösen sollen. Die Aktionsknöpfe wechseln per `ViewThatFits` bei geringem Platz auf eine vertikale Anordnung und bleiben mindestens 44 pt hoch.
 - `InfinityDock.swift`: kompakte Werkzeugmenü-Komponente als vorhandene Designvorschau, **nicht mehr im Now-Playing-Deck montiert**.
 - `AutomixWeave.swift`: statt der zweiten farbigen Vollbreiten-Leiste ein 44-pt-Status für das tatsächliche Übergangsfenster. Details öffnen eine native Ansicht. Der Status liegt jetzt mittig in der Zeitzeile mit fester Mindesthöhe; das Erscheinen eines Übergangsfensters erzeugt keine zusätzliche Zeile.
 - `LiquidPhotoWayfinderView.swift`, `LiquidMotionDesignPhotosView.swift` und `docs/live-iphone-screenshots.md`: Aufnahmehinweise auf den neuen Werkzeugzugang umgestellt. Die gespeicherte Feature-Kennung `dock` bleibt stabil.
@@ -84,6 +84,16 @@ Eine Quellprüfung bestätigte im GitHub-Branch die erwarteten Aufrufstellen und
 - **Geltungsbereich:** Kein Eingriff in Streaming, Rust-Audio-Engine, Persistenz, Konten oder Nutzerdaten. Es gibt weiterhin keinen Nachweis eines erfolgreichen Apple-SDK-Typechecks, einer signierten IPA oder hörbarer Wiedergabe.
 
 **CI-Kontingent:** Der Projektinhaber hat bestätigt, dass aktuell keine Build-Tokens verfügbar sind. Daher werden keine zusätzlichen GitHub-Actions- oder Codemagic-Läufe manuell ausgelöst. Die Ursache der fehlenden Runner-Zuweisung ist mit dem ausgeschöpften Kontingent vereinbar, wurde aber nicht durch eine Abrechnungs-API separat bestätigt. Sobald Kapazität verfügbar ist, müssen die normalen Workflows und der echte iPhone-Test nachgeholt werden.
+
+## Tokenfreie Quellprüfungen (06.11.2026)
+
+- Neu: `python3 scripts/check-red-morph-source.py` (Standardbibliothek, keine Apple-SDKs und keine Netzwerkverbindung). Das Skript prüft **elf Quellinvarianten**. Die gleichen elf Invarianten wurden mit den aktuellen GitHub-Dateiinhalten über die verbundene Repository-Schnittstelle geprüft: **11/11 Quelltexte stimmen mit dem beabsichtigten Aufbau überein**. Das ist **keine** ausgeführte Python-Prozessprüfung auf einem Checkout und **kein** Swift-Typecheck.
+- Der normale Workflow `.github/workflows/pr-regressions.yml` führt dieses Skript nach der Repository-Verifikation aus, sobald GitHub Actions wieder Runner bereitstellt. Laufzeit und Erfolg dieser CI-Stufe: **NICHT GETESTET**.
+- Bestehender iPhone-XCUITest `AppleApp/UITests/RedMorphSearchUITests.swift` mit DEBUG-Startroute `--bbt-ui-test-search`: sucht das echte SwiftUI-Suchfeld per `bbt.search.field`, prüft seine Position relativ zur Tastatur, erstellt ein XCTest-Screenshot-Artefakt und kontrolliert den `bbt.search.clear`-Button. **NICHT GETESTET** (Build-Kontingent leer).
+- Der XcodeGen-Testtarget `BitChordUITests` umfasst `AppleApp/UITests`, sodass der neue Test bei einer neuen Projektgenerierung automatisch enthalten ist. Typechecking/Start: **NICHT GETESTET**.
+- Neu eingeführte UI-Schlüssel für Suche, Werkzeuge und Automix liegen mit deutscher Übersetzung in `Localizable.xcstrings`; die JSON-Datei wurde nach dem Bearbeiten erfolgreich geparst. Übersetzungen für andere Sprachen sind nicht vollständig.
+
+**Freigabegrenze:** Ohne Xcode-Build, echten Simulator und hörbaren Gerätetest ist RED Morph eine implementierte, statisch geprüfte UI-Änderung, **kein freigegebenes App-Release**.
 
 ## Grenzen und nächste Schritte
 
