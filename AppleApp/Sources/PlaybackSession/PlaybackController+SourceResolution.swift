@@ -82,7 +82,10 @@ extension PlaybackController {
                 wantLossless: streamQuality == "LOSSLESS",
                 jiosaavn: PlatformSettings.shared.getBoolean(key: "jiosaavn_enabled", default: true),
                 canSubstitute: QualityUpgrade.canSubstituteForYouTube(),
+                // Upstream disables automatic video→audio conversion during
+                // Listen Together: the party must share one recording identity.
                 preferMusicOnly: PlatformSettings.shared.getBoolean(key: "prefer_music_only", default: false)
+                    && !PartyStore.shared.inParty
             )
         }
     }
@@ -247,9 +250,15 @@ extension PlaybackController {
             await answer.finishFallback(nil)
             let decision = await answer.wait(timeoutNanoseconds: 15_000_000_000)
             publication.cancel()
-            try Task.checkCancellation()
+            if Task.isCancelled {
+                lookup.cancel()
+                throw CancellationError()
+            }
 
-            if case .preferred(let stream) = decision {
+            // If this device joined a party while the lookup was running,
+            // ignore the private audio version and keep the party's track ID.
+            let joinedParty = await MainActor.run { PartyStore.shared.inParty }
+            if case .preferred(let stream) = decision, !joinedParty {
                 let selected = ResolveOutcome(
                     source: ResolvedSource(
                         source: stream.url, headers: stream.headers,
