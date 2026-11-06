@@ -302,7 +302,12 @@ extension NowPlayingView {
             // Phones keep the lyric strip in the main and queue panes. On iPad
             // the larger lyric/queue pane already has that space, so the pinned
             // deck stays focused on seek and playback controls.
-            if pane != .lyrics && !isIPad { currentLyricStrip }
+            // Ohne sichtbare oder ladende Lyrics keinen deaktivierten
+            // "Lyrics off"-Platzhalter zwischen Cover und Seek einfügen.
+            if pane != .lyrics && !isIPad &&
+                (controller.lyricsLoading || !controller.displayedLyrics.isEmpty) {
+                currentLyricStrip
+            }
             positionControls
                 .padding(.horizontal, 32)
             playerTransport
@@ -323,19 +328,10 @@ extension NowPlayingView {
                         .padding(.horizontal, 32)
                 }
             }
+            // Der Werkzeugzugang liegt im vorhandenen Mehr-Menü.
+            // Zusätzliche Dock-Zeilen würden die Deck-Höhe vergrößern und
+            // Artwork, Songtitel sowie Transport bei jeder Expansion verschieben.
             playerActionRow
-            if pane == .main {
-                InfinityDock(
-                    automixEnabled: controller.automixEnabled,
-                    onLyrics: { withAnimation(.easeInOut(duration: 0.2)) { pane = .lyrics } },
-                    onQueue: { withAnimation(.easeInOut(duration: 0.2)) { pane = .queue } },
-                    onOutput: { showOutputDevice = true },
-                    onEqualizer: { showEqualizerFromDock = true },
-                    onPipeline: { showPipeline = true },
-                    onAutomix: { controller.toggleAutomix() }
-                )
-                .padding(.horizontal, 24)
-            }
         }
         .padding(.top, 8)
         .padding(.bottom, 10)
