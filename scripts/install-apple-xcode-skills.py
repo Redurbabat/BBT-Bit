@@ -109,7 +109,7 @@ def local_git_exclude(names: list[str]) -> None:
             file.write("\n".join(missing) + "\n")
 
 
-def install(source: Path, replace: bool, dry_run: bool, xcode_version: str | None = None) -> None:
+def install(source: Path, replace: bool, dry_run: bool, xcode_version=None) -> None:
     skills = exported_skills(source)
     manifest = load_manifest()
     managed = manifest["managed"]
