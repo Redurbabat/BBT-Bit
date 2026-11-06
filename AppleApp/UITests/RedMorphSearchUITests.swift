@@ -43,6 +43,14 @@ final class RedMorphSearchUITests: XCTestCase {
         clearButton.tap()
         XCTAssertTrue(field.exists, "Das Suchfeld darf beim Löschen nicht verschwinden.")
         XCTAssertFalse(clearButton.exists, "Bei leerer Suche muss Clear wieder verschwinden.")
+
+        // Ein zweiter Fokuszyklus erkennt hängen gebliebene Keyboard-/Focus-
+        // Zustände nach dem Leeren, ohne Netzwerkantworten vorauszusetzen.
+        field.tap()
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 8),
+                      "Nach dem Löschen muss die Suche erneut fokussierbar sein.")
+        XCTAssertLessThan(field.frame.maxY, keyboard.frame.minY,
+                          "Auch beim zweiten Fokus darf die Tastatur das Suchfeld nicht überdecken.")
     }
 }
 #endif
