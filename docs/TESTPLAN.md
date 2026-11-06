@@ -15,6 +15,16 @@
 | UI manuell | Navigation und Rückkehr, Lade-/Fehlerzustände, Dynamic Type, VoiceOver, Reduce Motion, Reduce Transparency, Hell/Dunkel, Safe Areas und Gesten. | Gerätegröße, OS, Eingabemethode und betroffenen Nutzerweg vermerken. |
 | Release | `python scripts/release-verify/check.py` und [Artefaktprüfung](RELEASE.md). | Fixture prüft gepaarte Metadaten und Checksummen. Für ein Release die echten Artefakte und das Update prüfen. |
 
+## BitChord-v1.9.1-Portierung: Home-Musikvideos
+
+- **Kotlin-Parser:** `shared/src/commonTest/kotlin/com/music/bitchord/data/innertube/HomeVideoParserTest.kt` mit `./gradlew :shared:macosArm64Test` ausführen. Erwartet: auf Home werden Video-/Audio-Karten erhalten, im bisherigen Explore-Standard nicht; Video-Shelves bleiben bedienbar, Compilations ohne Watch-Endpunkt werden nicht als Videos angeboten, Continuation-Politik bleibt konsistent und `ShelfItem.isVideo` übersteht JSON.
+- **Native UI:** Home mit einer gemischten Shelf, einer reinen Videoshelf und „Recents“ öffnen. Schalter „Musikvideos auf der Startseite ausblenden“ ein- und ausschalten: nur die Darstellung wechselt, Playlists/Songs sowie Reihenfolge und Suchresultate bleiben erhalten. Video-Cover 16:9 und Song-Cover quadratisch.
+- **Queue und Wiedergabe:** Video-Karte direkt sowie über das Kontextmenü starten, `QueueEntry.isVideo` kontrollieren. Einmal mit `Prefer Music Only` aus und einmal ein prüfen. Bei aktiver Party darf die Konvertierung nicht die gemeinsame Song-ID überschreiben. Einen Folgetitel, Pause/Fortsetzen und Rückfall auf Original-Audio bei fehlender Katalogaufnahme prüfen.
+- **Accessibility:** VoiceOver-Toggle und Kartenbeschriftungen, Dynamic Type, iPhone-Safe-Areas, iPad-Split-View, macOS-Klick und Tastatur; zusätzlich Reduce Motion.
+- **Echter Audio-Nachweis:** Zeitfortschritt, tatsächliche hörbare Ausgabe und Stream-/Decoderdiagnose dokumentieren. UI-/Parser-Tests allein sind kein Audio-Nachweis.
+
+Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETESTET**.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
