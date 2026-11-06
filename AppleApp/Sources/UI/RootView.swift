@@ -1163,13 +1163,14 @@ struct PlaybackPillMount: ViewModifier {
     }
 
     #if os(iOS)
-    /// Apples isEnabled-Variante deaktiviert den nativen Bottom Accessory
-    /// während der Such-Tastatur vollständig. Das Keyboard-Inset stellt genau
-    /// ein kompaktes Pill bereit; kein zweiter Zoom-Ursprung bleibt sichtbar.
-    /// iOS 26.0 behält den bestehenden kompatiblen Accessory-Pfad.
+    /// Die neue Apple-Variante kann den nativen Bottom Accessory vollständig
+    /// während der Such-Tastatur abschalten. Sie benötigt ein neueres SDK
+    /// (Xcode 26.2 / Swift 6.2.3); Codemagic baut derzeit mit Xcode 26.0.
+    /// Der ältere SDK-Pfad bewahrt daher das bisherige Verhalten.
     @available(iOS 26.0, *)
     @ViewBuilder
     private func accessory(_ content: some View) -> some View {
+        #if compiler(>=6.2.3)
         if #available(iOS 26.1, *) {
             content.tabViewBottomAccessory(isEnabled: !keyboardUp) {
                 PlaybackAccessory()
@@ -1179,6 +1180,19 @@ struct PlaybackPillMount: ViewModifier {
                 PlaybackAccessory()
             }
         }
+        #else
+        if #available(iOS 26.1, *) {
+            content.tabViewBottomAccessory {
+                if !keyboardUp {
+                    PlaybackAccessory()
+                }
+            }
+        } else {
+            content.tabViewBottomAccessory {
+                PlaybackAccessory()
+            }
+        }
+        #endif
     }
 
     private func fallbackMount(_ content: Content) -> some View {
