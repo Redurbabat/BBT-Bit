@@ -10,6 +10,12 @@ final class RedMorphSearchUITests: XCTestCase {
     }
 
     func testIPhoneSearchFieldStaysAboveKeyboard() throws {
+        // Auf iPad verwendet die Suche absichtlich die native Toolbar.
+        // Die feste Suchzeile ist ausschließlich für das iPhone vorgesehen.
+        guard UIDevice.current.userInterfaceIdiom == .phone else {
+            throw XCTSkip("RED-Morph-Suchfeld wird nur auf iPhones eingeblendet.")
+        }
+
         let app = XCUIApplication()
         app.launchArguments += ["--bbt-ui-test-search"]
         app.launch()
