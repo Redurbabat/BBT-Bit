@@ -47,7 +47,7 @@ struct TopResultSection: View {
                     Image(systemName: "ellipsis")
                         .scaledFont(size: 16, weight: .semibold)
                         .foregroundStyle(.secondary)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
                         .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
