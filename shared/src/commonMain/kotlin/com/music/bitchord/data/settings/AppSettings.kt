@@ -899,11 +899,6 @@ object AppSettings {
         settings.putBoolean("hide_song_status", value)
     }
 
-    /**
-     * Prefer the catalogue audio release when the selected result is a music
-     * video. The video itself still plays first so its metadata appears
-     * immediately while the catalogue match is resolved.
-     */
     /** Hide only the home shelf; keep listening-history data untouched. */
     private val _hideRecents = MutableStateFlow(settings.getBoolean("hide_recents", false))
     val hideRecents: StateFlow<Boolean> = _hideRecents.asStateFlow()
@@ -912,6 +907,11 @@ object AppSettings {
         settings.putBoolean("hide_recents", value)
     }
 
+    /**
+     * Prefer catalogue audio for a music video. The native player holds its
+     * source decision before playback and falls back to the video's audio
+     * when no verified music recording is available within the deadline.
+     */
     private val _preferMusicOnly = MutableStateFlow(settings.getBoolean("prefer_music_only", false))
     val preferMusicOnly: StateFlow<Boolean> = _preferMusicOnly.asStateFlow()
     fun setPreferMusicOnly(value: Boolean) {
