@@ -22,6 +22,8 @@ Weitere Beobachtungen: doppelte Zugänge zu Queue und Lyrics, deaktivierter „L
 - `SearchView.swift`: `listSectionSpacing(.compact)` reduziert den Systemabstand zwischen Top-Ergebnis und Ergebnisteilen.
 - `TopResultSection.swift`: geringere untere Randabstände, ruhigeres Material und separat erreichbare Aktionen.
 - `InfinityDock.swift`: kompakte Werkzeugmenü-Komponente als vorhandene Designvorschau, **nicht mehr im Now-Playing-Deck montiert**.
+- `AutomixWeave.swift`: statt der zweiten farbigen Vollbreiten-Leiste ein 44-pt-Status für das tatsächliche Übergangsfenster. Details öffnen eine native Ansicht, ohne die Deck-Höhe zu verändern.
+- `LiquidPhotoWayfinderView.swift`, `LiquidMotionDesignPhotosView.swift` und `docs/live-iphone-screenshots.md`: Aufnahmehinweise auf den neuen Werkzeugzugang umgestellt. Die gespeicherte Feature-Kennung `dock` bleibt stabil.
 
 Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
 
@@ -51,6 +53,7 @@ Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
 | Suche: Filter wechseln, scrollen, Top-Ergebnis abspielen | Keine große Leerfläche; Suche und Wiedergabe bleiben funktionsfähig | NICHT GETESTET |
 | Player: Mehr-Menü öffnen und schließen | Artwork, Seek und Transport behalten Position | NICHT GETESTET |
 | Player: EQ, Pipeline, Output, Automix | Alle bisherigen Aktionen funktionieren; Automix spiegelt Zustand korrekt | NICHT GETESTET |
+| Automix: geplantes und aktives Fenster öffnen | Ein kompakter Status, echte Fortschrittsdaten und separates Detail-Sheet; kein Verschieben des Transport-Decks | NICHT GETESTET |
 | Player: Lyrics/Queue öffnen und schließen | Pane-Wechsel bleibt erreichbar, Musik läuft weiter | NICHT GETESTET |
 | VoiceOver, Dynamic Type, Reduce Motion, Reduce Transparency | Bedienelemente erreichbar; Texte lesbar; keine blockierten Übergänge | NICHT GETESTET |
 | iPad Split View, macOS-Fenstergrößen | Adaptive Anordnung und Tastatursteuerung | NICHT GETESTET |
