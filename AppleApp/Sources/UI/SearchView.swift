@@ -862,18 +862,15 @@ struct SearchView: View {
             } else if !query.isEmpty {
                 List {
                     if let top = topResult {
-                        // Its own section, with the row chrome taken off, so the
-                        // card scrolls away with the results rather than sitting
-                        // above a second scroll view — two independent scrollers on
-                        // one screen is a thing people fight with.
-                        Section {
-                            TopResultSection(hit: top, scope: scope) { term in
-                                query = term
-                            }
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                        // Eine normale Listenzeile statt einer eigenen Section:
+                        // die Section-Ränder des Systems erzeugten die große
+                        // Lücke zwischen Top-Ergebnis und den Songs.
+                        TopResultSection(hit: top, scope: scope) { term in
+                            query = term
                         }
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 4, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     }
                     ForEach(sections) { sec in
                         if let title = sec.title {
