@@ -43,8 +43,14 @@ checks = {
     "Suchquelle bleibt während der Eingabe": (
         "if horizontalSizeClass != .regular {\n                sourceSwitcher" in search
     ),
-    "Sprachunabhängige Such-IDs": (
-        '"bbt.search.field"' in search and '"bbt.search.clear"' in search
+    "Sprachunabhängige Such-IDs am iPhone-Feld": (
+        "private var phoneSearchField: some View" in search
+        and '"bbt.search.field"' in search.split(
+            "private var phoneSearchField: some View", 1
+        )[1].split("private var sourceSwitcher: some View", 1)[0]
+        and '"bbt.search.clear"' in search.split(
+            "private var phoneSearchField: some View", 1
+        )[1].split("private var sourceSwitcher: some View", 1)[0]
     ),
     "Top-Ergebnis hat getrennte Aktionen": (
         ".onTapGesture(perform: play)" not in top
