@@ -137,6 +137,14 @@ Das Projekt unterstützt ab diesem Branch einen **lokalen Vollimport** aller von
 
 [Technische Implementierung, Systemgrenzen und iPhone-Prüfmatrix](native-dynamic-island-red-morph.md). Statischer Test `python3 scripts/check-native-island-source.py` wird im PR-Workflow vorbereitet. **Dynamic Island auf echtem iPhone, SwiftUI-/NowPlaying-SDK-Kompilierung und hörbare Ausgabe: NICHT GETESTET.**
 
+## Apple-Original-APIs systematisch übernommen (06.11.2026)
+
+Der [Apple-Quellvergleich](apple-native-ui-adoption.md) dokumentiert alle für BBT-Bit relevanten, von Apple veröffentlichten Muster: integrierte Search-Tab-Rolle, native Tab-Bar-Minimierung, Bottom-Accessory-Placement, Zoom-Transition, `ViewThatFits`, Automix-Sheet, Reduce Motion und native Now-Playing-Systemanzeige. **Der Großteil war bereits im Original oder in unserem Feature-Branch implementiert** und bleibt unverändert.
+
+**Neu im Quellcode:** In `RootView.PlaybackPillMount` wird ab iOS 26.1 der native Modifier `tabViewBottomAccessory(isEnabled: !keyboardUp)` statt eines systemseitig weiter montierten, aber leeren Accessory-Inhalts verwendet. Das vorhandene Keyboard-`safeAreaInset` zeigt das kompakte Pill, während der native Accessory ausgeschaltet ist; ab Tastaturende wird er wieder eingeschaltet. iOS 26.0 behält den bisherigen Accessory-Aufruf als Fallback. Die `.onScrollDown`-Kopplung und die Zoom-Quelle werden **nicht verändert**.
+
+Die neuen Quellinvarianten sind ergänzt. Ein echter Beleg gegen doppelte Pill-Darstellung, unterbrechungsfreien Scroll-Morph und für die Kompatibilität mit iOS 26.0/26.1 ist **NICHT GETESTET**.
+
 ## Grenzen und nächste Schritte
 
 - Suche-/Tastaturverhalten im Simulator messen und Safe-Area-Inset gegebenenfalls an die reale iOS-26/27-Keyboard-Animation anpassen.
