@@ -74,6 +74,15 @@ GitHub Actions melden weiterhin Fehlschläge. Bei der Abfrage der Läufe zum Com
 
 Eine Quellprüfung bestätigte im GitHub-Branch die erwarteten Aufrufstellen und Änderungen. Sie ist kein Ersatz für das SDK-Typechecking oder Gerätetests.
 
+## Zusätzliche Umsetzung und Review (06.11.2026)
+
+- **iPhone/iPad/macOS:** Die Player-Anordnungen berücksichtigen bei Pane-Wechseln `accessibilityReduceMotion`. Der kompakte Querformat-Player zeigt den Lyrics-Streifen nur bei vorhandenen oder ladenden Songtexten; ein deaktivierter Platzhalter nimmt keinen Raum ein.
+- **Player-Aktionsleiste:** Auch der Wechsel zwischen Ausgabe- und Queue-Werkzeugen verwendet bei `Reduce Motion` keine Skalierungsanimation. Die Player-Mehr-Schaltfläche und das Top-Result-Menü haben eine mindestens 44 × 44 pt große Interaktionsfläche.
+- **Tastatur und Mini-Player:** Das iPhone-Safe-Area-Inset nutzt die vorhandene Mini-Player-Darstellung ohne zusätzliche Glasbeschichtung. Die tatsächliche Tastaturhöhe und die Navigation müssen noch auf dem Simulator bestätigt werden.
+- **Lokalisierung:** Neu eingeführte UI-Bezeichner für Suche, Player-Werkzeuge und Automix verwenden englische Ausgangsschlüssel mit deutschen Übersetzungen in `Localizable.xcstrings`. Vorhandene Übersetzungen anderer Sprachen bleiben unverändert; für neue Schlüssel sind diese Sprachen noch nicht übersetzt.
+- **XCUITest:** Der Clear-Button wird über die sprachunabhängige Kennung `bbt.search.clear` angesprochen. Der Test ist im Repository vorhanden, wurde aber noch nicht auf einem Simulator ausgeführt.
+- **Geltungsbereich:** Kein Eingriff in Streaming, Rust-Audio-Engine, Persistenz, Konten oder Nutzerdaten. Es gibt weiterhin keinen Nachweis eines erfolgreichen Apple-SDK-Typechecks, einer signierten IPA oder hörbarer Wiedergabe.
+
 ## Grenzen und nächste Schritte
 
 - Suche-/Tastaturverhalten im Simulator messen und Safe-Area-Inset gegebenenfalls an die reale iOS-26/27-Keyboard-Animation anpassen.
