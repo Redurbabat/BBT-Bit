@@ -113,10 +113,10 @@ object HomeBridge {
                         if (Innertube.cookie == null) emptyList() else {
                             val songs = InnertubeParser.collectSongsDeep(browse(name)).distinctBy { it.videoId }.take(RECENT_LIMIT)
                             if (songs.isEmpty()) emptyList() else listOf(HomeShelf(RECENT_TITLE, songs.map {
-                                ShelfItem(it.title, it.artist, it.thumbnailUrl, it.videoId, null)
+                                ShelfItem(it.title, it.artist, it.thumbnailUrl, it.videoId, null, it.isVideo)
                             }))
                         }
-                    } else InnertubeParser.parseHome(browse(name))
+                    } else InnertubeParser.parseHome(browse(name), includeVideos = home)
                 } catch (e: CancellationException) { throw e }
                   catch (_: Exception) { emptyList() }
                 completed.send(index to shelves)
@@ -124,7 +124,7 @@ object HomeBridge {
         }
         try {
             val primary = browse(if (home) "FEmusic_home" else "FEmusic_explore")
-            parts[if (home) 1 else 0] = InnertubeParser.parseHome(primary)
+            parts[if (home) 1 else 0] = InnertubeParser.parseHome(primary, includeVideos = home)
             val token = InnertubeParser.continuationToken(primary)
             fun emit(complete: Boolean) {
                 Innertube.checkSession(generation)
@@ -236,7 +236,10 @@ object HomeBridge {
         }
     }
 
-    fun moreHome(token: String, callback: FeedCallback) {
+    fun moreHome(token: String, callback: FeedCallback) =
+        moreContinuation(token, callback, includeVideos = true)
+
+    private fun moreContinuation(token: String, callback: FeedCallback, includeVideos: Boolean) {
         val generation = Innertube.sessionGeneration
         bridgeScope.launch {
             try {
@@ -244,7 +247,7 @@ object HomeBridge {
                 Innertube.ensureSessionScope()
                 val response = Innertube.browseContinuation(token)
                 val feed = HomeFeed(
-                    shelves = InnertubeParser.parseHomeContinuation(response),
+                    shelves = InnertubeParser.parseHomeContinuation(response, includeVideos),
                     continuation = InnertubeParser.continuationToken(response),
                 )
                 callback.onResult(json.encodeToString(HomeFeed.serializer(), feed), null)
@@ -261,7 +264,7 @@ object HomeBridge {
     }
 
     fun moreExplore(token: String, callback: FeedCallback) {
-        moreHome(token, callback)
+        moreContinuation(token, callback, includeVideos = false)
     }
 
     fun history(callback: FeedCallback) {
