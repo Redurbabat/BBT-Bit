@@ -21,7 +21,7 @@ Auf `feature/red-morph-player-search-navigation` prüft `python3 scripts/check-r
 
 **Regressionstest für die Mini-Player-Animation (iPhone mit iOS 26+):**
 
-1. In „Jetzt hören“ bei laufender Musik nach **unten durch die Liste scrollen**. Die Tab-Leiste muss sich systemnativ minimieren; der Mini-Player muss mit nach unten in die kompakte Anordnung wechseln, statt fest über einer großen Tab-Leiste stehen zu bleiben.
+1. In „Jetzt hören“ bei laufender Musik nach **unten durch die Liste scrollen**. Die Tab-Leiste muss sich systemnativ minimieren; der Mini-Player wechselt vom separaten Bottom Accessory **oberhalb der großen Tab-Leiste** in den nativen **Inline-Modus der kompakten Tab-Leiste** (Referenzvideo vom 06.11.2026). Cover, Titel und Wiedergabeschaltfläche bleiben erreichbar. Kein zweiter, feststehender Player.
 2. Innerhalb derselben Geste die Scrollrichtung nach oben umkehren. Die Tab-Leiste und der Mini-Player müssen wieder gemeinsam aufklappen. Wiederholt schnell hin- und herwechseln; keine doppelte Mini-Player-Leiste und kein Sprung über den Home-Indikator.
 3. Mini-Player antippen und den Vollplayer aufziehen; danach herunterziehen. Die Zoom- bzw. Rückkehranimation darf nicht durch die Scroll-Minimierung unterbrochen werden.
 4. Zur nativen Suche wechseln, Tastatur ein- und ausblenden und danach erneut in „Jetzt hören“ scrollen. Es darf kein doppelter Mini-Player oberhalb der Tastatur oder der Tab-Leiste erscheinen.
