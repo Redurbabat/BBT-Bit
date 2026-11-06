@@ -582,8 +582,13 @@ struct SearchView: View {
     private func focusTheField() {
         #if os(iOS)
         if horizontalSizeClass == .regular {
-            // The pill's field only exists once it is open; opening focuses it.
-            setIPadSearchExpanded(true)
+            // Beim erneuten Antippen darf ein bereits offenes iPad-Suchfeld
+            // nicht an der No-op-Prüfung des Pill-State hängenbleiben.
+            if pillOpen {
+                Task { @MainActor in searchFieldFocused = true }
+            } else {
+                setIPadSearchExpanded(true)
+            }
             return
         }
         #endif
