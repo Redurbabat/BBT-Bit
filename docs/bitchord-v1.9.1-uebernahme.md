@@ -52,6 +52,13 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 - Hörbare Wiedergabe, Queue, Crossfade, Add-on-Integration: **NICHT GETESTET**.
 - Signierte IPA: **NICHT GETESTET**.
 
+### Automatische GitHub-Prüfungen nach Draft-PR #50
+
+- Workflow „BBT-Bit iPhone Simulator UI Tests (GitHub)“: **FEHLGESCHLAGEN** (Job „Build BBT-Bit and tap 15 design previews on iPhone Simulator“).
+- Workflow „BBT-Bit PR regression checks“: **FEHLGESCHLAGEN** (Jobs „repository-checks“ und „network-regressions“).
+- Die GitHub-Job-Logs waren nicht abrufbar (404 / `BlobNotFound`); Job-Step-Zusammenfassungen wurden leer zurückgegeben. **Ursache daher noch nicht nachgewiesen**. Es wäre falsch, diese Fehlschläge dem neuen Home-Schalter zuzuschreiben, ebenso falsch wäre ein Bestehen zu behaupten.
+- Auch die CI liefert bislang **keinen bestätigten erfolgreichen Simulator- oder Regressionstest** für diesen Branch.
+
 ## Entscheidungspunkte vor Eingriffen in bereits vorhandene Funktionen
 
 1. Prefer Music Only / Musikvideo-Konvertierung: BBT-Bit-Implementierung beibehalten und upstream-Fixes ergänzen oder Originalverhalten ersetzen?
