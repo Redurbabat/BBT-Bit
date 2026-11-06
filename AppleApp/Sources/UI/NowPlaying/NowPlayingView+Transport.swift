@@ -29,21 +29,28 @@ extension NowPlayingView {
                 }
             )
             .tint(.white)
-            if controller.automixEnabled, let window = controller.smartTransitionWindow {
-                AutomixWeave(
-                    start: window.start, end: window.end,
-                    position: controller.position,
-                    tier: controller.analysisTier,
-                    reason: controller.transitionReason,
-                    isMixing: controller.smartMixInProgress
-                )
-            }
-
-            HStack {
+            // Zeitangaben und Automix-Status teilen sich eine feste Zeile.
+            // Ein eintreffendes Übergangsfenster darf den Seek-/Transportblock
+            // nicht mehr durch eine zusätzliche Zeile verschieben.
+            HStack(spacing: 8) {
                 Text(Self.timestamp(controller.position))
-                Spacer()
+                    .fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 0)
+                if controller.automixEnabled, let window = controller.smartTransitionWindow {
+                    AutomixWeave(
+                        start: window.start, end: window.end,
+                        position: controller.position,
+                        tier: controller.analysisTier,
+                        reason: controller.transitionReason,
+                        isMixing: controller.smartMixInProgress
+                    )
+                    .frame(maxWidth: 200)
+                }
+                Spacer(minLength: 0)
                 Text(remainingLabel)
+                    .fixedSize(horizontal: true, vertical: false)
             }
+            .frame(minHeight: 44)
             .font(.caption.monospacedDigit().weight(.medium))
             .foregroundStyle(.white.opacity(0.7))
             .shadow(color: .black.opacity(0.4), radius: 3, y: 1)
