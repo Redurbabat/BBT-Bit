@@ -808,10 +808,9 @@ struct RootView: View {
                 Tab("Library", systemImage: "square.stack.fill", value: RootPage.tab(.library)) {
                     LibraryView()
                 }
-                // Auf iPhones ist Suche eine stabile vierte Seite:
-                // role:.search würde unter iOS 26 das Eingabefeld wieder in
-                // die Tab-Bar ziehen, während das echte Suchfeld oben sitzt.
-                Tab("Search", systemImage: "magnifyingglass", value: RootPage.tab(.search)) {
+                // Native iOS-Suchrolle: Suche und Tab-Bar bilden wie zuvor
+                // eine zusammenhängende Systemoberfläche.
+                Tab("Search", systemImage: "magnifyingglass", value: RootPage.tab(.search), role: .search) {
                     SearchView()
                 }
             }
