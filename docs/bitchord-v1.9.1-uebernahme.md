@@ -15,7 +15,7 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 | Ursprung | Ziel / Status | Offene Prüfung |
 | --- | --- | --- |
 | Home: `hideRecents` | **IMPLEMENTIERT (Code, ohne Build)**: persistierter Schalter in BBT-Bit, Hide nur für die Home-Recents-Shelf. Verlauf und Queue bleiben unangetastet. | Xcode-Compile, Laufzeit, Regressionsprüfung, deutsche Lokalisierung visuell |
-| Home: `hideHomeVideos` | AUSSTEHEND | `ShelfCard` hat keine verlässliche Video-Klassifizierung; nachweislich ohne Fehlfilterung portieren |
+| Home: `hideHomeVideos` | **IMPLEMENTIERT (Code, nicht gebaut)** | Entscheidung A: Home zeigt abspielbare Musikvideos standardmäßig mit 16:9-Vorschauen. Persistenter Ausblenden-Schalter; Video-Kennzeichnung von Kotlin-Parser bis Swift-Queue. Explore/Bibliothek behalten ihre Filter. |
 | Home: `hideTopPicks` | AUSSTEHEND | Im aktuellen Home ist keine eigene Top-Picks-Leiste nachgewiesen; keine funktionslose Einstellung hinzufügen |
 | Home: `hideHomeMoods` | AUSSTEHEND | Aktuell Mood/Genre in Explore vorhanden; Home-Shelf-Existenz prüfen |
 | `squareVideoThumbnails` | AUSSTEHEND | Video-Identifikation und Artwork-Sizing in SwiftUI sauber definieren |
@@ -53,6 +53,16 @@ Bereits umgesetzt:
 - Die native Quellauflösung deaktiviert `Prefer Music Only` bei `PartyStore.shared.inParty`, analog zur upstream-Regel. Ein Parteibeitritt während des Lookups verhindert das Anwenden einer privaten Musikversion.
 
 **Nicht als vollständige Originalparität ausgeben:** Upstream ersetzt die Video-Queue-Zeile mit der eigenen YouTube-Music-Audio-Song-ID (Titel, Artwork, Quelle), behält den Queue-Platz bei und bereitet auch den nächsten Titel um. Der derzeitige BBT-Bit-Resolver bevorzugt einen verifizierten Audio-Stream, aktualisiert aber die Video-Queue-Zeile nicht auf diese Audio-Song-ID. Dafür sind ein separater, getesteter Catalogue-Audio-Version-Resolver sowie atomare Queue-/Handoff-Anpassungen nötig. Keine spekulative Übernahme ohne Nachweis auf echtem Playback-Pfad.
+
+## Portierungsschritt 3: Home-Musikvideos (Nutzerentscheidung A)
+
+- Original-BitChord v1.9.1 zeigt Musikvideos im Home-Feed, `hide_home_videos` ist standardmäßig `false`. Der Maintainer hat Variante A bestätigt.
+- `InnertubeParser.parseHome(..., includeVideos = true)` gilt nur für Home (auch Supplements und Continuations). Explore und Bibliothek nutzen weiterhin die bestehende Video-Filterung.
+- `ShelfItem.isVideo` (Kotlin) wird als JSON transportiert und in `ShelfCard.isVideo` (Swift) gelesen. Home-Karten, Recents und Kontextmenüs übergeben die Kennzeichnung an `QueueEntry.youtube(..., isVideo:)`; andere Aufrufstellen bleiben durch einen Defaultparameter kompatibel.
+- In `HomeView` filtert `hide_home_videos` nur sichtbare Karten, anschließend leere Shelves. Originalfeed, Hörverlauf und Queue-Daten werden nicht gelöscht.
+- SwiftUI verwendet für abspielbare Videokarten standardmäßig Vorschaubilder im Format 16:9. Die gesonderte BitChord-Option `square_video_thumbnails` ist noch offen und wird nicht ohne weiteren Abgleich hinzugefügt.
+- Neue Einstellung und deutsche Übersetzungen unter „Darstellung“, KMP-StateFlow sowie Backup-Export und -Import ergänzt. Der bereits vorhandene Schlüssel `hide_recents` wurde ebenfalls dem Backup hinzugefügt.
+- Sechs Kotlin-Regressionstests wurden hinzugefügt, sind jedoch **NICHT AUSGEFÜHRT**. Der Test prüft inklusive Fortsetzung, reiner Video-Shelf, gemischter Shelf, Explore-Standardverhalten, nicht abspielbarer Compilation und JSON-Roundtrip.
 
 ## Tests / Nachweise
 
