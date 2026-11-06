@@ -87,7 +87,7 @@ extension NowPlayingView {
                 }
                 if collapsed {
                     panel()
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .bottom)))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -101,7 +101,7 @@ extension NowPlayingView {
             .overlay(alignment: .topTrailing) {
                 if pane == .main {
                     GlassQueuePortal {
-                        withAnimation(.easeInOut(duration: 0.22)) { pane = .queue }
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) { pane = .queue }
                     }
                     .padding(.trailing, 16)
                     .padding(.top, 10)
