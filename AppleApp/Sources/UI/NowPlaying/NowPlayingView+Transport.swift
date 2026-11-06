@@ -224,23 +224,23 @@ extension NowPlayingView {
             // Alle bisherigen Infinity-Dock-Aktionen bleiben erreichbar,
             // ohne die Transportsteuerung durch zusätzliche Reihen zu verdrängen.
             if controller.current != nil {
-                Section("Musik-Werkzeuge") {
+                Section("Music tools") {
                     Button {
                         pane = .lyrics
                     } label: {
-                        Label("Songtexte", systemImage: "text.quote")
+                        Label("Lyrics", systemImage: "text.quote")
                     }
                     Button {
                         pane = .queue
                     } label: {
-                        Label("Warteschlange", systemImage: "list.bullet")
+                        Label("Queue", systemImage: "list.bullet")
                     }
                 }
-                Section("Audio-Werkzeuge") {
+                Section("Audio tools") {
                     Button {
                         showOutputDevice = true
                     } label: {
-                        Label("Audioausgabe", systemImage: "headphones")
+                        Label("Audio output", systemImage: "headphones")
                     }
                     Button {
                         showEqualizerFromDock = true
@@ -250,13 +250,13 @@ extension NowPlayingView {
                     Button {
                         showPipeline = true
                     } label: {
-                        Label("Audio-Pipeline", systemImage: "waveform.path")
+                        Label("Audio pipeline", systemImage: "waveform.path")
                     }
                     Button {
                         controller.toggleAutomix()
                     } label: {
                         Label(
-                            controller.automixEnabled ? "Automix ausschalten" : "Automix einschalten",
+                            controller.automixEnabled ? "Disable Automix" : "Enable Automix",
                             systemImage: "arrow.triangle.2.circlepath"
                         )
                     }
@@ -273,7 +273,7 @@ extension NowPlayingView {
         }
         .buttonStyle(.plain)
         .help("More")
-        .accessibilityLabel("Mehr Player-Werkzeuge")
+        .accessibilityLabel("More player tools")
         // Der bestehende Live-Screenshot-Marker bleibt nach dem Entfernen
         // des Dock-Regals beim neuen Zugang zu den Player-Werkzeugen.
         .background { LiquidLiveCaptureMarker(id: "dock") }
