@@ -214,6 +214,47 @@ extension NowPlayingView {
                 Divider()
                 Button("Lyrics Offset…") { showLyricsOffset = true }
             }
+            // Alle bisherigen Infinity-Dock-Aktionen bleiben erreichbar,
+            // ohne die Transportsteuerung durch zusätzliche Reihen zu verdrängen.
+            if controller.current != nil {
+                Section("Musik-Werkzeuge") {
+                    Button {
+                        pane = .lyrics
+                    } label: {
+                        Label("Songtexte", systemImage: "text.quote")
+                    }
+                    Button {
+                        pane = .queue
+                    } label: {
+                        Label("Warteschlange", systemImage: "list.bullet")
+                    }
+                }
+                Section("Audio-Werkzeuge") {
+                    Button {
+                        showOutputDevice = true
+                    } label: {
+                        Label("Audioausgabe", systemImage: "headphones")
+                    }
+                    Button {
+                        showEqualizerFromDock = true
+                    } label: {
+                        Label("Equalizer", systemImage: "slider.horizontal.3")
+                    }
+                    Button {
+                        showPipeline = true
+                    } label: {
+                        Label("Audio-Pipeline", systemImage: "waveform.path")
+                    }
+                    Button {
+                        controller.toggleAutomix()
+                    } label: {
+                        Label(
+                            controller.automixEnabled ? "Automix ausschalten" : "Automix einschalten",
+                            systemImage: "arrow.triangle.2.circlepath"
+                        )
+                    }
+                }
+            }
         } label: {
             Image(systemName: "ellipsis")
                 .scaledFont(size: 13, weight: .semibold)
