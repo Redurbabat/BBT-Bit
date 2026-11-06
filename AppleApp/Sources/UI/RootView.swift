@@ -808,7 +808,10 @@ struct RootView: View {
                 Tab("Library", systemImage: "square.stack.fill", value: RootPage.tab(.library)) {
                     LibraryView()
                 }
-                Tab("Search", systemImage: "magnifyingglass", value: RootPage.tab(.search), role: .search) {
+                // Auf iPhones ist Suche eine stabile vierte Seite:
+                // role:.search würde unter iOS 26 das Eingabefeld wieder in
+                // die Tab-Bar ziehen, während das echte Suchfeld oben sitzt.
+                Tab("Search", systemImage: "magnifyingglass", value: RootPage.tab(.search)) {
                     SearchView()
                 }
             }
