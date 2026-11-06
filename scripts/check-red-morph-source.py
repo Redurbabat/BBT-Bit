@@ -72,9 +72,12 @@ checks = {
     "Reduce Motion im Player-Layout": (
         "reduceMotion ? nil : .easeInOut" in layouts
     ),
-    "XCUITest nutzt die echte Suche": (
+    "XCUITest nutzt die echte iPhone-Suche": (
         'contains("--bbt-ui-test-search")' in app
+        and 'UIDevice.current.userInterfaceIdiom == .phone' in ui_test
+        and '"bbt.search.field"' in ui_test
         and '"bbt.search.clear"' in ui_test
+        and 'XCTNSPredicateExpectation(' in ui_test
     ),
     "Deutsche UI-Übersetzungen vorhanden": all(
         catalog["strings"].get(key, {})
