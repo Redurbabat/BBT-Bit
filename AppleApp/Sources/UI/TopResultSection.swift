@@ -140,6 +140,7 @@ struct TopResultSection: View {
                     .font(.subheadline)
                     .foregroundStyle(.tint)
                     .lineLimit(1)
+                    .frame(minHeight: 44, alignment: .leading)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
