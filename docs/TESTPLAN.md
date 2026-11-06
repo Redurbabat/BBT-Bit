@@ -15,6 +15,16 @@
 | UI manuell | Navigation und Rückkehr, Lade-/Fehlerzustände, Dynamic Type, VoiceOver, Reduce Motion, Reduce Transparency, Hell/Dunkel, Safe Areas und Gesten. | Gerätegröße, OS, Eingabemethode und betroffenen Nutzerweg vermerken. |
 | Release | `python scripts/release-verify/check.py` und [Artefaktprüfung](RELEASE.md). | Fixture prüft gepaarte Metadaten und Checksummen. Für ein Release die echten Artefakte und das Update prüfen. |
 
+## Apple-Xcode-Agent-Skills: Offline-Prüfung
+
+Für den lokalen Skill-Importer stehen synthetische Unit-Tests ohne Xcode oder Build-Tokens bereit:
+
+```bash
+python3 scripts/apple-skills-verify/check.py
+```
+
+Sie prüfen: vollständige Kopie nach Codex/Claude inklusive Referenzen, Dry-Run ohne Schreibzugriff, Schutz vor Überschreiben fremder Skills, explizites Update und Zurückweisung von Symlinks. **Prüfbefehl im aktuellen Chat nicht ausgeführt.** Ein Test mit tatsächlichen Apple-Skills benötigt Xcode 27+ auf einem Mac: `python3 scripts/install-apple-xcode-skills.py --from-xcode`, danach `python3 scripts/check-repository.py` und `git status --short`. Keine Apple-Skill-Dateien oder privaten Daten committen. [Installationsanleitung](APPLE_XCODE_SKILLS.md).
+
 ## RED Morph ohne Build-Tokens
 
 Auf `feature/red-morph-player-search-navigation` prüft `python3 scripts/check-red-morph-source.py` den Quellaufbau ohne Apple-SDK oder CI-Build-Tokens. Dazu gehören die wiederhergestellte **native iPhone-Suche** und die native `TabView`-Minimierung mit `DockScrollCoordinator` und `.onScrollDown`. Diese Prüfung ersetzt **keine** Swift-Kompilierung und **keinen** Gerätetest.
