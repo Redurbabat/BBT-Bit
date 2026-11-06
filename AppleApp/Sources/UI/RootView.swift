@@ -1104,6 +1104,7 @@ struct PlaybackPillMount: ViewModifier {
     /// is up the iPhone's pill rides on top of it instead (the iPad's per-tab
     /// inset does that on its own).
     @State private var keyboardUp = false
+    @State private var dockScroll = DockScrollCoordinator.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #endif
 
@@ -1119,12 +1120,15 @@ struct PlaybackPillMount: ViewModifier {
             // the sidebar and keeps Music's 620 pt width.
             content
         } else if #available(iOS 26.0, *) {
-            // RED Morph: zwei stabile Ebenen, die sich beim Scrollen nicht
-            // ineinander schieben. Die native Tab-Leiste bleibt sichtbar,
-            // der systemeigene Bottom Accessory trägt den Mini-Player darüber.
-            // Die Such-Tastatur behandelt ihren eigenen kompakten Zustand.
+            // iOS 26: Die native Tab-Leiste schrumpft beim Scrollen nach unten,
+            // der systemeigene Bottom Accessory bewegt den Mini-Player mit.
+            // Bei Richtungsumkehr nach oben verhindert DockScrollCoordinator,
+            // dass die Leiste trotz Gegenbewegung eingeklappt bleibt.
+            // Die Keyboard-Safe-Area-Korrektur darunter bleibt erhalten.
             accessory(
-                content.tabBarMinimizeBehavior(.never)
+                content.tabBarMinimizeBehavior(
+                    dockScroll.keepExpanded ? .never : .onScrollDown
+                )
             )
                 // Das kompakte Pill belegt oberhalb der Tastatur echten
                 // Safe-Area-Platz, statt die Suchergebnisse zu überdecken.
