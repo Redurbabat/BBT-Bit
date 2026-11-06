@@ -1,7 +1,11 @@
 import SwiftUI
 
-/// A compact, inspectable representation of the engine's *real* Automix window.
-/// This view is read-only: dragging and expanding never change the audio mix.
+/// Kompakter Status für das tatsächlich von der Engine geplante Automix-Fenster.
+///
+/// Im Hauptplayer keine zweite, wie ein Seek-Regler wirkende Leiste: Der
+/// Fortschritt ist nur während eines laufenden Mixes eine Zahl. Die Details
+/// liegen in einer eigenen Ansicht und verändern nicht die Höhe des Decks.
+/// Diese View liest ausschließlich Engine-Werte und verändert keine Mischung.
 struct AutomixWeave: View {
     let start: Double
     let end: Double
@@ -10,8 +14,8 @@ struct AutomixWeave: View {
     let reason: String?
     let isMixing: Bool
 
-    @State private var expanded = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showsDetails = false
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var progress: Double {
         guard end > start else { return 0 }
@@ -19,66 +23,79 @@ struct AutomixWeave: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Button {
-                withAnimation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.86)) {
-                    expanded.toggle()
+        Button {
+            showsDetails = true
+        } label: {
+            HStack(spacing: 9) {
+                Image(systemName: "waveform.path")
+                    .font(.caption.weight(.semibold))
+                Text(isMixing ? "Automix · Übergang läuft" : "Automix · Übergang geplant")
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                if isMixing {
+                    Text("\(Int((progress * 100).rounded())) %")
+                        .monospacedDigit()
                 }
-            } label: {
-                HStack(spacing: 9) {
-                    Image(systemName: "music.note")
-                        .font(.caption.weight(.semibold))
-                    GeometryReader { proxy in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(.white.opacity(0.14))
-                            Capsule()
-                                .fill(LinearGradient(
-                                    colors: [.cyan.opacity(0.85), .purple.opacity(0.95), .pink.opacity(0.85)],
-                                    startPoint: .leading, endPoint: .trailing
-                                ))
-                            Circle()
-                                .fill(.white)
-                                .frame(width: 7, height: 7)
-                                .offset(x: max(0, (proxy.size.width - 7) * progress))
-                        }
-                    }
-                    .frame(height: 7)
-                    Image(systemName: "music.note")
-                        .font(.caption.weight(.semibold))
-                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.caption2.weight(.semibold))
-                }
-                .foregroundStyle(.white.opacity(0.9))
-                .frame(minHeight: 32)
-                .contentShape(Rectangle())
+                Image(systemName: "info.circle")
+                    .font(.caption)
+                    .accessibilityHidden(true)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Automix transition")
-            .accessibilityValue(isMixing ? "Mixing" : "Upcoming")
-            .accessibilityHint("Show or hide analyzed transition details")
-
-            if expanded {
-                VStack(alignment: .leading, spacing: 5) {
-                    Label(isMixing ? "Transition in progress" : "Upcoming transition",
-                          systemImage: "waveform.path")
-                        .font(.caption.weight(.semibold))
-                    Text(String(format: "Transition window: %.1f–%.1f s", start, end))
-                        .font(.caption.monospacedDigit())
-                    if let tier, !tier.isEmpty {
-                        Text(tier).font(.caption)
-                    }
-                    if let reason, !reason.isEmpty {
-                        Text(reason).font(.caption).foregroundStyle(.white.opacity(0.75))
-                    }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 34)
+            .contentShape(Capsule())
+            .background {
+                if reduceTransparency {
+                    Capsule().fill(.black.opacity(0.92))
+                } else {
+                    Capsule().fill(.ultraThinMaterial)
                 }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
-                .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
+            }
+            .overlay {
+                Capsule().strokeBorder(.white.opacity(0.18), lineWidth: 0.5)
             }
         }
-        .accessibilityElement(children: .contain)
+        .buttonStyle(.plain)
+        .accessibilityLabel(isMixing ? "Automix Übergang läuft" : "Automix Übergang geplant")
+        .accessibilityValue(isMixing ? "\(Int((progress * 100).rounded())) Prozent" : "Wartet auf Übergangsfenster")
+        .accessibilityHint("Öffnet Details zum echten Automix-Übergangsfenster")
+        .sheet(isPresented: $showsDetails) {
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 14) {
+                    Label(
+                        isMixing ? "Übergang läuft" : "Nächster Übergang",
+                        systemImage: "waveform.path"
+                    )
+                    .font(.headline)
+
+                    LabeledContent("Zeitfenster", value: String(format: "%.1f–%.1f s", start, end))
+                    if isMixing {
+                        LabeledContent("Fortschritt", value: "\(Int((progress * 100).rounded())) %")
+                    }
+                    if let tier, !tier.isEmpty {
+                        LabeledContent("Analyse", value: tier)
+                    }
+                    if let reason, !reason.isEmpty {
+                        Text(reason)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(24)
+                .navigationTitle("Automix")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Fertig") { showsDetails = false }
+                    }
+                }
+            }
+            .presentationDetents([.height(280), .medium])
+        }
         .background { LiquidLiveCaptureMarker(id: "automix") }
     }
 }
