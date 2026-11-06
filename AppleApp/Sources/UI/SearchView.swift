@@ -181,6 +181,7 @@ private struct MacToolbarSearchField: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
+                .accessibilityIdentifier("bbt.search.clear")
             }
         }
         .padding(.horizontal, 10)
