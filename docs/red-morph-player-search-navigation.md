@@ -95,6 +95,12 @@ Eine Quellprüfung bestätigte im GitHub-Branch die erwarteten Aufrufstellen und
 
 **Freigabegrenze:** Ohne Xcode-Build, echten Simulator und hörbaren Gerätetest ist RED Morph eine implementierte, statisch geprüfte UI-Änderung, **kein freigegebenes App-Release**.
 
+## Rücknahme der getrennten iPhone-Suche (Nutzerfeedback, 06.11.2026)
+
+Auf ausdrücklichen Wunsch wurde die separate Suchleiste im iPhone-Seiteninhalt zurückgenommen. Wiederhergestellt wurden der native `CompactPhoneSearchDrawer` mit `.searchable(... placement: .navigationBarDrawer(displayMode: .always))`, die native `role: .search` im iPhone-`TabView`, die Präsentations-/Fokus-State-Verknüpfung und der ursprüngliche Quellen-Picker-Zustand. Die iPad- und macOS-Suche sowie die unabhängig davon verbesserten Ergebnisabstände und Top-Result-Aktionen bleiben bestehen.
+
+Der nur für das entfernte iPhone-Suchfeld entwickelte XCUITest wurde gelöscht; die statische Quellprüfung prüft nun die **wieder integrierte native Suche**. Ältere Abschnitte dieses Dokuments beschreiben den zwischenzeitlichen Stand und sind durch diese Rücknahme überholt. Die tatsächliche Darstellung ist weiterhin **NICHT GETESTET**.
+
 ## Grenzen und nächste Schritte
 
 - Suche-/Tastaturverhalten im Simulator messen und Safe-Area-Inset gegebenenfalls an die reale iOS-26/27-Keyboard-Animation anpassen.
