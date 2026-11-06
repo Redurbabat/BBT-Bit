@@ -3697,6 +3697,26 @@
     "HDMI": {},
     "Headphone": {},
     "Headphones": {},
+    "Hide Recently Played": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt gespielt ausblenden"
+          }
+        }
+      }
+    },
+    "Hide Recents on Listen Now without deleting your listening history": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blendet die zuletzt gespielten Titel auf der Startseite aus, ohne den Hörverlauf zu löschen"
+          }
+        }
+      }
+    },
     "High Performance Mode holds the display at the chosen refresh rate instead of letting the system vary it. Expect noticeably shorter battery life while it is on.": {},
     "Higher refresh rate?": {},
     "Hindi": {

@@ -66,6 +66,7 @@ struct SettingsView: View {
     @State var smartAlign = PlatformSettings.shared.getBoolean(key: "smart_version_alignment", default: true)
     @State var legacyMesh = PlatformSettings.shared.getBoolean(key: "legacy_mesh_gradient", default: false)
     @State var preferMusicOnly = PlatformSettings.shared.getBoolean(key: "prefer_music_only", default: false)
+    @AppStorage("hide_recents") var hideRecents = false
     @State var confirmImport = false
     @State var theme = PlatformSettings.shared.getString(key: "theme_mode", default: "dark")
     @State var lyricsSources = LyricsSourceNames.normalizeList(
@@ -179,6 +180,7 @@ struct SettingsView: View {
         }
         .onChange(of: hidePlayerStatusBar) { _, value in AppSettings.shared.setHideStatusBarInPlayer(value: value) }
         .onChange(of: showQueueHistory) { _, value in AppSettings.shared.setShowQueueHistory(value: value) }
+        .onChange(of: hideRecents) { _, value in AppSettings.shared.setHideRecents(value: value) }
         .onChange(of: stopMusicOnClose) { _, value in AppSettings.shared.setStopMusicOnClose(value: value) }
         .onChange(of: videoOverCellular) { _, value in
             PlatformSettings.shared.putBoolean(key: "video_over_cellular", value: value)

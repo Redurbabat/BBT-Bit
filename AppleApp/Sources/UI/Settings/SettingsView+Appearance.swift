@@ -41,6 +41,14 @@ extension SettingsView {
                 isOn: $reduceBlur
             )
         }
+        rows.row("Hide Recently Played", "home", "recents", "history", "listen now") {
+            SettingsToggleLine(
+                glyph: .replay,
+                title: "Hide Recently Played",
+                subtitle: "Hide Recents on Listen Now without deleting your listening history",
+                isOn: $hideRecents
+            )
+        }
         rows.row("Full-Screen Cover Art", "artwork", "full bleed", "cover", "sleeve", "art") {
             SettingsToggleLine(
                 glyph: .fullBleed,

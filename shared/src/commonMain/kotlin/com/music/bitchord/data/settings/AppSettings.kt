@@ -904,6 +904,14 @@ object AppSettings {
      * video. The video itself still plays first so its metadata appears
      * immediately while the catalogue match is resolved.
      */
+    /** Hide only the home shelf; keep listening-history data untouched. */
+    private val _hideRecents = MutableStateFlow(settings.getBoolean("hide_recents", false))
+    val hideRecents: StateFlow<Boolean> = _hideRecents.asStateFlow()
+    fun setHideRecents(value: Boolean) {
+        _hideRecents.value = value
+        settings.putBoolean("hide_recents", value)
+    }
+
     private val _preferMusicOnly = MutableStateFlow(settings.getBoolean("prefer_music_only", false))
     val preferMusicOnly: StateFlow<Boolean> = _preferMusicOnly.asStateFlow()
     fun setPreferMusicOnly(value: Boolean) {

@@ -20,6 +20,7 @@ struct HomeView: View {
     /// is a singleton while the reader's place in it was not (upstream hoists
     /// `homeListState` outside its tab switch for the same reason).
     var scrollPosition: Binding<ScrollPosition>? = nil
+    @AppStorage("hide_recents") private var hideRecents = false
 
     var body: some View {
         PageStack {
@@ -86,26 +87,27 @@ struct HomeView: View {
                 buttonTitle: "Retry"
             ) { Task { await feed.load() } }
         case .loaded(let shelves):
+            let visibleShelves = hideRecents ? shelves.filter { !isRecentsShelf($0) } : shelves
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     if !auth.signedIn {
                         SignInBanner { auth.loginPresented = true }
                     }
-                    ForEach(Array(shelves.enumerated()), id: \.element.id) { index, shelf in
+                    ForEach(Array(visibleShelves.enumerated()), id: \.element.id) { index, shelf in
                         if index == 0, isRecentsShelf(shelf) {
                             RecentShelf(shelf: shelf)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id { Task { await feed.loadMore() } }
+                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
                                 }
                         } else if index == 0 {
                             HeroShelf(shelf: shelf, preferTrack: true)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id { Task { await feed.loadMore() } }
+                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
                                 }
                         } else {
                             ShelfCarousel(shelf: shelf, preferTrack: true)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id {
+                                    if shelf.id == visibleShelves.last?.id {
                                         Task { await feed.loadMore() }
                                     }
                                 }
@@ -147,6 +149,7 @@ private enum RecentShelfLayout {
 /// The upstream Home loading state reserves the Recents shelf and matches the
 /// saved list/grid layout so content does not jump when the feed arrives.
 private struct HomeFeedSkeleton: View {
+    @AppStorage("hide_recents") private var hideRecents = false
     @State private var viewType = PlatformSettings.shared.getString(
         key: "home_recents_view_type", default: "LIST"
     )
@@ -155,6 +158,7 @@ private struct HomeFeedSkeleton: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 26) {
+            if !hideRecents {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     RecentsSkeletonBlock(height: 22, cornerRadius: 6).frame(width: 112)
@@ -212,6 +216,7 @@ private struct HomeFeedSkeleton: View {
                     }
                     .frame(height: 202)
                 }
+            }
             }
             ForEach(0..<2, id: \.self) { shelf in
                 VStack(alignment: .leading, spacing: 10) {
