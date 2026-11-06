@@ -22,7 +22,7 @@ Weitere Beobachtungen: doppelte Zugänge zu Queue und Lyrics, deaktivierter „L
 - `SearchView.swift`: `listSectionSpacing(.compact)` reduziert den Systemabstand zwischen Top-Ergebnis und Ergebnisteilen.
 - `TopResultSection.swift`: geringere untere Randabstände, ruhigeres Material und separat erreichbare Aktionen.
 - `InfinityDock.swift`: kompakte Werkzeugmenü-Komponente als vorhandene Designvorschau, **nicht mehr im Now-Playing-Deck montiert**.
-- `AutomixWeave.swift`: statt der zweiten farbigen Vollbreiten-Leiste ein 44-pt-Status für das tatsächliche Übergangsfenster. Details öffnen eine native Ansicht, ohne die Deck-Höhe zu verändern.
+- `AutomixWeave.swift`: statt der zweiten farbigen Vollbreiten-Leiste ein 44-pt-Status für das tatsächliche Übergangsfenster. Details öffnen eine native Ansicht. Der kompakte Status beansprucht weiterhin eine eigene Zeile unterhalb des Seek-Reglers; ein vollständig höhenneutrales Layout ist noch nicht erreicht.
 - `LiquidPhotoWayfinderView.swift`, `LiquidMotionDesignPhotosView.swift` und `docs/live-iphone-screenshots.md`: Aufnahmehinweise auf den neuen Werkzeugzugang umgestellt. Die gespeicherte Feature-Kennung `dock` bleibt stabil.
 
 Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
@@ -58,6 +58,11 @@ Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
 | VoiceOver, Dynamic Type, Reduce Motion, Reduce Transparency | Bedienelemente erreichbar; Texte lesbar; keine blockierten Übergänge | NICHT GETESTET |
 | iPad Split View, macOS-Fenstergrößen | Adaptive Anordnung und Tastatursteuerung | NICHT GETESTET |
 | Physisches iPhone: YouTube, Pause, Seek, Ausgabe | Tatsächlich hörbare Wiedergabe ohne Regression | NICHT GETESTET |
+
+## Ergänzende Prüfmaßnahmen
+
+- Die frühe Swift-Parser-Schleife in `.github/workflows/ios-simulator-tests.yml` umfasst jetzt zusätzlich `SearchView.swift`, `TopResultSection.swift`, `NowPlayingView+Stage.swift` und `NowPlayingView+Transport.swift`. Dies ersetzt weder Typechecking noch Simulator-Build.
+- Die Automix-Statusfläche wurde für weiße Schrift auf einen dunklen Untergrund gestellt; das Sheet nutzt auf iOS Detents und auf macOS eine feste Mindestgröße.
 
 ## CI-Stand
 
