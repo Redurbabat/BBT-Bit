@@ -125,6 +125,10 @@ Die zwischenzeitlich eingeführte `content.tabBarMinimizeBehavior(.never)`-Einst
 
 Die statische Quellprüfung kontrolliert diese Anbindung nun. Verifikation auf echter iPhone-Hardware, insbesondere schnelle Scrollumkehr, Such-Tastatur und Zoom zum Vollplayer: **NICHT GETESTET**. Siehe `docs/TESTPLAN.md`.
 
+## Offizielle Apple-Skills als optionale Entwicklungsunterstützung
+
+Das Projekt unterstützt ab diesem Branch einen **lokalen Vollimport** aller von Xcode 27+ exportierten Apple-Agent-Skills ([Anleitung](APPLE_XCODE_SKILLS.md)). SwiftUI Specialist, SwiftUI-Neuerungen, adaptive UIKit-/App-Größen, Gerätetests, Testmodernisierung und Sicherheitsprüfungen können ergänzend helfen. Die Inhalte wurden hier **nicht aus Xcode exportiert oder installiert**. Sie ersetzen keine BBT-Bit-Vorgabe: E-006 native Suche und E-007 gemeinsamer Mini-Player/Tab-Bar-Scroll-Morph aus dem Nutzer-Referenzvideo haben Vorrang. UI-/Audiotests bleiben **NICHT GETESTET**.
+
 ## Grenzen und nächste Schritte
 
 - Suche-/Tastaturverhalten im Simulator messen und Safe-Area-Inset gegebenenfalls an die reale iOS-26/27-Keyboard-Animation anpassen.
