@@ -26,23 +26,31 @@ struct AutomixWeave: View {
         Button {
             showsDetails = true
         } label: {
-            HStack(spacing: 9) {
+            HStack(spacing: 6) {
                 Image(systemName: "waveform.path")
                     .font(.caption.weight(.semibold))
-                Text(isMixing ? "Automix läuft" : "Automix")
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                if isMixing {
-                    Text("\(Int((progress * 100).rounded())) %")
-                        .monospacedDigit()
-                }
-                Image(systemName: "info.circle")
-                    .font(.caption)
                     .accessibilityHidden(true)
+                // Der Status muss neben zwei Zeitangaben auch bei großer
+                // Schrift passen. Das native Fitting wählt bei Platzmangel
+                // eine kurze, aber weiterhin echte Fortschrittsangabe.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 6) {
+                        Text(isMixing ? "Automix läuft" : "Automix")
+                            .fixedSize(horizontal: true, vertical: false)
+                        if isMixing {
+                            Text("\(Int((progress * 100).rounded())) %")
+                                .monospacedDigit()
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                    }
+                    Text(isMixing ? "\(Int((progress * 100).rounded())) %" : "Mix")
+                        .monospacedDigit()
+                        .fixedSize(horizontal: true, vertical: false)
+                }
             }
             .font(.caption.weight(.medium))
             .foregroundStyle(.white)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 10)
             .frame(minHeight: 44)
             .contentShape(Capsule())
             .background {
