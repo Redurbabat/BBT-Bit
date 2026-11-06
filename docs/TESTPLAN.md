@@ -17,17 +17,17 @@
 
 ## RED Morph ohne Build-Tokens
 
-Der Design-Branch `feature/red-morph-player-search-navigation` verwendet vor einem Apple-Build folgenden **zusätzlichen statischen** Prüfschritt:
+Auf `feature/red-morph-player-search-navigation` prüft `python3 scripts/check-red-morph-source.py` den Quellaufbau ohne Apple-SDK oder CI-Build-Tokens. Dazu gehören die wiederhergestellte **native iPhone-Suche** und die native `TabView`-Minimierung mit `DockScrollCoordinator` und `.onScrollDown`. Diese Prüfung ersetzt **keine** Swift-Kompilierung und **keinen** Gerätetest.
 
-```bash
-python3 scripts/check-red-morph-source.py
-```
+**Regressionstest für die Mini-Player-Animation (iPhone mit iOS 26+):**
 
-Dieser Befehl prüft elf Quellinvarianten: oberes iPhone-Suchfeld, persistenter Suchquellen-Picker, Accessibility-IDs, getrennte Top-Ergebnis-Aktionen, keine Infinity-Dock-Reihe im Live-Player, Automix in der Zeitzeile, Tastatur-Safe-Area, native Tab-Leiste, Reduce Motion, XCUITest-Startweg und deutsche UI-Texte. Er benötigt weder Xcode noch Build-Tokens. Ein grünes Ergebnis belegt **keine** Swift-Kompilierung und **keinen** funktionierenden Musikplayer.
+1. In „Jetzt hören“ bei laufender Musik nach **unten durch die Liste scrollen**. Die Tab-Leiste muss sich systemnativ minimieren; der Mini-Player muss mit nach unten in die kompakte Anordnung wechseln, statt fest über einer großen Tab-Leiste stehen zu bleiben.
+2. Innerhalb derselben Geste die Scrollrichtung nach oben umkehren. Die Tab-Leiste und der Mini-Player müssen wieder gemeinsam aufklappen. Wiederholt schnell hin- und herwechseln; keine doppelte Mini-Player-Leiste und kein Sprung über den Home-Indikator.
+3. Mini-Player antippen und den Vollplayer aufziehen; danach herunterziehen. Die Zoom- bzw. Rückkehranimation darf nicht durch die Scroll-Minimierung unterbrochen werden.
+4. Zur nativen Suche wechseln, Tastatur ein- und ausblenden und danach erneut in „Jetzt hören“ scrollen. Es darf kein doppelter Mini-Player oberhalb der Tastatur oder der Tab-Leiste erscheinen.
+5. Dasselbe mit „Bewegung reduzieren“ und „Transparenz reduzieren“ sowie VoiceOver prüfen. Musik muss beim Scrollen tatsächlich weiterlaufen.
 
-Der UI-Test `AppleApp/UITests/RedMorphSearchUITests.swift` startet über `--bbt-ui-test-search` die echte Suchansicht. Er verifiziert Textfeldposition und Tastaturfreiraum, die sprachunabhängige Löschaktion sowie einen XCTest-Screenshot. Vor Freigabe zusätzlich in der normalen App **mit Mini-Player und Tab-Leiste** navigieren, die Tastatur öffnen/schließen, Top-Result/Playlist getrennt antippen und Player-Panes mit Reduce Motion, VoiceOver und großer Schrift prüfen.
-
-**CI-Limit (06.11.2026):** Laut Projektinhaber sind derzeit keine Build-Tokens verfügbar. Keine manuelle Wiederholung der kostenpflichtigen Jobs. Lokale Xcode- und Echtgerätetests bleiben `NICHT GETESTET`, solange keine Apple-Hardware bzw. Runner mit erfolgreichem Resultat zur Verfügung steht.
+**Prüfstatus (06.11.2026):** Quelländerung implementiert. Swift-Compile, Simulator, iPhone-Echtgerät, 3D-Zoom und hörbare Wiedergabe: **NICHT GETESTET**. Laut Projektinhaber sind die Build-Tokens ausgeschöpft; keine zusätzlichen CI-Läufe starten.
 
 ## Echtes iPhone
 
