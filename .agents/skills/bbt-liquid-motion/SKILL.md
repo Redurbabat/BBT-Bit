@@ -19,7 +19,7 @@ Die **originale Apple Dynamic Island** wird ausschließlich durch Apples Now-Pla
 
 ## Apple-Originalmodifikatoren übernehmen, nicht Oberflächen nachbauen
 
-Bei der Such-Tastatur auf iOS 26.1+ ist `tabViewBottomAccessory(isEnabled: !keyboardUp)` die dokumentierte Apple-API für vollständiges Ausblenden des nativen Accessory. Das Keyboard-`safeAreaInset` verwendet in diesem Zustand genau ein kompaktes `PlaybackPill`. iOS 26.0 bleibt als Fallback bestehen. Tab-Leiste/`tabViewBottomAccessoryPlacement` und `matchedTransitionSource`/`.navigationTransition(.zoom)` müssen weiter den unveränderten System-Morph aus der Nutzerreferenz liefern. Keine selbst gezeichnete System-Tab-Bar oder Hardware-Dynamic-Island. Vergleiche mit [Original-Apple-APIs](../../../docs/apple-native-ui-adoption.md); tatsächlicher Tastatur- und Scrollzustand **NICHT GETESTET**.
+Bei der Such-Tastatur auf iOS 26.1+ ist `tabViewBottomAccessory(isEnabled: !keyboardUp)` die dokumentierte Apple-API **sofern mit Xcode 26.2+ kompiliert (`#if compiler(>=6.2.3)`)** für vollständiges Ausblenden des nativen Accessory. Das Keyboard-`safeAreaInset` verwendet in diesem Zustand genau ein kompaktes `PlaybackPill`. iOS 26.0 und Codemagic mit Xcode 26.0 behalten den bisherigen Fallback. Tab-Leiste/`tabViewBottomAccessoryPlacement` und `matchedTransitionSource`/`.navigationTransition(.zoom)` müssen weiter den unveränderten System-Morph aus der Nutzerreferenz liefern. Keine selbst gezeichnete System-Tab-Bar oder Hardware-Dynamic-Island. Vergleiche mit [Original-Apple-APIs](../../../docs/apple-native-ui-adoption.md); tatsächlicher Tastatur- und Scrollzustand **NICHT GETESTET**.
 
 ## Verbindliche iPhone-Referenz: Mini-Player und Tab-Leiste (RED Morph, 06.11.2026)
 
