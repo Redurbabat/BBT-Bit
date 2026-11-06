@@ -299,12 +299,11 @@ extension NowPlayingView {
                     .padding(.horizontal, 24)
                     .accessibilityLabel(status)
             }
-            // Phones keep the lyric strip in the main and queue panes. On iPad
-            // the larger lyric/queue pane already has that space, so the pinned
-            // deck stays focused on seek and playback controls.
-            // Ohne sichtbare oder ladende Lyrics keinen deaktivierten
-            // "Lyrics off"-Platzhalter zwischen Cover und Seek einfügen.
-            if pane != .lyrics && !isIPad &&
+            // Der Lyrics-Kurztext gehört nur zum Hauptplayer. In der Queue
+            // würde er Platz aus der Trackliste nehmen, obwohl der Lyrics-
+            // Button bereits den direkten Weg zu den Songtexten bietet.
+            // Kein "Lyrics off"-Platzhalter bei fehlenden Songtexten.
+            if pane == .main && !isIPad &&
                 (controller.lyricsLoading || !controller.displayedLyrics.isEmpty) {
                 currentLyricStrip
             }
