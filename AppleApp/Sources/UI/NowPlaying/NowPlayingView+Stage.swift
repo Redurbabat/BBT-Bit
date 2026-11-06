@@ -107,7 +107,7 @@ extension NowPlayingView {
                     .padding(.top, 10)
                 }
             }
-            .animation(.snappy(duration: 0.28), value: pane)
+            .animation(reduceMotion ? nil : .snappy(duration: 0.28), value: pane)
             // Additive sleeve swipe, upstream's vertical drag: up past 60pt
             // opens Up Next, down while a panel is up returns to the player.
             // The pane buttons stay the primary control; this never replaces
