@@ -144,10 +144,10 @@ extension NowPlayingView {
             stage
             if pane != .lyrics || lyricsControlsOpen || keepsLyricsPlaybackDeckVisible {
                 deck
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .animation(.easeInOut(duration: 0.22), value: lyricsControlsOpen)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: lyricsControlsOpen)
     }
 
     /// The two-column player: the sleeve and the deck on the left, the open pane
@@ -190,7 +190,9 @@ extension NowPlayingView {
                 case .main:
                     VStack(spacing: 14) {
                         creditsRow
-                        currentLyricStrip
+                        if controller.lyricsLoading || !controller.displayedLyrics.isEmpty {
+                            currentLyricStrip
+                        }
                         positionControls
                         playerTransport
                     }
@@ -201,7 +203,7 @@ extension NowPlayingView {
                 }
             }
             .frame(maxWidth: .infinity)
-            .animation(.easeInOut(duration: 0.2), value: pane)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: pane)
         }
         .frame(maxWidth: PlayerLayout.landscapeMaxWidth)
         .frame(maxWidth: .infinity)
