@@ -18,12 +18,14 @@ Weitere Beobachtungen: doppelte Zugänge zu Queue und Lyrics, deaktivierter „L
 
 - `NowPlayingView+Stage.swift`: keine zusätzliche Dock-Reihe im Player-Deck; der Lyrics-Streifen erscheint nur bei ladenden oder vorhandenen Lyrics.
 - `NowPlayingView+Transport.swift`: die sechs bisherigen Werkzeugaktionen sind über das vorhandene Mehr-Menü erreichbar. Equalizer, Pipeline, Audioausgabe und Automix rufen die bisherigen Zustände/Aktionen auf. Die vorhandenen direkten Lyrics- und Queue-Zugänge bleiben erhalten.
-- `RootView.swift`: während Tastatureingabe ein kompakter Mini-Player in einer `safeAreaInset` statt in einem überdeckenden `overlay`. Der Bottom Accessory wird auf unterstützten iOS-Versionen im Tastaturzustand ausgeblendet.
-- `SearchView.swift`: `listSectionSpacing(.compact)` reduziert den Systemabstand zwischen Top-Ergebnis und Ergebnisteilen.
-- `TopResultSection.swift`: geringere untere Randabstände, ruhigeres Material und separat erreichbare Aktionen.
+- `RootView.swift`: während Tastatureingabe ein kompakter Mini-Player in einer `safeAreaInset` statt in einem überdeckenden `overlay`. Der Bottom Accessory wird auf unterstützten iOS-Versionen im Tastaturzustand ausgeblendet. Die iPhone-Tab-Leiste minimiert beim Scrollen nicht mehr automatisch (`tabBarMinimizeBehavior(.never)`); Navigation und Wiedergabe bleiben zwei stabile Ebenen.
+- `SearchView.swift`: `listSectionSpacing(.compact)` und die Entfernung der eigenen Top-Result-Section reduzieren den Abstand zwischen Top-Ergebnis und Ergebnisteilen.
+- `TopResultSection.swift`: geringere untere Randabstände, ruhigeres Material und separat erreichbare Aktionen. Die zuvor auf der gesamten Karte liegende Tap-Geste wurde durch explizite Wiedergabeknöpfe auf Artwork und Titel ersetzt, sodass Playlist- und Menüinteraktionen nicht zugleich Wiedergabe auslösen sollen.
 - `InfinityDock.swift`: kompakte Werkzeugmenü-Komponente als vorhandene Designvorschau, **nicht mehr im Now-Playing-Deck montiert**.
-- `AutomixWeave.swift`: statt der zweiten farbigen Vollbreiten-Leiste ein 44-pt-Status für das tatsächliche Übergangsfenster. Details öffnen eine native Ansicht. Der kompakte Status beansprucht weiterhin eine eigene Zeile unterhalb des Seek-Reglers; ein vollständig höhenneutrales Layout ist noch nicht erreicht.
+- `AutomixWeave.swift`: statt der zweiten farbigen Vollbreiten-Leiste ein 44-pt-Status für das tatsächliche Übergangsfenster. Details öffnen eine native Ansicht. Der Status liegt jetzt mittig in der Zeitzeile mit fester Mindesthöhe; das Erscheinen eines Übergangsfensters erzeugt keine zusätzliche Zeile.
 - `LiquidPhotoWayfinderView.swift`, `LiquidMotionDesignPhotosView.swift` und `docs/live-iphone-screenshots.md`: Aufnahmehinweise auf den neuen Werkzeugzugang umgestellt. Die gespeicherte Feature-Kennung `dock` bleibt stabil.
+
+- `NowPlayingView.swift`, `NowPlayingView+Stage.swift` und `PlaybackPill.swift`: Pane-Übergänge, Lyrics-Auto-Hide und Mini-Player-Pull respektieren `accessibilityReduceMotion`; die Gesten und direkten Buttons bleiben erreichbar.
 
 Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
 
@@ -66,7 +68,11 @@ Dies ist eine **Quellcodeänderung**, kein bestätigter iPhone-Funktionstest.
 
 ## CI-Stand
 
-Für Commit `469cf3b629e474a23348cdd59789b35a8ea5fd90` meldeten GitHub Actions die Workflows „Validate Codemagic iOS IPA configuration“, „BBT-Bit iPhone Simulator UI Tests“ und „BBT-Bit PR regression checks“ als **fehlgeschlagen**. Die Job-Protokolle waren über die verbundene API nicht abrufbar (`BlobNotFound`). Die Ursache ist **nicht diagnostiziert**. Weder ein funktionierender Build noch ein bestandener iPhone-Test wird behauptet.
+GitHub Actions melden weiterhin Fehlschläge. Bei der Abfrage der Läufe zum Commit `abaadb5970898686c8ba0a5c44346cbb9bede84b` wurden die drei Workflows „Validate Codemagic iOS IPA configuration“, „BBT-Bit iPhone Simulator UI Tests“ und „BBT-Bit PR regression checks“ nach nur **2–3 Sekunden** als `failure` abgeschlossen. Der REST-Endpunkt `/actions/runs/{id}/jobs` lieferte **leere Schrittlisten** für die betroffenen Jobs, darunter auch `ubuntu-latest`.
+
+**Befund:** Keine erfolgreiche Syntax-, Build-, Unit- oder Simulatorprüfung wurde dadurch nachgewiesen. Es gibt aus diesen Jobs auch **keinen nachgewiesenen Swift-Kompilierfehler**; die Jobs scheinen vor ihren regulären Schritten beendet worden zu sein. Die eigentliche Ursache (z. B. Runner-Zuweisung, Kontingent, Plattform oder Konfiguration) ist **nicht verifiziert**. Die Job-Log-API meldete weiterhin `BlobNotFound`, und es wurden keine Simulator-Artefakte zurückgeliefert.
+
+Eine Quellprüfung bestätigte im GitHub-Branch die erwarteten Aufrufstellen und Änderungen. Sie ist kein Ersatz für das SDK-Typechecking oder Gerätetests.
 
 ## Grenzen und nächste Schritte
 
