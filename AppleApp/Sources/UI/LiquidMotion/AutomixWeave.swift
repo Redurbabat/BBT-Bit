@@ -35,7 +35,7 @@ struct AutomixWeave: View {
                 // eine kurze, aber weiterhin echte Fortschrittsangabe.
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 6) {
-                        Text(isMixing ? "Automix läuft" : "Automix")
+                        Text(isMixing ? "Automix running" : "Automix")
                             .fixedSize(horizontal: true, vertical: false)
                         if isMixing {
                             Text("\(Int((progress * 100).rounded())) %")
@@ -67,24 +67,24 @@ struct AutomixWeave: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isMixing ? "Automix Übergang läuft" : "Automix Übergang geplant")
-        .accessibilityValue(isMixing ? "\(Int((progress * 100).rounded())) Prozent" : "Übergang geplant")
-        .accessibilityHint("Öffnet Details zum echten Automix-Übergangsfenster")
+        .accessibilityLabel(isMixing ? Text("Automix transition running") : Text("Automix transition planned"))
+        .accessibilityValue(isMixing ? Text("\(Int((progress * 100).rounded())) %") : Text("Planned transition"))
+        .accessibilityHint("Open real Automix transition details")
         .sheet(isPresented: $showsDetails) {
             NavigationStack {
                 VStack(alignment: .leading, spacing: 14) {
                     Label(
-                        isMixing ? "Übergang läuft" : "Nächster Übergang",
+                        isMixing ? "Transition running" : "Next transition",
                         systemImage: "waveform.path"
                     )
                     .font(.headline)
 
-                    LabeledContent("Zeitfenster", value: String(format: "%.1f–%.1f s", start, end))
+                    LabeledContent("Time window", value: String(format: "%.1f–%.1f s", start, end))
                     if isMixing {
-                        LabeledContent("Fortschritt", value: "\(Int((progress * 100).rounded())) %")
+                        LabeledContent("Progress", value: "\(Int((progress * 100).rounded())) %")
                     }
                     if let tier, !tier.isEmpty {
-                        LabeledContent("Analyse", value: tier)
+                        LabeledContent("Analysis", value: tier)
                     }
                     if let reason, !reason.isEmpty {
                         Text(reason)
@@ -100,7 +100,7 @@ struct AutomixWeave: View {
                 #endif
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Fertig") { showsDetails = false }
+                        Button("Done") { showsDetails = false }
                     }
                 }
             }
