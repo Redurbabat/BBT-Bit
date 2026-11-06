@@ -21,8 +21,6 @@ top = source("AppleApp/Sources/UI/TopResultSection.swift")
 stage = source("AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift")
 transport = source("AppleApp/Sources/UI/NowPlaying/NowPlayingView+Transport.swift")
 layouts = source("AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift")
-app = source("AppleApp/Sources/App/BitChordApp.swift")
-ui_test = source("AppleApp/UITests/RedMorphSearchUITests.swift")
 catalog = json.loads(source("AppleApp/Resources/Localization/Localizable.xcstrings"))
 
 localization_keys = (
@@ -36,21 +34,13 @@ localization_keys = (
 )
 
 checks = {
-    "iPhone-Suchfeld im Seiteninhalt": (
-        "private var phoneSearchField: some View" in search
-        and "CompactPhoneSearchDrawer" not in search
-    ),
-    "Suchquelle bleibt während der Eingabe": (
-        "if horizontalSizeClass != .regular {\n                sourceSwitcher" in search
-    ),
-    "Sprachunabhängige Such-IDs am iPhone-Feld": (
-        "private var phoneSearchField: some View" in search
-        and '"bbt.search.field"' in search.split(
-            "private var phoneSearchField: some View", 1
-        )[1].split("private var sourceSwitcher: some View", 1)[0]
-        and '"bbt.search.clear"' in search.split(
-            "private var phoneSearchField: some View", 1
-        )[1].split("private var sourceSwitcher: some View", 1)[0]
+    "Native iPhone-Suche wieder integriert": (
+        "private struct CompactPhoneSearchDrawer: ViewModifier" in search
+        and "phoneSearchField" not in search
+        and ".modifier(CompactPhoneSearchDrawer(" in search
+        and "isSearchPresented = true" in search
+        and "if horizontalSizeClass != .regular, term.isEmpty {" in search
+        and 'role: .search' in root
     ),
     "Top-Ergebnis hat getrennte Aktionen": (
         ".onTapGesture(perform: play)" not in top
@@ -71,13 +61,6 @@ checks = {
     ),
     "Reduce Motion im Player-Layout": (
         "reduceMotion ? nil : .easeInOut" in layouts
-    ),
-    "XCUITest nutzt die echte iPhone-Suche": (
-        'contains("--bbt-ui-test-search")' in app
-        and 'UIDevice.current.userInterfaceIdiom == .phone' in ui_test
-        and '"bbt.search.field"' in ui_test
-        and '"bbt.search.clear"' in ui_test
-        and 'XCTNSPredicateExpectation(' in ui_test
     ),
     "Deutsche UI-Übersetzungen vorhanden": all(
         catalog["strings"].get(key, {})
