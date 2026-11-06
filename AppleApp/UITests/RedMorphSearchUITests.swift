@@ -49,7 +49,14 @@ final class RedMorphSearchUITests: XCTestCase {
                       "Der Clear-Button ist beim Bearbeiten nicht erreichbar.")
         clearButton.tap()
         XCTAssertTrue(field.exists, "Das Suchfeld darf beim Löschen nicht verschwinden.")
-        XCTAssertFalse(clearButton.exists, "Bei leerer Suche muss Clear wieder verschwinden.")
+        // SwiftUI entfernt den Clear-Button erst nach einem State-/Layout-Pass.
+        // Eine unmittelbare exists-Abfrage ist auf langsameren Simulatoren flakey.
+        let clearGone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: clearButton
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [clearGone], timeout: 8), .completed,
+                       "Bei leerer Suche muss Clear wieder verschwinden.")
 
         // Ein zweiter Fokuszyklus erkennt hängen gebliebene Keyboard-/Focus-
         // Zustände nach dem Leeren, ohne Netzwerkantworten vorauszusetzen.
