@@ -532,6 +532,7 @@ struct HeroCard: View {
     let side: CGFloat
     @Environment(PlaybackController.self) private var controller
     @State private var hovering = false
+    private var tileHeight: CGFloat { card.isVideo ? side * 9 / 16 : side * 0.92 }
 
     /// Whether this card is the track loaded in the player right now.
     private var isCurrentTrack: Bool {
@@ -542,8 +543,8 @@ struct HeroCard: View {
     var body: some View {
         ShelfCardTap(card: card, preferTrack: preferTrack) {
             ZStack(alignment: .bottom) {
-                ArtworkView(url: card.thumbnailUrl, data: nil, side: side)
-                    .frame(width: side, height: side * 0.92)
+                ArtworkView(url: card.thumbnailUrl, data: nil, side: side, fill: card.isVideo)
+                    .frame(width: side, height: tileHeight)
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.10), .black.opacity(0.72)],
                     startPoint: .center,
@@ -564,7 +565,7 @@ struct HeroCard: View {
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: side, height: side * 0.92)
+            .frame(width: side, height: tileHeight)
             // Over the scrim, not under it: the pill sits on the darkest part
             // of the tile, and the gradient would grey it out from beneath.
             .modifier(NowPlayingCardAccent(
