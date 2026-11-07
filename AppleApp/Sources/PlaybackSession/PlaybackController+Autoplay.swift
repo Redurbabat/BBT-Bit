@@ -23,9 +23,11 @@ extension PlaybackController {
             // A forced fill tops the tail up to its target; it does not replace it.
             guard PlaybackQueuePolicy.fillRoom(queue, after: playingIndex) > 0 else { return }
         }
-        let due = force || (lowWaterRefill && PlaybackQueuePolicy.shouldRefillAutoplay(
-            upcomingCount: queue.count - playingIndex - 1
-        ))
+        // BitChord füllt nach jedem Titelwechsel auf zehn Empfehlungen auf,
+        // nicht erst bei weniger als drei vorausliegenden Queue-Einträgen.
+        let due = force || (lowWaterRefill && PlaybackQueuePolicy.fillRoom(
+            queue, after: playingIndex
+        ) > 0)
         guard due else { return }
         guard let context = recommendationContext else {
             if autoplayEnabled {
@@ -39,7 +41,11 @@ extension PlaybackController {
         guard let request = autoplayRefresh.begin(context, force: force) else { return }
         let videoId = String(context.source.dropFirst(3))
         PlaybackDebugLog.shared.record("autoplay: fill requested (force=\(force) count=\(queue.count) index=\(playingIndex))", about: current?.id)
-        fetchRecommendations(videoId: videoId) { [weak self] json, _ in
+        // Ein Video-Upload startet einen Video-Sender, solange die Option
+        // „Prefer Music Only“ seine Audioversion nicht bevorzugt.
+        let videoRadio = current?.isVideo == true
+            && !PlatformSettings.shared.getBoolean(key: "prefer_music_only", default: false)
+        fetchRecommendations(videoId: videoId, preferVideo: videoRadio) { [weak self] json, _ in
             Task { @MainActor in
                 guard let self else { return }
                 guard let json else {
@@ -77,7 +83,7 @@ extension PlaybackController {
                     .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
                 let extraJson = QueueBuilderBridge.shared.extendJson(
                     existingJson: existing, candidatesJson: json,
-                    limit: Int32(max(room, PlaybackQueuePolicy.autoplayRefillThreshold))
+                    limit: Int32(max(0, room)), preferVideos: videoRadio
                 )
                 guard let data = extraJson.data(using: .utf8),
                       let songs = try? JSONDecoder().decode([SongDTO].self, from: data) else {
@@ -90,12 +96,13 @@ extension PlaybackController {
                         videoId: $0.videoId, title: $0.title, artist: $0.artist,
                         thumbnailUrl: $0.thumbnailUrl, durationText: $0.durationText,
                         albumName: $0.albumName, artistId: $0.artistId, albumId: $0.albumId,
-                        fromAutoplay: true
+                        fromAutoplay: true, isVideo: $0.isVideo ?? false
                     )
                 }
-                // Ordered by taste once, as a batch, before anyone has seen it.
-                let scores = self.tasteScores(extras)
-                let ordered = PlaybackQueuePolicy.ranked(Array(extras.indices), scores: scores).map { extras[$0] }
+                // Original-BitChord respektiert die Reihenfolge der Radio-Antwort.
+                // Nur ein ausdrücklich eingeschaltetes AutoMix kann später den
+                // noch nicht abgespielten Bereich neu ordnen.
+                let ordered = extras
                 PlaybackDebugLog.shared.record("autoplay: \(songs.count) candidates, \(ordered.count) appended (room=\(room))", about: videoId)
                 guard !ordered.isEmpty else { return }
                 self.autoplayRefresh.noteFilled()
@@ -107,11 +114,11 @@ extension PlaybackController {
         }
     }
 
-    private func fetchRecommendations(videoId: String, response: @escaping (String?, String?) -> Void) {
+    private func fetchRecommendations(videoId: String, preferVideo: Bool, response: @escaping (String?, String?) -> Void) {
         #if DEBUG
         if let recommendationFetchOverride { recommendationFetchOverride(videoId, response); return }
         #endif
-        AutoPlayBridge.shared.related(videoId: videoId, callback: AutoPlayAdapter(response))
+        AutoPlayBridge.shared.related(videoId: videoId, preferVideo: preferVideo, callback: AutoPlayAdapter(response))
     }
 
     func tasteScores(_ entries: [QueueEntry], transitionFits: [Int: Double] = [:]) -> [Double] {
@@ -324,6 +331,7 @@ extension PlaybackController {
         let albumName: String?
         let artistId: String?
         let albumId: String?
+        let isVideo: Bool?
     }
 
     func publishPresence() {

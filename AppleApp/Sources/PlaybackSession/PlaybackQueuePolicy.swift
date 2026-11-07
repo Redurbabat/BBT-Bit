@@ -7,7 +7,7 @@ enum PlaybackQueuePolicy {
 
     static let autoplayRefillThreshold = 3
     /// How many recommendations the tail is topped up to.
-    static let autoplayTarget = 8
+    static let autoplayTarget = 10
     /// Upcoming rows nothing automatic may move: the listener can see them.
     static let committedRows = 2
     /// Rows after the committed queue that can be reconsidered by AutoMix.

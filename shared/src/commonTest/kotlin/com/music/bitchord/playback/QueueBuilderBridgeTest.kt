@@ -14,9 +14,11 @@ class QueueBuilderBridgeTest {
             val candidates = """[{"videoId":"manual","title":"Manual","artist":"Manual Artist"},{"videoId":"fresh","title":"Fresh","artist":"New Artist"},{"videoId":"fresh-copy","title":"Fresh (Official Audio)","artist":"New Artist"}]"""
             fun ids(json: String) = Json.parseToJsonElement(json).jsonArray.map { it.jsonObject.getValue("videoId").jsonPrimitive.content }
             assertEquals(listOf("fresh"), ids(QueueBuilderBridge.extendJson(kept, candidates, 8)))
-            assertEquals(listOf("fresh"), ids(QueueBuilderBridge.extendJson(kept, candidates, 8)))
+            // Im Original zählt auch eine angebotene, ungespielte Empfehlung
+            // schon als gesehen – sie darf nicht erneut vorgeschlagen werden.
+            assertTrue(ids(QueueBuilderBridge.extendJson(kept, candidates, 8)).isEmpty())
             QueueBuilderBridge.rememberPlayed("fresh")
-            assertEquals(listOf("fresh-copy"), ids(QueueBuilderBridge.extendJson(kept, candidates, 8)))
+            assertTrue(ids(QueueBuilderBridge.extendJson(kept, candidates, 8)).isEmpty())
             // Played recordings in the queue prefix also exclude alternate IDs.
             val playedPrefix = """[{"videoId":"fresh","title":"Fresh","artist":"New Artist"}]"""
             assertEquals(listOf("manual"), ids(QueueBuilderBridge.extendJson(playedPrefix, candidates, 8)))

@@ -53,7 +53,7 @@ extension QueueEntry {
             albumName: albumName,
             artistId: artistId,
             albumId: albumId,
-            isVideo: false,
+            isVideo: isVideo,
             fromAutoplay: fromAutoplay
         )
     }
