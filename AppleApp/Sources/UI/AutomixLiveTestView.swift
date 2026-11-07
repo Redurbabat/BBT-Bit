@@ -394,7 +394,8 @@ struct AutomixLiveTestView: View {
                 LabeledContent("Analyse im Rust-Player", value: monitor.plansObserved > 0
                                ? "\(monitor.plansObserved) neue Planung(en)" : "Noch nicht nachgewiesen")
                 LabeledContent("Analysequelle", value: monitor.lastPlanSource ?? "Noch kein neuer Plan seit Testbeginn")
-                LabeledContent("Geplanter Übergang", value: controller.analysisTier ?? "Noch keiner")
+                LabeledContent("Geplanter Übergang", value: monitor.plansObserved > 0
+                               ? (controller.analysisTier ?? "—") : "Noch keine neue Planung seit Testbeginn")
                 LabeledContent("Start des Übergangs", value: monitor.transitionsObserved > 0
                                ? "\(monitor.transitionsObserved) Engine-Meldung(en)" : "Noch nicht gemeldet")
                 LabeledContent("Wiedergabezeit läuft", value: monitor.progressObserved
