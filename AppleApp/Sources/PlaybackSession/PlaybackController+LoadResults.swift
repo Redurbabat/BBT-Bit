@@ -15,7 +15,7 @@ import AppKit
 extension PlaybackController {
     func prepareNowPlayingForPlayback(entry: QueueEntry, duration: Double, position: Double) {
         nowPlaying.prepareForPlayback(
-            id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName, albumName: entry.albumName, albumName: entry.albumName, albumName: entry.albumName,
+            id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName,
             duration: duration, artworkData: entry.artworkData,
             thumbnailUrl: entry.thumbnailUrl, position: position,
             canNext: playingIndex + 1 < queue.count || repeatMode == .all,
@@ -141,7 +141,7 @@ extension PlaybackController {
                   let self, self.playGeneration == generation, self.engineLoadedId == entry.id,
                   self.loadedSourcePath == info.source, let current = self.current else { return }
             self.duration = Double(seconds)
-            self.nowPlaying.update(id: current.id, title: current.title, artist: current.artist, albumName: current.albumName, albumName: current.albumName,
+            self.nowPlaying.update(id: current.id, title: current.title, artist: current.artist, albumName: current.albumName,
                 duration: self.duration, artworkData: current.artworkData, thumbnailUrl: current.thumbnailUrl,
                 isPlaying: self.isPlaying, position: self.position)
             self.nowPlaying.updateCommands(canNext: self.nextEntry != nil, canPrevious: true, canSeek: true)
