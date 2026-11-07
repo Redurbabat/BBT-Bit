@@ -120,3 +120,5 @@ Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` pr
 | `FEHLGESCHLAGEN` | Der Befehl oder die beobachtete Interaktion ist mit Fehlerbeleg erfasst. |
 
 GitHub Actions liefert getrennte Job- bzw. Schrittresultate. Pflichtprüfungen bleiben bei Fehlern sichtbar. Ein optionaler, übersprungener oder ausgefilterter Lauf braucht einen eigenen Vermerk im Review.
+
+| SideStore-Testsystem | `python scripts/ios-test-verify/check.py`, danach erfolgreicher Lauf von `ios-sidestore-test.yml` und [Installation/Update am iPhone](IPHONE_TESTSYSTEM.md). | Fixtures prüfen Konfiguration und Paketfehler. Die echte IPA wird auf Gerätearchitektur, Revision, Frameworks und Identität geprüft. Signierung, Installation, Datenbestand und Audio haben eigene Abnahmen. |
