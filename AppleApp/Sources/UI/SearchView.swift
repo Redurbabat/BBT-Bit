@@ -181,6 +181,7 @@ private struct MacToolbarSearchField: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
+                .accessibilityIdentifier("bbt.search.clear")
             }
         }
         .padding(.horizontal, 10)
@@ -290,6 +291,7 @@ private struct TopRow<Row: View>: ViewModifier {
     }
 }
 
+
 private struct CompactPhoneSearchDrawer: ViewModifier {
     let isCompact: Bool
     @Binding var query: String
@@ -322,6 +324,7 @@ struct SearchView: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(AuthController.self) private var auth
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #if os(macOS)
     /// Settings is a scene on the Mac, not an in-app cover.
     @Environment(\.openSettings) private var openSettings
@@ -621,8 +624,13 @@ struct SearchView: View {
     private func focusTheField() {
         #if os(iOS)
         if horizontalSizeClass == .regular {
-            // The pill's field only exists once it is open; opening focuses it.
-            setIPadSearchExpanded(true)
+            // Beim erneuten Antippen darf ein bereits offenes iPad-Suchfeld
+            // nicht an der No-op-Prüfung des Pill-State hängenbleiben.
+            if pillOpen {
+                Task { @MainActor in searchFieldFocused = true }
+            } else {
+                setIPadSearchExpanded(true)
+            }
             return
         }
         #endif
@@ -681,10 +689,19 @@ struct SearchView: View {
         guard wanted != appModel.iPadSearchExpanded || wanted != pillOpen else { return }
         pillGeneration &+= 1
         let generation = pillGeneration
-        guard animated else {
+        guard animated && !reduceMotion else {
             pillOpen = wanted
             pillRoomy = wanted
             appModel.iPadSearchExpanded = wanted
+            // Bei Reduce Motion keine künstliche Ausklapp-Animation;
+            // das Feld nach der nächsten Layout-Aktualisierung fokussieren.
+            if wanted && focus {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(60))
+                    guard generation == pillGeneration else { return }
+                    searchFieldFocused = true
+                }
+            }
             return
         }
         Task { @MainActor in
@@ -862,18 +879,15 @@ struct SearchView: View {
             } else if !query.isEmpty {
                 List {
                     if let top = topResult {
-                        // Its own section, with the row chrome taken off, so the
-                        // card scrolls away with the results rather than sitting
-                        // above a second scroll view — two independent scrollers on
-                        // one screen is a thing people fight with.
-                        Section {
-                            TopResultSection(hit: top, scope: scope) { term in
-                                query = term
-                            }
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                        // Eine normale Listenzeile statt einer eigenen Section:
+                        // die Section-Ränder des Systems erzeugten die große
+                        // Lücke zwischen Top-Ergebnis und den Songs.
+                        TopResultSection(hit: top, scope: scope) { term in
+                            query = term
                         }
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 4, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     }
                     ForEach(sections) { sec in
                         if let title = sec.title {
@@ -913,6 +927,9 @@ struct SearchView: View {
                     }
                 }
                 .listStyle(.plain)
+                // Top-Ergebnis und Songliste gehören zu einem zusammenhängenden
+                // Ergebnisstrom: keine große Systemlücke zwischen den Sections.
+                .listSectionSpacing(.compact)
                 .listSectionSeparator(.hidden)
                 .scrollContentBackground(.hidden)
                 // Upstream's `scrollResetTrigger`: one list whose contents change,
@@ -1556,7 +1573,7 @@ struct SearchView: View {
                             generator.prepare()
                             generator.selectionChanged()
                             #endif
-                            withAnimation(.snappy(duration: 0.25)) {
+                            withAnimation(reduceMotion ? nil : .snappy(duration: 0.25)) {
                                 scope = entry
                             }
                         }
