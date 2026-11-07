@@ -50,6 +50,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile and test network error handling
         run: bash scripts/check-network-errors.sh
+      - name: Parse App-wide Testzentrale and model loader Swift syntax
+        run: |
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixLiveTestView.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Playback.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixModelsSheet.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/AutomixModelLoader.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+AutomixState.swift
       - name: Verify Google sign-in browser device identity
         run: bash scripts/check-signin-device.sh
       - name: Validate release shell scripts
