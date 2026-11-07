@@ -182,6 +182,19 @@ extension SettingsView {
                 }
             }
         }
+        rows.row("Automix-Livetest", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang") {
+            PushLink {
+                AutomixLiveTestView()
+            } label: {
+                SettingsLine(
+                    glyph: .automix,
+                    title: "Automix-Livetest",
+                    subtitle: "KI-Modelle und echte Übergänge während der Wiedergabe testen"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
         rows.row("Automix Models", "models", "model", "onnx", "beat", "downbeat", "vocal", "install", "download models") {
             PushLink {
                 AutomixModelsPage()

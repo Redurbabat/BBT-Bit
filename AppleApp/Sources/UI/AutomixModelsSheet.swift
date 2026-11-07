@@ -674,6 +674,11 @@ struct AutomixModelsPage: View {
     var body: some View {
         Form {
             Section {
+                NavigationLink("Automix-Livetest öffnen") { AutomixLiveTestView() }
+            } footer: {
+                Text("Prüfe hier während der normalen Wiedergabe, welche Modelle wirklich verwendet werden.")
+            }
+            Section {
                 ForEach(AutomixModelStore.ModelID.allCases) { id in
                     AutomixModelRow(id: id, store: store)
                 }
