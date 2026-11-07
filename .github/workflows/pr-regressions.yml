@@ -65,3 +65,7 @@ jobs:
           bash -n scripts/check-network-errors.sh
           bash -n scripts/check-signin-device.sh
           bash -n scripts/package-ios-ipa.sh
+      - name: Check RED-Morph-Quellinvarianten (ohne Apple-Build)
+        run: python3 scripts/check-red-morph-source.py
+      - name: Check native Dynamic Island / Now Playing (ohne Apple-Build)
+        run: python3 scripts/check-native-island-source.py
