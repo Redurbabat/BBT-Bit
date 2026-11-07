@@ -16,6 +16,7 @@ object QueueBuilderBridge {
     private val sessionIds = mutableSetOf<String>()
     // Auch angebotene, nicht nur abgespielte Titel gelten im Original als gesehen.
     private val sessionSuggestions = mutableListOf<Song>()
+    private val sessionPlayedSongs = mutableListOf<Song>()
     private var generation = Innertube.sessionGeneration
 
     private fun checkSession() {
@@ -23,6 +24,7 @@ object QueueBuilderBridge {
         if (generation != current) {
             sessionIds.clear()
             sessionSuggestions.clear()
+            sessionPlayedSongs.clear()
             generation = current
         }
     }
@@ -35,6 +37,26 @@ object QueueBuilderBridge {
     fun clearSession() {
         sessionIds.clear()
         sessionSuggestions.clear()
+        sessionPlayedSongs.clear()
+    }
+
+    /** Bei tatsächlicher Wiedergabe auch die Aufnahmeidentität merken. */
+    fun rememberPlayedSongJson(songJson: String) {
+        checkSession()
+        runCatching { json.decodeFromString(Song.serializer(), songJson) }.getOrNull()?.let { song ->
+            sessionIds += song.videoId
+            if (sessionPlayedSongs.none { it.videoId == song.videoId }) sessionPlayedSongs += song
+        }
+    }
+
+    /** Erst nach lokalem Queue-Append oder bestätigtem Party-Server-Echo aufrufen. */
+    fun rememberSuggestedJson(songsJson: String) {
+        checkSession()
+        if (!AppSettings.dontRepeatSuggestions.value) return
+        val suggested = runCatching { json.decodeFromString(songs, songsJson) }.getOrDefault(emptyList())
+        for (song in suggested) {
+            if (sessionSuggestions.none { it.videoId == song.videoId }) sessionSuggestions += song
+        }
     }
 
     fun extendJson(existingJson: String, candidatesJson: String, limit: Int, preferVideos: Boolean = false): String {
@@ -49,9 +71,12 @@ object QueueBuilderBridge {
         }
         // Die Seed-Aufnahme muss am Ende bleiben: QueueBuilder leitet daraus
         // die höhere Künstlerobergrenze ab. Frühere Empfehlungen stehen davor.
-        val history = if (AppSettings.dontRepeatSuggestions.value) sessionSuggestions else emptyList()
+        val history = if (AppSettings.dontRepeatSuggestions.value) {
+            sessionPlayedSongs + sessionSuggestions
+        } else emptyList()
         val extra = QueueBuilder.extend(history + existing, filtered, limit, preferVideos)
-        if (AppSettings.dontRepeatSuggestions.value) sessionSuggestions += extra
+        // Eine Suche ist noch kein angenommener Queue-Batch. Erst der
+        // bestätigte Append merkt die Empfehlungen über diesen Aufruf hinaus.
         return json.encodeToString(songs, extra)
     }
 }

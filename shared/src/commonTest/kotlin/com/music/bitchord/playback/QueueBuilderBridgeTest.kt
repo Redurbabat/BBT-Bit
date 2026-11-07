@@ -13,9 +13,12 @@ class QueueBuilderBridgeTest {
             val kept = """[{"videoId":"seed","title":"Seed","artist":"Seed Artist"},{"videoId":"manual","title":"Manual","artist":"Manual Artist"}]"""
             val candidates = """[{"videoId":"manual","title":"Manual","artist":"Manual Artist"},{"videoId":"fresh","title":"Fresh","artist":"New Artist"},{"videoId":"fresh-copy","title":"Fresh (Official Audio)","artist":"New Artist"}]"""
             fun ids(json: String) = Json.parseToJsonElement(json).jsonArray.map { it.jsonObject.getValue("videoId").jsonPrimitive.content }
+            val offered = QueueBuilderBridge.extendJson(kept, candidates, 8)
+            assertEquals(listOf("fresh"), ids(offered))
+            // Vor dem tatsächlichen Anhängen darf ein fehlgeschlagener
+            // Server-Queue-Batch die Session-Historie noch nicht verändern.
             assertEquals(listOf("fresh"), ids(QueueBuilderBridge.extendJson(kept, candidates, 8)))
-            // Im Original zählt auch eine angebotene, ungespielte Empfehlung
-            // schon als gesehen – sie darf nicht erneut vorgeschlagen werden.
+            QueueBuilderBridge.rememberSuggestedJson(offered)
             assertTrue(ids(QueueBuilderBridge.extendJson(kept, candidates, 8)).isEmpty())
             QueueBuilderBridge.rememberPlayed("fresh")
             assertTrue(ids(QueueBuilderBridge.extendJson(kept, candidates, 8)).isEmpty())
@@ -52,9 +55,35 @@ class QueueBuilderBridgeTest {
             fun ids(value: String) = Json.parseToJsonElement(value).jsonArray.map {
                 it.jsonObject.getValue("videoId").jsonPrimitive.content
             }
-            assertEquals(listOf("one"), ids(QueueBuilderBridge.extendJson(existing, candidates, 1)))
-            assertEquals(listOf("two"), ids(QueueBuilderBridge.extendJson(existing, candidates, 1)))
+            val first = QueueBuilderBridge.extendJson(existing, candidates, 1)
+            assertEquals(listOf("one"), ids(first))
+            QueueBuilderBridge.rememberSuggestedJson(first)
+            val second = QueueBuilderBridge.extendJson(existing, candidates, 1)
+            assertEquals(listOf("two"), ids(second))
+            QueueBuilderBridge.rememberSuggestedJson(second)
             assertTrue(ids(QueueBuilderBridge.extendJson(existing, candidates, 1)).isEmpty())
+        } finally {
+            QueueBuilderBridge.clearSession()
+            AppSettings.setDontRepeatSuggestions(original)
+        }
+    }
+
+
+    @Test fun playedRecordingFiltersVideoTwinByTitleAndArtist() {
+        val original = AppSettings.dontRepeatSuggestions.value
+        try {
+            AppSettings.setDontRepeatSuggestions(true)
+            QueueBuilderBridge.clearSession()
+            QueueBuilderBridge.rememberPlayedSongJson(
+                """{"videoId":"played-video","title":"New Track (Official Video)","artist":"Band"}"""
+            )
+            val existing = """[{"videoId":"seed","title":"Seed","artist":"Other"}]"""
+            val candidates = """[{"videoId":"audio-twin","title":"New Track","artist":"Band"},
+                {"videoId":"other","title":"Other Title","artist":"Other"}]"""
+            val ids = Json.parseToJsonElement(
+                QueueBuilderBridge.extendJson(existing, candidates, 10)
+            ).jsonArray.map { it.jsonObject.getValue("videoId").jsonPrimitive.content }
+            assertEquals(listOf("other"), ids)
         } finally {
             QueueBuilderBridge.clearSession()
             AppSettings.setDontRepeatSuggestions(original)
