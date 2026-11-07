@@ -1,6 +1,196 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Search artists, songs and lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Künstler, Songs und Songtexte suchen"
+          }
+        }
+      }
+    },
+    "Clear search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche löschen"
+          }
+        }
+      }
+    },
+    "Music tools": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musik-Werkzeuge"
+          }
+        }
+      }
+    },
+    "Audio tools": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio-Werkzeuge"
+          }
+        }
+      }
+    },
+    "Audio pipeline": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio-Pipeline"
+          }
+        }
+      }
+    },
+    "Disable Automix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix ausschalten"
+          }
+        }
+      }
+    },
+    "Enable Automix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix einschalten"
+          }
+        }
+      }
+    },
+    "More player tools": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehr Player-Werkzeuge"
+          }
+        }
+      }
+    },
+    "Automix running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix läuft"
+          }
+        }
+      }
+    },
+    "Automix transition running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix-Übergang läuft"
+          }
+        }
+      }
+    },
+    "Automix transition planned": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix-Übergang geplant"
+          }
+        }
+      }
+    },
+    "Planned transition": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übergang geplant"
+          }
+        }
+      }
+    },
+    "Open real Automix transition details": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet Details zum echten Automix-Übergangsfenster"
+          }
+        }
+      }
+    },
+    "Transition running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übergang läuft"
+          }
+        }
+      }
+    },
+    "Next transition": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Übergang"
+          }
+        }
+      }
+    },
+    "Time window": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitfenster"
+          }
+        }
+      }
+    },
+    "Progress": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt"
+          }
+        }
+      }
+    },
+    "Analysis": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse"
+          }
+        }
+      }
+    },
+    "Search source": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchquelle"
+          }
+        }
+      }
+    },
     "1": {},
     "": {},
     "%@": {},
