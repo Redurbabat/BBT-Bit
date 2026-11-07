@@ -81,8 +81,8 @@ final class AutomixModelStore {
             detail: "Beat This! reads the beat grid and downbeats, so transitions land on the music rather than near it.",
             byteCount: 23_478_460,
             sha256: "9f10e5efa37d3e120da2121141825fe54b23b487b32dd25a54f89039fd8f85cb",
-            // The owner's release asset; the tag is the pin, not a branch.
-            url: URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx")!
+            // Public upstream asset: private BBT-Bit releases return 404 on iPhones.\n            // The exact bytes are secured by the pinned size and SHA-256.
+            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx")!
         )
 
         // Core ML compilation of the same Beat This! final0 checkpoint (CPJKU,
@@ -96,8 +96,8 @@ final class AutomixModelStore {
             detail: "Runs the same Beat This! model on the Neural Engine, several times faster than the CPU path. Requires the beat model.",
             byteCount: 18_818_981,
             sha256: "4f545c60ac59282bd8601104a94ff4123f5304d4e5e233311f6ec67243975fff",
-            // The owner's release asset; the tag is the pin, not a branch.
-            url: URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar")!
+            // Public upstream asset: private BBT-Bit releases return 404 on iPhones.\n            // The exact bytes are secured by the pinned size and SHA-256.
+            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar")!
         )
 
         /// The compiled bundle this archive yields. Kept next to the archive so
@@ -118,8 +118,8 @@ final class AutomixModelStore {
             detail: "open-unmix reads how much singing is in each moment, so Automix can keep two vocals from overlapping.",
             byteCount: 23_209_009,
             sha256: "7eba6bebce0cc2e2d3b5c0e490a8074e66ce27f64170c6802b245740dcaf21ef",
-            // The owner's release asset; the tag is the pin, not a branch.
-            url: URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx")!
+            // Public upstream asset: private BBT-Bit releases return 404 on iPhones.\n            // The exact bytes are secured by the pinned size and SHA-256.
+            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx")!
         )
     }
 
