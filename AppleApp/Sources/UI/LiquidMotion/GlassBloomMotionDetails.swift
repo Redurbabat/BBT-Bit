@@ -85,7 +85,7 @@ struct GlassBloomSignalBars: View {
         HStack(alignment: .center, spacing: 3) {
             ForEach(0..<4, id: \.self) { index in
                 Capsule()
-                    .fill(playing ? Color.cyan : Color.secondary)
+                    .fill(playing ? Color.primary : Color.secondary)
                     .frame(width: 2.7, height: rising ? high[index] : low[index])
             }
         }
@@ -120,7 +120,7 @@ struct GlassBloomStatusRow: View {
             Spacer(minLength: 8)
             Image(systemName: "sparkle")
                 .font(.caption2.weight(.medium))
-                .foregroundStyle(.cyan.opacity(0.78))
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity)

@@ -34,21 +34,27 @@
 
 ## Umsetzung in dieser PR
 
-### 1. Cover-linked Mini Glass
-Die bestehende `PlaybackPill` bleibt mit ihrem **echten**
-`PlaybackController` verbunden. Hinter der iPhone-Pill liegt ein
-`CoverMorphMiniSurface`, dessen Cyan/Violett/Album-Farbverlauf
-über `ArtworkPalette.pageTint` aus dem **wirklichen Albumcover**
-abgeleitet wird. Wenn Bilddaten nicht eingebettet sind, nutzt das
-UI `ArtworkCache.shared.load` und aktualisiert den Ton sanft.
+### 1. Natives Liquid Glass am Mini-Player (Nutzerkorrektur 7. November)
+Die `PlaybackPill` bleibt mit dem **echten**
+`PlaybackController` verbunden. Nach dem iPhone-Screenshot und der
+ausdrücklichen Designentscheidung wurde der frühere
+`CoverMorphMiniSurface`-Farbverlauf **aus der Mini-Pill entfernt**:
+Keine goldenen, violetten oder cyanfarbenen Hintergrundschichten hinter
+den Bedienelementen. Auf iOS 26+ zeichnet die systemeigene
+`TabViewBottomAccessory` ihr Liquid Glass selbst. iPad und macOS
+haben eine einzelne native Glasfläche; ältere Systeme und
+Barrierefreiheit erhalten eine semantische, ausreichend kontrastreiche
+Fallback-Fläche.
 
-Keine erfundenen Songtitel, Farben für neue Songs oder Audiofortschritte.
+`CoverMorphMiniSurface` bleibt vorerst als historischer, ungenutzter
+Baustein erhalten; seine Farben werden **nicht mehr** in den sichtbaren
+Mini-Player eingeblendet. Keine erfundenen Songtitel oder Audiofortschritte.
 
-### 2. Eine Farbwelt bis zum Vollbild
-`CoverMorphFullBackdrop` nutzt denselben Artwork-Cache und dieselben
-Bilddaten für den vorhandenen `MeshBackdrop`. So ist die obere
-Cover-Ansicht nicht mit einem Zufalls-/Hash-Farbton hinterlegt, wenn
-nur das Vorschaubild verfügbar war.
+### 2. Cover-Farben nur im Vollbild
+`CoverMorphFullBackdrop` nutzt weiterhin den echten Artwork-Cache
+und den vorhandenen `MeshBackdrop`. Der Vollbild-Player kann aus
+dem Cover passende Farben beziehen, **nicht** aber die System-Glasflächen
+der Music Island, Tab-Leiste oder Mini-Pill.
 
 ### 3. System-eigener Zoom bleibt die Quelle der Bewegung
 Die `PlaybackPill` ist unverändert `matchedTransitionSource`;
@@ -67,8 +73,9 @@ entschlüsselt oder geladen wurde.
 - Reduce Transparency / `reduce_dynamic_blur`: keine zusätzliche
   leuchtende, farbige Mini-Pill.
 - Reduce Motion und Stromsparmodus: keine unendliche Driftbewegung.
-- Weißes Text-/Transportkontrast-Design nur auf kompaktem iPhone
-  mit Artwork-Tint; iPad und macOS behalten die etablierte Optik.
+- Systemweite `.primary`-/`.secondary`-Textfarben für die neutrale
+  Mini-Pill und die appinterne Music Island; kein festes Weiß über
+  einer farbigen Album-Tönung.
 - Keine Audiozeit/Progressbar erfinden: der dünne Fortschrittsbalken
   wird ausschließlich mit `controller.position/controller.duration`
   berechnet, falls eine echte Dauer vorhanden ist.
@@ -78,19 +85,19 @@ entschlüsselt oder geladen wurde.
 ## Test auf dem echten iPhone
 
 1. Eine **signierte** BBT-Bit-IPA dieses Branches installieren.
-2. Einen ausgewählten Song öffnen; der untere Mini-Player soll
-   die Farben seines Covers übernehmen (funktioniert auch dann,
-   wenn die Netzwerk-Wiedergabe zurzeit fehlschlägt).
+2. Einen ausgewählten Song mit einem gelb/goldenen oder violetten
+   Cover öffnen: Der Mini-Player muss **neutrales Liquid Glass** zeigen,
+   unabhängig von der Cover-Farbe. Bei reduzierter Transparenz opak.
 3. Zwischen Start, Entdecken und Bibliothek wechseln:
    mini-player bleibt unten sichtbar.
 4. **Unteres Albumcover/Titel antippen** oder Pill nach oben wischen:
    Vollbild öffnet mit Zoom aus derselben Kapsel.
 5. **Am oberen Griff nach unten ziehen**: der Player fließt wieder
    zur unteren Kapsel.
-6. Vergleichen: Farbe von Mini-Kapsel und Vollbild-Hintergrund
-   gehören zum **selben** Cover.
-7. Anderes Lied wählen: Farbwechsel, Coverwechsel; keine alte
-   Coverfarbe zurücklassen.
+6. Vergleichen: Das Vollbild darf die Cover-Palette verwenden; die
+   Mini-Kapsel bleibt bewusst **systemneutral**.
+7. Anderes Lied wählen: Das Artwork wechselt, ohne dass die neutrale
+   Glasfläche neue Cover-Farben annimmt.
 8. „Bewegung reduzieren“, „Transparenz reduzieren“ und
    Stromsparmodus separat aktivieren.
 9. Gesondert prüfen: Wird echte YouTube-Audiozeit fortgeschrieben?
@@ -99,8 +106,9 @@ entschlüsselt oder geladen wurde.
 ## Einschränkung
 
 Nicht Pixel-für-Pixel oder mit übernommener Grafik einer fremden App
-kopiert; es sind die **Bewegungsprinzipien und das Farberlebnis**
-nachgebildet. Die UI-Änderungen reparieren nicht den separaten
+kopiert; die **Bewegungsprinzipien** bleiben erhalten. Das frühere
+coverabhängige Farberlebnis der Mini-Pill wurde durch neutrales
+Apple-Liquid-Glass ersetzt. Die UI-Änderungen reparieren nicht den separaten
 `No playable stream`-Fehler aus dem 4.-November-Gerätebericht.
 
 Alle Änderungen in einem **separaten Draft-PR nur gegen Review-Branch**.
