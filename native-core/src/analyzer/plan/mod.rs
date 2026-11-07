@@ -362,10 +362,16 @@ fn log_plan(outgoing: &Analysis, incoming: &Analysis, plan: &TransitionPlan, tie
 /// on whether downloads exist. The source strings are used for diagnostics;
 /// they never contain paths, song identifiers, or authentication material.
 fn analysis_live_source(analysis: &Analysis) -> String {
-    let base = if analysis.analysis_source.is_empty() {
-        "dsp"
-    } else {
-        &analysis.analysis_source
+    // Only allow known diagnostic labels into the user-shareable report.
+    // Overlay providers may supply arbitrary free-text source identifiers:
+    // never copy them into a privacy-minimal on-device export.
+    let base = match analysis.analysis_source.as_str() {
+        "" | "dsp" => "dsp",
+        "beat_this" => "beat_this",
+        "music_understanding" => "music_understanding",
+        "beat_this+music_understanding" => "beat_this+music_understanding",
+        "disk_cache" => "disk_cache",
+        _ => "other",
     };
     let mut source = base.to_string();
     match analysis.beat_backend.as_str() {
@@ -401,6 +407,11 @@ mod live_source_test {
         };
         assert_eq!(analysis_live_source(&coreml_and_vocals),
             "beat_this [beat:coreml] [vocals:open_unmix]");
+        let untrusted = Analysis {
+            analysis_source: "/private/Users/listener/track.mp3".into(),
+            ..Analysis::default()
+        };
+        assert_eq!(analysis_live_source(&untrusted), "other");
     }
 }
 
