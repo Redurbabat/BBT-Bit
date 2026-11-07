@@ -95,6 +95,19 @@ enum PlaybackQueuePolicy {
     }
 }
 
+/// BitChord v1.9.1: 2 s einmalige Leerantwort-Wiederholung, danach alle
+/// 15 s ein Watchdog mit einem früheren Queue-Titel als Radio-Startpunkt.
+enum AutoplayEmptyPolicy {
+    static func waitSeconds(forFailureCount failures: Int) -> Int {
+        failures <= 1 ? 2 : 15
+    }
+
+    static func seedIndex(currentIndex: Int, failureCount: Int) -> Int {
+        let behind = max(0, failureCount - 1)
+        return currentIndex - behind >= 0 ? currentIndex - behind : currentIndex
+    }
+}
+
 /// Derived sorting does not change this context. A user queue edit, selection,
 /// repeat policy or account change invalidates a recommendation response.
 struct AutoplayRefreshState {
