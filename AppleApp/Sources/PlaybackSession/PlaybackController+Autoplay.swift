@@ -145,6 +145,7 @@ extension PlaybackController {
                 }
                 self.autoplayRefresh.noteFilled()
                 self.queue = PlaybackQueuePolicy.appendingFill(kept, extras: ordered)
+                self.rememberQueuedRecommendations(ordered)
                 self.persistSession()
                 self.syncEngineQueueNext()
                 self.scheduleSequencing()
@@ -187,6 +188,7 @@ extension PlaybackController {
                     with: Set(state.queue.items.map(\.videoId))
                 ) {
                     self.partyAutoplayPendingIDs = []
+                    self.rememberQueuedRecommendations(fresh)
                     self.autoplayRefresh.noteFilled()
                     return
                 }
@@ -196,6 +198,15 @@ extension PlaybackController {
             self?.partyAutoplayPendingIDs = []
             self?.autoplayRefresh.invalidate()
         }
+    }
+
+    /// Erst nachdem die Queue lokal bzw. auf dem Party-Server bestätigt wurde,
+    /// zählen Vorschläge für die Option „Nicht erneut empfehlen“ als angeboten.
+    private func rememberQueuedRecommendations(_ entries: [QueueEntry]) {
+        guard !entries.isEmpty,
+              let data = try? JSONEncoder().encode(entries.map { $0.asSongJSON() }),
+              let json = String(data: data, encoding: .utf8) else { return }
+        QueueBuilderBridge.shared.rememberSuggestedJson(songsJson: json)
     }
 
     private func fetchRecommendations(videoId: String, preferVideo: Bool, response: @escaping (String?, String?) -> Void) {

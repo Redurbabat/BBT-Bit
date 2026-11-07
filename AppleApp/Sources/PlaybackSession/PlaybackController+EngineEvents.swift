@@ -107,6 +107,12 @@ extension PlaybackController {
             PlaybackTrackerBridge.shared.onTrackChanged(positionSeconds: Int64(outgoingPosition))
             if let id = historyVideoID {
                 QueueBuilderBridge.shared.rememberPlayed(videoId: id)
+                // Original: auch bei manuell gestarteten Aufnahmen ein
+                // anderes YouTube-ID-Pendant derselben Aufnahme vermeiden.
+                if let data = try? JSONEncoder().encode(entry.asSongJSON(videoIDOverride: id)),
+                   let json = String(data: data, encoding: .utf8) {
+                    QueueBuilderBridge.shared.rememberPlayedSongJson(songJson: json)
+                }
                 PlaybackTrackerBridge.shared.onPlaying(videoId: id)
             }
             publishPresence()
