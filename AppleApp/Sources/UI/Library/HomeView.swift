@@ -288,7 +288,7 @@ struct RecentShelf: View {
     /// points, and the heroes drew straight through the shelf below.
     @State private var gridWidth: CGFloat = 0
 
-    private var isList: Bool { viewType.uppercased() != "GRID" }
+    private var isList: Bool { viewType.uppercased() == "LIST" }
 
     /// Upstream's hero width: 70% of the row, capped at 320.
     private var heroSide: CGFloat {
