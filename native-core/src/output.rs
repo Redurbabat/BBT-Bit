@@ -147,6 +147,9 @@ impl OutputControl {
         self.idle_release_generation.fetch_add(1, Ordering::AcqRel);
         let _rebuild = self.rebuild_lock.lock().unwrap();
         if !self.exclusive_suspended.load(Ordering::Acquire) {
+            if self.stream.lock().unwrap().is_none() {
+                return Err(EngineError::NotStarted);
+            }
             self.output_paused.store(false, Ordering::Release);
             return Ok(());
         }

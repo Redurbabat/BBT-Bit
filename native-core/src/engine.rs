@@ -649,11 +649,13 @@ impl PlayerEngine {
             // Resume keeps the stream's existing consumer and decoded ring.
             // A route or DAC format changed in the meantime is an error,
             // never a silently mislabeled bit-perfect success.
-            if let Some(control) = self.control.lock().unwrap().clone() {
-                control.resume_exclusive_idle_output()?;
-            } else {
-                self.output_paused.store(false, Ordering::Release);
-            }
+            let control = self
+                .control
+                .lock()
+                .unwrap()
+                .clone()
+                .ok_or(EngineError::NotStarted)?;
+            control.resume_exclusive_idle_output()?;
         }
         #[cfg(not(any(target_os = "ios", target_os = "macos")))]
         self.output_paused.store(false, Ordering::Release);
