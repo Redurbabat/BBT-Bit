@@ -313,6 +313,9 @@ final class PlaybackController {
     /// `id` of the track that was current when [repeatAllStash] was taken.
     var repeatAllStashSeed: String?
     @ObservationIgnored var autoplayRefresh = AutoplayRefreshState()
+    // Wartet auf die Rückmeldung des Party-Servers, bevor neu aufgefüllt wird.
+    @ObservationIgnored var partyAutoplayPendingIDs: Set<String> = []
+    @ObservationIgnored var partyAutoplayEchoTask: Task<Void, Never>?
     @ObservationIgnored var queueEditRevision: UInt64 = 0
     @ObservationIgnored var sequencingTask: Task<Void, Never>?
     @ObservationIgnored var sequencingGeneration: UInt64 = 0

@@ -98,6 +98,16 @@ extension PlaybackController {
     }
 
     func toggleAutoplay() {
+        let party = PartyStore.shared.state
+        if party.inParty {
+            // Original: Die Party-Einstellung wird vom Server geteilt.
+            // Ein gesperrtes Mitglied ändert die lokale Vorgabe nicht.
+            guard party.canControl else { return }
+            if PartyCoordinator.shared.setAutoplay(enabled: !party.playback.autoplayEnabled) {
+                autoplayRefresh.invalidate()
+            }
+            return
+        }
         autoplayEnabled.toggle()
         AppSettings.shared.setAutoplay(value: autoplayEnabled)
         if !autoplayEnabled {

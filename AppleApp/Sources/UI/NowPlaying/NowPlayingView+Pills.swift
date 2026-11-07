@@ -290,18 +290,18 @@ extension NowPlayingView {
             pillDivider
 
             Button {
-                Haptics.play(controller.autoplayEnabled ? .toggleOff : .toggleOn)
+                Haptics.play(controller.effectiveAutoplayEnabled ? .toggleOff : .toggleOn)
                 controller.toggleAutoplay()
             } label: {
                 Image(.bchInfinity)
                     .resizable().scaledToFit()
                     .frame(width: 22, height: 22)
-                    .foregroundStyle(.white.opacity(controller.autoplayEnabled ? 1 : 0.75))
+                    .foregroundStyle(.white.opacity(controller.effectiveAutoplayEnabled ? 1 : 0.75))
                     .frame(width: 52, height: 44)
-                    .background(.white.opacity(controller.autoplayEnabled ? 0.14 : 0))
+                    .background(.white.opacity(controller.effectiveAutoplayEnabled ? 0.14 : 0))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(controller.autoplayEnabled ? "AutoPlay on" : "AutoPlay off")
+            .accessibilityLabel(controller.effectiveAutoplayEnabled ? "AutoPlay on" : "AutoPlay off")
 
             pillDivider
 

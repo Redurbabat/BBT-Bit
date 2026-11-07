@@ -111,7 +111,7 @@ struct UpNextPane: View {
                             .onMove { source, dest in move(source, dest, rows: manualUpcoming) }
                             .onDelete { offsets in remove(offsets, rows: manualUpcoming) }
                         }
-                        if controller.autoplayEnabled || !autoplayUpcoming.isEmpty {
+                        if controller.effectiveAutoplayEnabled || !autoplayUpcoming.isEmpty {
                             HStack(spacing: 8) {
                                 Image(.bchInfinity)
                                     .resizable()

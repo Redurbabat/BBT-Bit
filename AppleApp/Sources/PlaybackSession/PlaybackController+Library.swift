@@ -109,8 +109,15 @@ extension PlaybackController {
         return entry.isLocal ? DownloadStore.shared.selectedYouTubeVideoId(for: entry.source) : nil
     }
 
+    /// In einer Party gilt der gemeinsame AutoPlay-Wert statt der lokalen Option.
+    var effectiveAutoplayEnabled: Bool {
+        PartyAutoplayRules.shared.enabled(
+            party: PartyStore.shared.state, localPreference: autoplayEnabled
+        )
+    }
+
     var recommendationContext: AutoplayRefreshState.Context? {
-        guard autoplayEnabled, repeatMode != .all, let current,
+        guard effectiveAutoplayEnabled, repeatMode != .all, let current,
               let id = youtubeVideoID(for: current), state != .stopped else { return nil }
         return .init(
             source: "yt:\(id)", index: playingIndex, playbackGeneration: playGeneration,
