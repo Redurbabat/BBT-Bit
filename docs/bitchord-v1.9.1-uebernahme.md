@@ -1,6 +1,6 @@
 # BitChord v1.9.1 → BBT-Bit: Übernahme und Konfliktentscheidungen
 
-Stand: 2026-11-06. Ausgangsbasis für BBT-Bit: `main` bei `c2cf0a961f6a5d8a6a21308745d9dd187e11bbc7`.
+Stand: 2026-11-07. Ausgangsbasis für BBT-Bit: `main` bei `c2cf0a961f6a5d8a6a21308745d9dd187e11bbc7`.
 Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder Merge nach `main` ohne ausdrückliche Freigabe.**
 
 ## Umfang und Quellen
@@ -21,7 +21,7 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 | `squareVideoThumbnails` | AUSSTEHEND | Video-Identifikation und Artwork-Sizing in SwiftUI sauber definieren |
 | Prefer Music Only / Video→Audio | **FREIGEGEBEN, TEILWEISE PORTIERT** | Nutzerentscheidung: Originalverhalten. Der native Resolver wartet jetzt maximal 15 Sekunden, startet den Original-YouTube-Fallback nur nach Miss/Timeout/Identitätsfehler und scheitert nicht mehr an unnötiger Videoauflösung bei verifizierter Audioquelle. Die echte Audio-Song-ID einschließlich Queue-/Now-Playing-Metadaten und Konvertierung des nächsten Songs sind **noch nicht portiert**. |
 | Autoplay / Empfehlungen / Recents | **ENTSCHIEDEN B / CODE TEILPORTIERT** | v1.9.1-Verhalten für 10er-Tail, Audio-/Video-Radios, gemeinsame Party-Einstellung, Lieferantenwahl, Aufnahme-Deduplikation, Retry/Watchdog und Server-Queue portiert. Nicht vollständig abgenommen: Modul-Track-Seed und Echtgerät/CI fehlen. |
-| Crossfade, Automix-Vorschau | **DOPPELT/TEILWEISE** | Rust-Mixer und native Automix-Details mit neuem Originalverhalten vergleichen; Nutzerentscheidung zu UI-Variante |
+| Crossfade, Automix-Vorschau | **ENTSCHIEDEN B – RUST-TEILPORTIERUNG** | Original-BitChord v1.9.1 als Ziel: bestehender Rust-Parallelmixer mit Equal-Power, Beatmatching und Filterkurven bleibt einzige Audio-Engine. Original-Headroom-Trim `1/√(gainIn+gainOut)` plus sampleweise geglätteter gemeinsamer Bus-Pegel und 2 neue Rust-Regressionen ergänzt; ursprünglicher `CrossfadeController`-Diff ist überwiegend vorauseilende Mix-Preview mit Waveform-Retry. Noch offen: tatsächlicher Mid-Fade-Metadaten-Handoff, native Mix-Popup-Vorschau mit Wellenformen, Tests/Build/Abnahme. |
 | SourceResolver, Song-Matching, StreamLengthProbe | AUSSTEHEND – priorisiert | Gemeinsamer Kotlin-Resolver, Streamdauer, Titel/Künstler/Album-Matching und realistische Tests; `NO_PLAYABLE_STREAM` getrennt nachweisen |
 | AddonAuth / Addon-Qualitätswahl | AUSSTEHEND – Sicherheitsreview | Keine unverschlüsselten Tokens, keine Bypass-Implementierung; iOS Keychain und Add-on-Protokoll prüfen |
 | Bit-perfect Pause/Resume | PLATTFORMANPASSUNG | Android-AudioSink/USB-Code nicht übernehmen; relevante Fehlerszenarien für Rust/Apple-Audio testen |
@@ -80,6 +80,24 @@ Am 07.11.2026 wurde **B: Verhalten von Original-BitChord v1.9.1 übernehmen** ge
 
 **Noch offen für Originalparität und Abnahme:** Ein Modul-Track ohne YouTube-ID muss wie upstream durch geprüfte Song-Suche auf einen YouTube-Seed aufgelöst werden; realer Party-Server-Echo-/Rejoin-Test, Stream-/Decoder-/Echtgerät-Audio, vollständige Swift-/Kotlin-Kompilierung und fehlgeschlagene CI-Jobs. Dieser Code ist **kein nachgewiesener funktionierender Player**. Die Tests sind erst als bestanden zu bezeichnen, wenn sie tatsächlich ausgeführt wurden.
 
+## Portierungsschritt 5: Automix / Crossfade – Nutzerentscheidung B
+
+**Freigabe 07.11.2026:** Der Ablauf von BitChord v1.9.1 soll in BBT-Bit mit SwiftUI und der **einzigen** vorhandenen Rust-Audio-Engine umgesetzt werden. `main`, RED Morph und die Branches anderer Agenten bleiben unangetastet.
+
+### Code im Feature-Branch (nicht gebaut)
+
+- Der Mixer nutzt bereits **zwei simultane Rust-Voices** mit getrennten Decodern, `sin/cos`-Equal-Power-Fades, geplanten Cue-Punkten, DSP-Filtern, Tempoanpassung und True-Peak-Protector. Kein Android-ExoPlayer-Code wurde in Swift/Rust kopiert.
+- Neu: BitChords **Blend-Headroom** `1 / sqrt(incomingGain + outgoingGain)` wird auf den gemeinsam gemischten Stereo-Bus **vor** EQ und True-Peak-Protector angewendet, nur während eines echten Zwei-Titel-Übergangs. Source-Swaps derselben Aufnahme, bei denen lineare Gewinne zusammen 1 ergeben, werden nicht unnötig gedämpft; DJ-Notches werden nicht hochverstärkt.
+- Die Gain-Änderung interpoliert von Audioblock zu Audioblock **pro Stereo-Frame**, ohne zusätzliche Decodierung, Netzwerk-/Dateizugriff oder Speicherallokation im Renderpfad. `MixerState.mix_headroom` speichert den letzten Pegel. Alle bestehenden Mixer-Test-Fixtures wurden um den neuen Zustand ergänzt.
+- Zwei neue Rust-Regressionen in `native-core/src/mixer/tests/blends.rs` prüfen den Originalwert bei halbem Crossfade (ca. −1,5 dB Headroom), Source-Swap-Bypass, ausbleibende Verstärkung von Dips sowie gleitende Puffergrenzen.
+- Der Original-Diff von v1.9 auf v1.9.1 in `CrossfadeController.kt` betrifft vor allem **Vorschau des nächsten Mixes**, getrennt nachladbare Wellenformen, Loading-Zustände und Retry-Abstand. BBT-Bits `AutomixWeave` zeigt bereits eine native Vorschau des analysierten Übergangs; eine vollständige Original-Waveform-Preview ist **nicht portiert**.
+
+### Nicht gleichwertig / offene Arbeiten
+
+- BBT-Bits Rust-Mixer meldet seinen Track-/Metadaten-Handoff derzeit **am Fade-Start**, das Original wechselt die MediaSession **im Übergang** (`HANDOFF_AT`). Die Änderung betrifft Queue-Index, Zeitfortschritt, Pause/Seek/Skip und Swift-Callbacks und wurde **nicht ohne vorherige Regressionstests** risikoreich umgebaut.
+- Original-Mix-Popup mit prognostizierten Fadern, separaten Wellenform-Ladevorgängen und Backoff bei fehlerhafter Waveform fehlt in der nativen SwiftUI-Ansicht noch.
+- Native Kompilierung, die Rust-Tests, Apple-Build, iPhone-Simulator, hörbares Crossfade-Audio, Headroom unter echten laut gemasterten Songs, Party-/Repeat-/Seek/Skip und signierte IPA sind **NICHT GETESTET**. Ohne diese Nachweise **kein Merge**.
+
 ## Tests / Nachweise
 
 - Original-Diff: GitHub-API-Vergleich erfolgreich (17 Commits, 94 Dateien).
@@ -105,7 +123,7 @@ Am 07.11.2026 wurde **B: Verhalten von Original-BitChord v1.9.1 übernehmen** ge
 
 1. Prefer Music Only / Musikvideo-Konvertierung: **ENTSCHIEDEN – Originalverhalten, nativ portieren**. Vollständige Queue-ID-Umstellung und Next-Track-Konvertierung offen.
 2. Autoplay und Empfehlungen: **ENTSCHIEDEN – Variante B, BitChord v1.9.1 maßgebend**. Native Swift/Kotlin-Portierung auf diesem Branch, Build-/Geräteabnahme und Modultitel-Seeds offen.
-3. Automix/Crossfade: Rust-Engine behalten und Verbesserungen portieren oder die Übergangslogik stärker ändern?
+3. Automix/Crossfade: **ENTSCHIEDEN – Variante B.** BitChord v1.9.1 soll maßgeblich sein, jedoch nativ in der bestehenden Rust-Audio-Engine. Headroom-Trim portiert. Mid-Fade-Metadaten-Handoff und Mix-Popup-Preview noch offen; kein zweiter Audio-Player.
 4. Player-Themes / RED Morph: native RED-Morph-Oberfläche belassen und neue Optionen ergänzen oder das Originaldesign übernehmen?
 5. Glass-Performance: bestehende Reduce-Blur-/Performance-Modi ergänzen oder Originalschalter separat anbieten?
 

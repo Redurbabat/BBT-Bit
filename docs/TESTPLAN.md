@@ -35,6 +35,16 @@ Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETEST
 
 **Status 07.11.2026:** Neue Tests als Quelltext hinzugefügt; **Kompilierung, Unit-Tests, iPhone-Simulator, Echtgerät und hörbares Audio NICHT GETESTET**. CI-Fehlschläge dürfen nicht als Bestehen gewertet werden.
 
+## BitChord-v1.9.1-Portierung: Automix/Crossfade (B)
+
+- **Rust/Mathematik:** `cargo test --locked --manifest-path native-core/Cargo.toml`. In `mixer/tests/blends.rs` die neuen Tests für originalen Headroom `1/sqrt(gainIn+gainOut)`, Block-Gain-Rampe, Swap/Notch sowie die vorhandenen Equal-Power-/Handoff-/Pegel-Tests ausführen.
+- **Rust/Audio-Qualität:** `bash scripts/check-automix.sh` sowie `bash scripts/check-engine.sh`; absichtlich hochpegelige und korrelierte Audio-Files, echte Decoder-/Filter-/Sample-Rate-Wechsel, Unterbrechung und Error Recovery. Nur echte hörbare Wiedergabe belegt Klang.
+- **Native UI/Metadaten:** Original wechselt die MediaSession im Blend (`HANDOFF_AT`), der aktuelle Rust-Mixer meldet das Ereignis noch ab Blend-Start. Timebar, Cover, Queue-Index, Now Playing, Lyrics, Favoriten, Scrobble und Lock Screen gegen hörbare Übergabe messen; ohne Regression kein ungetesteter Timing-Umbau.
+- **Mix-Preview:** Vor dem eigentlichen Fade die identische Planung als Vorschau rendern. Wellenformen der beiden Quellen unabhängig im Hintergrund nachladen, fehlgeschlagene Decodes mindestens fünf Sekunden begrenzen, Laden/Fehler in SwiftUI nicht als erfolgreiche Analyse anzeigen. Reduce Motion/VoiceOver beachten.
+- **Echtgerät:** iPhone über Lautsprecher, Kopfhörer und Bluetooth: zwei hörbare Quellen überlappen wirklich; keine Pause, kein Knacken, kein unerwünschtes Clipping; Ausgabewechsel und Sleep Timer. Original-Musikplayback hat Vorrang vor Vorschau.
+
+**Status 07.11.2026:** Der Headroom-Diff und die Regressionen sind committed. Die neue Rust-Implementierung ist **NICHT KOMPILIERT**, Tests **NICHT AUSGEFÜHRT**, tatsächliche Audioqualität **NICHT GETESTET**.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
