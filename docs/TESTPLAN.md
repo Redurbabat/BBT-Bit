@@ -25,6 +25,16 @@
 
 Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETESTET**.
 
+## BitChord-v1.9.1-Portierung: AutoPlay/Empfehlungen (B)
+
+- **Kotlin:** `./gradlew :shared:macosArm64Test` auf Apple Silicon mit JDK 21; mindestens `QueueBuilderBridgeTest`, `PartyAutoplayRulesTest`, `AutoplayWatchQueueTest`. 10er-Tail, Video-/Audio-Paarung und Session-Deduplikation gegen echte `next`-Antworten validieren; Fixtures allein ersetzen kein Netzwerk.
+- **Swift-Queue:** `bash scripts/check-queue.sh`. Original-Reihenfolge, manuelle Queue-Priorität, AutoPlay aus/an, Repeat-All, Löschung vorausliegender Titel, 2s/15s-Leerantwort-Watchdog und Trackwechsel/Cancellation überprüfen.
+- **Listen Together:** Zwei bis fünf reale Clients; Host, Host-Verlust, Host-only, nichtberechtigter Teilnehmer und fehlendes Server-Echo testen. AutoPlay-Titel dürfen **nur einmal** in der Server-Queue landen; bei Echo-Ausfall kein gespielter/angebotener Erfolg vortäuschen.
+- **Wiedergabe:** Song-Radio, Video-Radio (mindestens drei Videos), Video-Radio mit zu wenigen Videos, nicht spielbare Quelle und Auflösungsfallback inklusive tatsächlich hörbarer Audioausgabe und fortschreitender Zeit auf echtem iPhone.
+- **Ungetestete Funktion:** Modul-Song ohne direkte YouTube-ID muss erst über `TrackMatcher` auf einen YouTube-Seed abgebildet werden; derzeit separate Abnahmeaufgabe.
+
+**Status 07.11.2026:** Neue Tests als Quelltext hinzugefügt; **Kompilierung, Unit-Tests, iPhone-Simulator, Echtgerät und hörbares Audio NICHT GETESTET**. CI-Fehlschläge dürfen nicht als Bestehen gewertet werden.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.

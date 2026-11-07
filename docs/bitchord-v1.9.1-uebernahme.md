@@ -20,7 +20,7 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 | Home: `hideHomeMoods` | AUSSTEHEND | Aktuell Mood/Genre in Explore vorhanden; Home-Shelf-Existenz prüfen |
 | `squareVideoThumbnails` | AUSSTEHEND | Video-Identifikation und Artwork-Sizing in SwiftUI sauber definieren |
 | Prefer Music Only / Video→Audio | **FREIGEGEBEN, TEILWEISE PORTIERT** | Nutzerentscheidung: Originalverhalten. Der native Resolver wartet jetzt maximal 15 Sekunden, startet den Original-YouTube-Fallback nur nach Miss/Timeout/Identitätsfehler und scheitert nicht mehr an unnötiger Videoauflösung bei verifizierter Audioquelle. Die echte Audio-Song-ID einschließlich Queue-/Now-Playing-Metadaten und Konvertierung des nächsten Songs sind **noch nicht portiert**. |
-| Autoplay / Empfehlungen / Recents | **TEILWEISE DOPPELT** | Bestehende Queue-, Home- und History-Implementierung erhalten; Änderungen in `Autoplay.kt` selektiv prüfen |
+| Autoplay / Empfehlungen / Recents | **ENTSCHIEDEN B / CODE TEILPORTIERT** | v1.9.1-Verhalten für 10er-Tail, Audio-/Video-Radios, gemeinsame Party-Einstellung, Lieferantenwahl, Aufnahme-Deduplikation, Retry/Watchdog und Server-Queue portiert. Nicht vollständig abgenommen: Modul-Track-Seed und Echtgerät/CI fehlen. |
 | Crossfade, Automix-Vorschau | **DOPPELT/TEILWEISE** | Rust-Mixer und native Automix-Details mit neuem Originalverhalten vergleichen; Nutzerentscheidung zu UI-Variante |
 | SourceResolver, Song-Matching, StreamLengthProbe | AUSSTEHEND – priorisiert | Gemeinsamer Kotlin-Resolver, Streamdauer, Titel/Künstler/Album-Matching und realistische Tests; `NO_PLAYABLE_STREAM` getrennt nachweisen |
 | AddonAuth / Addon-Qualitätswahl | AUSSTEHEND – Sicherheitsreview | Keine unverschlüsselten Tokens, keine Bypass-Implementierung; iOS Keychain und Add-on-Protokoll prüfen |
@@ -64,6 +64,22 @@ Bereits umgesetzt:
 - Neue Einstellung und deutsche Übersetzungen unter „Darstellung“, KMP-StateFlow sowie Backup-Export und -Import ergänzt. Der bereits vorhandene Schlüssel `hide_recents` wurde ebenfalls dem Backup hinzugefügt.
 - Sechs Kotlin-Regressionstests wurden hinzugefügt, sind jedoch **NICHT AUSGEFÜHRT**. Der Test prüft inklusive Fortsetzung, reiner Video-Shelf, gemischter Shelf, Explore-Standardverhalten, nicht abspielbarer Compilation und JSON-Roundtrip.
 
+## Portierungsschritt 4: AutoPlay und Musikempfehlungen – Nutzerentscheidung B
+
+Am 07.11.2026 wurde **B: Verhalten von Original-BitChord v1.9.1 übernehmen** gewählt. Audioausgabe bleibt nativ auf dem vorhandenen Rust-Pfad; keine zweite Queue-Engine und keine Änderungen auf `main`.
+
+**Implementierter Code (ohne erfolgreichen App-Build):**
+
+- `PlaybackQueuePolicy.autoplayTarget = 10`. Der Player ergänzt den Tail nach Titelwechsel und nach dem Entfernen automatischer Titel; beim Ausschalten entfallen noch nicht gehörte AutoPlay-Einträge. Die ursprüngliche Radio-Reihenfolge ersetzt die frühere Taste-Sortierung beim Append, nicht die separat zuschaltbare Automix-Planung.
+- `AutoPlayBridge` und `InnertubeParser.parseWatchQueue` transportieren offizielle Song-/Video-Paarungen. Der Queue-Builder nutzt für Video-Radios bei mindestens drei Videos deren Video-Versionen; sonst eine gemischte Antwort. Katalogsongs werden für Audio-Radio bevorzugt. Titel/Künstler-Deduplikation und Seed-Künstlergrenze bleiben aktiv.
+- `QueueBuilderBridge` speichert gespielte und **tatsächlich in Queue übernommene** empfohlene Aufnahmen nur innerhalb der aktiven Sitzung, falls `dont_repeat_suggestions` aktiviert ist. Audio-/Video-Doppelungen werden auf Aufnahmeebene erkannt. Ein gescheiterter Party-Append darf nicht als erfolgreich vorgeschlagen gelten.
+- `PartyAutoplayRules.kt` berechnet Party-AutoPlay und Lieferantenwahl wie im Original: gemeinsamer Server-Schalter; verbundener Host, andernfalls kleinstes verbundenes Mitglied; bei Host-only **keine** Übergabe an andere. Swift-UI liest den effektiven statt des lokalen Schalters; nur berechtigte Mitglieder dürfen ihn umstellen.
+- Die Party-Queue wird vom gewählten Gerät über `PartyCoordinator.queueAdd` aktualisiert. Ein schwebender Batch wird bis zum Echo (max. sechs Sekunden) vor Duplikatversuchen geschützt; keine direkte lokale Party-Queue-Manipulation.
+- Leere Radio-Antworten erhalten einen einmaligen kurzen Retry und danach einen auf das Queue-Ende beschränkten 15-Sekunden-Watchdog, mit Rückgriff auf vorherige Queue-Titel. Im pausierten Zustand ruht der Watchdog.
+- Kotlin-Tests für Party-Lieferantenwahl, 3-Video-Schwelle, Session-Verlauf und Audio-/Video-Paarung sowie zusätzliche Swift-Queue-Policy-Checks wurden **hinzugefügt, nicht ausgeführt**.
+
+**Noch offen für Originalparität und Abnahme:** Ein Modul-Track ohne YouTube-ID muss wie upstream durch geprüfte Song-Suche auf einen YouTube-Seed aufgelöst werden; realer Party-Server-Echo-/Rejoin-Test, Stream-/Decoder-/Echtgerät-Audio, vollständige Swift-/Kotlin-Kompilierung und fehlgeschlagene CI-Jobs. Dieser Code ist **kein nachgewiesener funktionierender Player**. Die Tests sind erst als bestanden zu bezeichnen, wenn sie tatsächlich ausgeführt wurden.
+
 ## Tests / Nachweise
 
 - Original-Diff: GitHub-API-Vergleich erfolgreich (17 Commits, 94 Dateien).
@@ -88,7 +104,7 @@ Bereits umgesetzt:
 ## Entscheidungspunkte vor Eingriffen in bereits vorhandene Funktionen
 
 1. Prefer Music Only / Musikvideo-Konvertierung: **ENTSCHIEDEN – Originalverhalten, nativ portieren**. Vollständige Queue-ID-Umstellung und Next-Track-Konvertierung offen.
-2. Autoplay und Empfehlungen: bestehende native Queue als führend belassen oder Originalverhalten maßgebend machen?
+2. Autoplay und Empfehlungen: **ENTSCHIEDEN – Variante B, BitChord v1.9.1 maßgebend**. Native Swift/Kotlin-Portierung auf diesem Branch, Build-/Geräteabnahme und Modultitel-Seeds offen.
 3. Automix/Crossfade: Rust-Engine behalten und Verbesserungen portieren oder die Übergangslogik stärker ändern?
 4. Player-Themes / RED Morph: native RED-Morph-Oberfläche belassen und neue Optionen ergänzen oder das Originaldesign übernehmen?
 5. Glass-Performance: bestehende Reduce-Blur-/Performance-Modi ergänzen oder Originalschalter separat anbieten?
