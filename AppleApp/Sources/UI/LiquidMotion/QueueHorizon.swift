@@ -49,20 +49,22 @@ struct QueueHorizon: View {
             let count = max(entries.count, 1)
             let step = 360.0 / Double(count)
             let pitch = Double(cardWidth + gap)
-            let radius = max(pitch / (2 * sin(.pi / Double(max(count, 3)))), Double(cardWidth) * 0.6)
+            let chord = pitch / (2 * sin(.pi / Double(max(count, 3))))
+            let arc = Double(max(count, 3)) * pitch / (2 * .pi)
+            let radius = max(arc, chord, Double(cardWidth) * 0.6)
             let rotation = -Double(focusedIndex) * step + Double(dragOffset) / radius * (180 / .pi)
 
             ZStack {
                 ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
                     let angle = (Double(index) * step + rotation) * .pi / 180
                     let depth = cos(angle)
-                    let visible = depth > -0.25
-                    let scale = CGFloat(0.74 + 0.26 * max(0, depth))
+                    let visible = depth > -0.65
+                    let scale = CGFloat(0.70 + 0.30 * max(0, depth))
                     card(entry, index: index)
                         .scaleEffect(scale)
-                        .rotation3DEffect(.degrees(-sin(angle) * 38 - 5), axis: (0, 1, 0), perspective: 0.65)
-                        .offset(x: CGFloat(sin(angle) * radius) * 0.88)
-                        .opacity(visible ? 0.42 + 0.58 * max(0, depth) : 0)
+                        .rotation3DEffect(.degrees(-sin(angle) * 76 - 5), axis: (0, 1, 0), perspective: 0.7)
+                        .offset(x: CGFloat(sin(angle) * radius) * 0.9)
+                        .opacity(visible ? 0.25 + 0.75 * max(0, depth) : 0)
                         .zIndex(depth)
                         .allowsHitTesting(visible)
                 }
@@ -92,7 +94,7 @@ struct QueueHorizon: View {
                 }
             }
         }
-        .frame(height: cardHeight + 16)
+        .frame(height: cardHeight + 30)
         .clipped()
     }
 
