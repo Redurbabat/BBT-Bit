@@ -1,6 +1,7 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "1": {},
     "Search artists, songs and lyrics": {
       "localizations": {
         "de": {
@@ -191,7 +192,6 @@
         }
       }
     },
-    "1": {},
     "": {},
     "%@": {},
     "%@ couldn't load": {},
@@ -756,7 +756,16 @@
       }
     },
     "Add to %lld": {},
-    "Add to Playlist": {},
+    "Add to Playlist": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zur Playlist hinzufügen"
+          }
+        }
+      }
+    },
     "Add to Playlist…": {},
     "Add to Queue": {},
     "Address": {},
@@ -1243,7 +1252,16 @@
       }
     },
     "Audio Quality": {},
-    "Audio output": {},
+    "Audio output": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audioausgabe"
+          }
+        }
+      }
+    },
     "Audio quality, playback, appearance": {},
     "Authorise Last.fm": {},
     "Auto-hide keeps the still sleeve when no motion clip was found. Prefer Spotify asks Spotify's catalogue first when looking one up.": {},
@@ -6404,7 +6422,16 @@
     "Looking up…": {},
     "Lossless includes Hi-Res when an enabled source supplies it. Audio Pipeline shows the format actually decoded.": {},
     "Loudest around %@": {},
-    "Lyrics": {},
+    "Lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songtexte"
+          }
+        }
+      }
+    },
     "Lyrics Offset": {},
     "Lyrics Offset…": {},
     "Lyrics Sources": {
@@ -9399,7 +9426,16 @@
     "Playlists you save show up here.": {},
     "Playlists, albums and artists you save show up here.": {},
     "Plays on this account show up here, newest first.": {},
-    "Plays the top result": {},
+    "Plays the top result": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielt das Top-Ergebnis ab"
+          }
+        }
+      }
+    },
     "Plays this track": {},
     "Podcasts": {},
     "Podcasts you follow show up here.": {},
@@ -13956,7 +13992,16 @@
         }
       }
     },
-    "Top result": {},
+    "Top result": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top-Ergebnis"
+          }
+        }
+      }
+    },
     "Track": {
       "localizations": {
         "de": {
