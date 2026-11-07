@@ -1,7 +1,11 @@
 import SwiftUI
 
-/// A compact, inspectable representation of the engine's *real* Automix window.
-/// This view is read-only: dragging and expanding never change the audio mix.
+/// Kompakter Status für das tatsächlich von der Engine geplante Automix-Fenster.
+///
+/// Im Hauptplayer keine zweite, wie ein Seek-Regler wirkende Leiste: Der
+/// Fortschritt ist nur während eines laufenden Mixes eine Zahl. Die Details
+/// liegen in einer eigenen Ansicht und verändern nicht die Höhe des Decks.
+/// Diese View liest ausschließlich Engine-Werte und verändert keine Mischung.
 struct AutomixWeave: View {
     let start: Double
     let end: Double
@@ -10,8 +14,8 @@ struct AutomixWeave: View {
     let reason: String?
     let isMixing: Bool
 
-    @State private var expanded = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showsDetails = false
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var progress: Double {
         guard end > start else { return 0 }
@@ -19,66 +23,93 @@ struct AutomixWeave: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Button {
-                withAnimation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.86)) {
-                    expanded.toggle()
-                }
-            } label: {
-                HStack(spacing: 9) {
-                    Image(systemName: "music.note")
-                        .font(.caption.weight(.semibold))
-                    GeometryReader { proxy in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(.white.opacity(0.14))
-                            Capsule()
-                                .fill(LinearGradient(
-                                    colors: [.cyan.opacity(0.85), .purple.opacity(0.95), .pink.opacity(0.85)],
-                                    startPoint: .leading, endPoint: .trailing
-                                ))
-                            Circle()
-                                .fill(.white)
-                                .frame(width: 7, height: 7)
-                                .offset(x: max(0, (proxy.size.width - 7) * progress))
+        Button {
+            showsDetails = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "waveform.path")
+                    .font(.caption.weight(.semibold))
+                    .accessibilityHidden(true)
+                // Der Status muss neben zwei Zeitangaben auch bei großer
+                // Schrift passen. Das native Fitting wählt bei Platzmangel
+                // eine kurze, aber weiterhin echte Fortschrittsangabe.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 6) {
+                        Text(isMixing ? "Automix running" : "Automix")
+                            .fixedSize(horizontal: true, vertical: false)
+                        if isMixing {
+                            Text("\(Int((progress * 100).rounded())) %")
+                                .monospacedDigit()
+                                .fixedSize(horizontal: true, vertical: false)
                         }
                     }
-                    .frame(height: 7)
-                    Image(systemName: "music.note")
-                        .font(.caption.weight(.semibold))
-                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.caption2.weight(.semibold))
+                    Text(isMixing ? "\(Int((progress * 100).rounded())) %" : "Mix")
+                        .monospacedDigit()
+                        .fixedSize(horizontal: true, vertical: false)
                 }
-                .foregroundStyle(.white.opacity(0.9))
-                .frame(minHeight: 32)
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Automix transition")
-            .accessibilityValue(isMixing ? "Mixing" : "Upcoming")
-            .accessibilityHint("Show or hide analyzed transition details")
-
-            if expanded {
-                VStack(alignment: .leading, spacing: 5) {
-                    Label(isMixing ? "Transition in progress" : "Upcoming transition",
-                          systemImage: "waveform.path")
-                        .font(.caption.weight(.semibold))
-                    Text(String(format: "Transition window: %.1f–%.1f s", start, end))
-                        .font(.caption.monospacedDigit())
-                    if let tier, !tier.isEmpty {
-                        Text(tier).font(.caption)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .frame(minHeight: 44)
+            .contentShape(Capsule())
+            .background {
+                Capsule()
+                    .fill(Color.black.opacity(reduceTransparency ? 0.92 : 0.72))
+                    .background {
+                        if !reduceTransparency {
+                            Capsule().fill(.ultraThinMaterial)
+                        }
                     }
-                    if let reason, !reason.isEmpty {
-                        Text(reason).font(.caption).foregroundStyle(.white.opacity(0.75))
-                    }
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
-                .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
+            }
+            .overlay {
+                Capsule().strokeBorder(.white.opacity(0.18), lineWidth: 0.5)
             }
         }
-        .accessibilityElement(children: .contain)
+        .buttonStyle(.plain)
+        .accessibilityLabel(isMixing ? Text("Automix transition running") : Text("Automix transition planned"))
+        .accessibilityValue(isMixing ? Text("\(Int((progress * 100).rounded())) %") : Text("Planned transition"))
+        .accessibilityHint("Open real Automix transition details")
+        .sheet(isPresented: $showsDetails) {
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 14) {
+                    Label(
+                        isMixing ? "Transition running" : "Next transition",
+                        systemImage: "waveform.path"
+                    )
+                    .font(.headline)
+
+                    LabeledContent("Time window", value: String(format: "%.1f–%.1f s", start, end))
+                    if isMixing {
+                        LabeledContent("Progress", value: "\(Int((progress * 100).rounded())) %")
+                    }
+                    if let tier, !tier.isEmpty {
+                        LabeledContent("Analysis", value: tier)
+                    }
+                    if let reason, !reason.isEmpty {
+                        Text(reason)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(24)
+                .navigationTitle("Automix")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { showsDetails = false }
+                    }
+                }
+            }
+            #if os(iOS)
+            .presentationDetents([.height(280), .medium])
+            #else
+            .frame(minWidth: 340, minHeight: 280)
+            #endif
+        }
         .background { LiquidLiveCaptureMarker(id: "automix") }
     }
 }
