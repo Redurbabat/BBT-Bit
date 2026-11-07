@@ -45,6 +45,16 @@ Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETEST
 
 **Status 07.11.2026:** Der Headroom-Diff und die Regressionen sind committed. Die neue Rust-Implementierung ist **NICHT KOMPILIERT**, Tests **NICHT AUSGEFÜHRT**, tatsächliche Audioqualität **NICHT GETESTET**.
 
+## BitChord-v1.9.1-Portierung: Bit-perfect Pause/Resume (B)
+
+- **Rust-Unit:** `cargo test --locked --manifest-path native-core/Cargo.toml` – neue Tests in `native-core/src/output.rs` prüfen Idle-Bedingungen (genau 30 s, nur pausierter 16-/24-Bit-Exklusivpfad) und dass eine pausierte Render-Callback-Passage `rtrb`-Frames **nicht** verbraucht.
+- **macOS-Hardware:** USB-DAC mit exklusivem Integer-PCM (16 und 24 Bit) anschließen. Vor Pause Format/AudioDeviceID protokollieren; nach 29 s darf die Gerätebelegung nicht freigegeben sein, nach mindestens 30 s schon. Ring-/Playhead-Zustand sichern; beim Fortsetzen kein erneutes Intro/kein hörbarer Verlust.
+- **Fehlerszenarien:** Pause + Seek, Pause + Stop, Pause + anderes USB-Gerät, gleicher Gerätename mit anderer Device-ID, CoreAudio-Formatwechsel, DAC bleibt von anderer App belegt, fehlgeschlagene Stream-`play()`-Operation. Keine unerlaubte Original-PCM-Ausgabe auf anderem Format. Der angeforderte PCM-Rebuild darf Bit-perfect nicht weiter als aktiv anzeigen.
+- **iPhone/iPad:** Das System gibt nur RemoteIO/AVAudioSession-Floatstream frei; Bit-perfect darf nicht als echter direkter Integer-DAC gemeldet werden. Prüfe Pause/Fortsetzen, Route, Wiedergabezeit und hörbare Ausgabe separat, insbesondere Bluetooth/USB-C/Unterbrechung.
+- **Regression:** `bash scripts/check-engine.sh` und `bash scripts/check-audio-quality.sh` auf macOS, Signierung und tatsächliche Wiedergabe. Stream- und Callback-Tests sind keine physische Audioabnahme.
+
+**Status 07.11.2026:** Quelltext geändert und Rust-Regressionen angelegt. **Kompilierung, Unit-Tests, echter Mac-DAC, iPhone-Simulator, echtes iPhone, hörbares Audio und IPA NICHT GETESTET.**
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.

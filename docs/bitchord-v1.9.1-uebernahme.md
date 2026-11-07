@@ -24,7 +24,7 @@ Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder M
 | Crossfade, Automix-Vorschau | **ENTSCHIEDEN B – RUST-TEILPORTIERUNG** | Original-BitChord v1.9.1 als Ziel: bestehender Rust-Parallelmixer mit Equal-Power, Beatmatching und Filterkurven bleibt einzige Audio-Engine. Original-Headroom-Trim `1/√(gainIn+gainOut)` plus sampleweise geglätteter gemeinsamer Bus-Pegel und 2 neue Rust-Regressionen ergänzt; ursprünglicher `CrossfadeController`-Diff ist überwiegend vorauseilende Mix-Preview mit Waveform-Retry. Noch offen: tatsächlicher Mid-Fade-Metadaten-Handoff, native Mix-Popup-Vorschau mit Wellenformen, Tests/Build/Abnahme. |
 | SourceResolver, Song-Matching, StreamLengthProbe | AUSSTEHEND – priorisiert | Gemeinsamer Kotlin-Resolver, Streamdauer, Titel/Künstler/Album-Matching und realistische Tests; `NO_PLAYABLE_STREAM` getrennt nachweisen |
 | AddonAuth / Addon-Qualitätswahl | AUSSTEHEND – Sicherheitsreview | Keine unverschlüsselten Tokens, keine Bypass-Implementierung; iOS Keychain und Add-on-Protokoll prüfen |
-| Bit-perfect Pause/Resume | PLATTFORMANPASSUNG | Android-AudioSink/USB-Code nicht übernehmen; relevante Fehlerszenarien für Rust/Apple-Audio testen |
+| Bit-perfect Pause/Resume | **ENTSCHIEDEN B – MACOS-RUST-TEILPORTIERT** | Originalregel nach 30 s Pause: exklusiver DAC wird auf macOS via CoreAudio-Hog-Mode freigegeben; cpal-Stream/PCM-Ring bleiben für exakten Frame-Fortschritt erhalten. Wiederaufnahme prüft AudioDeviceID + physisches Integerformat und reacquiriert Exklusivität; bei geänderter Route sichere Neuinitialisierung, kein falscher Wiedergabeerfolg. iOS lässt diesen exklusiven Integerpfad nicht zu und bleibt beim AVAudioSession/RemoteIO-Float-Ausgang. Rust-Tests hinzugefügt, Build/Hardware noch NICHT GETESTET. |
 | Player-Themes, Player-Chrome, Lyrics, Cover | **ÜBERSCHNEIDUNG mit RED Morph** | Bestehende native Navigation, Material-/Animationstoken und Mini-/Vollplayer-Übergänge schützen; Freigabe der Designvariante |
 | Vollflächige Album-/Playlist-Detailcover | AUSSTEHEND | Vorhandenes Full-Screen-Cover für Player ist nicht dieselbe Einstellung |
 | Glass Performance / Rendering | **TEILWEISE DOPPELT** | `reduce_dynamic_blur` und PerformanceTuner bereits vorhanden; geeignete Verbesserungen ohne duplizierten Modus |
@@ -97,6 +97,24 @@ Am 07.11.2026 wurde **B: Verhalten von Original-BitChord v1.9.1 übernehmen** ge
 - BBT-Bits Rust-Mixer meldet seinen Track-/Metadaten-Handoff derzeit **am Fade-Start**, das Original wechselt die MediaSession **im Übergang** (`HANDOFF_AT`). Die Änderung betrifft Queue-Index, Zeitfortschritt, Pause/Seek/Skip und Swift-Callbacks und wurde **nicht ohne vorherige Regressionstests** risikoreich umgebaut.
 - Original-Mix-Popup mit prognostizierten Fadern, separaten Wellenform-Ladevorgängen und Backoff bei fehlerhafter Waveform fehlt in der nativen SwiftUI-Ansicht noch.
 - Native Kompilierung, die Rust-Tests, Apple-Build, iPhone-Simulator, hörbares Crossfade-Audio, Headroom unter echten laut gemasterten Songs, Party-/Repeat-/Seek/Skip und signierte IPA sind **NICHT GETESTET**. Ohne diese Nachweise **kein Merge**.
+
+## Portierungsschritt 6: Bit-perfect Pause/Fortsetzen – Nutzerentscheidung B
+
+**Freigabe 07.11.2026:** Das Originalverhalten aus BitChord v1.9.1 möglichst vollständig in der bestehenden Rust-/CoreAudio-Implementierung abbilden, ohne Android-USB-/AAudio-Treiber oder zweite Audioausgabe.
+
+### Original v1.9.1
+
+`BitPerfectAudioSink.kt` gibt direkte/exklusive Ausgaben nach `IDLE_RELEASE_MS = 30_000` frei. Der noch nicht vom Gerät abgespielte Teil wird durch `RecentBytes` und einen erneuten Transportstart erhalten. Stream-Frames und Played-Frames bleiben auf derselben Timeline; ein inkompatibler DAC oder geändertes Wire-Format führt zu einem expliziten Wiederanlauf-Fehler. Android-Mixer-Ausgabe wird *nicht* im Idle getrennt.
+
+### Native Umsetzung im BBT-Bit-Branch
+
+- **macOS (Rust + CoreAudio):** Ausschließlich ein tatsächlich aktiver exklusiver Integer-PCM-Ausgang (16/24 Bit) wird nach 30 Sekunden Pause/Stop freigegeben. `cpal::Stream.pause()` und `release_output_exclusive()` geben die Gerätebelegung ab, behalten jedoch den bisherigen Output-Callback samt `rtrb`-Consumer und nicht gehörten PCM-Frames. Kein künstliches `RecentBytes`-Duplikat und kein Decoder-Neustart beim erfolgreichen Resume.
+- Beim Fortsetzen wird der verzögerte Idle-Check mittels Generation ungültig gemacht. Vor `stream.play()` müssen **identische CoreAudio-Geräte-ID**, exakter Integer-PCM-Takt/Kanalzahl/Wortbreite und zurückgewonnener exklusiver Zugriff gelten. Bei Ausfall bleibt die Wiedergabe **pausiert** und eine neue Routeninitialisierung wird angefordert; bei nicht mehr verfügbarer Exklusivität wird auf gewöhnliches PCM zurückgefallen, ohne Bit-perfect-Erfolg zu behaupten.
+- Ein gleichzeitiger Route-Rebuild ist durch denselben `rebuild_lock` serialisiert. Ein während des Idle-Rebuilds neu angelegter exklusiver Ausgabestream bleibt ebenfalls pausiert; die interne `SetBitPerfect`-Entscheidung verwendet seine geplante Integer-Wortbreite, obwohl am freigegebenen DAC noch keine Ausgabe aktiv ist.
+- **iOS/iPadOS:** BBT-Bits bestehender RemoteIO-/AVAudioSession-Floatpfad bleibt unverändert. CoreAudio erlaubt auf dieser Plattform keinen gleichwertigen appgesteuerten USB-Hog-Mode-Integertransport; „bit-perfect aktiv“ wird dort nicht vorgetäuscht. Die allgemeine iOS-Pause-/Routenwiederherstellung bleibt separat zu prüfen.
+- Neue Rust-Regressionen: `only_paused_exclusive_integer_pcm_may_release_its_device` und `paused_bitperfect_callback_keeps_exact_unplayed_stereo_frames_in_its_ring`. Kein Hardware-Simulator darf einen realen USB-DAC-Nachweis ersetzen.
+
+**Noch nicht nachgewiesen:** Kompilierung auf macOS, tatsächliche Hardwarefreigabe nach 30 s, Stream-Reacquire auf physischem USB-DAC, Quell-/Sampleratewechsel, Seek während Suspend, Gerätewechsel, Samplegenauigkeit durch CoreAudio-Hardwarepuffer, CoreAudio-Fehlerbehandlung, iPhone-Routen und wirklich hörbares Audio. Alle diese Prüfungen **NICHT GETESTET**. Verändert eine andere App den DAC während der Pause, kann der alte PCM-Ring nicht formatblind übernommen werden; neuer Ausgabe- und Decoderpfad muss geprüft werden. Kein Merge ohne Abnahme.
 
 ## Tests / Nachweise
 
