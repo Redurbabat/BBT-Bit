@@ -50,7 +50,7 @@ struct QueueHorizon: View {
             let step = 360.0 / Double(count)
             let pitch = Double(cardWidth + gap)
             let radius = max(pitch / (2 * sin(.pi / Double(max(count, 3)))), Double(cardWidth) * 0.6)
-            let rotation = -Double(focusedIndex) * step + Double(dragOffset) / CGFloat(radius) * (180 / .pi)
+            let rotation = -Double(focusedIndex) * step + Double(dragOffset) / radius * (180 / .pi)
 
             ZStack {
                 ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
