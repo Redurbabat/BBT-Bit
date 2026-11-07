@@ -18,6 +18,7 @@ struct PlaybackPill: View {
     /// minimizes on scroll (iOS 26's inline bottom accessory, as in Music).
     var inline = false
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -67,7 +68,7 @@ struct PlaybackPill: View {
     @State private var lockedPillDrag: (start: CGPoint, axis: PillDragAxis)?
     private var isRegularWidth: Bool { horizontalSizeClass == .regular }
     private var pillPullLift: CGFloat {
-        guard pillDrag.axis == .vertical, pillDrag.translation.height < 0 else { return 0 }
+        guard !reduceMotion, pillDrag.axis == .vertical, pillDrag.translation.height < 0 else { return 0 }
         return min(max(-pillDrag.translation.height * 0.5, 0), 72)
     }
 
@@ -797,7 +798,7 @@ private struct MacNowPlayingSlot<Artwork: View, Info: View>: View {
         }
         .frame(height: 44)
         .clipped()
-        .animation(.easeInOut(duration: 0.16), value: scrubbing)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: scrubbing)
     }
 
     private func clock(_ seconds: Double, remaining: Bool = false) -> String {
