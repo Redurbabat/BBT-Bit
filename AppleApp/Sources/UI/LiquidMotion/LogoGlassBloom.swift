@@ -116,9 +116,13 @@ struct LogoGlassBloomIsland: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var bloom = LogoGlassBloomCoordinator.shared
-    @State private var trackGlint = false
-    @State private var glintRevision = 0
+
+    private var reduceBlur: Bool {
+        // Follow the same user preference as the native mini-player.
+        UserDefaults.standard.bool(forKey: "reduce_dynamic_blur")
+    }
 
     private var isSpark: Bool { bloom.phase == .spark }
     private var isExpanded: Bool { bloom.phase == .expanded }
@@ -148,50 +152,10 @@ struct LogoGlassBloomIsland: View {
         .padding(.vertical, isSpark ? 11 : 10)
         .frame(width: width, alignment: .leading)
         .frame(minHeight: 46)
-        .background {
-            glassSurface
-                .overlay {
-                    GlassBloomAtmosphere(
-                        playing: controller.isPlaying,
-                        expanded: isExpanded
-                    )
-                }
-                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [.white.opacity(0.32), .cyan.opacity(0.32), .purple.opacity(0.16)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 0.9
-                )
-        }
-        .overlay(alignment: .top) {
-            if trackGlint && !reduceMotion {
-                Capsule()
-                    .fill(LinearGradient(
-                        colors: [.clear, .cyan.opacity(0.85), .white.opacity(0.8), .clear],
-                        startPoint: .leading, endPoint: .trailing
-                    ))
-                    .frame(width: 100, height: 2)
-                    .blur(radius: 0.6)
-                    .accessibilityHidden(true)
-                    .allowsHitTesting(false)
-                    .transition(.opacity)
-            }
-        }
-        .overlay(alignment: .topLeading) {
-            if isSpark {
-                Circle()
-                    .stroke(.cyan.opacity(0.55), lineWidth: 1.5)
-                    .padding(-4)
-                    .allowsHitTesting(false)
-            }
-        }
-        .shadow(color: .purple.opacity(0.12), radius: 24, y: 9)
-        .shadow(color: .black.opacity(0.21), radius: 12, y: 6)
+        // The glass itself supplies highlights and edge treatment.
+        // Cover colors and animated cyan/purple overlays obscured that layer.
+        .background { glassSurface }
+        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
         .fixedSize(horizontal: true, vertical: true)
         .simultaneousGesture(
             DragGesture(minimumDistance: 32)
@@ -200,32 +164,12 @@ struct LogoGlassBloomIsland: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("bbt.logoGlassBloom")
         .background { LiquidLiveCaptureMarker(id: "island") }
-        .onChange(of: controller.current?.id) { _, newID in
-            guard newID != nil else { return }
-            flashTrackGlint()
-        }
         .onChange(of: bloom.phase) { _, newPhase in
             if newPhase == .expanded {
                 LiquidLiveCaptureMarker.refresh("island")
                 #if os(iOS)
                 UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                 #endif
-            }
-        }
-    }
-
-    private func flashTrackGlint() {
-        guard !reduceMotion else { return }
-        glintRevision += 1
-        let revision = glintRevision
-        withAnimation(.easeOut(duration: 0.18)) {
-            trackGlint = true
-        }
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(560))
-            guard revision == glintRevision else { return }
-            withAnimation(.easeOut(duration: 0.3)) {
-                trackGlint = false
             }
         }
     }
@@ -238,7 +182,7 @@ struct LogoGlassBloomIsland: View {
                     .scaledToFit()
                     .frame(width: 29, height: 22)
                     .frame(width: 30, height: 24)
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(.primary)
                     .accessibilityHidden(true)
             } else {
                 Button {
@@ -278,7 +222,7 @@ struct LogoGlassBloomIsland: View {
                         bloom.keepOpenBriefly()
                     } label: {
                         Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
-                            .foregroundStyle(.cyan)
+                            .foregroundStyle(.primary)
                             .frame(width: 33, height: 40)
                     }
                     .accessibilityLabel(controller.isPlaying ? "Pause" : "Wiedergabe")
@@ -336,7 +280,7 @@ struct LogoGlassBloomIsland: View {
         .font(.caption.weight(.medium))
         .buttonStyle(.plain)
         .padding(.top, 2)
-        .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+
     }
 
     private func openQuickPane(lyrics: Bool) {
@@ -393,12 +337,12 @@ struct LogoGlassBloomIsland: View {
     @ViewBuilder
     private var glassSurface: some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        if #available(iOS 26.0, *) {
-            shape
-                .fill(Color.black.opacity(0.10))
-                .glassEffect(.regular, in: shape)
+        if reduceTransparency || reduceBlur {
+            shape.fill(Theme.Materials.opaque)
+        } else if #available(iOS 26.0, *) {
+            shape.fill(.clear).glassEffect(.regular, in: shape)
         } else {
-            shape.fill(.ultraThinMaterial)
+            shape.fill(.regularMaterial)
         }
     }
 }

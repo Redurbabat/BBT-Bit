@@ -12,3 +12,10 @@
 - Deutsch ist die App-Vorgabe, solange keine Sprachwahl gespeichert ist. Die Auswahl „Gerätesprache“ folgt dem System. Gespeicherte Sprachen haben Vorrang.
 - Pflege im [String-Katalog](../AppleApp/Resources/Localization/Localizable.xcstrings) zu neuen oder geänderten UI-Texten eine deutsche Fassung. Erhalte vorhandene Schlüssel, englische Quellwerte, Platzhalter und Übersetzungen. Das gilt auch für Fehlermeldungen, Dialoge und Accessibility-Labels.
 - Prüfe den betroffenen Nutzerweg mit Deutsch und einer zweiten gespeicherten Sprache. Teste längere deutsche Texte mit großer Schrift. Musik- und Künstlernamen erscheinen wie von der Quelle geliefert.
+
+## Neutrales Apple Liquid Glass für Music Island und Mini-Player
+
+- **iPhone iOS 26+:** Die native `TabView.tabViewBottomAccessory` zeichnet die Glasfläche des Mini-Players. Keine zweite Kapsel mit Cover-Farbverlauf, Gradient, Border oder manuell gefärbtem Material darin.
+- **iPad/macOS und appinterne Music Island:** Eine einzelne `.glassEffect(.regular, in: ...)`-Fläche für Bedienelemente. Ältere Systeme erhalten semantisches `.regularMaterial` als Fallback; Reduce Transparency oder `reduce_dynamic_blur` verwenden `Theme.Materials.opaque`.
+- **Kontrolle:** Primäre/sekundäre Systemtextfarben statt weißer Schrift auf künstlichen Cover-Tints. Coverfarben bleiben im Albumcover und können den **Vollbildplayer** weiterhin gestalterisch begleiten, aber nicht die Navigation färben. Liquid-Glass-Highlights und Kontrast bestimmt das Betriebssystem.
+- **Die Music Island über der App ist keine Hardware-Dynamic-Island/Live-Activity.** Sie enthält denselben `PlaybackController` und ändert nur ihre Darstellung, nicht den Audiozustand.

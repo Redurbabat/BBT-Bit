@@ -64,6 +64,15 @@ Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETEST
 - Die drei Modellgewichte sind **nicht als 65 MB Bundle-Daten** in der IPA: die Modelle werden beim Anwender heruntergeladen und persistiert. Tempo-/DSP-Fallback ohne Modelle prüfen; hörbare Musikausgabe separat nachweisen.
 
 **Status: Modell-URLs und Release-Metadaten geprüft; neue IPA, Live-Download auf iPhone, Core-ML-Inferenz und Audiowiedergabe NICHT GETESTET.**
+## Apple Liquid Glass: Music Island und Mini-Player
+
+1. Auf iPhone iOS 26+ einen Titel mit stark gelb/goldenem, danach einen mit violettem Cover abspielen. Beide Male müssen Mini-Player und Music Island **neutrale systemeigene Glasflächen** zeigen; Text und Icons passen sich Hell/Dunkel automatisch an. Der Vollbildplayer darf weiterhin Cover-Farben nutzen.
+2. Tab-Leiste scrollend minimieren, Inline-Pill sowie ausgeklappte Leiste vergleichen. Die native `TabViewBottomAccessory`-Hülle darf keinen zweiten Hintergrund, eine Doppelkontur oder einen separaten Schlagschatten enthalten. Tastatur offen/zu und Suche kontrollieren.
+3. Die Music Island vom Logo öffnen, expandieren, einklappen und schließen. Play/Pause, Next, Previous, Lyrics, Queue, Wisch- und Schließgesten funktionieren unverändert. Die appinterne Island nicht mit der Hardware-Dynamic-Island verwechseln.
+4. iPad im Split-View und macOS mit eingeengtem Fenster testen; dort eine einzelne `.glassEffect`-Kapsel prüfen. Auf älteren OS-Versionen Material-Fallback; mit Reduce Transparency beziehungsweise `reduce_dynamic_blur` kontrastreicher, opaker Hintergrund. VoiceOver, große Schrift, 44-pt-Touch-Ziele, Reduce Motion und laufende Playback-Animationen abnehmen.
+
+**Status:** Implementiert als SwiftUI-Quellcode auf Feature-Branch. Swift-Kompilierung, Simulator-Screenshot, echtes iPhone und hörbare Wiedergabe **NICHT GETESTET**.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
