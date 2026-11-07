@@ -84,7 +84,7 @@ fn diagnostic_stage_signature(state: &MixerState) -> u32 {
 /// Applies the pair's headroom at the audio bus, with one sample-rate
 /// ramp from the previous chunk's gain to the current target. Ramping rather
 /// than snapping is essential when a filter/style changes on a 512-frame tick.
-fn apply_blend_headroom(samples: &mut [f32], previous: &mut f32, target: f32) {
+pub(super) fn apply_blend_headroom(samples: &mut [f32], previous: &mut f32, target: f32) {
     let frames = samples.len() / 2;
     if frames == 0 { return; }
     let from = *previous;
