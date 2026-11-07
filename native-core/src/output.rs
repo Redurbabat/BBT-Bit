@@ -166,15 +166,30 @@ impl OutputControl {
         if !same_device || !matches!(depth, 16 | 24) {
             // Route recovery runs off-thread after the resume attempt fails.
             // It must not play stale PCM into a different DAC meanwhile.
+            *self.bit_perfect_reason.lock().unwrap() =
+                "Bit-perfect route changed while paused; reconfiguring".into();
             self.request_rebuild(true);
             return Err(EngineError::StreamInit(
                 "Bit-perfect DAC changed during pause; output needs reconfiguration".into(),
             ));
         }
-        acquire_output_exclusive(&name)
-            .map_err(|e| EngineError::StreamInit(format!("Could not reclaim bit-perfect DAC: {e}")))?;
+        if let Err(error) = acquire_output_exclusive(&name) {
+            // Das alte exklusive Format darf nicht stillschweigend weiterlaufen.
+            // Der nächste Rebuild startet den normalen PCM-Pfad; ungespielte
+            // Puffer einer inkompatiblen Route können nicht wiederverwendet werden.
+            self.bit_perfect_depth.store(0, Ordering::Release);
+            *self.bit_perfect_reason.lock().unwrap() =
+                format!("Exclusive output unavailable after pause: {error}");
+            self.request_rebuild(true);
+            return Err(EngineError::StreamInit(format!(
+                "Could not reclaim bit-perfect DAC: {error}"
+            )));
+        }
         if !output_physical_format_matches(&name, rate, channels, depth) {
             release_output_exclusive();
+            self.bit_perfect_depth.store(0, Ordering::Release);
+            *self.bit_perfect_reason.lock().unwrap() =
+                "CoreAudio hardware format changed while paused".into();
             self.request_rebuild(true);
             return Err(EngineError::StreamInit(
                 "Bit-perfect hardware format changed during pause".into(),
