@@ -1,31 +1,32 @@
 import SwiftUI
 
-/// Native 3D cylinder for the existing playback queue. No duplicate queue state.
+/// Dreidimensionales Queue-Karussell; verwendet ausschließlich die bestehende Queue.
 struct QueueHorizon: View {
     let entries: [QueueEntry]
     let onSelect: (Int) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var focusedIndex = 0
-    @State private var dragOffset: CGFloat = 0
+    @GestureState private var dragOffset: CGFloat = 0
 
-    private let cardWidth: CGFloat = 112
-    private let cardHeight: CGFloat = 132
-    private let gap: CGFloat = 18
+    private let cardWidth: CGFloat = 154
+    private let cardHeight: CGFloat = 190
+    private let step: CGFloat = 126
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("ON THE HORIZON")
-                .font(.caption2.weight(.semibold))
-                .tracking(1.2)
-                .foregroundStyle(.white.opacity(0.65))
+                .font(.caption.weight(.semibold))
+                .tracking(1.4)
+                .foregroundStyle(.white.opacity(0.82))
+                .padding(.horizontal, 4)
 
-            if entries.isEmpty {
-                EmptyView()
-            } else if reduceMotion {
-                accessibleStrip
-            } else {
-                cylinder
+            if !entries.isEmpty {
+                if reduceMotion {
+                    accessibleStrip
+                } else {
+                    carousel
+                }
             }
         }
         .background { LiquidLiveCaptureMarker(id: "queue") }
@@ -36,52 +37,47 @@ struct QueueHorizon: View {
 
     private var accessibleStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
+            HStack(spacing: 12) {
                 ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
                     card(entry, index: index)
                 }
             }
+            .padding(.horizontal, 8)
         }
     }
 
-    private var cylinder: some View {
+    private var carousel: some View {
         GeometryReader { geometry in
-            let count = max(entries.count, 1)
-            let step = 360.0 / Double(count)
-            let pitch = Double(cardWidth + gap)
-            let chord = pitch / (2 * sin(.pi / Double(max(count, 3))))
-            let arc = Double(max(count, 3)) * pitch / (2 * .pi)
-            let radius = max(arc, chord, Double(cardWidth) * 0.6)
-            let rotation = -Double(focusedIndex) * step + Double(dragOffset) / radius * (180 / .pi)
-
+            let availableWidth = geometry.size.width
+            let visibleStep = min(step, max(76, (availableWidth - cardWidth) * 0.44))
             ZStack {
                 ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
-                    let angle = (Double(index) * step + rotation) * .pi / 180
-                    let depth = cos(angle)
-                    let visible = depth > -0.65
-                    let scale = CGFloat(0.70 + 0.30 * max(0, depth))
-                    card(entry, index: index)
-                        .scaleEffect(scale)
-                        .rotation3DEffect(.degrees(-sin(angle) * 76 - 5), axis: (0, 1, 0), perspective: 0.7)
-                        .offset(x: CGFloat(sin(angle) * radius) * 0.9)
-                        .opacity(visible ? 0.25 + 0.75 * max(0, depth) : 0)
-                        .zIndex(depth)
-                        .allowsHitTesting(visible)
+                    let relative = CGFloat(relativeIndex(index, count: entries.count)) + dragOffset / visibleStep
+                    let distance = abs(relative)
+                    if distance < 2.6 {
+                        card(entry, index: index)
+                            .scaleEffect(max(0.74, 1 - distance * 0.14))
+                            .rotation3DEffect(.degrees(Double(-relative * 32)),
+                                              axis: (x: 0, y: 1, z: 0),
+                                              perspective: 0.55)
+                            .offset(x: relative * visibleStep, y: distance * 8)
+                            .opacity(max(0.12, 1 - distance * 0.30))
+                            .zIndex(10 - Double(distance))
+                    }
                 }
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+            .frame(width: availableWidth, height: geometry.size.height)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 8)
-                    .onChanged { dragOffset = $0.translation.width }
+            .highPriorityGesture(
+                DragGesture(minimumDistance: 12)
+                    .updating($dragOffset) { value, state, _ in
+                        state = value.translation.width
+                    }
                     .onEnded { value in
-                        let stride = cardWidth + gap
                         let projected = value.predictedEndTranslation.width
-                        let shift = Int((projected / stride).rounded())
-                        withAnimation(.spring(response: 0.48, dampingFraction: 0.82)) {
-                            focusedIndex = wrapped(focusedIndex - shift, count: count)
-                            dragOffset = 0
-                        }
+                        let shift = Int((projected / visibleStep).rounded())
+                        guard shift != 0 else { return }
+                        focus(focusedIndex - shift)
                     }
             )
             .accessibilityElement(children: .contain)
@@ -94,8 +90,7 @@ struct QueueHorizon: View {
                 }
             }
         }
-        .frame(height: cardHeight + 30)
-        .clipped()
+        .frame(height: cardHeight + 24)
     }
 
     private func card(_ entry: QueueEntry, index: Int) -> some View {
@@ -106,16 +101,26 @@ struct QueueHorizon: View {
                 onSelect(index)
             }
         } label: {
-            VStack(spacing: 7) {
-                ArtworkView(entry: entry, side: 86)
-                    .clipShape(RoundedRectangle(cornerRadius: 11))
+            VStack(spacing: 9) {
+                ArtworkView(entry: entry, side: 132)
+                    .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
                 Text(entry.title)
-                    .font(.caption2.weight(.medium))
+                    .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
+                    .minimumScaleFactor(0.82)
                     .foregroundStyle(.white)
             }
+            .padding(10)
             .frame(width: cardWidth, height: cardHeight)
-            .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 15))
+            .background {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(.white.opacity(0.20), lineWidth: 0.8)
+            }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(entry.title), \(entry.artist)")
@@ -123,9 +128,16 @@ struct QueueHorizon: View {
     }
 
     private func focus(_ index: Int) {
-        withAnimation(reduceMotion ? nil : .spring(response: 0.48, dampingFraction: 0.82)) {
-            focusedIndex = wrapped(index, count: max(entries.count, 1))
+        guard !entries.isEmpty else { return }
+        withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.84)) {
+            focusedIndex = wrapped(index, count: entries.count)
         }
+    }
+
+    private func relativeIndex(_ index: Int, count: Int) -> Int {
+        guard count > 0 else { return 0 }
+        let forward = wrapped(index - focusedIndex, count: count)
+        return forward > count / 2 ? forward - count : forward
     }
 
     private func wrapped(_ index: Int, count: Int) -> Int {
