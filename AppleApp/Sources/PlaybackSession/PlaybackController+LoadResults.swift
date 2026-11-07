@@ -90,7 +90,7 @@ extension PlaybackController {
             )
         }
         nowPlaying.update(
-            id: entry.id, title: entry.title, artist: entry.artist,
+            id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName,
             duration: info.durationSeconds, artworkData: entry.artworkData,
             thumbnailUrl: entry.thumbnailUrl, isPlaying: isPlaying, position: position
         )
