@@ -266,6 +266,9 @@ impl MixerState {
         self.clarity.reset();
         self.protector.reset();
         self.pipeline_tail_frames = 0;
+        // A new, user-selected track must never inherit the old blend's
+        // bus attenuation. The existing bail-flush protects the audible seam.
+        self.mix_headroom = 1.0;
         self.transition = None;
         self.incoming = None;
         self.pending_next = None;
