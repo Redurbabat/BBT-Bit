@@ -33,6 +33,8 @@ definitions:
         /usr/libexec/java_home -v 21
         grep -q 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' AppleApp/project.yml
         grep -q 'CFBundleDisplayName: BBT-Bit' AppleApp/project.yml
+        # Verify all three public pinned sources before Debug or Release IPA.
+        python3 scripts/verify-automix-model-sources.py
         ./scripts/check-network-errors.sh
 
     - &install_native_tools
