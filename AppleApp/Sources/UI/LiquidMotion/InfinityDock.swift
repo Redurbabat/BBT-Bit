@@ -15,6 +15,8 @@ struct InfinityDock: View {
     let onPipeline: () -> Void
     let onAutomix: () -> Void
 
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     var body: some View {
         HStack {
             Spacer(minLength: 0)
@@ -48,8 +50,7 @@ struct InfinityDock: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 18)
                     .frame(minHeight: 44)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .overlay(Capsule().strokeBorder(.white.opacity(0.18)))
+                    .modifier(InfinityGlassSurface(reduceTransparency: reduceTransparency))
                     .contentShape(Capsule())
             }
             .accessibilityLabel("Player-Werkzeuge")
@@ -57,5 +58,20 @@ struct InfinityDock: View {
         }
         .accessibilityElement(children: .contain)
         .background { LiquidLiveCaptureMarker(id: "dock") }
+    }
+}
+
+private struct InfinityGlassSurface: ViewModifier {
+    let reduceTransparency: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if reduceTransparency {
+            content.background(.black.opacity(0.82), in: Capsule())
+        } else if #available(iOS 26.0, macOS 26.0, *) {
+            content.glassEffect(.regular, in: Capsule())
+        } else {
+            content.background(.ultraThinMaterial, in: Capsule())
+        }
     }
 }
