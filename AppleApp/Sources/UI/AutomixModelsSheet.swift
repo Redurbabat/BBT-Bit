@@ -674,7 +674,7 @@ struct AutomixModelsPage: View {
     var body: some View {
         Form {
             Section {
-                NavigationLink("Automix-Livetest öffnen") { AutomixLiveTestView() }
+                NavigationLink("BBT-Bit Testzentrale öffnen") { AutomixLiveTestView() }
             } footer: {
                 Text("Prüfe hier während der normalen Wiedergabe, welche Modelle wirklich verwendet werden.")
             }
