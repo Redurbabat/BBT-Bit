@@ -22,7 +22,8 @@ Ein PNG-Render-Erfolg ist kein vollständiger Funktionstest.
 
 Zusätzlich zum reinen Design-Selbsttest besitzt die BitChord-v1.9.1-Portierungsbranche
 `feature/bitchord-v1-9-1-port-20261106` die **BBT-Bit Testzentrale**:
-`Einstellungen → Wiedergabe → Erweiterte Automix-Optionen → BBT-Bit Testzentrale`
+`Einstellungen → Wiedergabe → BBT-Bit Testzentrale` (direkt oben)
+oder `Einstellungen → Erweiterte Optionen → BBT-Bit Testzentrale`
 oder `Automix Models → BBT-Bit Testzentrale öffnen`.
 
 - Bis zu 30 Minuten **echte** Player-Zustände während der normalen App-Nutzung

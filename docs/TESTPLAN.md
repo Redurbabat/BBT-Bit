@@ -95,7 +95,7 @@ Die Funktion unter **Einstellungen → BBT-Bit Testzentrale** darf beim Hören p
 - `python3 scripts/verify-settings-german.py`: Erwartete deutsche Kategorien, die auf Screenshots sichtbaren Wiedergabeoptionen, SwiftUI-Locale, dynamische Labels und lokalisierte Suche prüfen. In PR-Regressionsworkflow enthalten.
 - **Manueller Test auf iPhone:** `App Language = German` und alternativ `Device Language` bei Gerät Deutsch. „Playback“ muss „Wiedergabe“, „Sound & Quality“ muss „Klang & Qualität“, „Prefer Music Only“ muss „Musikversion bevorzugen“ heißen. Suche nach „Wiedergabe“ und „Musikversion“, Navigation / Detailtitel und Untertitel prüfen.
 - **Sprachwechsel:** In der App `App Language = English` wählen und prüfen, dass Englisch weiterhin verfügbar ist; dann zurück zu Deutsch. Französische/spanische Bestandsübersetzungen dürfen nicht verschwinden. Dark Mode, Dynamic Type und VoiceOver kontrollieren.
-- Eine bereits installierte ältere IPA enthält diese Änderungen **nicht**. Der neue Testzentrale-Eintrag unter Playback/erweiterten Automixoptionen erscheint ebenfalls erst in einem neuen Build aus dem aktualisierten Branch.
+- Eine bereits installierte ältere IPA enthält diese Änderungen **nicht**. Der Link zur Testzentrale wird in der nächsten IPA direkt oben unter „Wiedergabe“ und weiterhin unter „Erweiterte Optionen“ angezeigt.
 
 **Status:** Quellcode/Katalog korrigiert. Echter Apple-SwiftUI-Build, Simulator, iPhone-IPA und vollständige UI-Lokalisierungsabnahme **NICHT GETESTET**. Einige noch nicht übersetzte weitere Untermenüs sind separat zu prüfen.
 
