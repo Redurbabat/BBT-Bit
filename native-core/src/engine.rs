@@ -289,6 +289,12 @@ impl PlayerEngine {
             active_bit_perfect_depth: self.active_bit_perfect_depth.clone(),
             bit_perfect_reason: self.bit_perfect_reason.clone(),
             prefer_usb: self.prefer_usb.clone(),
+            #[cfg(target_os = "macos")]
+            idle_release_generation: Arc::new(AtomicU64::new(0)),
+            #[cfg(target_os = "macos")]
+            exclusive_suspended: Arc::new(AtomicBool::new(false)),
+            #[cfg(target_os = "macos")]
+            suspended_device_id: Arc::new(AtomicU32::new(0)),
         };
         let stream = open_output_stream(
             &device,
@@ -638,7 +644,18 @@ impl PlayerEngine {
     pub fn play(&self) -> Result<(), EngineError> {
         #[cfg(target_os = "ios")]
         self.set_ios_output_running(true)?;
-        #[cfg(not(target_os = "ios"))]
+        #[cfg(target_os = "macos")]
+        {
+            // Resume keeps the stream's existing consumer and decoded ring.
+            // A route or DAC format changed in the meantime is an error,
+            // never a silently mislabeled bit-perfect success.
+            if let Some(control) = self.control.lock().unwrap().clone() {
+                control.resume_exclusive_idle_output()?;
+            } else {
+                self.output_paused.store(false, Ordering::Release);
+            }
+        }
+        #[cfg(not(any(target_os = "ios", target_os = "macos")))]
         self.output_paused.store(false, Ordering::Release);
         self.send(Command::Play)
     }
@@ -648,6 +665,10 @@ impl PlayerEngine {
         self.send(Command::Pause)?;
         #[cfg(target_os = "ios")]
         self.set_ios_output_running(false)?;
+        #[cfg(target_os = "macos")]
+        if let Some(control) = self.control.lock().unwrap().clone() {
+            control.schedule_exclusive_idle_release();
+        }
         Ok(())
     }
 

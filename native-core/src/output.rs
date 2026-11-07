@@ -11,6 +11,23 @@ use cpal::ErrorKind;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
+/// Upstream BitChord v1.9.1 releases a direct/exclusive DAC after 30 seconds
+/// of pause. On macOS the existing CoreAudio stream owns the decoded ring:
+/// park it rather than rebuilding it, preserving queued frames exactly.
+pub(crate) const BITPERFECT_IDLE_RELEASE_MS: u64 = 30_000;
+
+/// Only a genuinely exclusive integer output may give up its device while
+/// retaining the stream. The normal output must continue to follow the
+/// platform audio-session policy.
+pub(crate) fn may_release_bitperfect_idle(
+    paused: bool,
+    active_depth: u32,
+    output_held: bool,
+    shutting_down: bool,
+) -> bool {
+    paused && matches!(active_depth, 16 | 24) && !output_held && !shutting_down
+}
+
 /// Output reconfiguration may overlap a user pause. Never restore a saved
 /// pause boolean: that would undo the newer intent. Holds nest independently.
 pub(super) struct OutputHold<'a>(&'a AtomicU32);
@@ -58,9 +75,123 @@ pub(super) struct OutputControl {
     pub(super) active_bit_perfect_depth: Arc<AtomicU32>,
     pub(super) bit_perfect_reason: Arc<Mutex<String>>,
     pub(super) prefer_usb: Arc<AtomicBool>,
+    #[cfg(target_os = "macos")]
+    pub(super) idle_release_generation: Arc<AtomicU64>,
+    #[cfg(target_os = "macos")]
+    pub(super) exclusive_suspended: Arc<AtomicBool>,
+    #[cfg(target_os = "macos")]
+    pub(super) suspended_device_id: Arc<AtomicU32>,
 }
 
 impl OutputControl {
+    /// A single delayed check per pause; the generation cancels stale checks
+    /// without blocking the audio callback or changing user play intent.
+    #[cfg(target_os = "macos")]
+    pub(super) fn schedule_exclusive_idle_release(&self) {
+        let generation = self.idle_release_generation.fetch_add(1, Ordering::AcqRel) + 1;
+        if !may_release_bitperfect_idle(
+            self.output_paused.load(Ordering::Acquire),
+            self.active_bit_perfect_depth.load(Ordering::Acquire),
+            self.output_holds.load(Ordering::Acquire) != 0,
+            self.shutdown.load(Ordering::Acquire),
+        ) {
+            return;
+        }
+        let control = self.clone();
+        let _ = std::thread::Builder::new()
+            .name("bitperfect-idle-release".into())
+            .spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(BITPERFECT_IDLE_RELEASE_MS));
+                if control.idle_release_generation.load(Ordering::Acquire) != generation {
+                    return;
+                }
+                // The same lock orders DAC release against all output rebuilds
+                // and the resume path; never touch a callback-owned ring here.
+                let _rebuild = control.rebuild_lock.lock().unwrap();
+                if control.idle_release_generation.load(Ordering::Acquire) != generation
+                    || control.exclusive_suspended.load(Ordering::Acquire)
+                    || !may_release_bitperfect_idle(
+                        control.output_paused.load(Ordering::Acquire),
+                        control.active_bit_perfect_depth.load(Ordering::Acquire),
+                        control.output_holds.load(Ordering::Acquire) != 0,
+                        control.shutdown.load(Ordering::Acquire),
+                    )
+                {
+                    return;
+                }
+                let output = control.stream.lock().unwrap();
+                let Some(stream) = output.as_ref() else { return };
+                if let Err(err) = stream.pause() {
+                    log::warn!("bit-perfect DAC could not suspend: {err}");
+                    return;
+                }
+                // On macOS a paused CoreAudio unit can retain its consumer and
+                // unread PCM while its hog-mode device ownership is returned.
+                let device = control.device_name.lock().unwrap().clone();
+                let id = macos_exclusive::resolved_device_id(&device).unwrap_or(0);
+                control.suspended_device_id.store(id, Ordering::Release);
+                release_output_exclusive();
+                control.exclusive_suspended.store(true, Ordering::Release);
+                control.active_bit_perfect_depth.store(0, Ordering::Release);
+                *control.bit_perfect_reason.lock().unwrap() =
+                    "Bit-perfect paused: exclusive DAC released after 30 seconds".into();
+                log::info!("bit-perfect DAC released after 30s pause; ring PCM retained");
+            });
+    }
+
+    /// Reclaim exclusive hardware only when it is still the same DAC and
+    /// physical integer format. An incompatible route stays paused: the caller
+    /// must rebuild/re-resolve audio instead of emitting stale-format bytes.
+    #[cfg(target_os = "macos")]
+    pub(super) fn resume_exclusive_idle_output(&self) -> Result<(), EngineError> {
+        self.idle_release_generation.fetch_add(1, Ordering::AcqRel);
+        let _rebuild = self.rebuild_lock.lock().unwrap();
+        if !self.exclusive_suspended.load(Ordering::Acquire) {
+            self.output_paused.store(false, Ordering::Release);
+            return Ok(());
+        }
+        let name = self.device_name.lock().unwrap().clone();
+        let old_id = self.suspended_device_id.load(Ordering::Acquire);
+        let device = pick_output_device(&cpal::default_host(), self.prefer_usb.load(Ordering::Acquire))
+            .ok_or(EngineError::NoOutputDevice)?;
+        let depth = self.bit_perfect_depth.load(Ordering::Acquire);
+        let rate = self.output_rate.load(Ordering::Acquire);
+        let channels = self.output_channels.load(Ordering::Acquire);
+        let same_device = old_id != 0
+            && macos_exclusive::resolved_device_id(&device.to_string()) == Some(old_id)
+            && device.to_string() == name;
+        if !same_device || !matches!(depth, 16 | 24) {
+            return Err(EngineError::StreamInit(
+                "Bit-perfect DAC changed during pause; output needs reconfiguration".into(),
+            ));
+        }
+        acquire_output_exclusive(&name)
+            .map_err(|e| EngineError::StreamInit(format!("Could not reclaim bit-perfect DAC: {e}")))?;
+        if !output_physical_format_matches(&name, rate, channels, depth) {
+            release_output_exclusive();
+            return Err(EngineError::StreamInit(
+                "Bit-perfect hardware format changed during pause".into(),
+            ));
+        }
+        let output = self.stream.lock().unwrap();
+        let Some(stream) = output.as_ref() else {
+            release_output_exclusive();
+            return Err(EngineError::NotStarted);
+        };
+        if let Err(err) = stream.play() {
+            release_output_exclusive();
+            return Err(EngineError::StreamInit(format!("Could not resume bit-perfect DAC: {err}")));
+        }
+        self.output_paused.store(false, Ordering::Release);
+        self.exclusive_suspended.store(false, Ordering::Release);
+        self.suspended_device_id.store(0, Ordering::Release);
+        self.active_bit_perfect_depth.store(depth, Ordering::Release);
+        *self.bit_perfect_reason.lock().unwrap() =
+            "Exclusive integer PCM; DSP and system mixing bypassed".into();
+        log::info!("bit-perfect DAC resumed with the original unconsumed ring frames");
+        Ok(())
+    }
+
     pub(super) fn on_stream_error(&self, err: cpal::Error) {
         match err.kind() {
             ErrorKind::DeviceChanged => {
@@ -772,6 +903,10 @@ pub(super) mod macos_exclusive {
         }
         *hogged_device().lock().unwrap() = Some(device);
         Ok(())
+    }
+
+    pub fn resolved_device_id(target: &str) -> Option<u32> {
+        resolve_device(target).ok()
     }
 
     pub fn release() {
