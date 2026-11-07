@@ -182,14 +182,14 @@ extension SettingsView {
                 }
             }
         }
-        rows.row("Automix-Livetest", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang") {
+        rows.row("BBT-Bit Testzentrale", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
             PushLink {
                 AutomixLiveTestView()
             } label: {
                 SettingsLine(
                     glyph: .automix,
-                    title: "Automix-Livetest",
-                    subtitle: "KI-Modelle und echte Übergänge während der Wiedergabe testen"
+                    title: "BBT-Bit Testzentrale",
+                    subtitle: "Musik, Audio, KI, Netzwerk, Queue und App-Funktionen prüfen"
                 ) {
                     EmptyView()
                 }
