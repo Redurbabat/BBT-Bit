@@ -423,6 +423,20 @@ impl OutputControl {
         stream
             .play()
             .map_err(|e| EngineError::StreamInit(e.to_string()))?;
+        // If a route rebuild occurred while the listener was already
+        // suspended, retain the paused transport state. The old ring can no
+        // longer be reused after a route change, so only a successfully built
+        // replacement is installed; never play it behind the listener's back.
+        #[cfg(target_os = "macos")]
+        let suspend_replacement = self.exclusive_suspended.load(Ordering::Acquire)
+            && self.output_paused.load(Ordering::Acquire)
+            && selected.bit_perfect_depth > 0;
+        #[cfg(target_os = "macos")]
+        if suspend_replacement {
+            stream
+                .pause()
+                .map_err(|e| EngineError::StreamInit(e.to_string()))?;
+        }
         #[cfg(target_os = "ios")]
         if self.output_paused.load(Ordering::Acquire) {
             stream
@@ -495,6 +509,24 @@ impl OutputControl {
             .store(channels as u32, Ordering::Relaxed);
         self.active_pcm_mode
             .store(if selected.pcm16 { 0 } else { 1 }, Ordering::Relaxed);
+        #[cfg(target_os = "macos")]
+        {
+            if suspend_replacement {
+                let id = macos_exclusive::resolved_device_id(&device.to_string()).unwrap_or(0);
+                self.suspended_device_id.store(id, Ordering::Release);
+                release_output_exclusive();
+                self.exclusive_suspended.store(true, Ordering::Release);
+                self.active_bit_perfect_depth.store(0, Ordering::Release);
+                *self.bit_perfect_reason.lock().unwrap() =
+                    "Bit-perfect paused: exclusive DAC released after route rebuild".into();
+            } else {
+                self.exclusive_suspended.store(false, Ordering::Release);
+                self.suspended_device_id.store(0, Ordering::Release);
+                self.active_bit_perfect_depth
+                    .store(selected.bit_perfect_depth, Ordering::Release);
+            }
+        }
+        #[cfg(not(target_os = "macos"))]
         self.active_bit_perfect_depth
             .store(selected.bit_perfect_depth, Ordering::Relaxed);
         if let Some(reason) = bitperfect_fallback_reason {
@@ -1335,5 +1367,56 @@ pub(super) fn open_output_stream(
                 None,
             )
             .map_err(|e| EngineError::StreamInit(e.to_string()))
+    }
+}
+
+#[cfg(test)]
+mod bitperfect_idle_tests {
+    use super::*;
+
+    #[test]
+    fn only_paused_exclusive_integer_pcm_may_release_its_device() {
+        assert_eq!(BITPERFECT_IDLE_RELEASE_MS, 30_000);
+        assert!(may_release_bitperfect_idle(true, 16, false, false));
+        assert!(may_release_bitperfect_idle(true, 24, false, false));
+        assert!(!may_release_bitperfect_idle(false, 16, false, false));
+        assert!(!may_release_bitperfect_idle(true, 0, false, false));
+        assert!(!may_release_bitperfect_idle(true, 16, true, false));
+        assert!(!may_release_bitperfect_idle(true, 16, false, true));
+    }
+
+    #[test]
+    fn paused_bitperfect_callback_keeps_exact_unplayed_stereo_frames_in_its_ring() {
+        let (mut producer, mut consumer) = rtrb::RingBuffer::<f32>::new(8);
+        let samples = [0.125f32, -0.25, 0.375, -0.5];
+        for &sample in &samples {
+            producer.push(sample).expect("ring must have capacity");
+        }
+        let buffered = Arc::new(AtomicU64::new(2));
+        let underruns = Arc::new(AtomicU64::new(0));
+        let peak = Arc::new(AtomicU32::new(0));
+        let flush = Arc::new(AtomicBool::new(false));
+        let bail = Arc::new(AtomicBool::new(false));
+        let paused = Arc::new(AtomicBool::new(true));
+        let mut output = [1.0f32; 4];
+
+        // This is the callback state retained across CoreAudio stream.pause:
+        // it writes silence without consuming the producer's unread PCM.
+        render_bitperfect(
+            &mut consumer, &buffered, &underruns, &peak,
+            &flush, &bail, &paused, &mut output,
+        );
+        assert_eq!(output, [0.0; 4]);
+        assert_eq!(buffered.load(Ordering::Relaxed), 2);
+        assert_eq!(consumer.slots(), 4);
+
+        paused.store(false, Ordering::Release);
+        render_bitperfect(
+            &mut consumer, &buffered, &underruns, &peak,
+            &flush, &bail, &paused, &mut output,
+        );
+        assert_eq!(output, samples);
+        assert_eq!(buffered.load(Ordering::Relaxed), 0);
+        assert_eq!(underruns.load(Ordering::Relaxed), 0);
     }
 }
