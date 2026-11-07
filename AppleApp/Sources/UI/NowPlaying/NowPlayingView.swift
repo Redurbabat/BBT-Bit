@@ -22,6 +22,7 @@ struct NowPlayingView: View {
     @Environment(AppModel.self) var appModel
     @Environment(PartyStore.self) var party
     @Environment(\.dismiss) var dismiss
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
@@ -101,13 +102,13 @@ struct NowPlayingView: View {
         }
         .onChange(of: appModel.queueRevealRequested) { _, requested in
             if requested {
-                withAnimation(.easeInOut(duration: 0.2)) { pane = .queue }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { pane = .queue }
                 appModel.queueRevealRequested = false
             }
         }
         .onChange(of: appModel.lyricsRevealRequested) { _, requested in
             if requested {
-                withAnimation(.easeInOut(duration: 0.2)) { pane = .lyrics }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { pane = .lyrics }
                 appModel.lyricsRevealRequested = false
             }
         }
@@ -127,7 +128,7 @@ struct NowPlayingView: View {
                 }
                 guard !Task.isCancelled, pane == .lyrics, lyricsControlsOpen else { return }
                 if lyricsScrubbing { continue }
-                withAnimation(.easeInOut(duration: 0.22)) { lyricsControlsOpen = false }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) { lyricsControlsOpen = false }
                 return
             }
         }
