@@ -116,6 +116,13 @@ Am 07.11.2026 wurde **B: Verhalten von Original-BitChord v1.9.1 übernehmen** ge
 
 **Noch nicht nachgewiesen:** Kompilierung auf macOS, tatsächliche Hardwarefreigabe nach 30 s, Stream-Reacquire auf physischem USB-DAC, Quell-/Sampleratewechsel, Seek während Suspend, Gerätewechsel, Samplegenauigkeit durch CoreAudio-Hardwarepuffer, CoreAudio-Fehlerbehandlung, iPhone-Routen und wirklich hörbares Audio. Alle diese Prüfungen **NICHT GETESTET**. Verändert eine andere App den DAC während der Pause, kann der alte PCM-Ring nicht formatblind übernommen werden; neuer Ausgabe- und Decoderpfad muss geprüft werden. Kein Merge ohne Abnahme.
 
+## Automix-Modell-404: drei korrigierte öffentliche Quellen für die IPA
+
+- Ursache: `Redurbabat/BBT-Bit` ist **privat**. Alle drei GitHub-Release-Assets existieren, doch die anonymen iPhone-Downloads der eingebauten `URLSession` erhalten dort HTTP 404.
+- `AutomixModelStore.swift` verwendet für Beat + Downbeat (23 478 460 B), Accelerated Beat/Core ML (18 818 981 B) und Vocal + Clash (23 209 009 B) ab jetzt öffentliche Release-Assets unter `bagumamartin/BitChord`. Alle drei veröffentlichten GitHub-Asset-Metadaten stimmen mit den bereits gepinnten SHA-256-Werten und Bytezahlen überein; die Integritätskontrolle bleibt vollständig aktiv.
+- `scripts/fetch-automix-models.sh` verwendet ebenfalls die öffentlichen Quellen und kann nun **alle drei Modelle** abrufen. Neue Prüfung `scripts/verify-automix-model-sources.py` vergleicht die Swift-Modellspezifikationen und Fetch-Konstanten; optional `--online` prüft die GitHub-Release-API. Die Offline-Prüfung läuft vor **beiden** Codemagic-IPA-Workflows sowie im PR-Workflow.
+- Die Modellgewichte werden **nicht in die IPA eingebettet**. Die IPA enthält den korrigierten Downloadcode und die drei Optionen; die Nutzer laden die Modelle in der App in den Application-Support-Speicher. Tempo-/DSP-Fallbacks ohne diese Modelle bleiben erhalten.
+- Abnahme: `python3 scripts/verify-automix-model-sources.py`, optional `--online`, auf macOS `MODELS_LIVE=1 bash scripts/check-models.sh`, danach echte iPhone-Downloads inklusive SHA-256-Kontrolle, Core-ML-Kompilierung und hörbarer Automix-Wiedergabe. **Derzeit weder neues iPhone-Downloadresultat noch erfolgreiche IPA bestätigt.**
 ## Tests / Nachweise
 
 - Original-Diff: GitHub-API-Vergleich erfolgreich (17 Commits, 94 Dateien).
