@@ -1,13 +1,17 @@
 import SwiftUI
 
-/// A compact visual preview of the *existing* upcoming queue. Tapping a card
-/// plays its actual queue index; it does not maintain a competing queue.
+/// Native 3D cylinder for the existing playback queue. No duplicate queue state.
 struct QueueHorizon: View {
     let entries: [QueueEntry]
     let onSelect: (Int) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var hoveringIndex: Int?
+    @State private var focusedIndex = 0
+    @State private var dragOffset: CGFloat = 0
+
+    private let cardWidth: CGFloat = 112
+    private let cardHeight: CGFloat = 132
+    private let gap: CGFloat = 18
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -15,36 +19,114 @@ struct QueueHorizon: View {
                 .font(.caption2.weight(.semibold))
                 .tracking(1.2)
                 .foregroundStyle(.white.opacity(0.65))
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
-                        Button { onSelect(index) } label: {
-                            VStack(spacing: 6) {
-                                ArtworkView(entry: entry, side: 68)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    .rotation3DEffect(
-                                        .degrees(reduceMotion ? 0 : (hoveringIndex == index ? 0 : Double(index - 1) * 7)),
-                                        axis: (0, 1, 0)
-                                    )
-                                Text(entry.title)
-                                    .font(.caption2.weight(.medium))
-                                    .lineLimit(1)
-                                    .foregroundStyle(.white)
-                            }
-                            .frame(width: 98)
-                            .padding(8)
-                            .background(.white.opacity(hoveringIndex == index ? 0.2 : 0.08),
-                                        in: RoundedRectangle(cornerRadius: 15))
-                        }
-                        .buttonStyle(.plain)
-                        .onHover { hoveringIndex = $0 ? index : nil }
-                        .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.85),
-                                   value: hoveringIndex)
-                        .accessibilityLabel("Play next: \(entry.title) by \(entry.artist)")
-                    }
-                }
+
+            if entries.isEmpty {
+                EmptyView()
+            } else if reduceMotion {
+                accessibleStrip
+            } else {
+                cylinder
             }
         }
         .background { LiquidLiveCaptureMarker(id: "queue") }
+        .onChange(of: entries.count) { _, count in
+            focusedIndex = min(focusedIndex, max(0, count - 1))
+        }
+    }
+
+    private var accessibleStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
+                    card(entry, index: index)
+                }
+            }
+        }
+    }
+
+    private var cylinder: some View {
+        GeometryReader { geometry in
+            let count = max(entries.count, 1)
+            let step = 360.0 / Double(count)
+            let pitch = Double(cardWidth + gap)
+            let radius = max(pitch / (2 * sin(.pi / Double(max(count, 3)))), Double(cardWidth) * 0.6)
+            let rotation = -Double(focusedIndex) * step + Double(dragOffset) / CGFloat(radius) * (180 / .pi)
+
+            ZStack {
+                ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
+                    let angle = (Double(index) * step + rotation) * .pi / 180
+                    let depth = cos(angle)
+                    let visible = depth > -0.25
+                    let scale = CGFloat(0.74 + 0.26 * max(0, depth))
+                    card(entry, index: index)
+                        .scaleEffect(scale)
+                        .rotation3DEffect(.degrees(-sin(angle) * 38 - 5), axis: (0, 1, 0), perspective: 0.65)
+                        .offset(x: CGFloat(sin(angle) * radius) * 0.88)
+                        .opacity(visible ? 0.42 + 0.58 * max(0, depth) : 0)
+                        .zIndex(depth)
+                        .allowsHitTesting(visible)
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 8)
+                    .onChanged { dragOffset = $0.translation.width }
+                    .onEnded { value in
+                        let stride = cardWidth + gap
+                        let projected = value.predictedEndTranslation.width
+                        let shift = Int((projected / stride).rounded())
+                        withAnimation(.spring(response: 0.48, dampingFraction: 0.82)) {
+                            focusedIndex = wrapped(focusedIndex - shift, count: count)
+                            dragOffset = 0
+                        }
+                    }
+            )
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Nächste Titel")
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: focus(focusedIndex + 1)
+                case .decrement: focus(focusedIndex - 1)
+                @unknown default: break
+                }
+            }
+        }
+        .frame(height: cardHeight + 16)
+        .clipped()
+    }
+
+    private func card(_ entry: QueueEntry, index: Int) -> some View {
+        Button {
+            if !reduceMotion && focusedIndex != index {
+                focus(index)
+            } else {
+                onSelect(index)
+            }
+        } label: {
+            VStack(spacing: 7) {
+                ArtworkView(entry: entry, side: 86)
+                    .clipShape(RoundedRectangle(cornerRadius: 11))
+                Text(entry.title)
+                    .font(.caption2.weight(.medium))
+                    .lineLimit(1)
+                    .foregroundStyle(.white)
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 15))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(entry.title), \(entry.artist)")
+        .accessibilityHint("Titel auswählen oder abspielen")
+    }
+
+    private func focus(_ index: Int) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.48, dampingFraction: 0.82)) {
+            focusedIndex = wrapped(index, count: max(entries.count, 1))
+        }
+    }
+
+    private func wrapped(_ index: Int, count: Int) -> Int {
+        ((index % count) + count) % count
     }
 }
