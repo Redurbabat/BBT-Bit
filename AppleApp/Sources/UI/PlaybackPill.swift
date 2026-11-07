@@ -115,7 +115,7 @@ struct PlaybackPill: View {
         // Direct gesture-state updates make the pill follow the finger at half
         // rate. Only the release back to rest springs; the pull itself does not lag.
         .animation(
-            pillDrag == PillDragState()
+            !reduceMotion && pillDrag == PillDragState()
                 ? .spring(response: 0.38, dampingFraction: 0.86)
                 : nil,
             value: pillDrag
