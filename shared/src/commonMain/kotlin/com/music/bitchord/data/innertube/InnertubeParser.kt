@@ -774,34 +774,63 @@ object InnertubeParser {
 
     // ---- Watch queue (AutoPlay radio) ---------------------------------------
 
-    /** Tracks of a watch queue (`next` response) — the AutoPlay radio mix. */
-    fun parseWatchQueue(root: JsonElement): List<Song> {
+    /**
+     * Radio-Titel des Next-Endpunkts. Eine Audio-/Video-Paarung besetzt
+     * genau eine Queue-Position, entsprechend BitChord v1.9.1.
+     */
+    fun parseWatchQueue(
+        root: JsonElement, preferAudio: Boolean = false, preferVideo: Boolean = false
+    ): List<Song> {
         val out = LinkedHashMap<String, Song>()
-        collectRenderers(root, "playlistPanelVideoRenderer").forEach { renderer ->
-            val videoId = renderer.s("videoId") ?: return@forEach
-            val title = renderer.o("title").runs()
-            if (title.isBlank()) return@forEach
-            // The byline packs artist, views and likes into one run list;
-            // only the leading runs before the first bullet are the credit.
-            val bylineRuns = renderer.o("longBylineText").a("runs").orEmpty()
-            val byline = bylineRuns.map { it.s("text").orEmpty() }
-            val artist = byline.takeWhile { !it.contains("•") }.joinToString("").trim()
-            val credits = creditsOf(bylineRuns)
-            out[videoId] = Song(
-                videoId = videoId,
-                title = title,
-                artist = artist.ifBlank { "Unknown artist" },
-                thumbnailUrl = renderer.o("thumbnail").a("thumbnails").best(),
-                durationText = renderer.o("lengthText").runs().takeIf { it.isNotBlank() },
-                artistId = credits.artistId,
-                albumId = credits.albumId,
-                albumName = credits.albumName,
-                // A catalogue track is credited "Artist • Album • Year"; the
-                // matching music video is "Artist • 417M views • 2.4M likes".
-                isVideo = byline.any { it.contains("views", ignoreCase = true) },
-            )
+        val replacements = HashMap<String, JsonObject>()
+        val dropped = HashSet<String>()
+        if (preferAudio || preferVideo) {
+            collectRenderers(root, "playlistPanelVideoWrapperRenderer").forEach { wrapper ->
+                val primary = wrapper.o("primaryRenderer").o("playlistPanelVideoRenderer")
+                    ?: return@forEach
+                val paired = listOf(primary) + wrapper.a("counterpart").orEmpty().mapNotNull {
+                    it.o("counterpartRenderer").o("playlistPanelVideoRenderer")
+                }
+                val selected = paired.firstOrNull {
+                    if (preferVideo) !it.isWatchQueueAudioTrack() else it.isWatchQueueAudioTrack()
+                } ?: return@forEach
+                val primaryId = primary.s("videoId") ?: return@forEach
+                replacements[primaryId] = selected
+                paired.filter { it !== primary }.mapNotNullTo(dropped) { it.s("videoId") }
+            }
+        }
+        collectRenderers(root, "playlistPanelVideoRenderer").forEach { found ->
+            val videoId = found.s("videoId") ?: return@forEach
+            if (videoId in dropped) return@forEach
+            val song = watchQueueSong(replacements[videoId] ?: found) ?: return@forEach
+            out[song.videoId] = song
         }
         return out.values.toList()
+    }
+
+    private fun JsonObject.isWatchQueueAudioTrack(): Boolean =
+        o("navigationEndpoint").o("watchEndpoint").o("watchEndpointMusicSupportedConfigs")
+            .o("watchEndpointMusicConfig").s("musicVideoType") == "MUSIC_VIDEO_TYPE_ATV"
+
+    private fun watchQueueSong(renderer: JsonObject): Song? {
+        val videoId = renderer.s("videoId") ?: return null
+        val title = renderer.o("title").runs()
+        if (title.isBlank()) return null
+        val bylineRuns = renderer.o("longBylineText").a("runs").orEmpty()
+        val byline = bylineRuns.map { it.s("text").orEmpty() }
+        val artist = byline.takeWhile { !it.contains("•") }.joinToString("").trim()
+        val credits = creditsOf(bylineRuns)
+        return Song(
+            videoId = videoId,
+            title = title,
+            artist = artist.ifBlank { "Unknown artist" },
+            thumbnailUrl = renderer.o("thumbnail").a("thumbnails").best(),
+            durationText = renderer.o("lengthText").runs().takeIf { it.isNotBlank() },
+            artistId = credits.artistId,
+            albumId = credits.albumId,
+            albumName = credits.albumName,
+            isVideo = byline.any { it.contains("views", ignoreCase = true) },
+        )
     }
 
     // ---- Account ------------------------------------------------------------
