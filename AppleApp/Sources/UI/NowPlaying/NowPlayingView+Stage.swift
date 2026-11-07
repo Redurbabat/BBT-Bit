@@ -87,7 +87,7 @@ extension NowPlayingView {
                 }
                 if collapsed {
                     panel()
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .bottom)))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -101,13 +101,13 @@ extension NowPlayingView {
             .overlay(alignment: .topTrailing) {
                 if pane == .main {
                     GlassQueuePortal {
-                        withAnimation(.easeInOut(duration: 0.22)) { pane = .queue }
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) { pane = .queue }
                     }
                     .padding(.trailing, 16)
                     .padding(.top, 10)
                 }
             }
-            .animation(.snappy(duration: 0.28), value: pane)
+            .animation(reduceMotion ? nil : .snappy(duration: 0.28), value: pane)
             // Additive sleeve swipe, upstream's vertical drag: up past 60pt
             // opens Up Next, down while a panel is up returns to the player.
             // The pane buttons stay the primary control; this never replaces
@@ -299,10 +299,14 @@ extension NowPlayingView {
                     .padding(.horizontal, 24)
                     .accessibilityLabel(status)
             }
-            // Phones keep the lyric strip in the main and queue panes. On iPad
-            // the larger lyric/queue pane already has that space, so the pinned
-            // deck stays focused on seek and playback controls.
-            if pane != .lyrics && !isIPad { currentLyricStrip }
+            // Der Lyrics-Kurztext gehört nur zum Hauptplayer. In der Queue
+            // würde er Platz aus der Trackliste nehmen, obwohl der Lyrics-
+            // Button bereits den direkten Weg zu den Songtexten bietet.
+            // Kein "Lyrics off"-Platzhalter bei fehlenden Songtexten.
+            if pane == .main && !isIPad &&
+                (controller.lyricsLoading || !controller.displayedLyrics.isEmpty) {
+                currentLyricStrip
+            }
             positionControls
                 .padding(.horizontal, 32)
             playerTransport
@@ -323,19 +327,10 @@ extension NowPlayingView {
                         .padding(.horizontal, 32)
                 }
             }
+            // Der Werkzeugzugang liegt im vorhandenen Mehr-Menü.
+            // Zusätzliche Dock-Zeilen würden die Deck-Höhe vergrößern und
+            // Artwork, Songtitel sowie Transport bei jeder Expansion verschieben.
             playerActionRow
-            if pane == .main {
-                InfinityDock(
-                    automixEnabled: controller.automixEnabled,
-                    onLyrics: { withAnimation(.easeInOut(duration: 0.2)) { pane = .lyrics } },
-                    onQueue: { withAnimation(.easeInOut(duration: 0.2)) { pane = .queue } },
-                    onOutput: { showOutputDevice = true },
-                    onEqualizer: { showEqualizerFromDock = true },
-                    onPipeline: { showPipeline = true },
-                    onAutomix: { controller.toggleAutomix() }
-                )
-                .padding(.horizontal, 24)
-            }
         }
         .padding(.top, 8)
         .padding(.bottom, 10)
