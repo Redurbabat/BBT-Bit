@@ -164,6 +164,9 @@ impl OutputControl {
             && macos_exclusive::resolved_device_id(&device.to_string()) == Some(old_id)
             && device.to_string() == name;
         if !same_device || !matches!(depth, 16 | 24) {
+            // Route recovery runs off-thread after the resume attempt fails.
+            // It must not play stale PCM into a different DAC meanwhile.
+            self.request_rebuild(true);
             return Err(EngineError::StreamInit(
                 "Bit-perfect DAC changed during pause; output needs reconfiguration".into(),
             ));
@@ -172,6 +175,7 @@ impl OutputControl {
             .map_err(|e| EngineError::StreamInit(format!("Could not reclaim bit-perfect DAC: {e}")))?;
         if !output_physical_format_matches(&name, rate, channels, depth) {
             release_output_exclusive();
+            self.request_rebuild(true);
             return Err(EngineError::StreamInit(
                 "Bit-perfect hardware format changed during pause".into(),
             ));
@@ -183,6 +187,7 @@ impl OutputControl {
         };
         if let Err(err) = stream.play() {
             release_output_exclusive();
+            self.request_rebuild(true);
             return Err(EngineError::StreamInit(format!("Could not resume bit-perfect DAC: {err}")));
         }
         self.output_paused.store(false, Ordering::Release);

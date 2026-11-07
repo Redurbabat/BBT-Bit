@@ -522,6 +522,16 @@ impl PlayerEngine {
         }
 
         let active_depth = self.active_bit_perfect_depth.load(Ordering::Relaxed);
+        // A suspended CoreAudio unit has no active DAC ownership, yet its
+        // unopened-to-the-listener integer stream is still the selected wire.
+        // Treat that as prepared for the next Play; otherwise SetBitPerfect
+        // would wrongly turn the retained integer ring into a mixed source.
+        #[cfg(target_os = "macos")]
+        let active_depth = if control.exclusive_suspended.load(Ordering::Acquire) {
+            self.bit_perfect_depth.load(Ordering::Acquire)
+        } else {
+            active_depth
+        };
         if try_bit_perfect && active_depth != source_bit_depth {
             bit_perfect_reason = "The route could not open the exact source format".into();
             release_output_exclusive();
