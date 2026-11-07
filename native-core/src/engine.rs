@@ -522,10 +522,9 @@ impl PlayerEngine {
         }
 
         let active_depth = self.active_bit_perfect_depth.load(Ordering::Relaxed);
-        // A suspended CoreAudio unit has no active DAC ownership, yet its
-        // unopened-to-the-listener integer stream is still the selected wire.
-        // Treat that as prepared for the next Play; otherwise SetBitPerfect
-        // would wrongly turn the retained integer ring into a mixed source.
+        // Ein pausierter CoreAudio-Stream hält keinen DAC-Hog-Mode,
+        // bleibt jedoch als Integer-Ausgabestream vorbereitet. Andernfalls
+        // würde SetBitPerfect den erhaltenen PCM-Ring falsch interpretieren.
         #[cfg(target_os = "macos")]
         let active_depth = if control.exclusive_suspended.load(Ordering::Acquire) {
             self.bit_perfect_depth.load(Ordering::Acquire)
@@ -656,9 +655,9 @@ impl PlayerEngine {
         self.set_ios_output_running(true)?;
         #[cfg(target_os = "macos")]
         {
-            // Resume keeps the stream's existing consumer and decoded ring.
-            // A route or DAC format changed in the meantime is an error,
-            // never a silently mislabeled bit-perfect success.
+            // Beim Fortsetzen bleiben Consumer und ungespielte PCM-Frames
+            // erhalten. Gerät-/Formatwechsel erzeugen einen Fehler statt
+            // fälschlich als bit-perfekte Wiedergabe zu gelten.
             let control = self
                 .control
                 .lock()
@@ -693,8 +692,8 @@ impl PlayerEngine {
         self.set_ios_output_running(false)?;
         #[cfg(target_os = "macos")]
         if let Some(control) = self.control.lock().unwrap().clone() {
-            // Stop has no unplayed song to retain, but it must not keep an
-            // exclusive USB DAC owned indefinitely while playback is idle.
+            // Stop soll einen exklusiven USB-DAC nicht unbegrenzt halten;
+            // der inaktive Ausgabepfad wird nach derselben Frist freigegeben.
             control.schedule_exclusive_idle_release();
         }
         Ok(())

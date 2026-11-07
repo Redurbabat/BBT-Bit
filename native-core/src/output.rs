@@ -11,14 +11,14 @@ use cpal::ErrorKind;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
-/// Upstream BitChord v1.9.1 releases a direct/exclusive DAC after 30 seconds
-/// of pause. On macOS the existing CoreAudio stream owns the decoded ring:
-/// park it rather than rebuilding it, preserving queued frames exactly.
+/// BitChord v1.9.1: Nach 30 Sekunden Pause einen exklusiven DAC freigeben.
+/// Auf macOS bleibt der vorhandene CoreAudio-Stream samt PCM-Ring erhalten.
+#[cfg(any(target_os = "macos", test))]
 pub(crate) const BITPERFECT_IDLE_RELEASE_MS: u64 = 30_000;
 
-/// Only a genuinely exclusive integer output may give up its device while
-/// retaining the stream. The normal output must continue to follow the
-/// platform audio-session policy.
+/// Nur echte exklusive Integer-Ausgabe darf die Hardware im Idle freigeben.
+/// Der normale Systemmixer behält seine AV-/CoreAudio-Lebensdauerregeln.
+#[cfg(any(target_os = "macos", test))]
 pub(crate) fn may_release_bitperfect_idle(
     paused: bool,
     active_depth: u32,
@@ -84,8 +84,8 @@ pub(super) struct OutputControl {
 }
 
 impl OutputControl {
-    /// A single delayed check per pause; the generation cancels stale checks
-    /// without blocking the audio callback or changing user play intent.
+    /// Eine zeitversetzte Prüfung pro Pause. Die Generation verwirft alte
+    /// Aufträge, ohne Audio-Callback oder die Benutzerabsicht zu blockieren.
     #[cfg(target_os = "macos")]
     pub(super) fn schedule_exclusive_idle_release(&self) {
         let generation = self.idle_release_generation.fetch_add(1, Ordering::AcqRel) + 1;
@@ -105,8 +105,8 @@ impl OutputControl {
                 if control.idle_release_generation.load(Ordering::Acquire) != generation {
                     return;
                 }
-                // The same lock orders DAC release against all output rebuilds
-                // and the resume path; never touch a callback-owned ring here.
+                // Derselbe Lock serialisiert DAC-Freigabe, Routen-Neuaufbau
+                // und Fortsetzen. Der Audio-Ring gehört weiter dem Callback.
                 let _rebuild = control.rebuild_lock.lock().unwrap();
                 if control.idle_release_generation.load(Ordering::Acquire) != generation
                     || control.exclusive_suspended.load(Ordering::Acquire)
@@ -125,8 +125,8 @@ impl OutputControl {
                     log::warn!("bit-perfect DAC could not suspend: {err}");
                     return;
                 }
-                // On macOS a paused CoreAudio unit can retain its consumer and
-                // unread PCM while its hog-mode device ownership is returned.
+                // Pausierte CoreAudio-Ausgabe behält Consumer und ungespielte
+                // PCM-Frames, während das exklusive Hog-Mode-Recht endet.
                 let device = control.device_name.lock().unwrap().clone();
                 let id = macos_exclusive::resolved_device_id(&device).unwrap_or(0);
                 control.suspended_device_id.store(id, Ordering::Release);
@@ -139,9 +139,9 @@ impl OutputControl {
             });
     }
 
-    /// Reclaim exclusive hardware only when it is still the same DAC and
-    /// physical integer format. An incompatible route stays paused: the caller
-    /// must rebuild/re-resolve audio instead of emitting stale-format bytes.
+    /// Exklusiven Zugriff nur mit identischem DAC und physischem Format
+    /// wiederherstellen. Bei inkompatibler Route bleibt die Ausgabe pausiert,
+    /// bis die Quelle für den neuen Ausgabepfad vorbereitet wurde.
     #[cfg(target_os = "macos")]
     pub(super) fn resume_exclusive_idle_output(&self) -> Result<(), EngineError> {
         self.idle_release_generation.fetch_add(1, Ordering::AcqRel);
@@ -446,10 +446,9 @@ impl OutputControl {
         stream
             .play()
             .map_err(|e| EngineError::StreamInit(e.to_string()))?;
-        // If a route rebuild occurred while the listener was already
-        // suspended, retain the paused transport state. The old ring can no
-        // longer be reused after a route change, so only a successfully built
-        // replacement is installed; never play it behind the listener's back.
+        // Auch nach einem Neuaufbau während der Pause bleibt der neue
+        // Ausgabestream pausiert. Nach echtem Gerätewechsel ist der alte Ring
+        // unbrauchbar; ein Ersatz wird erst nach erfolgreichem Öffnen genutzt.
         #[cfg(target_os = "macos")]
         let suspend_replacement = self.exclusive_suspended.load(Ordering::Acquire)
             && self.output_paused.load(Ordering::Acquire)
