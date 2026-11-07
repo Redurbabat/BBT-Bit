@@ -55,6 +55,15 @@ Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETEST
 
 **Status 07.11.2026:** Quelltext geändert und Rust-Regressionen angelegt. **Kompilierung, Unit-Tests, echter Mac-DAC, iPhone-Simulator, echtes iPhone, hörbares Audio und IPA NICHT GETESTET.**
 
+## Automix-Modelle: Download-404-Fix für die IPA
+
+- `python3 scripts/verify-automix-model-sources.py`: Quellprüfung der drei öffentlichen, festen Release-URLs, SHA-256 und Größen sowie der Entwickler-Fetch-Konstanten. Wird von Codemagic vor Debug/Release-IPA und in PR-CI aufgerufen.
+- `python3 scripts/verify-automix-model-sources.py --online`: öffentliche GitHub-Release-Metadaten für alle drei Assets überprüfen. Die Prüfung lädt keine Modelldateien herunter.
+- Auf macOS: `MODELS_LIVE=1 bash scripts/check-models.sh` für **tatsächliche** Downloads und echte Integritätsprüfung. Fixture-/Manifestprüfungen nicht mit realem Assetdownload verwechseln.
+- Auf echtem iPhone mit neuem Branch-Build: Automix Models öffnen, **Beat + Downbeat**, **Accelerated Beat (Core ML)** und **Vocal + Clash** installieren. Kein HTTP 404, SHA-256 und Größen stimmen; Core ML wird kompiliert und benötigt das Basismodell. App neu starten und installierte Modelle offline verwenden.
+- Die drei Modellgewichte sind **nicht als 65 MB Bundle-Daten** in der IPA: die Modelle werden beim Anwender heruntergeladen und persistiert. Tempo-/DSP-Fallback ohne Modelle prüfen; hörbare Musikausgabe separat nachweisen.
+
+**Status: Modell-URLs und Release-Metadaten geprüft; neue IPA, Live-Download auf iPhone, Core-ML-Inferenz und Audiowiedergabe NICHT GETESTET.**
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
