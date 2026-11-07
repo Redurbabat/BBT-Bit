@@ -14,6 +14,7 @@ import AppKit
 extension PlaybackController {
     func adoptAutomixPlan(_ plan: TransitionPlanRec) {
         pendingAutomixPlan = plan
+        automixPlanRevision &+= 1
         let rateNote = abs(plan.playbackRate - 1) > 0.001
             ? String(format: " @%.3fx", plan.playbackRate)
             : ""
@@ -68,6 +69,7 @@ extension PlaybackController {
             return
         }
         smartMixInProgress = true
+        automixTransitionRevision &+= 1
         let fade = plan.fadeSeconds > 0 ? plan.fadeSeconds : 6
         mixFadeUntil = Date().addingTimeInterval(fade)
         pendingAutomixPlan = nil

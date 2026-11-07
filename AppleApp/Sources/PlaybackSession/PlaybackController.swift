@@ -383,6 +383,11 @@ final class PlaybackController {
     /// Analysis backends for the last planned pair: outgoing / incoming
     /// (`music_understanding`, `beat_this`, `dsp`, `disk_cache`).
     var analysisSources: String?
+    /// Incremented only after the Rust engine has produced a real pair plan.
+    /// The live test uses this instead of claiming installed models were run.
+    var automixPlanRevision: UInt64 = 0
+    /// Incremented when the engine reports a real transition starting.
+    var automixTransitionRevision: UInt64 = 0
     /// Beat-grid confidence when native-core exposes it. Nil until then.
     var analysisConfidence: Double?
     /// Marker on the progress bar while a planned Automix window is known.
