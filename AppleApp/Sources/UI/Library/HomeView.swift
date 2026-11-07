@@ -302,7 +302,7 @@ struct RecentShelf: View {
     /// points, and the heroes drew straight through the shelf below.
     @State private var gridWidth: CGFloat = 0
 
-    private var isList: Bool { viewType.uppercased() != "GRID" }
+    private var isList: Bool { viewType.uppercased() == "LIST" }
 
     /// Upstream's hero width: 70% of the row, capped at 320.
     private var heroSide: CGFloat {
@@ -320,20 +320,15 @@ struct RecentShelf: View {
                     }
                 }
                 Spacer(minLength: 8)
-                Button {
-                    viewType = isList ? "GRID" : "LIST"
-                    PlatformSettings.shared.putString(key: "home_recents_view_type", value: viewType)
+                Menu {
+                    Button("Liste", systemImage: "list.bullet") { selectView("LIST") }
+                    Button("Raster", systemImage: "square.grid.2x2") { selectView("GRID") }
+                    Button("Depth Ribbon", systemImage: "square.stack.3d.up") { selectView("RIBBON") }
                 } label: {
-                    Image(isList ? .bchGridView : .bchListView)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(.secondary)
-                        .frame(width: 19, height: 19)
+                    Image(systemName: viewType == "RIBBON" ? "square.stack.3d.up" : "square.grid.2x2")
                         .frame(width: 32, height: 32)
                 }
-                .buttonStyle(.plain)
-                .help(isList ? "Switch to grid view" : "Switch to list view")
-                .accessibilityLabel(isList ? "Switch to grid view" : "Switch to list view")
+                .accessibilityLabel("Ansicht auswählen")
             }
             if isList {
                 GeometryReader { geometry in
@@ -356,6 +351,17 @@ struct RecentShelf: View {
                 }
                 .frame(height: 4 * 56 + 4)
                 .padding(.horizontal, -24)
+            } else if viewType == "RIBBON" {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 6) {
+                        ForEach(shelf.items) { card in
+                            HeroCard(card: card, preferTrack: true, side: 184)
+                                .modifier(RecentRibbonTransform())
+                        }
+                    }
+                    .padding(.vertical, 18)
+                }
+                .frame(height: 242)
             } else {
                 // Upstream's Recents GRID mode is the hero treatment: the
                 // same 0.92-ratio scrim-caption tiles as Home's first shelf.
@@ -374,6 +380,11 @@ struct RecentShelf: View {
             }
         }
     }
+    private func selectView(_ type: String) {
+        viewType = type
+        PlatformSettings.shared.putString(key: "home_recents_view_type", value: type)
+    }
+
 }
 
 /// One recent track: 48pt sleeve, title/artist, overflow menu. Matches
@@ -395,13 +406,12 @@ private struct RecentTrackRow: View {
                 if let videoId = card.videoId, !videoId.isEmpty {
                     controller.playRadio(QueueEntry.youtube(
                         videoId: videoId, title: card.title, artist: card.subtitle ?? "",
-                        thumbnailUrl: card.thumbnailUrl, isVideo: card.isVideo
+                        thumbnailUrl: card.thumbnailUrl
                     ), context: "Recents")
                 }
             } label: {
                 HStack(spacing: 12) {
-                    ArtworkView(url: card.thumbnailUrl, data: nil, side: 48, fill: card.isVideo)
-                        .frame(width: 48, height: card.isVideo ? 27 : 48)
+                    ArtworkView(url: card.thumbnailUrl, data: nil, side: 48)
                         .clipShape(.rect(cornerRadius: 7, style: .continuous))
                         .modifier(NowPlayingCardAccent(
                             isCurrent: isCurrentTrack,
@@ -455,5 +465,25 @@ private extension Array {
             index = end
         }
         return out
+    }
+}
+
+
+private struct RecentRibbonTransform: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            content
+        } else {
+            content.scrollTransition(.interactive, axis: .horizontal) { view, phase in
+                view
+                    .rotation3DEffect(.degrees(Double(phase.value) * -30), axis: (0, 1, 0), perspective: 0.75)
+                    .rotationEffect(.degrees(Double(phase.value) * 5))
+                    .offset(y: abs(phase.value) * 24)
+                    .scaleEffect(1 - abs(phase.value) * 0.14)
+                    .opacity(1 - abs(phase.value) * 0.25)
+            }
+        }
     }
 }
