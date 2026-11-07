@@ -19,3 +19,7 @@
 - **iPad/macOS und appinterne Music Island:** Eine einzelne `.glassEffect(.regular, in: ...)`-Fläche für Bedienelemente. Ältere Systeme erhalten semantisches `.regularMaterial` als Fallback; Reduce Transparency oder `reduce_dynamic_blur` verwenden `Theme.Materials.opaque`.
 - **Kontrolle:** Primäre/sekundäre Systemtextfarben statt weißer Schrift auf künstlichen Cover-Tints. Coverfarben bleiben im Albumcover und können den **Vollbildplayer** weiterhin gestalterisch begleiten, aber nicht die Navigation färben. Liquid-Glass-Highlights und Kontrast bestimmt das Betriebssystem.
 - **Die Music Island über der App ist keine Hardware-Dynamic-Island/Live-Activity.** Sie enthält denselben `PlaybackController` und ändert nur ihre Darstellung, nicht den Audiozustand.
+
+## BBT-Bit Testzentrale (E-012)
+
+Die Testzentrale ist eine native SwiftUI-`Form` mit `Section`, `LabeledContent`, `Picker`, `NavigationLink` und `ShareLink`. Es gelten systemeigene semantische Textfarben, VoiceOver-Fokus und dynamische Schriftgrößen. Der Passivmonitor darf keine Playback-Transportbefehle senden; manuelle Testergebnisse bleiben ausdrücklich `Nicht getestet`, bis sie vom Nutzer markiert werden. Der datensparsame Bericht verlässt das iPhone nur nach einer eigenen ShareLink-Aktion. Siehe [Testplan](TESTPLAN.md#bbt-bit-testzentrale--native-live-diagnose).
