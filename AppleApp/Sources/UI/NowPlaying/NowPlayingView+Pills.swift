@@ -236,8 +236,7 @@ extension NowPlayingView {
             .buttonStyle(.plain)
             .accessibilityLabel(party.inParty ? "People listening" : "Listen Together")
         }
-        .background(.white.opacity(0.12))
-        .clipShape(Capsule())
+        .modifier(PlayerModeGlassChrome())
         .accessibilityElement(children: .contain)
     }
 
@@ -323,9 +322,25 @@ extension NowPlayingView {
                 ? "AutoMix blends the end of one track into the next"
                 : "AutoMix off — tracks change at the end")
         }
-        .background(.white.opacity(0.12))
-        .clipShape(Capsule())
+        .modifier(PlayerModeGlassChrome())
         .accessibilityElement(children: .contain)
+    }
+
+    /// Eine neutrale native Glasfläche für Infinity-, Automix- und Ausgabemodi.
+    /// Keine albumabhängige Tönung und keine zweite eingefärbte Schicht.
+    private struct PlayerModeGlassChrome: ViewModifier {
+        @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+        @ViewBuilder
+        func body(content: Content) -> some View {
+            if reduceTransparency {
+                content.background(.black.opacity(0.82), in: Capsule())
+            } else if #available(iOS 26.0, macOS 26.0, *) {
+                content.glassEffect(.regular, in: Capsule())
+            } else {
+                content.background(.ultraThinMaterial, in: Capsule())
+            }
+        }
     }
 
     private var pillDivider: some View {
