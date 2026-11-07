@@ -328,7 +328,7 @@ struct UpNextPane: View {
     }
 
     private var horizonEntries: [QueueRow] {
-        Array((manualUpcoming + autoplayUpcoming).prefix(3))
+        manualUpcoming + autoplayUpcoming
     }
 
     private var autoplayStart: Int { controller.autoplaySectionStart }
