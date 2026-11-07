@@ -73,6 +73,19 @@ Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETEST
 
 **Status:** Implementiert als SwiftUI-Quellcode auf Feature-Branch. Swift-Kompilierung, Simulator-Screenshot, echtes iPhone und hörbare Wiedergabe **NICHT GETESTET**.
 
+## BBT-Bit Testzentrale – native Live-Diagnose
+
+Die Funktion unter **Einstellungen → BBT-Bit Testzentrale** darf beim Hören passiv mitlaufen; sie startet, pausiert, überspringt oder ersetzt keine Musik und verändert keine Queue, Kontodaten, Downloads oder Favoriten.
+
+1. Auf echtem iPhone die aktuelle Test-IPA installieren und zwei tatsächlich spielbare Songs anstellen; die Testzentrale starten, ihre Ansicht verlassen und die App verwenden. Bis zu 30 Minuten lang sollen Messpunkte entstehen, während der App-Prozess läuft. Eine iOS-Prozesssuspendierung begrenzt Hintergrundaufnahmen.
+2. Automatische Messpunkte prüfen: gültiger Queue-Index, Controller-Zeitfortschritt, Decoder-/Native-Output-Zustand, AVAudioSession, Netzwerkstatus, Buffering und nur das **Vorhandensein** eines Playback-Fehlers. Weder ausgegebene Streamnamen noch Rohlogs mit Nutzerdaten dürfen in den Livetestbericht gelangen.
+3. Für **alle drei KI-Modelle** `Alle drei SHA-256-Dateien prüfen` antippen. Download-Status, erneute echte SHA-256-/Größenprüfung, Rust-Modell geladen und bei einem **neuen** echten Automix-Paar erfolgreich verwendetes ONNX/Core-ML/Open-Unmix müssen getrennt dargestellt werden. Tests mit BALANCED, PERFORMANCE und EFFICIENT; letzteres deaktiviert das Vocal-Modell und den Core-ML-Beschleuniger.
+4. Die **14 Handtests** zu hörbarer Musik, Pause/Resume, Next/Previous, Shuffle/Repeat, Crossfade-Klang, Suche, Home/Bibliothek, Playlists/Favoriten, Offline-Musik, Video/Lyrics, Hintergrund/Lockscreen, Bluetooth/USB, Liquid Glass/VoiceOver und Listen Together jeweils auf `Bestanden` oder `Fehler` setzen **erst nach tatsächlicher Durchführung**. `Offen` darf niemals automatisch als grün zählen.
+5. `Lokalen Testbericht speichern` und `Testbericht teilen` nach Abschluss auf dem Gerät auslösen. Prüfe, dass JSON nur technische Statuswerte, Uhrzeiten, Model-IDs und ausdrücklich markierte Ergebnisse enthält; **keine** Songtitel, Medien-IDs, Stream-URLs, lokale Pfade, Zugangsdaten oder rohe Diagnoselogs. Teilen ist nur mit ausdrücklicher Interaktion möglich.
+6. Zusätzlich externe Tests: `cargo test --locked --manifest-path native-core/Cargo.toml`, Swift-/Xcode-Build, iPhone-Simulator-XCUITest, GitHub Actions/Codemagic, erfolgreich signierte IPA und **wirklich hörbare** Ausgabe auf echtem iPhone. Ein gemeldeter Decoder oder ein Zeitfortschritt beweist keinen hörbaren Ton.
+
+**Status 2026-11-07:** Quellimplementierung auf Draft-Branch. SwiftUI-Kompilierung, Rust-Unit-Test, UI-/iPhone-Simulator-Test, echtes iPhone, hörbare Audiowiedergabe und signierte IPA **NICHT GETESTET**.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
