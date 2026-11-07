@@ -32,7 +32,7 @@ extension PlaybackController {
         state = newState
         if let current {
             nowPlaying.update(
-                id: current.id, title: current.title, artist: current.artist, albumName: current.albumName, albumName: current.albumName,
+                id: current.id, title: current.title, artist: current.artist, albumName: current.albumName,
                 duration: duration, artworkData: current.artworkData,
                 thumbnailUrl: current.thumbnailUrl,
                 isPlaying: newState == .playing
@@ -117,7 +117,7 @@ extension PlaybackController {
             }
             publishPresence()
             nowPlaying.update(
-                id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName, albumName: entry.albumName,
+                id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName,
                 duration: info.durationSeconds, artworkData: entry.artworkData,
                 thumbnailUrl: entry.thumbnailUrl, isPlaying: isPlaying, position: position
             )
