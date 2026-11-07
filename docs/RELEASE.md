@@ -8,6 +8,8 @@
 
 ## Bauen und prüfen
 
+Der getrennte [SideStore-Gerätetest](IPHONE_TESTSYSTEM.md) erzeugt eine unsignierte iOS-Testvariante ohne Widget und iCloud-Freigaben. Er verwendet die vorhandenen Bauskripte, veröffentlicht kein Release und ersetzt weder die Geräteabnahme noch den unveränderten Codemagic-/Release-Ablauf.
+
 1. Auf Apple Silicon die vorhandenen [Framework-Skripte](ARCHITEKTUR.md#abhängigkeitsgrenzen) ausführen und das Projekt mit `xcodegen generate --spec AppleApp/project.yml` generieren.
 2. [Codemagic](../CODEMAGIC-IOS.md) verwendet Java 21, Xcode 26 und die vorhandenen Caches. `bbt-bit-ios-fast-ipa` baut einen unsignierten Debug-IPA bei passenden PRs. `bbt-bit-ios-ipa` archiviert einen unsignierten Release-IPA auf manuellen Start. [Simulator-Actions](github-iphone-simulator-tests.md) liefert Testbelege.
 3. Beide Apple-Artefakte aus demselben sauberen Commit bauen. Die konkreten Schritte stehen in [APPLE_RELEASES.md](../APPLE_RELEASES.md). `prepare-apple-release.py` liest die Plists der Artefakte und erzeugt `release.json`, `SHA256.txt` und `INSTALL.md`. Prüfe Version, Build, Bundle-ID und Commit gegen den Kandidaten.

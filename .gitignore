@@ -3,6 +3,7 @@
 .kotlin/
 **/build/
 local.properties
+__pycache__/
 
 # Rust
 native-core/target/
@@ -12,6 +13,7 @@ native-core/build-xcframework/
 # Xcode — all generated: project by xcodegen, frameworks by the build scripts,
 # Info.plists + entitlements by xcodegen from project.yml
 AppleApp/*.xcodeproj
+AppleApp/project.sidestore.yml
 AppleApp/Frameworks/
 AppleApp/Generated/
 AppleApp/BitChord-Info.plist
@@ -37,6 +39,7 @@ native-core/fixtures/automix/*.aiff
 !/docs/DESIGN_SYSTEM.md
 !/docs/AGENT_WORKFLOW.md
 !/docs/RELEASE.md
+!/docs/IPHONE_TESTSYSTEM.md
 
 # Local secrets and signing material
 .env
