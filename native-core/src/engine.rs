@@ -673,12 +673,18 @@ impl PlayerEngine {
     }
 
     pub fn stop(&self) -> Result<(), EngineError> {
-        #[cfg(target_os = "ios")]
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
         self.output_paused.store(true, Ordering::Release);
         self.bail_flush.store(true, Ordering::Release);
         self.send(Command::Stop)?;
         #[cfg(target_os = "ios")]
         self.set_ios_output_running(false)?;
+        #[cfg(target_os = "macos")]
+        if let Some(control) = self.control.lock().unwrap().clone() {
+            // Stop has no unplayed song to retain, but it must not keep an
+            // exclusive USB DAC owned indefinitely while playback is idle.
+            control.schedule_exclusive_idle_release();
+        }
         Ok(())
     }
 
