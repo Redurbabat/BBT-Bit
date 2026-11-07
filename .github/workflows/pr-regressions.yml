@@ -36,6 +36,7 @@ jobs:
           python scripts/repository-verify/check.py
           python scripts/release-verify/check.py
           python scripts/verify-automix-model-sources.py
+          python scripts/verify-settings-german.py
       - name: Scan introduced commits for secrets
         if: ${{ !cancelled() }}
         run: |

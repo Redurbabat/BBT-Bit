@@ -86,6 +86,19 @@ Die Funktion unter **Einstellungen → BBT-Bit Testzentrale** darf beim Hören p
 
 **Status 2026-11-07:** Quellimplementierung auf Draft-Branch. SwiftUI-Kompilierung, Rust-Unit-Test, UI-/iPhone-Simulator-Test, echtes iPhone, hörbare Audiowiedergabe und signierte IPA **NICHT GETESTET**.
 
+## Deutschsprachige Einstellungen – Lokalisierungsregression (2026-11-07)
+
+**Fehlerbild:** Auf einem deutschen iPhone erscheint die Überschrift „Einstellungen“ übersetzt, aber die neun Kategorien und fast alle Unterpunkte unter „Playback“ zeigen Englisch. Ursachen: `developmentLanguage = en` ist korrekt, doch dem `Localizable.xcstrings` fehlten viele `de`-Einträge und dynamische SwiftUI-Strings wurden als normale `String`-Werte statt `LocalizedStringKey` dargestellt.
+
+**Umgesetzt:** `SettingsView` setzt die Locale aus `AppLanguage` (standardmäßig `de`), auch bei englischer Gerätesprache. `SettingsSection` zeigt die übersetzten Titel in Hauptseite, Suchergebnissen, Navigation und macOS-Sidebar. `SettingsLine` und `SettingsSubToggle` übersetzen dynamisch über `LocalizedStringKey`, ohne Such-/Routen-IDs zu verändern. Die Einstellungs-Suche berücksichtigt auch die lokalisierten Kategorien und Zeilentitel. Der String Catalog wurde um deutsche Kategorie-, Playback-, Automix-, Beschreibungs- und weitere Einstellungswerte ergänzt, ohne fremde Sprachen oder vorhandene Übersetzungen zu überschreiben.
+
+- `python3 scripts/verify-settings-german.py`: Erwartete deutsche Kategorien, die auf Screenshots sichtbaren Wiedergabeoptionen, SwiftUI-Locale, dynamische Labels und lokalisierte Suche prüfen. In PR-Regressionsworkflow enthalten.
+- **Manueller Test auf iPhone:** `App Language = German` und alternativ `Device Language` bei Gerät Deutsch. „Playback“ muss „Wiedergabe“, „Sound & Quality“ muss „Klang & Qualität“, „Prefer Music Only“ muss „Musikversion bevorzugen“ heißen. Suche nach „Wiedergabe“ und „Musikversion“, Navigation / Detailtitel und Untertitel prüfen.
+- **Sprachwechsel:** In der App `App Language = English` wählen und prüfen, dass Englisch weiterhin verfügbar ist; dann zurück zu Deutsch. Französische/spanische Bestandsübersetzungen dürfen nicht verschwinden. Dark Mode, Dynamic Type und VoiceOver kontrollieren.
+- Eine bereits installierte ältere IPA enthält diese Änderungen **nicht**. Der neue Testzentrale-Eintrag unter Playback/erweiterten Automixoptionen erscheint ebenfalls erst in einem neuen Build aus dem aktualisierten Branch.
+
+**Status:** Quellcode/Katalog korrigiert. Echter Apple-SwiftUI-Build, Simulator, iPhone-IPA und vollständige UI-Lokalisierungsabnahme **NICHT GETESTET**. Einige noch nicht übersetzte weitere Untermenüs sind separat zu prüfen.
+
 ## Echtes iPhone
 
 Für den Fehler mit regionaler Gerätesprache zuerst mit `de-CH` oder `de-DE` prüfen. Die API-Sprache muss `de` werden, die Inhaltsregion muss erhalten bleiben. Auf macOS kann `VERIFY_APPLE_LANGUAGE=de-CH VIDEO_IDS=ZjBZ8MUnB0E STRICT_PLAYBACK=1 bash scripts/check-playback.sh` den nativen Resolver und einen Medienabruf prüfen. Das Skript setzt die Sprache nur im Prüfprozess. Es belegt noch keine hörbare iPhone-Wiedergabe.
