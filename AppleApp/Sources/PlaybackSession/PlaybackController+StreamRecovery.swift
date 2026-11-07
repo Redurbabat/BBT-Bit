@@ -42,17 +42,19 @@ extension PlaybackController {
         }
     }
 
-    private func stopAfterFailedRecovery(source: String) {
+    func stopAfterFailedRecovery(source: String) {
         guard let entry = current, source == loadedSourcePath,
               PlaybackRecoveryPolicy.canRecover(entrySource: entry.source, loadedSource: source, origin: resolvedOrigin[entry.id]?.rawValue),
               duration <= 0 || playbackPosition < duration - 3 else { return }
         wakeGrowingReader(source)
         let at = playbackPosition
+        let diagnostic = "stream recovery exhausted: source=\(source.hasPrefix("/") ? "local-cache" : "remote") position=\(at) duration=\(duration) state=\(state)"
+        debugLog.record(diagnostic, about: entry.id)
         pausePlayback()
         engineLoadedId = nil
         restoredStart = (entry.id, at)
         recoveryNeedsFreshResolution = true
-        lastError = "Playback could not be restored automatically. Press Play to retry."
+        lastError = "Playback interrupted at \(Int(at))s; automatic stream recovery failed. Press Play to retry."
         sourceDecisionNotes[entry.id] = lastError
     }
 
