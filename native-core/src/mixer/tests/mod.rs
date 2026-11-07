@@ -1,6 +1,6 @@
 use super::curves::{
     automix_gains, cold_end_gains, db_to_gain, effect_intro_db, effect_intro_gains, effect_landing,
-    fade_gains, fall_gain, hold_fraction, ride_effect_intro, ride_filters, rise_gain,
+    blend_headroom_target, fade_gains, fall_gain, hold_fraction, ride_effect_intro, ride_filters, rise_gain,
     COLD_END_UNDERLAY_DB,
 };
 use super::deck::{

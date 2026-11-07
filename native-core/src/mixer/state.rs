@@ -70,6 +70,9 @@ pub(super) struct MixerState {
     pub(super) sleep_gain: f32,
     pub(super) hold_end: bool,
     pub(super) crossfade_window_s: f64,
+    /// Smooth bus trim from BitChord's paired-deck headroom rule. Retained
+    /// across rendered chunks to avoid zipper noise at buffer boundaries.
+    pub(super) mix_headroom: f32,
     pub(super) spatial_enabled: bool,
     pub(super) head_yaw: f32,
     pub(super) device_rate: u32,

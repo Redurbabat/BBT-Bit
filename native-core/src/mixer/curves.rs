@@ -45,6 +45,21 @@ pub(super) fn rise_gain(progress: f64) -> f32 {
     (progress.clamp(0.0, 1.0) * core::f64::consts::PI / 2.0).sin() as f32
 }
 
+/// BitChord v1.9.1 trims two simultaneously playing masters by
+/// `1 / sqrt(incoming + outgoing)` in its CrossfadeController. The same
+/// reduction is applied once to the mixed stereo bus, ahead of the limiter,
+/// rather than multiplying each decoder's samples individually.
+///
+/// Never *amplify* a quiet transition, and never touch same-song source swaps
+/// (whose linear gains sum to one). Invalid gains fail closed to unity.
+pub(super) fn blend_headroom_target(incoming: f32, outgoing: f32, same_signal: bool) -> f32 {
+    if same_signal || !incoming.is_finite() || !outgoing.is_finite() {
+        return 1.0;
+    }
+    let sum = incoming.max(0.0) + outgoing.max(0.0);
+    if sum <= 1.0 { 1.0 } else { sum.sqrt().recip() }
+}
+
 /// Smoothstep: zero slope at both ends.
 pub(super) fn smoothstep(p: f64) -> f64 {
     let p = p.clamp(0.0, 1.0);

@@ -1,6 +1,6 @@
 //! Rendering the decks into the output ring, mixed or bit-perfect.
 
-use super::curves::fall_gain;
+use super::curves::{blend_headroom_target, fall_gain};
 use super::deck::normalization_gain;
 use super::state::{MixerState, Phase};
 use super::voice::CHUNK_FRAMES;
@@ -79,6 +79,23 @@ fn diagnostic_stage_signature(state: &MixerState) -> u32 {
                 .is_some_and(|voice| voice.smoothed_normalization != 1.0),
     );
     signature
+}
+
+/// Applies the pair's headroom at the audio bus, with one sample-rate
+/// ramp from the previous chunk's gain to the current target. Ramping rather
+/// than snapping is essential when a filter/style changes on a 512-frame tick.
+fn apply_blend_headroom(samples: &mut [f32], previous: &mut f32, target: f32) {
+    let frames = samples.len() / 2;
+    if frames == 0 { return; }
+    let from = *previous;
+    let delta = target - from;
+    for (index, stereo) in samples.chunks_exact_mut(2).enumerate() {
+        let fraction = (index + 1) as f32 / frames as f32;
+        let gain = from + delta * fraction;
+        stereo[0] *= gain;
+        stereo[1] *= gain;
+    }
+    *previous = target;
 }
 
 /// Renders while the ring has room for a chunk.
@@ -316,6 +333,24 @@ pub(super) fn render_available(state: &mut MixerState, ring: &mut Producer<f32>)
         // across render blocks, after the float-headroom processing stages.
         let mut pushed = 0;
         if produced > 0 {
+            // Unlike source swaps, two independent masters can sum above full
+            // scale at a sin/cos midpoint. Trim before EQ / clarity / true-peak
+            // protection: a limiter alone would distort both records.
+            let target = if state.playing
+                && state.transition.as_ref().is_some_and(|t| t.phase == Phase::Fading && !t.swap)
+            {
+                match (state.current.as_ref(), state.incoming.as_ref()) {
+                    (Some(outgoing), Some(incoming)) => {
+                        blend_headroom_target(incoming.gain, outgoing.gain, false)
+                    }
+                    _ => 1.0,
+                }
+            } else {
+                1.0
+            };
+            apply_blend_headroom(
+                &mut scratch[..produced], &mut state.mix_headroom, target,
+            );
             if state.sound_mode == SoundMode::Enhanced {
                 state.eq.process(&mut scratch[..produced]);
             }

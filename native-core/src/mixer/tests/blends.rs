@@ -4,6 +4,46 @@ use super::super::voice::CHUNK_FRAMES;
 use super::*;
 
 #[test]
+fn bit_chord_v191_crossfade_headroom_keeps_two_masters_below_the_original_sum() {
+    // The source version drives two ExoPlayer volumes with the same sin/cos
+    // gains; the Rust port applies the resulting trim on its mixed stereo bus.
+    let (first_rise, first_fall) = fade_gains(0.0, false);
+    assert_eq!(blend_headroom_target(first_rise, first_fall, false), 1.0);
+    let (rise, fall) = fade_gains(0.5, false);
+    let gain = blend_headroom_target(rise, fall, false);
+    assert!((gain as f64 - 2f64.powf(-0.25)).abs() < 1e-5);
+    assert!(((rise + fall) * gain) < 1.2);
+    let (last_rise, last_fall) = fade_gains(1.0, false);
+    assert!((blend_headroom_target(last_rise, last_fall, false) - 1.0).abs() < 1e-5);
+    // A same-recording swap uses linear gains and must not be attenuated.
+    let (swap_rise, swap_fall) = fade_gains(0.5, true);
+    assert_eq!(blend_headroom_target(swap_rise, swap_fall, true), 1.0);
+    // The rule must not boost a planned dip, even if both faders are low.
+    assert_eq!(blend_headroom_target(0.25, 0.35, false), 1.0);
+    assert_eq!(blend_headroom_target(f32::NAN, 1.0, false), 1.0);
+}
+
+#[test]
+fn crossfade_headroom_stays_smooth_at_stereo_chunk_boundaries() {
+    let mut prior = 1.0;
+    let mut first = [1f32; 512 * 2];
+    let (rise, fall) = fade_gains(0.5, false);
+    let target = blend_headroom_target(rise, fall, false);
+    super::super::render::apply_blend_headroom(&mut first, &mut prior, target);
+    assert!((prior - target).abs() < 1e-6);
+    let first_step = (first[0] - 1.0).abs();
+    assert!(first_step < 0.002, "large gain jump at first stereo sample: {first_step}");
+    let mut second = [1f32; 512 * 2];
+    super::super::render::apply_blend_headroom(&mut second, &mut prior, 1.0);
+    assert!(
+        (second[0] - first[1022]).abs() < 0.002,
+        "crossfade trim jumped at chunk boundary"
+    );
+    assert!((prior - 1.0).abs() < 1e-6);
+    assert!(second.windows(2).all(|pair| pair[0].is_finite() && pair[1].is_finite()));
+}
+
+#[test]
 fn reusable_voice_output_matches_fixed_input_bit_for_bit() {
     let dir = std::env::temp_dir().join(format!("bitchord-reused-pull-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
