@@ -492,7 +492,7 @@ struct SettingsView: View {
             selection: $selectedMacSettingsSection,
             sidebarLabel: { section in
                 NavigationLink(value: section) {
-                    Label(section.title, systemImage: section.systemImage)
+                    Label(LocalizedStringKey(section.title), systemImage: section.systemImage)
                 }
             },
             detail: { section in
