@@ -437,6 +437,11 @@ struct AutomixLiveTestView: View {
                 NavigationLink("Musik- und Streamdiagnose ansehen") {
                     DiagnosticReportsView()
                 }
+                #if os(iOS)
+                NavigationLink("15 Liquid-Motion-Designs automatisch prüfen") {
+                    LiquidMotionDeviceSelfTestView()
+                }
+                #endif
             } header: {
                 Text("Automatische App-Prüfung")
             } footer: {
