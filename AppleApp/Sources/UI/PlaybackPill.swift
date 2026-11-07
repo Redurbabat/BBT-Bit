@@ -550,7 +550,12 @@ struct PlaybackPill: View {
                     content.background(.regularMaterial, in: Capsule())
                 }
             } else {
-                content.background(Capsule().fill(fill))
+                if reduceTransparency {
+                    content.background(Capsule().fill(Theme.Materials.opaque))
+                } else {
+                    // Ältere iPhones: neutrales Systemmaterial, keine Cover-Farbe.
+                    content.background(.regularMaterial, in: Capsule())
+                }
             }
         }
     }
