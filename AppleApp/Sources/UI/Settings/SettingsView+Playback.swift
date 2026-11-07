@@ -10,6 +10,8 @@ import AppKit
 // Playback: crossfade, AutoMix and its models, and the rest of playback.
 extension SettingsView {
     func buildPlaybackRows(_ rows: inout SettingsRows) {
+        // Always visible at the top of Playback, not only in Advanced Options.
+        appendTestCenterRow(&rows)
         rows.row("Crossfade", "blend", "fade", "transition", "gapless", "automix") {
             VStack(alignment: .leading, spacing: 6) {
                 SettingsSliderRow(glyph: .crossfade, title: "Crossfade",
@@ -182,19 +184,7 @@ extension SettingsView {
                 }
             }
         }
-        rows.row("BBT-Bit Testzentrale", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
-            PushLink {
-                AutomixLiveTestView()
-            } label: {
-                SettingsLine(
-                    glyph: .automix,
-                    title: "BBT-Bit Testzentrale",
-                    subtitle: "Musik, Audio, KI, Netzwerk, Queue und App-Funktionen prüfen"
-                ) {
-                    EmptyView()
-                }
-            }
-        }
+        appendTestCenterRow(&rows)
         rows.row("Automix Models", "models", "model", "onnx", "beat", "downbeat", "vocal", "install", "download models") {
             PushLink {
                 AutomixModelsPage()
@@ -203,6 +193,22 @@ extension SettingsView {
                     glyph: .models,
                     title: "Automix Models",
                     subtitle: Self.automixModelsSubtitle
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+    }
+
+    private func appendTestCenterRow(_ rows: inout SettingsRows) {
+        rows.row("BBT-Bit Testzentrale", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
+            PushLink {
+                AutomixLiveTestView()
+            } label: {
+                SettingsLine(
+                    glyph: .automix,
+                    title: "BBT-Bit Testzentrale",
+                    subtitle: "Musik, Audio, KI, Netzwerk, Queue und App-Funktionen prüfen"
                 ) {
                     EmptyView()
                 }
