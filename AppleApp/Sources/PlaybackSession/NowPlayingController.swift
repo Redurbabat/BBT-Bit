@@ -119,26 +119,26 @@ final class NowPlayingController {
 
     /// Called only for an explicit play intent, after activation and a paused
     /// engine load have succeeded, before engine.play().
-    func prepareForPlayback(id: String, title: String, artist: String, duration: Double,
+    func prepareForPlayback(id: String, title: String, artist: String, albumName: String?, duration: Double,
                             artworkData: Data?, thumbnailUrl: String?, position: Double,
                             canNext: Bool, canPrevious: Bool, canSeek: Bool) {
 #if os(iOS) && canImport(NowPlaying)
         if #available(iOS 27, *), let model = modern as? ModernNowPlaying {
-            model.prepare(id: id, title: title, artist: artist, duration: duration,
+            model.prepare(id: id, title: title, artist: artist, albumName: albumName, duration: duration,
                           artworkData: artworkData, thumbnailUrl: thumbnailUrl, position: position,
                           canNext: canNext, canPrevious: canPrevious, canSeek: canSeek)
         }
 #endif
     }
 
-    func update(id: String, title: String, artist: String, duration: Double,
+    func update(id: String, title: String, artist: String, albumName: String?, duration: Double,
                 artworkData: Data?, thumbnailUrl: String?, isPlaying: Bool,
                 position: Double? = nil) {
         // iOS 27 publishes exclusively through the MediaSession (see init:
         // mixing in MPNowPlayingInfoCenter yields undefined behavior).
 #if os(iOS) && canImport(NowPlaying)
         if #available(iOS 27, *), let model = modern as? ModernNowPlaying {
-            model.update(id: id, title: title, artist: artist, duration: duration,
+            model.update(id: id, title: title, artist: artist, albumName: albumName, duration: duration,
                          artworkData: artworkData, thumbnailUrl: thumbnailUrl,
                          isPlaying: isPlaying, position: position)
             return
@@ -158,6 +158,11 @@ final class NowPlayingController {
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? Double(PlatformSettings.shared.getFloat(key: "playback_speed", default: 1)) : 0.0,
             MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue,
         ]
+        // QueueEntry.albumName ist optional. Fehlende Albumdaten dürfen
+        // weder einen Typfehler noch eine leere System-Metadatenzeile erzeugen.
+        if let albumName, !albumName.isEmpty {
+            info[MPMediaItemPropertyAlbumTitle] = albumName
+        }
         if let position {
             info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = position
         } else if let old = MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] {
@@ -333,6 +338,7 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
     weak var delegate: NowPlayingController?
     var title = ""
     var artist = ""
+    var albumName = ""
     var duration: Double = 0
     @ObservationIgnored private var playback = NowPlayingPlaybackState()
     // Observe the actual framework value. Getters must not mutate diagnostic
@@ -381,7 +387,7 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
             : nil
         return MusicContent(
             id: contentID, songTitle: title, artistName: artist,
-            albumName: "", type: .audio,
+            albumName: albumName, type: .audio,
             duration: duration > 0 ? .finite(duration) : nil,
             artwork: artwork
         )
@@ -454,10 +460,10 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
         NSLog("[BitChord] %@", message)
     }
 
-    func prepare(id: String, title: String, artist: String, duration: Double,
+    func prepare(id: String, title: String, artist: String, albumName: String?, duration: Double,
                  artworkData: Data?, thumbnailUrl: String?, position: Double,
                  canNext: Bool, canPrevious: Bool, canSeek: Bool) {
-        update(id: id, title: title, artist: artist, duration: duration,
+        update(id: id, title: title, artist: artist, albumName: albumName, duration: duration,
                artworkData: artworkData, thumbnailUrl: thumbnailUrl,
                isPlaying: false, position: position)
         self.canNext = canNext
@@ -475,13 +481,14 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
         record("audio playback started")
     }
 
-    func update(id: String, title: String, artist: String, duration: Double,
+    func update(id: String, title: String, artist: String, albumName: String?, duration: Double,
                 artworkData: Data?, thumbnailUrl: String?, isPlaying: Bool,
                 position: Double?) {
         let elapsed = position ?? (contentID == id ? nil : 0)
         contentID = id
         self.title = title
         self.artist = artist
+        self.albumName = albumName ?? ""
         self.duration = duration
         self.artworkData = artworkData
         self.artworkURL = thumbnailUrl
@@ -514,6 +521,7 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
         playback = NowPlayingPlaybackState()
         playbackSnapshot = nil
         title = ""
+        albumName = ""
         contentID = nil
     }
 
@@ -522,7 +530,7 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
     /// creating another media session or touching the user's audio session.
     static func verifyObservation() -> [String: Bool] {
         let model = ModernNowPlaying()
-        model.update(id: "observation-fixture", title: "Fixture", artist: "Fixture", duration: 40,
+        model.update(id: "observation-fixture", title: "Fixture", artist: "Fixture", albumName: "Fixture Album", duration: 40,
                      artworkData: nil, thumbnailUrl: nil, isPlaying: true, position: 2)
         let snapshotChanged = Mutex(false)
         let commandsChanged = Mutex(false)
