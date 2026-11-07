@@ -18,6 +18,63 @@ struct AutomixLiveSample: Codable {
     let analysisSource: String
     let analysisStyle: String
     let playbackErrorPresent: Bool
+    let networkConnected: Bool
+    let queueIndexValid: Bool
+    let sourceLoaded: Bool
+    let decoderReported: Bool
+    let outputDeviceStarted: Bool
+    let audioSessionActive: Bool?
+}
+
+enum BBTManualTest: String, CaseIterable, Identifiable {
+    case audibleAudio, pauseAndResume, nextAndPrevious, shuffleAndRepeat
+    case automixSound, searchAndDiscover, homeAndLibrary, playlistsAndFavorites
+    case downloadsAndOffline, musicVideosAndLyrics, backgroundAndLockScreen
+    case bluetoothAndAudioRoute, accessibilityAndGlass, partyAndSync
+
+    var id: String { rawValue }
+    var name: String {
+        switch self {
+        case .audibleAudio: return "Ton tatsächlich hörbar"
+        case .pauseAndResume: return "Pause und Fortsetzen"
+        case .nextAndPrevious: return "Nächster / vorheriger Song"
+        case .shuffleAndRepeat: return "Shuffle und Wiederholen"
+        case .automixSound: return "Crossfade wirklich hörbar"
+        case .searchAndDiscover: return "Suche und Entdecken"
+        case .homeAndLibrary: return "Startseite und Bibliothek"
+        case .playlistsAndFavorites: return "Playlists, Favoriten, Verlauf"
+        case .downloadsAndOffline: return "Downloads und Offline-Wiedergabe"
+        case .musicVideosAndLyrics: return "Musikvideos und Liedtexte"
+        case .backgroundAndLockScreen: return "Sperrbildschirm und Hintergrund"
+        case .bluetoothAndAudioRoute: return "Bluetooth, Kopfhörer, Audio-Routen"
+        case .accessibilityAndGlass: return "Liquid Glass, VoiceOver, große Schrift"
+        case .partyAndSync: return "Listen Together und Synchronisation"
+        }
+    }
+    var instruction: String {
+        switch self {
+        case .audibleAudio: return "Höre einen echten Song über Lautsprecher/Kopfhörer."
+        case .pauseAndResume: return "Pausiere und starte denselben Song erneut."
+        case .nextAndPrevious: return "Wechsle vor und zurück; prüfe Titel und hörbaren Ton."
+        case .shuffleAndRepeat: return "Teste Zufall, Repeat One und Repeat All mit deiner Queue."
+        case .automixSound: return "Höre beide Quellen beim Übergang ohne Knacken oder Lücke."
+        case .searchAndDiscover: return "Suche echte Musik und öffne ein Suchergebnis."
+        case .homeAndLibrary: return "Öffne Start, Entdecken und deine Bibliothek."
+        case .playlistsAndFavorites: return "Speichere und entferne einen Test-Favoriten und prüfe den Verlauf."
+        case .downloadsAndOffline: return "Teste einen vorhandenen Offline-Song im Flugmodus."
+        case .musicVideosAndLyrics: return "Öffne ein Musikvideo und synchronisierte Liedtexte."
+        case .backgroundAndLockScreen: return "Sperre das iPhone und prüfe Play/Pause und Fortschritt."
+        case .bluetoothAndAudioRoute: return "Wechsle zu AirPods/Bluetooth oder USB und höre weiter."
+        case .accessibilityAndGlass: return "Prüfe Dark Mode, Kontrast, VoiceOver und größere Schrift."
+        case .partyAndSync: return "Teste Listen Together nur mit einem zweiten Gerät."
+        }
+    }
+}
+
+enum BBTManualVerdict: String, CaseIterable {
+    case open = "Nicht getestet"
+    case pass = "Bestanden"
+    case fail = "Fehler"
 }
 
 @MainActor
@@ -28,6 +85,13 @@ final class AutomixLiveTestMonitor {
     private(set) var startedAt: Date?
     private(set) var samples: [AutomixLiveSample] = []
     private(set) var progressObserved = false
+    private(set) var outputObserved = false
+    private(set) var decoderObserved = false
+    private(set) var validQueueObserved = false
+    private(set) var networkObserved = false
+    private(set) var sessionObserved = false
+    private(set) var playbackErrorObserved = false
+    private(set) var manualVerdicts: [BBTManualTest: BBTManualVerdict] = [:]
     private(set) var plansObserved = 0
     private(set) var transitionsObserved = 0
     private(set) var onnxObserved = false
@@ -54,6 +118,13 @@ final class AutomixLiveTestMonitor {
         startedAt = Date()
         samples = []
         progressObserved = false
+        outputObserved = false
+        decoderObserved = false
+        validQueueObserved = false
+        networkObserved = false
+        sessionObserved = false
+        playbackErrorObserved = false
+        manualVerdicts = [:]
         plansObserved = 0
         transitionsObserved = 0
         onnxObserved = false
@@ -91,6 +162,10 @@ final class AutomixLiveTestMonitor {
         sampleTask = nil
     }
 
+    func setManual(_ test: BBTManualTest, verdict: BBTManualVerdict) {
+        manualVerdicts[test] = verdict
+    }
+
     private func record(controller: PlaybackController) {
         guard let startedAt else { return }
         let currentID = controller.current?.id
@@ -116,6 +191,24 @@ final class AutomixLiveTestMonitor {
             controller.automixTransitionRevision >= baseTransition
                 ? controller.automixTransitionRevision - baseTransition : 0
         )
+        let queueValid = controller.queue.isEmpty
+            ? controller.current == nil
+            : controller.queue.indices.contains(controller.playingIndex)
+        let outputStarted = controller.outputDevice.started
+        let decoderReported = controller.nerd?.codec.isEmpty == false
+        let sourceLoaded = controller.settingsAudioReadout.loaded
+        let networkConnected = NetworkQuality.shared.connected
+        #if os(iOS)
+        let audioSessionActive: Bool? = AudioSessionManager.isActive
+        #else
+        let audioSessionActive: Bool? = nil
+        #endif
+        outputObserved = outputObserved || (controller.isPlaying && outputStarted)
+        decoderObserved = decoderObserved || (controller.isPlaying && decoderReported)
+        validQueueObserved = validQueueObserved || (controller.current != nil && queueValid)
+        networkObserved = networkObserved || networkConnected
+        sessionObserved = sessionObserved || (audioSessionActive == true)
+        playbackErrorObserved = playbackErrorObserved || controller.lastError != nil
         let item = AutomixLiveSample(
             second: Int(Date().timeIntervalSince(startedAt)),
             playing: controller.isPlaying,
@@ -129,7 +222,13 @@ final class AutomixLiveTestMonitor {
             engineTransitionActive: controller.smartMixInProgress,
             analysisSource: lastPlanSource ?? "",
             analysisStyle: controller.analysisTier ?? "",
-            playbackErrorPresent: controller.lastError != nil
+            playbackErrorPresent: controller.lastError != nil,
+            networkConnected: networkConnected,
+            queueIndexValid: queueValid,
+            sourceLoaded: sourceLoaded,
+            decoderReported: decoderReported,
+            outputDeviceStarted: outputStarted,
+            audioSessionActive: audioSessionActive
         )
         samples.append(item)
     }
@@ -147,6 +246,13 @@ final class AutomixLiveTestMonitor {
             let startedAt: Date?
             let endedAt: Date
             let modelState: [Model]
+            let manualChecks: [String: String]
+            let nativeAudioOutputObserved: Bool
+            let decoderObserved: Bool
+            let queueWasValid: Bool
+            let internetStatusObserved: Bool
+            let audioSessionObserved: Bool
+            let playbackErrorObserved: Bool
             let beatRuntimeReady: Bool
             let vocalRuntimeRequested: Bool
             let coreMLRuntimeLoaded: Bool
@@ -166,6 +272,15 @@ final class AutomixLiveTestMonitor {
                 Model(name: id.rawValue, installedPinned: store.status(of: id).isInstalled,
                       usablePreviousVersion: store.isUsingPreviousGraph(id))
             },
+            manualChecks: Dictionary(uniqueKeysWithValues:
+                BBTManualTest.allCases.map { ($0.rawValue, (manualVerdicts[$0] ?? .open).rawValue) }
+            ),
+            nativeAudioOutputObserved: outputObserved,
+            decoderObserved: decoderObserved,
+            queueWasValid: validQueueObserved,
+            internetStatusObserved: networkObserved,
+            audioSessionObserved: sessionObserved,
+            playbackErrorObserved: playbackErrorObserved,
             beatRuntimeReady: runtime.beatReady,
             vocalRuntimeRequested: runtime.vocalsRequested,
             coreMLRuntimeLoaded: runtime.coreMLLoaded,
@@ -176,7 +291,7 @@ final class AutomixLiveTestMonitor {
             coreMLPlanObserved: coreMLObserved,
             vocalModelPlanObserved: vocalsObserved,
             samples: samples,
-            notice: "Engine-Meldungen und Zeitfortschritt sind kein Nachweis fuer hoerbare Audioausgabe."
+            notice: "Automatische Statuswerte beweisen keine hoerbare Wiedergabe. Manuelle Tests stammen vom Benutzer; Build, Signierung und IPA sind nicht auf dem iPhone testbar."
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -203,7 +318,7 @@ struct AutomixLiveTestView: View {
     var body: some View {
         Form {
             Section {
-                Text("Teste die drei KI-Modelle während du BBT-Bit normal benutzt. Du kannst diese Seite verlassen: Die Aufzeichnung läuft bis zum Stoppen oder maximal fünf Minuten weiter. Es wird kein Song gestartet oder deine Queue verändert.")
+                Text("Prüfe BBT-Bit während der normalen Nutzung: KI-Modelle, Audiopfad, Queue, Streaming, Übergänge und App-Funktionen. Verlasse die Seite und nutze die App weiter. Die Aufzeichnung endet nach spätestens fünf Minuten. Deine Queue und Wiedergabe werden durch den Monitor nicht verändert.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Button {
@@ -232,8 +347,10 @@ struct AutomixLiveTestView: View {
                 }
                 LabeledContent("Messpunkte", value: "\(monitor.samples.count)")
                 LabeledContent("Maximale Laufzeit", value: "5 Minuten")
+                Text("Im Hintergrund kann iOS die App pausieren. Aufzeichnung läuft nur, solange die App tatsächlich ausgeführt wird.")
+                    .font(.caption).foregroundStyle(.secondary)
             } header: {
-                Text("Livetest")
+                Text("BBT-Bit-Livetest")
             }
 
             Section {
@@ -299,6 +416,70 @@ struct AutomixLiveTestView: View {
             }
 
             Section {
+                LabeledContent("Queue-Index", value:
+                    monitor.validQueueObserved ? "Gültige Queue beobachtet" : "Noch nicht geprüft")
+                LabeledContent("Stream / Decoder", value:
+                    monitor.decoderObserved ? "Decoder gemeldet" : "Noch nicht bestätigt")
+                LabeledContent("Nativer Ausgabestream", value:
+                    monitor.outputObserved ? "Aktiv gemeldet" : "Noch nicht bestätigt")
+                LabeledContent("Netzwerkstatus", value:
+                    NetworkQuality.shared.connected ? "Verbunden gemeldet" : "Nicht verbunden")
+                #if os(iOS)
+                LabeledContent("iPhone-Audiositzung", value:
+                    AudioSessionManager.isActive ? "Aktiv" : "Inaktiv")
+                #endif
+                LabeledContent("Playback-Fehler während Test", value:
+                    monitor.playbackErrorObserved ? "Mindestens einer registriert" : "Keiner beobachtet")
+                NavigationLink("Audio-Pipeline und DSP ansehen") {
+                    AudioPipelineSheet()
+                }
+                NavigationLink("Musik- und Streamdiagnose ansehen") {
+                    DiagnosticReportsView()
+                }
+            } header: {
+                Text("Automatische App-Prüfung")
+            } footer: {
+                Text("Dies sind echte Zustandsmeldungen, keine künstlichen Testergebnisse. Ein offener Ausgabestream und ein laufender Zeitwert beweisen keinen hörbaren Ton. Ein noch nicht beobachteter Zustand ist kein automatischer Fehler.")
+            }
+
+            Section {
+                ForEach(BBTManualTest.allCases) { test in
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(test.name).font(.subheadline.weight(.medium))
+                        Text(test.instruction).font(.caption).foregroundStyle(.secondary)
+                        Picker(test.name, selection: Binding(
+                            get: { monitor.manualVerdicts[test] ?? .open },
+                            set: { monitor.setManual(test, verdict: $0) }
+                        )) {
+                            Text("Offen").tag(BBTManualVerdict.open)
+                            Text("Bestanden").tag(BBTManualVerdict.pass)
+                            Text("Fehler").tag(BBTManualVerdict.fail)
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .accessibilityIdentifier("bbt.fullTest.\\(test.rawValue)")
+                    }
+                    .padding(.vertical, 4)
+                }
+            } header: {
+                Text("Manuelle Tests – alle App-Bereiche")
+            } footer: {
+                Text("Du markierst nur tatsächlich selbst ausgeführte Tests als bestanden. Diese Auswahl startet keine Funktion und ändert weder Account noch Wiedergabe. Mit ‚Fehler‘ kannst du Probleme im Bericht kennzeichnen.")
+            }
+
+            Section {
+                LabeledContent("Swift / iPhone-Simulator", value: "Extern prüfen")
+                LabeledContent("GitHub Actions / Codemagic", value: "Extern prüfen")
+                LabeledContent("Signierte IPA", value: "Extern prüfen")
+                LabeledContent("Musik tatsächlich hörbar", value:
+                    (monitor.manualVerdicts[.audibleAudio] ?? .open).rawValue)
+                Text("Compiler, Xcode-Simulator, GitHub-CI und Codesignierung laufen nicht in dieser iPhone-App. Dafür sind externe Builds und Hardwareprüfungen notwendig.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            } header: {
+                Text("Weitere notwendige Nachweise")
+            }
+
+            Section {
                 Button("Lokalen Testbericht speichern") {
                     do {
                         reportURL = try monitor.saveReport()
@@ -319,11 +500,11 @@ struct AutomixLiveTestView: View {
             } header: {
                 Text("Ergebnis")
             } footer: {
-                Text("Der Bericht enthält nur technische Statuswerte und Messpunkte. Keine Songtitel, YouTube-IDs, Dateipfade oder Zugangsdaten. Erst beim Teilen wird er von deinem Gerät weitergegeben.")
+                Text("Der Bericht enthält technische Statuswerte und deine manuellen Ergebnisse, aber keine Songtitel, YouTube-IDs, Dateipfade oder Zugangsdaten. Er bleibt lokal, bis du ihn ausdrücklich teilst.")
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Automix-Livetest")
+        .navigationTitle("BBT-Bit Testzentrale")
         .task {
             await store.refresh()
         }
