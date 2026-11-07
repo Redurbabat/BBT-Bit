@@ -173,6 +173,9 @@ struct SettingsView: View {
             PerformanceTuner.shared.apply(highPerformance: highPerf, refreshRateHz: refreshRate)
             localFolderName = SettingsView.storedLocalFolderName()
         }
+        // App Language defaults to German; SwiftUI must receive that locale
+        // even when the device itself is configured for English.
+        .environment(\.locale, AppLanguage.locale(for: language))
         .preferredColorScheme(appModel.preferredScheme)
         .onChange(of: dolbyAtmos) { _, value in AppSettings.shared.setDolbyAtmos(value: value) }
         .onChange(of: loudnessOffOnSpeaker) { _, value in
@@ -376,7 +379,11 @@ struct SettingsView: View {
             keywords: [String],
             @ViewBuilder content: () -> V
         ) {
-            let terms = ([sectionTitle, title] + keywords).joined(separator: Self.separator)
+            // A German search must also match German labels; retain upstream
+            // English identifiers so existing deep links and search terms work.
+            let terms = ([sectionTitle, title,
+                          AppLanguage.localized(sectionTitle), AppLanguage.localized(title)]
+                         + keywords).joined(separator: Self.separator)
             // The matching policy stays in the shared layer (SettingsSearchBridge),
             // where the terms and the comparison cannot drift apart.
             guard SettingsSearchBridge.shared.matches(
@@ -534,7 +541,7 @@ struct SettingsView: View {
         return Form {
             Section {
                 ForEach(entries.filter { !cleanupTitles.contains($0.title) }) { row in row.content }
-            } header: { Text(section.title) } footer: { if search.isEmpty { footer(for: section) } }
+            } header: { Text(LocalizedStringKey(section.title)) } footer: { if search.isEmpty { footer(for: section) } }
             if section == .downloads {
                 Section {
                     ForEach(entries.filter { cleanupTitles.contains($0.title) }) { row in row.content }
@@ -548,7 +555,7 @@ struct SettingsView: View {
 
     @ViewBuilder private func settingsSectionPage(_ section: SettingsSection) -> some View {
         if section == .sources { SourcesView() }
-        else { settingsSectionForm(section).navigationTitle(section.title) }
+        else { settingsSectionForm(section).navigationTitle(LocalizedStringKey(section.title)) }
     }
 
     private func sectionSummary(_ section: SettingsSection) -> String {
@@ -560,7 +567,8 @@ struct SettingsView: View {
             let attention = state.loadError != nil || state.configs.contains { config in
                 config.enabled && (state.health[config.id]?.name == "rejected" || state.health[config.id]?.name == "unreachable")
             }
-            return "\(enabled) enabled" + (attention ? " · needs attention" : "")
+            let label = String(format: AppLanguage.localized("%lld enabled"), Int64(enabled))
+            return label + (attention ? AppLanguage.localized(" · needs attention") : "")
         case .audioQuality: return "Requested quality, decoded format, effects and device output"
         case .playback: return "Queue, transitions, speed and background playback"
         case .downloads: return "Offline quality, local folders and temporary storage"
@@ -581,8 +589,8 @@ struct SettingsView: View {
                         ForEach(SettingsSection.allCases) { section in
                             PushLink { settingsSectionPage(section) } label: {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Label(section.title, systemImage: section.systemImage)
-                                    Text(sectionSummary(section)).font(.caption).foregroundStyle(.secondary)
+                                    Label(LocalizedStringKey(section.title), systemImage: section.systemImage)
+                                    Text(LocalizedStringKey(sectionSummary(section))).font(.caption).foregroundStyle(.secondary)
                                 }.padding(.vertical, 3)
                             }
                             .id(section.id)
@@ -595,7 +603,7 @@ struct SettingsView: View {
                             row.content
                         }
                     } header: {
-                        Text(built.section.title)
+                        Text(LocalizedStringKey(built.section.title))
                     } footer: {
                         // Not while searching. A footer explains the rows that sat above
                         // it, and the search has filtered those: the Audio Quality note

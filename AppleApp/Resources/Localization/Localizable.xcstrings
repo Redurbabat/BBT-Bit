@@ -1,6 +1,7 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "1": {},
     "": {},
     "%@": {},
     "%@ couldn't load": {},
@@ -99,7 +100,6 @@
     "%lld.": {},
     "%lldm": {},
     "+%lld": {},
-    "1": {},
     "123.5 MB total · Runs 100% on-device · Private": {},
     "46.7 MB of models · Runs 100% on-device · Private": {},
     "A BitChord update is available": {},
@@ -344,7 +344,16 @@
         }
       }
     },
-    "Account & Integrations": {},
+    "Account & Integrations": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto & Integrationen"
+          }
+        }
+      }
+    },
     "Account & Settings": {},
     "Account and Settings": {},
     "Activity": {
@@ -562,7 +571,16 @@
     "Add to Queue": {},
     "Address": {},
     "Adjust Lyrics Timing": {},
-    "Advanced Options": {},
+    "Advanced Options": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweiterte Optionen"
+          }
+        }
+      }
+    },
     "AirPlay": {},
     "AirPlay & Bluetooth": {},
     "Album": {
@@ -1041,8 +1059,26 @@
     "AutoPlay": {},
     "AutoPlay off": {},
     "AutoPlay on": {},
-    "Automix Models": {},
-    "Automix Performance": {},
+    "Automix Models": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix-Modelle"
+          }
+        }
+      }
+    },
+    "Automix Performance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix-Leistung"
+          }
+        }
+      }
+    },
     "Automix Transitions": {},
     "Automix times every transition itself; the crossfade slider returns when Automix is off.": {},
     "BBT-Bit cannot access the internet. On iPhone, check Settings > Cellular > BBT-Bit (allow mobile data), Wi-Fi, and VPN, then retry.": {
@@ -1178,9 +1214,36 @@
     "Beat This! (beat and downbeat detection) and open-unmix UMX-L (vocal detection). Both are verified against a pinned checksum after download.": {},
     "Beat This! (beat and downbeat detection) and open-unmix umxhq (vocal detection). Both are downloaded once and verified against a pinned checksum.": {},
     "Beat This! (beat and downbeat detection, optionally accelerated by Core ML), open-unmix umxhq (vocal detection), and the Core ML compilation of the same Beat This! checkpoint. All are downloaded once and verified against a pinned checksum.": {},
-    "Beat model installed with Core ML acceleration; vocal detection can be added for vocal-clash avoidance": {},
-    "Beat model installed; vocal detection can be added for vocal-clash avoidance": {},
-    "Beat, downbeat and vocal models installed, accelerated by Core ML — %@ on disk": {},
+    "Beat model installed with Core ML acceleration; vocal detection can be added for vocal-clash avoidance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat-Modell mit Core-ML-Beschleunigung installiert; die Gesangserkennung kann ergänzt werden, um überlappende Stimmen zu vermeiden"
+          }
+        }
+      }
+    },
+    "Beat model installed; vocal detection can be added for vocal-clash avoidance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat-Modell installiert; die Gesangserkennung kann ergänzt werden, um überlappende Stimmen zu vermeiden"
+          }
+        }
+      }
+    },
+    "Beat, downbeat and vocal models installed, accelerated by Core ML — %@ on disk": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat-, Downbeat- und Gesangsmodelle installiert, mit Core ML beschleunigt – %@ auf dem Gerät"
+          }
+        }
+      }
+    },
     "BitChord %@": {},
     "BitChord %@ is available. Update using the same method you used to install BitChord. The release page has the change notes.": {},
     "BitChord %@ is out": {},
@@ -2483,7 +2546,16 @@
         }
       }
     },
-    "Diagnostic Reports": {},
+    "Diagnostic Reports": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnoseberichte"
+          }
+        }
+      }
+    },
     "Discard": {},
     "Disconnect": {
       "localizations": {
@@ -3042,7 +3114,16 @@
         }
       }
     },
-    "Enhanced": {},
+    "Enhanced": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweitert"
+          }
+        }
+      }
+    },
     "Equalizer": {
       "localizations": {
         "es": {
@@ -3238,7 +3319,16 @@
         }
       }
     },
-    "Exported downloads live in the shared Music folder. Private ones stay inside BitChord's own storage.": {},
+    "Exported downloads live in the shared Music folder. Private ones stay inside BitChord's own storage.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportierte Downloads liegen im gemeinsamen Musikordner. Private Downloads verbleiben im App-Speicher von BBT-Bit."
+          }
+        }
+      }
+    },
     "Fill search with %@": {},
     "Filter %@": {},
     "Filter downloads": {},
@@ -3573,7 +3663,16 @@
         }
       }
     },
-    "Gapless stays on at 0s. Automix picks timing per track; crossfade sets the manual blend length.": {},
+    "Gapless stays on at 0s. Automix picks timing per track; crossfade sets the manual blend length.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei 0 Sekunden bleibt die lückenlose Wiedergabe aktiv. Automix plant Übergänge pro Titel; Crossfade legt die manuelle Überblendungsdauer fest."
+          }
+        }
+      }
+    },
     "German": {
       "localizations": {
         "de": {
@@ -3695,7 +3794,16 @@
     "Go Home": {},
     "Go to Library": {},
     "HDMI": {},
-    "Headphone": {},
+    "Headphone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopfhörer"
+          }
+        }
+      }
+    },
     "Headphones": {},
     "Hide Home Videos": {
       "localizations": {
@@ -6061,7 +6169,16 @@
     "Lyrics": {},
     "Lyrics Offset": {},
     "Lyrics Offset…": {},
-    "Lyrics Sources": {},
+    "Lyrics Sources": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liedtextquellen"
+          }
+        }
+      }
+    },
     "Lyrics off": {},
     "Lyrics offset": {
       "localizations": {
@@ -6861,11 +6978,29 @@
     "No track in this library matches “%@”.": {},
     "No tracks": {},
     "Nobody else is here yet.": {},
-    "Non-music segments and audible boundaries are always used by Automix.": {},
+    "Non-music segments and audible boundaries are always used by Automix.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix berücksichtigt nichtmusikalische Abschnitte und hörbare Abschnittsgrenzen automatisch."
+          }
+        }
+      }
+    },
     "Normalization": {},
     "Not Matched · %lld": {},
     "Not Now": {},
-    "Not installed — Automix falls back to tempo analysis": {},
+    "Not installed — Automix falls back to tempo analysis": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht installiert – Automix nutzt stattdessen die Tempoanalyse"
+          }
+        }
+      }
+    },
     "Not now": {
       "localizations": {
         "de": {
@@ -9130,7 +9265,16 @@
     },
     "Positive values show lyrics later": {},
     "Prefer Spotify catalogue": {},
-    "Prefer Word-Synced Lyrics": {},
+    "Prefer Word-Synced Lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wortgenaue Liedtexte bevorzugen"
+          }
+        }
+      }
+    },
     "Preserves the recording. Playback speed, Automix and crossfade keep their own settings.": {},
     "Preset": {
       "localizations": {
@@ -9582,10 +9726,28 @@
         }
       }
     },
-    "Reference": {},
+    "Reference": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referenz"
+          }
+        }
+      }
+    },
     "Reference clarity adds tonal contour, centered bass and gentle width. Manual EQ and spatial remain optional.": {},
     "Refresh": {},
-    "Refresh Rate": {},
+    "Refresh Rate": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildwiederholrate"
+          }
+        }
+      }
+    },
     "Remove": {
       "localizations": {
         "de": {
@@ -10421,6 +10583,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ayarlarda ara"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen durchsuchen"
           }
         }
       }
@@ -11512,7 +11680,16 @@
         }
       }
     },
-    "Skip Non-Music Segments": {},
+    "Skip Non-Music Segments": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichtmusikalische Abschnitte überspringen"
+          }
+        }
+      }
+    },
     "Skipped": {},
     "Sleep 15 min": {},
     "Sleep 30 min": {},
@@ -12160,8 +12337,26 @@
         }
       }
     },
-    "Speaker": {},
-    "Spotify Canvas": {},
+    "Speaker": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lautsprecher"
+          }
+        }
+      }
+    },
+    "Spotify Canvas": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotify Canvas"
+          }
+        }
+      }
+    },
     "Spotify Canvas Setup": {},
     "Spotify Cookie": {},
     "Spotify sp_dc cookie (optional canvas)": {},
@@ -13476,17 +13671,53 @@
       }
     },
     "Top result": {},
-    "Track": {},
+    "Track": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel"
+          }
+        }
+      }
+    },
     "Track Log": {},
     "Track Log…": {},
     "Track artist": {},
     "Tracks you play will show up here.": {},
     "Translate to %@": {},
-    "Translation Language": {},
-    "Transparent": {},
+    "Translation Language": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzungssprache"
+          }
+        }
+      }
+    },
+    "Transparent": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transparent"
+          }
+        }
+      }
+    },
     "Tried in this order — drag to reorder. The highest-priority source to answer at all wins, unless Prefer Word-Synced Lyrics says to keep looking for a word-synced one.": {},
     "Tried top to bottom. Reorder in Settings → Lyrics → Lyrics Sources.": {},
-    "Trim Leading and Trailing Silence": {},
+    "Trim Leading and Trailing Silence": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stille am Anfang und Ende entfernen"
+          }
+        }
+      }
+    },
     "Try Again": {
       "localizations": {
         "de": {
@@ -13934,7 +14165,16 @@
     "View Release Notes": {},
     "Vocal + clash detection": {},
     "Vocal Detection": {},
-    "Vocal model installed — without the beat model Automix falls back to tempo analysis": {},
+    "Vocal model installed — without the beat model Automix falls back to tempo analysis": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesangsmodell installiert – ohne Beat-Modell nutzt Automix die Tempoanalyse"
+          }
+        }
+      }
+    },
     "Volume": {
       "localizations": {
         "de": {
@@ -14952,7 +15192,1337 @@
     "sp_dc cookie": {},
     "{song_name}, {artist_name} and {album_name} are replaced with the track. The first button opens the song on YouTube Music, the second this project.": {},
     "“%@” is in two places": {},
-    "•": {}
+    "•": {},
+    "Sound & Quality": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klang & Qualität"
+          }
+        }
+      }
+    },
+    "Downloads & Storage": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads & Speicher"
+          }
+        }
+      }
+    },
+    "Your Data & Backup": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Daten & Sicherung"
+          }
+        }
+      }
+    },
+    "About & Updates": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über die App & Updates"
+          }
+        }
+      }
+    },
+    "Addons, source order, renewal and your libraries": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add-ons, Quellenreihenfolge, Aktualisierung und Bibliotheken"
+          }
+        }
+      }
+    },
+    "Requested quality, decoded format, effects and device output": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angeforderte Qualität, decodiertes Format, Effekte und Ausgabegerät"
+          }
+        }
+      }
+    },
+    "Queue, transitions, speed and background playback": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warteschlange, Übergänge, Geschwindigkeit und Hintergrundwiedergabe"
+          }
+        }
+      }
+    },
+    "Offline quality, local folders and temporary storage": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline-Qualität, lokale Ordner und Zwischenspeicher"
+          }
+        }
+      }
+    },
+    "Player, lyrics, language and visual preferences": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player, Liedtexte, Sprache und Darstellung"
+          }
+        }
+      }
+    },
+    "Sign-in, sharing and connected services": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung, Freigabe und verbundene Dienste"
+          }
+        }
+      }
+    },
+    "Models, analysis, performance and version alignment": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelle, Analyse, Leistung und Versionsabgleich"
+          }
+        }
+      }
+    },
+    "Listening history, export and importing a backup": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hörverlauf, Export und Wiederherstellung aus einer Sicherung"
+          }
+        }
+      }
+    },
+    "Installed build, latest release and installation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installierte Version, neueste Veröffentlichung und Installation"
+          }
+        }
+      }
+    },
+    "%lld enabled": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld aktiviert"
+          }
+        }
+      }
+    },
+    " · needs attention": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · Aktion erforderlich"
+          }
+        }
+      }
+    },
+    "Manage Sources": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellen verwalten"
+          }
+        }
+      }
+    },
+    "Source Quality is the request. Current Output shows the decoded audio, device format and processing actually in use. Technical Audio & DAC contains output-specific options.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellqualität ist die angeforderte Qualität. Aktuelle Ausgabe zeigt das decodierte Audio, das Geräteformat und die tatsächlich verwendete Verarbeitung. Technisches Audio & DAC enthält die Ausgabeeinstellungen."
+          }
+        }
+      }
+    },
+    "Analysis and display performance options can increase CPU use and battery consumption. Version alignment controls how a source switch resumes the recording.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse und Anzeigeleistung können Prozessorlast und Akkuverbrauch erhöhen. Der Versionsabgleich bestimmt, wie ein Quellenwechsel die Aufnahme fortsetzt."
+          }
+        }
+      }
+    },
+    "Free Storage": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speicher freigeben"
+          }
+        }
+      }
+    },
+    "Cache actions remove temporary files. Data import and backup are on Your Data & Backup.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cache-Aktionen entfernen temporäre Dateien. Datenimport und Sicherungen findest du unter „Deine Daten & Sicherung“."
+          }
+        }
+      }
+    },
+    "Crossfade": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überblendung"
+          }
+        }
+      }
+    },
+    "Inactive while Automix controls transition timing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktiv, solange Automix den Übergangszeitpunkt steuert"
+          }
+        }
+      }
+    },
+    "Blends one track into the next; 0s keeps gapless playback": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blendet einen Titel in den nächsten über; 0 s erhält die lückenlose Wiedergabe"
+          }
+        }
+      }
+    },
+    "Automix [Beta]": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix [Beta]"
+          }
+        }
+      }
+    },
+    "Phrase Length": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrasenlänge"
+          }
+        }
+      }
+    },
+    "Adaptive": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adaptiv"
+          }
+        }
+      }
+    },
+    "8 bars": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8 Takte"
+          }
+        }
+      }
+    },
+    "16 bars": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "16 Takte"
+          }
+        }
+      }
+    },
+    "Choose the phrase length for AutoMix effects": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lege die Phrasenlänge für Automix-Effekte fest"
+          }
+        }
+      }
+    },
+    "Enable Automix to use phrase timing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktiviere Automix, um Phrasenübergänge zu verwenden"
+          }
+        }
+      }
+    },
+    "Inactive · enable Automix to use phrase timing.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktiv · Aktiviere Automix für phrasengenaue Übergänge."
+          }
+        }
+      }
+    },
+    "Smart Sequencing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intelligente Reihenfolge"
+          }
+        }
+      }
+    },
+    "Order upcoming tracks for smooth transitions. Takes priority over Shuffle; manually queued tracks keep their order.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortiert kommende Titel für flüssige Übergänge. Hat Vorrang vor Zufallswiedergabe; manuell hinzugefügte Titel behalten ihre Reihenfolge."
+          }
+        }
+      }
+    },
+    "Inactive · enable Automix to use Smart Sequencing.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktiv · Aktiviere Automix für die intelligente Reihenfolge."
+          }
+        }
+      }
+    },
+    "Mix on Skip": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Überspringen überblenden"
+          }
+        }
+      }
+    },
+    "Pressing Next blends into the next track. Inactive during a party and on Repeat One.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Nächster Titel“ blendet zum folgenden Song über. Während einer Party und bei „Titel wiederholen“ inaktiv."
+          }
+        }
+      }
+    },
+    "Inactive · enable Automix to blend on Next.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktiv · Aktiviere Automix für Übergänge beim Überspringen."
+          }
+        }
+      }
+    },
+    "Show Music Videos": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikvideos anzeigen"
+          }
+        }
+      }
+    },
+    "Shows the music video while the player is open. Off at the start of every session; the Now Playing pill turns it on too.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt das Musikvideo im geöffneten Player. Zu Sitzungsbeginn ausgeschaltet; auch über die Wiedergabeleiste aktivierbar."
+          }
+        }
+      }
+    },
+    "Play Music Videos over Cellular": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikvideos über Mobilfunk abspielen"
+          }
+        }
+      }
+    },
+    "Inactive · Show Music Videos is off.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktiv · „Musikvideos anzeigen“ ist ausgeschaltet."
+          }
+        }
+      }
+    },
+    "Non-music Segments": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichtmusikalische Abschnitte"
+          }
+        }
+      }
+    },
+    "Skip Silence": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stille überspringen"
+          }
+        }
+      }
+    },
+    "Inactive in Transparent mode · choose Enhanced to skip silence": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Transparent-Modus inaktiv · Wähle „Erweitert“, um Stille zu überspringen"
+          }
+        }
+      }
+    },
+    "Trim gaps longer than a second": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausen von mehr als einer Sekunde entfernen"
+          }
+        }
+      }
+    },
+    "Playback Speed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiedergabegeschwindigkeit"
+          }
+        }
+      }
+    },
+    "Slows or speeds the mix without changing pitch on the engine": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlangsamt oder beschleunigt die Wiedergabe, ohne die Tonhöhe zu verändern"
+          }
+        }
+      }
+    },
+    "Play Alongside Other Apps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gleichzeitige Audioausgabe anderer Apps"
+          }
+        }
+      }
+    },
+    "Keep other apps audible alongside BitChord. This can prevent iOS Lock Screen, Control Center and headphone controls from controlling BitChord. Turn off to give BitChord audio priority. Applies immediately while playing, or on the next play.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lässt den Ton anderer Apps gleichzeitig mit BBT-Bit laufen. Dadurch funktionieren möglicherweise die Wiedergabesteuerungen auf dem Sperrbildschirm, im Kontrollzentrum oder an Kopfhörern nicht für BBT-Bit. Ausschalten gibt BBT-Bit Audiopriorität. Gilt sofort oder beim nächsten Start."
+          }
+        }
+      }
+    },
+    "Show Stats for Nerds": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Technische Wiedergabedaten anzeigen"
+          }
+        }
+      }
+    },
+    "Codec, bitrate and sample rate on the player": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt Codec, Bitrate und Abtastrate im Player"
+          }
+        }
+      }
+    },
+    "Stop Converting Video Songs to Audio": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikvideos nicht in Audio umwandeln"
+          }
+        }
+      }
+    },
+    "Plays a music-video upload as itself instead of swapping it for its catalogue audio release": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielt die hochgeladene Musikvideoversion statt zur offiziellen Audioversion zu wechseln"
+          }
+        }
+      }
+    },
+    "Prefer Music Only": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikversion bevorzugen"
+          }
+        }
+      }
+    },
+    "Starts a music-video result on its catalogue audio release instead of the video's own upload": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startet ein Musikvideo-Ergebnis mit der offiziellen Audioversion statt mit der Videoversion"
+          }
+        }
+      }
+    },
+    "Requested transition settings are inactive": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die angeforderten Übergangseinstellungen sind inaktiv"
+          }
+        }
+      }
+    },
+    "Times and blends transitions automatically when enabled.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plant und überblendet Übergänge automatisch, wenn aktiviert."
+          }
+        }
+      }
+    },
+    "Blends transitions automatically from each track’s timing.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überblendet Titel automatisch passend zu ihrem musikalischen Timing."
+          }
+        }
+      }
+    },
+    "Uses tempo analysis while the beat model is missing. Install it under Advanced Options → Automix Models for beat-aligned transitions.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solange das Beat-Modell fehlt, verwendet Automix eine Tempoanalyse. Installiere das Modell unter „Erweiterte Optionen → Automix-Modelle“ für taktgenaue Übergänge."
+          }
+        }
+      }
+    },
+    "CPU inference budget — up to %lld worker": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU-Budget für die KI-Analyse – bis zu %lld Verarbeitungsthread"
+          }
+        }
+      }
+    },
+    "CPU inference budget — up to %lld workers": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU-Budget für die KI-Analyse – bis zu %lld Verarbeitungsthreads"
+          }
+        }
+      }
+    },
+    "Efficient": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Energiesparend"
+          }
+        }
+      }
+    },
+    "Balanced": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewogen"
+          }
+        }
+      }
+    },
+    "Update available. Using the previous version — %@ on disk": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update verfügbar. Vorherige Version wird verwendet – %@ auf dem Gerät"
+          }
+        }
+      }
+    },
+    "Beat, downbeat and vocal models installed — %@ on disk": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat-, Downbeat- und Gesangsmodelle installiert – %@ auf dem Gerät"
+          }
+        }
+      }
+    },
+    "Reduce Animation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Animationen reduzieren"
+          }
+        }
+      }
+    },
+    "Freezes the main player's gradient instead of drifting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppt die Bewegung des Farbverlaufs im Hauptplayer"
+          }
+        }
+      }
+    },
+    "Reduce Dynamic Blur": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dynamische Unschärfe reduzieren"
+          }
+        }
+      }
+    },
+    "Swaps frosted glass for solid fills across the app": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ersetzt Glasflächen in der App durch deckende Hintergründe"
+          }
+        }
+      }
+    },
+    "Full-Screen Cover Art": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cover im Vollbild"
+          }
+        }
+      }
+    },
+    "Runs the cover to the edges of the player instead of a square sleeve": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt das Cover bis zu den Rändern des Players statt als quadratisches Bild"
+          }
+        }
+      }
+    },
+    "Legacy Mesh Gradient": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bisheriger Mesh-Farbverlauf"
+          }
+        }
+      }
+    },
+    "The single-wash backdrop instead of colours sampled from the artwork": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwendet einen einfarbigen Hintergrund statt der Coverfarben"
+          }
+        }
+      }
+    },
+    "Animated Cover Art": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Animiertes Cover"
+          }
+        }
+      }
+    },
+    "Plays the looping video some releases ship instead of a still sleeve": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt die animierte Coverversion, sofern eine Veröffentlichung sie enthält"
+          }
+        }
+      }
+    },
+    "Play Animated Cover over Cellular": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Animierte Cover über Mobilfunk"
+          }
+        }
+      }
+    },
+    "Artist Signatures": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Künstlerunterschriften"
+          }
+        }
+      }
+    },
+    "Show Wikimedia artist signatures on artist pages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt Künstlerunterschriften von Wikimedia auf Künstlerseiten"
+          }
+        }
+      }
+    },
+    "Synced Lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierte Liedtexte"
+          }
+        }
+      }
+    },
+    "Lights up the words on the player as they’re sung": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markiert die Wörter im Player passend zum Gesang"
+          }
+        }
+      }
+    },
+    "Blur Unfocused Lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Liedtextzeilen weichzeichnen"
+          }
+        }
+      }
+    },
+    "Softens lines away from the words being sung": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeichnet andere Zeilen als die gerade gesungene weich"
+          }
+        }
+      }
+    },
+    "Follow the app language": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Sprache verwenden"
+          }
+        }
+      }
+    },
+    "Syllable timings win the lyrics race when a source has them": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevorzugt Silben-Timing, wenn eine Quelle es anbietet"
+          }
+        }
+      }
+    },
+    "High Performance Mode": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hochleistungsmodus"
+          }
+        }
+      }
+    },
+    "Work Out Genres": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikgenres ermitteln"
+          }
+        }
+      }
+    },
+    "Export Data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten exportieren"
+          }
+        }
+      }
+    },
+    "Import Data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten importieren"
+          }
+        }
+      }
+    },
+    "Restores non-secret preferences": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stellt Einstellungen ohne geheime Zugangsdaten wieder her"
+          }
+        }
+      }
+    },
+    "Play Next on Swipe": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wischen spielt nächsten Titel"
+          }
+        }
+      }
+    },
+    "Don’t Repeat Songs in Current Session": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songs in dieser Sitzung nicht wiederholen"
+          }
+        }
+      }
+    },
+    "AutoPlay won’t suggest a song already played or suggested this session": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoplay schlägt in dieser Sitzung weder gespielte noch bereits vorgeschlagene Titel erneut vor"
+          }
+        }
+      }
+    },
+    "Hide Volume Bar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lautstärkeregler ausblenden"
+          }
+        }
+      }
+    },
+    "Removes the volume slider from the main player": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernt den Lautstärkeregler aus dem Hauptplayer"
+          }
+        }
+      }
+    },
+    "Hide Song Status": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songstatus ausblenden"
+          }
+        }
+      }
+    },
+    "Hides the “Playing from” caption on the main player": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blendet die Angabe „Wiedergabe aus“ im Hauptplayer aus"
+          }
+        }
+      }
+    },
+    "Hide Status Bar in Player": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statusleiste im Player ausblenden"
+          }
+        }
+      }
+    },
+    "Hides the iPhone status bar while Now Playing is open": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blendet die iPhone-Statusleiste bei geöffnetem Player aus"
+          }
+        }
+      }
+    },
+    "Show Queue History": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf in der Warteschlange anzeigen"
+          }
+        }
+      }
+    },
+    "Shows tracks already played above Now Playing in the queue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt bereits gespielte Titel oberhalb des aktuellen Titels in der Warteschlange"
+          }
+        }
+      }
+    },
+    "Stop When Backgrounded": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Wechsel in den Hintergrund anhalten"
+          }
+        }
+      }
+    },
+    "Pauses playback when BBT-Bit is hidden or deactivated on Mac; closing a window uses its own setting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausiert die Wiedergabe, wenn BBT-Bit auf dem Mac ausgeblendet oder deaktiviert wird; für das Schließen eines Fensters gibt es eine eigene Option"
+          }
+        }
+      }
+    },
+    "Stop Music on Close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musik beim Schließen anhalten"
+          }
+        }
+      }
+    },
+    "Pauses playback when the main window closes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausiert die Musik, wenn das Hauptfenster geschlossen wird"
+          }
+        }
+      }
+    },
+    "Smart Version Alignment": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intelligenter Versionsabgleich"
+          }
+        }
+      }
+    },
+    "Keeps your place when switching between versions of a track": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behält die Wiedergabeposition beim Wechsel zwischen Versionen eines Titels bei"
+          }
+        }
+      }
+    },
+    "Open-source licenses": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-Source-Lizenzen"
+          }
+        }
+      }
+    },
+    "Third-party software, models and asset notices": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinweise zu Drittanbietersoftware, Modellen und Assets"
+          }
+        }
+      }
+    },
+    "Version & Updates": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version und Updates"
+          }
+        }
+      }
+    },
+    "Song Cache Limit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit für den Song-Zwischenspeicher"
+          }
+        }
+      }
+    },
+    "Show Cached Songs in Library": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Songs in der Bibliothek anzeigen"
+          }
+        }
+      }
+    },
+    "Adds the stream cache to the Library's folders": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fügt den Stream-Zwischenspeicher den Bibliotheksordnern hinzu"
+          }
+        }
+      }
+    },
+    "Clear Song Cache": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Song-Zwischenspeicher leeren"
+          }
+        }
+      }
+    },
+    "Clear Image Cache": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild-Zwischenspeicher leeren"
+          }
+        }
+      }
+    },
+    "Folder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordner"
+          }
+        }
+      }
+    },
+    "Use All Audio Folders": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Audioordner verwenden"
+          }
+        }
+      }
+    },
+    "Forgets the chosen folder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hebt die Auswahl des Ordners auf"
+          }
+        }
+      }
+    },
+    "Filter Non-Music Audio": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichtmusikalische Audiodateien ausfiltern"
+          }
+        }
+      }
+    },
+    "Hides clips under 30 seconds, ringtones, podcasts and recorder output": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blendet Clips unter 30 Sekunden, Klingeltöne, Podcasts und Sprachaufnahmen aus"
+          }
+        }
+      }
+    },
+    "Download Quality": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download-Qualität"
+          }
+        }
+      }
+    },
+    "Download over Wi-Fi Only": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur über WLAN herunterladen"
+          }
+        }
+      }
+    },
+    "Export Compatible Downloads": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompatible Downloads exportieren"
+          }
+        }
+      }
+    },
+    "Where audio comes from, and in what order": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Woher Audio stammt und in welcher Reihenfolge Quellen verwendet werden"
+          }
+        }
+      }
+    },
+    "Clarity Mix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klarheitsmischung"
+          }
+        }
+      }
+    },
+    "Levels tracks to a consistent loudness": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gleicht Titel auf eine einheitliche Lautstärke an"
+          }
+        }
+      }
+    },
+    "Off on iPhone Speaker": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf iPhone-Lautsprecher deaktivieren"
+          }
+        }
+      }
+    },
+    "Stereo widening and head tracking": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stereoverbreiterung und Kopfverfolgung"
+          }
+        }
+      }
+    },
+    "Ten-band EQ and tone controls": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zehnband-Equalizer und Klangregler"
+          }
+        }
+      }
+    },
+    "Prefer supported Dolby audio when a source supplies it": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevorzugt Dolby-Audio, wenn eine Quelle es anbietet"
+          }
+        }
+      }
+    },
+    "Detailed measurements and source decisions": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detaillierte Messwerte und Quellenauswahl"
+          }
+        }
+      }
+    },
+    "Request each track’s native rate from the output route": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fordert für jeden Titel seine ursprüngliche Abtastrate beim Ausgabegerät an"
+          }
+        }
+      }
+    },
+    "Request exclusive output for supported lossless stereo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fordert exklusive Ausgabe für unterstütztes verlustfreies Stereo an"
+          }
+        }
+      }
+    },
+    "Prefer a supported USB device when opening audio output": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevorzugt beim Öffnen der Audioausgabe ein unterstütztes USB-Gerät"
+          }
+        }
+      }
+    }
   },
   "version": "1.0"
 }
