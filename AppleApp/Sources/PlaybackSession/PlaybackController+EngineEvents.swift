@@ -136,7 +136,15 @@ extension PlaybackController {
     func handleTrackEnded(_ reason: TrackEndReason, source: String) {
         guard state != .paused else { return }
         if reason == .error {
-            _ = recoverInterruptedStream(source: source, explanation: "The audio decoder stopped; requesting a fresh stream at the same position.")
+            // A decoder failure is not a natural end. If bounded recovery is
+            // exhausted, surface the failure instead of silently abandoning
+            // playback with the UI still claiming the track is playing.
+            if !recoverInterruptedStream(
+                source: source,
+                explanation: "The audio decoder stopped; requesting a fresh stream at the same position."
+            ) {
+                stopAfterFailedRecovery(source: source)
+            }
             return
         }
         guard reason == .natural else { return }
