@@ -145,8 +145,8 @@ final class AutomixLiveTestMonitor {
                 guard let self, self.running, let controller else { return }
                 self.record(controller: controller)
                 self.runtime = await AutomixModelLoader.shared.snapshot()
-                if self.samples.count >= 300 {
-                    self.message = "Fünf Minuten aufgezeichnet. Der Test wurde automatisch beendet."
+                if Date().timeIntervalSince(self.startedAt ?? Date()) >= 30 * 60 {
+                    self.message = "30 Minuten aufgezeichnet. Der Test wurde automatisch beendet."
                     self.stop()
                     return
                 }
@@ -318,7 +318,7 @@ struct AutomixLiveTestView: View {
     var body: some View {
         Form {
             Section {
-                Text("Prüfe BBT-Bit während der normalen Nutzung: KI-Modelle, Audiopfad, Queue, Streaming, Übergänge und App-Funktionen. Verlasse die Seite und nutze die App weiter. Die Aufzeichnung endet nach spätestens fünf Minuten. Deine Queue und Wiedergabe werden durch den Monitor nicht verändert.")
+                Text("Prüfe BBT-Bit während der normalen Nutzung: KI-Modelle, Audiopfad, Queue, Streaming, Übergänge und App-Funktionen. Verlasse die Seite und nutze die App weiter. Die Aufzeichnung endet nach spätestens 30 Minuten. Deine Queue und Wiedergabe werden durch den Monitor nicht verändert.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Button {
@@ -346,7 +346,7 @@ struct AutomixLiveTestView: View {
                     Text(message).font(.footnote).foregroundStyle(.secondary)
                 }
                 LabeledContent("Messpunkte", value: "\(monitor.samples.count)")
-                LabeledContent("Maximale Laufzeit", value: "5 Minuten")
+                LabeledContent("Maximale Laufzeit", value: "30 Minuten")
                 Text("Im Hintergrund kann iOS die App pausieren. Aufzeichnung läuft nur, solange die App tatsächlich ausgeführt wird.")
                     .font(.caption).foregroundStyle(.secondary)
             } header: {
@@ -457,7 +457,7 @@ struct AutomixLiveTestView: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
-                        .accessibilityIdentifier("bbt.fullTest.\\(test.rawValue)")
+                        .accessibilityIdentifier("bbt.fullTest.\(test.rawValue)")
                     }
                     .padding(.vertical, 4)
                 }
@@ -505,9 +505,6 @@ struct AutomixLiveTestView: View {
         }
         .formStyle(.grouped)
         .navigationTitle("BBT-Bit Testzentrale")
-        .task {
-            await store.refresh()
-        }
     }
 
     private func modelName(_ id: AutomixModelStore.ModelID) -> String {
