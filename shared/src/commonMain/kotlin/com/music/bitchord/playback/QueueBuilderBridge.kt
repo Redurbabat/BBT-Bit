@@ -31,7 +31,7 @@ object QueueBuilderBridge {
 
     fun rememberPlayed(videoId: String) {
         checkSession()
-        if (videoId.isNotBlank()) sessionIds += videoId
+        if (AppSettings.dontRepeatSuggestions.value && videoId.isNotBlank()) sessionIds += videoId
     }
 
     fun clearSession() {
@@ -43,6 +43,7 @@ object QueueBuilderBridge {
     /** Bei tatsächlicher Wiedergabe auch die Aufnahmeidentität merken. */
     fun rememberPlayedSongJson(songJson: String) {
         checkSession()
+        if (!AppSettings.dontRepeatSuggestions.value) return
         runCatching { json.decodeFromString(Song.serializer(), songJson) }.getOrNull()?.let { song ->
             sessionIds += song.videoId
             if (sessionPlayedSongs.none { it.videoId == song.videoId }) sessionPlayedSongs += song

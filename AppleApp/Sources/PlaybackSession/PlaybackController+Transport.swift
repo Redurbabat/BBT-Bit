@@ -420,6 +420,7 @@ extension PlaybackController {
         let adjusted = offsets.filter { $0 != playingIndex && queue.indices.contains($0) }
         guard !adjusted.isEmpty else { return }
         let removedIds = Set(adjusted.map { queue[$0].id })
+        let removedAutomatic = adjusted.contains { queue[$0].fromAutoplay }
         queue.remove(atOffsets: IndexSet(adjusted))
         removedIds.forEach { QualityUpgrade.forget($0) }
         playingIndex -= adjusted.filter { $0 < playingIndex }.count
@@ -427,6 +428,12 @@ extension PlaybackController {
         queueEditRevision &+= 1
         persistSession()
         syncEngineQueueNext()
+        // Der Original-Player prüft bei einem verkleinerten AutoPlay-Ende
+        // erneut die freien Plätze statt am alten Seed hängenzubleiben.
+        if removedAutomatic {
+            autoplayRefresh.invalidate()
+            maybeAutoplay(force: true)
+        }
     }
 
     func removeFromQueue(at index: Int) {
