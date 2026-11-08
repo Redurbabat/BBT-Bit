@@ -316,7 +316,8 @@ struct DetailView: View {
                                     onShowAll: canShowAll
                                         ? { showAllGrid = ShowAllGrid(title: shelf.title, items: cards) }
                                         : nil,
-                                    inset: 28
+                                    inset: 28,
+                                    rail: isArtist
                                 )
                                 .padding(.horizontal, 28)
                                 .padding(.top, 28)
