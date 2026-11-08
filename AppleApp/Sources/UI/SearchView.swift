@@ -519,9 +519,9 @@ struct SearchView: View {
                     isPresented: $isSearchPresented,
                     focused: $searchFieldFocused,
                     onSubmit: {
+                        searchFieldFocused = false
                         Task {
                             await performSearch()
-                            searchFieldFocused = false
                         }
                     }
                 ))

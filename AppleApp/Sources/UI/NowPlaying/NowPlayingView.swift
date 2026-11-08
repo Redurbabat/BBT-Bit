@@ -23,6 +23,7 @@ struct NowPlayingView: View {
     @Environment(PartyStore.self) var party
     @Environment(\.dismiss) var dismiss
     @Environment(\.accessibilityReduceMotion) var reduceMotion
+    @Environment(\.dynamicTypeSize) var dynamicTypeSize
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
@@ -120,6 +121,9 @@ struct NowPlayingView: View {
                 lyricsControlsOpen = true
                 lyricsControlActivity += 1
             }
+        }
+        .onChange(of: lyricsConstellation) { _, enabled in
+            if enabled { pane = .lyrics }
         }
         .task(id: lyricsControlActivity) {
             while pane == .lyrics, lyricsControlsOpen {

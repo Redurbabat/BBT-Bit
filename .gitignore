@@ -42,6 +42,7 @@ native-core/fixtures/automix/*.aiff
 !/docs/IPHONE_TESTSYSTEM.md
 !/docs/ideen-und-luecken.md
 !/docs/RED_BIT_INTEGRATION.md
+!/docs/VIDEO_REFERENZEN_20261108.md
 
 # Local secrets and signing material
 .env

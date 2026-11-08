@@ -243,6 +243,10 @@ final class AutomixLiveTestMonitor {
         }
         struct Report: Codable {
             let version: Int
+            let appVersion: String
+            let buildNumber: String
+            let buildRevision: String
+            let operatingSystem: String
             let startedAt: Date?
             let endedAt: Date
             let modelState: [Model]
@@ -267,7 +271,12 @@ final class AutomixLiveTestMonitor {
         }
         let store = AutomixModelStore.shared
         let payload = Report(
-            version: 1, startedAt: startedAt, endedAt: Date(),
+            version: 2,
+            appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
+            buildNumber: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown",
+            buildRevision: Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String ?? "unknown",
+            operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString,
+            startedAt: startedAt, endedAt: Date(),
             modelState: AutomixModelStore.ModelID.allCases.map { id in
                 Model(name: id.rawValue, installedPinned: store.status(of: id).isInstalled,
                       usablePreviousVersion: store.isUsingPreviousGraph(id))

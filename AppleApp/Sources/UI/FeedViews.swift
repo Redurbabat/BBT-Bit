@@ -150,8 +150,7 @@ struct FeedSectionHeader: View {
     private var editorialBody: some View {
         VStack(spacing: 8) {
             Text(title)
-                .scaledFont(size: 32, weight: .regular, design: .serif, relativeTo: .title)
-                .italic()
+                .font(.custom("SnellRoundhand", size: 34, relativeTo: .largeTitle))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
             if let subtitle, !subtitle.isEmpty {
@@ -243,11 +242,11 @@ struct ShelfCarousel: View {
             ShelfScroller(inset: inset, onProgress: rail ? { updateDot($0) } : nil) {
                 LazyHStack(alignment: .top, spacing: 14) {
                     ForEach(items ?? shelf.items) { card in
-                        ShelfCardView(card: card, artworkSide: cardSide, preferTrack: preferTrack)
+                        ShelfCardView(card: card, artworkSide: cardSide, preferTrack: preferTrack, horizon: rail)
                             .modifier(HorizonRailMotion(enabled: rail))
                     }
                 }
-                .padding(.vertical, 2)
+                .padding(.vertical, rail ? 14 : 2)
             }
             if rail, dotCount > 1 {
                 HorizonRailDots(count: dotCount, active: min(activeDot, dotCount - 1))
@@ -350,6 +349,7 @@ struct ShelfScroller<Content: View>: View {
 struct ShelfCardTap<Content: View>: View {
     let card: ShelfCard
     var preferTrack: Bool = false
+
     @ViewBuilder var content: Content
     @Environment(PlaybackController.self) private var controller
 
@@ -418,6 +418,7 @@ struct ShelfCardView: View {
     /// window passes a larger one; everywhere else this is the phone size.
     var artworkSide: CGFloat = Theme.Metrics.shelfCard
     @Environment(PlaybackController.self) private var controller
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     /// Whether the pointer is over the card. A card is a target, not just a
     /// picture, and on the Mac that has to show before the click.
     @State private var hovering = false
@@ -438,6 +439,9 @@ struct ShelfCardView: View {
     /// caller passes `preferTrack` and the videoId wins.
     var preferTrack: Bool = false
 
+    /// Eingefasste Künstlerkarte aus der Videoreferenz; andere Regale bleiben gleich.
+    var horizon = false
+
     /// Whether this card's collection is in `pinned_playlists`. Read live so a
     /// pin toggled from a detail page or menu shows without a feed reload.
     private var isPinned: Bool {
@@ -446,15 +450,16 @@ struct ShelfCardView: View {
     }
 
     private var cardContent: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: horizon ? .center : .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
                 ArtworkView(
-                    url: card.thumbnailUrl, data: nil, side: artworkSide,
+                    url: card.thumbnailUrl, data: nil, side: horizon ? artworkSide - 16 : artworkSide,
                     fill: card.isVideo
                 )
                     // Wie im Original sind Home-Musikvideos 16:9 statt
                     // quadratischer Albumcover; die Kartenbreite bleibt stabil.
-                    .frame(width: artworkSide, height: card.isVideo ? artworkSide * 9 / 16 : artworkSide)
+                    .frame(width: horizon ? artworkSide - 16 : artworkSide,
+                           height: card.isVideo ? artworkSide * 9 / 16 : (horizon ? artworkSide - 16 : artworkSide))
                     .clipShape(.rect(cornerRadius: 10, style: .continuous))
                     .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
                     .modifier(NowPlayingCardAccent(
@@ -472,17 +477,31 @@ struct ShelfCardView: View {
                 }
             }
             Text(card.title)
-                .font(.callout.weight(.semibold))
+                .font(horizon ? .caption.weight(.semibold) : .callout.weight(.semibold))
+                .textCase(horizon ? .uppercase : nil)
+                .tracking(horizon ? 0.4 : 0)
                 .foregroundStyle(isCurrentTrack ? Theme.accent : .primary)
-                .lineLimit(1)
+                .lineLimit(horizon ? 2 : 1)
+                .multilineTextAlignment(horizon ? .center : .leading)
             if let subtitle = card.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(.caption)
+                    .font(horizon ? .system(.caption2, design: .serif) : .caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
         }
-        .frame(width: artworkSide, alignment: .leading)
+        .padding(.vertical, horizon ? 8 : 0)
+        .frame(width: artworkSide, alignment: horizon ? .center : .leading)
+        .background {
+            if horizon {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(reduceTransparency ? AnyShapeStyle(Theme.Materials.opaque) : AnyShapeStyle(.thinMaterial))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(0.16), lineWidth: 1)
+                    }
+            }
+        }
         // The highlight reaches past the card's own bounds so the sleeve and the
         // two lines under it read as one target.
         .background {

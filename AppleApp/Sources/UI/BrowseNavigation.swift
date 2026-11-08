@@ -32,6 +32,9 @@ struct PageStack<Content: View>: View {
         } else {
             NavigationStack {
                 content
+                    #if os(iOS)
+                    .modifier(KeyboardPlaybackChrome())
+                    #endif
                     .navigationDestination(for: PushRoute.self) { $0.make() }
             }
         }

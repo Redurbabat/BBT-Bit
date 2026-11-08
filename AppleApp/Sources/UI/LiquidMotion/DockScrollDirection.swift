@@ -6,7 +6,6 @@ import Observation
 @Observable
 final class DockScrollCoordinator {
     static let shared = DockScrollCoordinator()
-    private(set) var keepExpanded = false
     private(set) var direction: DockScrollDirection = .towardBottom
     private(set) var directionRevision = 0
 
@@ -15,10 +14,8 @@ final class DockScrollCoordinator {
     func moved(_ newDirection: DockScrollDirection) {
         direction = newDirection
         directionRevision &+= 1
-        // Apple's onScrollDown can wait for a new drag boundary before
-        // expanding on reversal. Temporarily selecting never requests the
-        // original tab bar, not a competing custom dock.
-        keepExpanded = newDirection == .towardTop
+        // Nur die Logo-Insel reagiert auf dieses Signal. Die native Tab-Leiste
+        // behält ihre eigene, durchgängige .onScrollDown-Transition.
     }
 }
 

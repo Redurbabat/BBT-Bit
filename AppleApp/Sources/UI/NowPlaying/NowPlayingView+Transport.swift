@@ -221,7 +221,7 @@ extension NowPlayingView {
             if !controller.displayedLyrics.isEmpty {
                 Divider()
                 Button("Lyrics Offset…") { showLyricsOffset = true }
-                Toggle("Lyrics Constellation", isOn: $lyricsConstellation)
+                lyricsDisplayPicker
             }
             // Alle bisherigen Infinity-Dock-Aktionen bleiben erreichbar,
             // ohne die Transportsteuerung durch zusätzliche Reihen zu verdrängen.
@@ -279,6 +279,14 @@ extension NowPlayingView {
         // Der bestehende Live-Screenshot-Marker bleibt nach dem Entfernen
         // des Dock-Regals beim neuen Zugang zu den Player-Werkzeugen.
         .background { LiquidLiveCaptureMarker(id: "dock") }
+    }
+
+    var lyricsDisplayPicker: some View {
+        Picker("Lyrics Display", selection: $lyricsConstellation) {
+            Text("List").tag(false)
+            Text("Constellation").tag(true)
+        }
+        .accessibilityIdentifier("bbt.lyrics.display")
     }
 
     static func timestamp(_ seconds: Double) -> String {

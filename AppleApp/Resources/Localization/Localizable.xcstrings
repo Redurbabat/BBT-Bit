@@ -1424,7 +1424,16 @@
         }
       }
     },
-    "Back to player": {},
+    "Back to player": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zur Wiedergabe"
+          }
+        }
+      }
+    },
     "Balance": {
       "localizations": {
         "tr": {
@@ -17957,6 +17966,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Doppeltippen, um diesen Titel im Karussell zu fokussieren"
+          }
+        }
+      }
+    },
+    "Lyrics Display": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songtextdarstellung"
+          }
+        }
+      }
+    },
+    "List": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liste"
+          }
+        }
+      }
+    },
+    "Constellation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sternbild"
+          }
+        }
+      }
+    },
+    "Show lyrics list": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songtextliste anzeigen"
+          }
+        }
+      }
+    },
+    "Playback position": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiedergabeposition"
+          }
+        }
+      }
+    },
+    "Lyrics source: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songtextquelle: %@"
           }
         }
       }

@@ -40,6 +40,22 @@ extension NowPlayingView {
     #if os(iOS)
     var iOSBody: some View {
         NavigationStack {
+            if lyricsConstellation && pane == .lyrics && LyricsConstellationView.isAvailable(lines: controller.displayedLyrics) {
+                TimelineView(.animation(minimumInterval: 1.0 / 60, paused: !controller.isPlaying)) { timeline in
+                    LyricsConstellationView(
+                        lines: controller.displayedLyrics,
+                        position: controller.livePosition(at: timeline.date),
+                        offsetMs: lyricsOffsetMs,
+                        onClose: { pane = .main },
+                        immersive: true,
+                        trackTitle: controller.current?.title ?? "",
+                        sourceLabel: controller.lyricsSourceLabel,
+                        onShowList: { lyricsConstellation = false }
+                    )
+                }
+                .toolbar(.hidden, for: .navigationBar)
+                .ignoresSafeArea(.container)
+            } else {
             // The arrangement is the only thing that differs between the
             // shapes, so the arrangement is the only thing decided here. Every
             // slot below — the sleeve, the panes, the deck — is built once and
@@ -111,6 +127,7 @@ extension NowPlayingView {
             // Keep the established edge-to-edge phone artwork. The iPad page
             // respects its system top inset so the player has room for chrome.
             .ignoresSafeArea(.container, edges: isIPad ? [] : .top)
+            }
         }
     }
     #endif
@@ -339,6 +356,8 @@ extension NowPlayingView {
 
     var lyricsToolsButton: some View {
         Menu {
+            lyricsDisplayPicker
+            Divider()
             Button("Change Lyrics Source", systemImage: "text.magnifyingglass") {
                 showLyricsSources = true
             }

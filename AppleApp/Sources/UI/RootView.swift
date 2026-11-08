@@ -1102,7 +1102,6 @@ struct PlaybackPillMount: ViewModifier {
     /// is up the iPhone's pill rides on top of it instead (the iPad's per-tab
     /// inset does that on its own).
     @State private var keyboardUp = false
-    @State private var dockScroll = DockScrollCoordinator.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #endif
 
@@ -1118,38 +1117,15 @@ struct PlaybackPillMount: ViewModifier {
             // the sidebar and keeps Music's 620 pt width.
             content
         } else if #available(iOS 26.0, *) {
-            // iOS 26: Die native Tab-Leiste schrumpft beim Scrollen nach unten,
-            // der systemeigene Bottom Accessory bewegt den Mini-Player mit.
-            // Bei Richtungsumkehr nach oben verhindert DockScrollCoordinator,
-            // dass die Leiste trotz Gegenbewegung eingeklappt bleibt.
-            // Die Keyboard-Safe-Area-Korrektur darunter bleibt erhalten.
+            // Eine stabile Systemregel hält Tab-Leiste und Accessory in derselben
+            // Transition. Ein Wechsel zu .never mitten im Scrollen entkoppelte
+            // ihre Platzierungen und legte den Player über die Tab-Symbole.
             accessory(
-                content.tabBarMinimizeBehavior(
-                    dockScroll.keepExpanded ? .never : .onScrollDown
-                )
+                content.tabBarMinimizeBehavior(.onScrollDown)
             )
-                // Das kompakte Pill belegt oberhalb der Tastatur echten
-                // Safe-Area-Platz, statt die Suchergebnisse zu überdecken.
-                // Der native Bottom Accessory wird währenddessen ausgeblendet.
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if keyboardUp {
-                        // PlaybackPill besitzt bereits seinen eigenen
-                        // MiniPlayerChrome mit Reduce-Transparency-Fallback.
-                        // Kein zweites Material über denselben Bedienelementen.
-                        PlaybackPill(inline: true)
-                            .frame(maxWidth: 440)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
-                            .frame(maxWidth: .infinity)
-                            // Keep the keyboard handoff spatially continuous;
-                            // never animate the system-owned TabView accessory.
-                            .transition(
-                                reduceMotion
-                                    ? .opacity
-                                    : .move(edge: .bottom).combined(with: .opacity)
-                            )
-                    }
-                }
+                // Der Tastatur-Player gehört INNERHALB der Navigation über deren
+                // Suchleiste. Ein Inset außerhalb der TabView lag genau auf ihr.
+                .environment(\.keyboardPlaybackVisible, keyboardUp)
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
                     withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { keyboardUp = true }
                 }
@@ -1214,6 +1190,29 @@ struct PlaybackPillMount: ViewModifier {
 }
 
 #if os(iOS)
+extension EnvironmentValues {
+    @Entry var keyboardPlaybackVisible = false
+}
+
+/// Innerhalb des Navigationsinhalts montieren, damit Suchfeld und Schließen-
+/// Knopf zuerst ihren systemeigenen Safe-Area-Platz erhalten.
+struct KeyboardPlaybackChrome: ViewModifier {
+    @Environment(\.keyboardPlaybackVisible) private var visible
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
+            if visible, sizeClass == .compact {
+                PlaybackPill(inline: true)
+                    .frame(maxWidth: 440)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+}
+
 /// The pill in the iPhone's bottom accessory, told whether the minimized tab
 /// bar has it inline.
 @available(iOS 26.0, *)

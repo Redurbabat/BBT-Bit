@@ -213,7 +213,7 @@ jobs:
           assert 'lastEmittedDirection' in tracker
           assert 'DockScrollDirectionObserver()' in home and 'DockScrollDirectionObserver()' in explore
           assert 'DockScrollDirectionObserver()' in libraryLanding
-          assert 'dockScroll.keepExpanded ? .never : .onScrollDown' in root
+          assert 'content.tabBarMinimizeBehavior(.onScrollDown)' in root
           assert 'dockScroll.directionRevision' in root
           assert 'DragGesture(minimumDistance: 14)' in mark
           assert Path('scripts/test-dock-direction-tracker.swift').exists()

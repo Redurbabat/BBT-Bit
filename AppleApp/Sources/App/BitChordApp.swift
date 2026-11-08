@@ -50,6 +50,10 @@ struct BitChordApp: App {
         #if DEBUG && os(iOS)
         if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-designs") {
             NavigationStack { LiquidMotionDeviceSelfTestView() }
+        } else if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-video-references") {
+            VideoReferencePreviewView()
+        } else if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-playback-chrome") {
+            PlaybackChromePreviewView()
         } else if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-search") {
             // Test nur der echten SearchView (mit derselben State-/Task-Logik).
             // Kein Demo-Playback, keine Anmeldung oder Tab-Bar-Simulation.
@@ -79,6 +83,8 @@ struct BitChordApp: App {
                 .task {
                     #if DEBUG && os(iOS)
                     if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-designs")
+                        || ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-video-references")
+                        || ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-playback-chrome")
                         || ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-search") {
                         return
                     }

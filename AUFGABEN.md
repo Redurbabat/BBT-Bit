@@ -2,6 +2,7 @@
 
 | ID | Aufgabe und Abnahme | Nachweis |
 | --- | --- | --- |
+| BBT-020 | Videoverhalten auf Künstlerseite, Bogen-Vollplayer und wählbare Liste/Sternbild-Lyrics sowie Foto-Regressionen für Suchfeld, Top-Ergebnis und Dock auf echtem iPhone abnehmen. | [Referenzanalyse und Abnahme](docs/VIDEO_REFERENZEN_20261108.md), [Livetest-Auswertung](docs/RED_BIT_INTEGRATION.md). Geräte-, Hör- und visuelle 1:1-Abnahme **NICHT GETESTET**. |
 | BBT-019 | Integration der PRs #54/#57/#58, Signalband-Logo sowie Dock-/Island-/Tastatur-Mini-Player auf echtem iPhone und iPad/Mac abnehmen; erst danach über den Merge entscheiden. | [Analyse und konkrete Prüfmatrix](docs/RED_BIT_INTEGRATION.md). Native Builds/Simulator und hörbares Audio bis zum tatsächlichen Nachweis **NICHT GETESTET**. |
 | BBT-001 | Erste vollständige native Prüfmatrix auf Apple Silicon erfassen. Die Berichte nennen SHA, Xcode und Zielgerät. | Kotlin `:shared:macosArm64Test`, Rust `cargo test --locked`, iOS-XCUITest und XCResult |
 | BBT-002 | Die Sprachkennung-Korrektur vom 5. November im frisch gebauten, signierten Reparaturbranch mit deutscher Gerätesprache prüfen. „Training Season“ und zwei weitere Titel starten, danach Hintergrund, Ausgabewechsel und lokalen Offline-Titel prüfen. | [Echtgeräte-Prüfplan](docs/TESTPLAN.md#echtes-iphone) mit Build-Revision, erstem Audiopuffer, Zeitfortschritt und hörbarem Audio. Der Live-HTTP-Vergleich ersetzt diese Abnahme nicht. |

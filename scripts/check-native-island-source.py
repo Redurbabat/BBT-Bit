@@ -72,7 +72,7 @@ checks = {
     ),
     "RED Morph: Mini-Player bleibt native Zoom-Quelle": (
         ".tabViewBottomAccessory" in root
-        and "dockScroll.keepExpanded ? .never : .onScrollDown" in root
+        and "content.tabBarMinimizeBehavior(.onScrollDown)" in root
         and "matchedTransitionSource(id: NowPlayingZoom.sourceID" in pill
         and ".navigationTransition(.zoom(sourceID: NowPlayingZoom.sourceID" in root
     ),

@@ -18,9 +18,12 @@ struct HorizonRailMotion: ViewModifier {
                         axis: (0, 1, 0),
                         perspective: 0.7
                     )
-                    .scaleEffect(x: 1 + abs(phase.value) * 0.12, y: 1 - abs(phase.value) * 0.07)
-                    .blur(radius: abs(phase.value) * 5)
-                    .opacity(1 - abs(phase.value) * 0.3)
+                    .distortionEffect(
+                        ShaderLibrary.horizonRailBend(.boundingRect, .float(Float(phase.value))),
+                        maxSampleOffset: CGSize(width: 12, height: 13)
+                    )
+                    .scaleEffect(x: 1 + abs(phase.value) * 0.06, y: 1 - abs(phase.value) * 0.04)
+                    .opacity(1 - abs(phase.value) * 0.12)
             }
         } else {
             content

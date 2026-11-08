@@ -297,7 +297,48 @@ extension NowPlayingView {
         #endif
     }
 
+    @ViewBuilder
     var deck: some View {
+        #if os(iOS)
+        if !isIPad && pane == .main && !dynamicTypeSize.isAccessibilitySize {
+            radialPortraitDeck
+        } else {
+            standardDeck
+        }
+        #else
+        standardDeck
+        #endif
+    }
+
+    #if os(iOS)
+    private var radialPortraitDeck: some View {
+        VStack(spacing: 4) {
+            Text(controller.current?.title ?? AppLanguage.localized("Not Playing"))
+                .font(.headline)
+                .foregroundStyle(.white)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+            ArtistCreditText(credit: controller.current?.artist ?? "", font: .subheadline,
+                             color: .white.opacity(0.7), suffix: albumSuffix)
+            if let status = songStatusLine {
+                Button { showPipeline = true } label: { Text(status) }
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.5))
+                    .buttonStyle(.plain)
+            }
+            ArcPlaybackDeck(onLyrics: { pane = .lyrics }, onQueue: { pane = .queue }, more: moreMenu)
+            if !controller.hideVolumeBar {
+                deckVolumeRow.padding(.horizontal, 32)
+            }
+            if controller.lyricsLoading || !controller.displayedLyrics.isEmpty { currentLyricStrip }
+        }
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .background(.black.opacity(0.8))
+    }
+    #endif
+
+    private var standardDeck: some View {
         VStack(spacing: 14) {
             // Credits, status and strip live on the main player only. Upstream's
             // queue screen goes Lyrics link straight to the scrubber — the song

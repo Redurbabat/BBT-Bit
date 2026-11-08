@@ -37,6 +37,7 @@ command -v xcodebuild >/dev/null 2>&1 || fail 'xcodebuild is required'
 command -v ditto >/dev/null 2>&1 || fail 'ditto is required'
 command -v zipinfo >/dev/null 2>&1 || fail 'zipinfo is required'
 command -v codesign >/dev/null 2>&1 || fail 'codesign is required'
+bash "$repo_root/scripts/ensure-metal-toolchain.sh"
 mkdir -p "$output_dir"
 output_dir="$(cd "$output_dir" && pwd)"
 stage="$(mktemp -d "${TMPDIR:-/tmp}/bitchord-ipa.XXXXXX")"
