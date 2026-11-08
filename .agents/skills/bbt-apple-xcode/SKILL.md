@@ -26,4 +26,8 @@ Neue Apple-Skills, die Xcode zusätzlich exportiert, sind ebenfalls zulässig. B
 
 [AGENTS.md](../../../AGENTS.md), [Entscheidungen](../../../ENTSCHEIDUNGEN.md), [Probleme](../../../PROBLEME.md), [RED Morph](../../../docs/red-morph-player-search-navigation.md) und die lokalen Wiedergabe-Skills bleiben maßgeblich. Insbesondere **die integrierte native iPhone-Suche** und die **beim Scrollen mit der Tab-Bar gekoppelte native Mini-Player-Animation** dürfen durch keine automatische App-Modernisierung rückgebaut werden. Das Playback-Pill muss inline minimieren und sich bei Gegenbewegung wieder ausklappen; Mini-/Vollplayer behalten den nativen Zoom. Keine Commits auf `main` oder fremde Agenten-Branches.
 
+## Prüfung
+
 Prüfe vor neuen APIs Deployment Targets und Verfügbarkeit, vor Tests reale Apple-Hardware/Runner und vor Streamingbehauptungen hörbares Audio. Ohne erfolgreiche Prüfung **NICHT GETESTET**. [Testplan](../../../docs/TESTPLAN.md) · [Agenten-Workflow](../../../docs/AGENT_WORKFLOW.md).
+
+Führe vor jeder Übernahme `python3 scripts/apple-skills-verify/check.py` und `python3 scripts/check-repository.py` aus. Der Xcode-Export selbst wird auf einem Mac mit `python3 scripts/install-apple-xcode-skills.py --from-xcode` geprüft; ohne verfügbare Xcode-Installation gilt er als **NICHT GETESTET**. Halte Xcode-Version, exportierte Skill-Liste und Gerät im Bericht fest.
