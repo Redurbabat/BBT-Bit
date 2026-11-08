@@ -510,12 +510,16 @@ struct PlaybackPill: View {
     /// Progress hairline hugging the iOS mini-player's bottom edge.
     private var progressHairline: some View {
         GeometryReader { geo in
-            let progress = controller.duration > 0
-                ? controller.position / controller.duration
+            // Keep the hairline inside the pill even when a stream reports
+            // a stale position, an unknown duration or non-finite metadata.
+            let duration = controller.duration
+            let position = controller.position
+            let progress: Double = duration.isFinite && duration > 0 && position.isFinite
+                ? min(1, max(0, position / duration))
                 : 0
             Capsule()
                 .fill(.tertiary)
-                .frame(width: geo.size.width * progress, height: 2)
+                .frame(width: geo.size.width * CGFloat(progress), height: 2)
                 .frame(maxHeight: .infinity, alignment: .bottom)
         }
         .allowsHitTesting(false)
