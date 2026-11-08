@@ -38,9 +38,13 @@ extension NowPlayingView {
     // bodies and the two toolbars are platform-specific, and they are the
     // arrangement — which is the only thing that should differ.
     #if os(iOS)
+    private var immersiveLyricsVisible: Bool {
+        lyricsConstellation && pane == .lyrics && LyricsConstellationView.isAvailable(lines: controller.displayedLyrics)
+    }
+
     var iOSBody: some View {
         NavigationStack {
-            if lyricsConstellation && pane == .lyrics && LyricsConstellationView.isAvailable(lines: controller.displayedLyrics) {
+            if immersiveLyricsVisible {
                 TimelineView(.animation(minimumInterval: 1.0 / 60, paused: !controller.isPlaying)) { timeline in
                     LyricsConstellationView(
                         lines: controller.displayedLyrics,
@@ -129,6 +133,10 @@ extension NowPlayingView {
             .ignoresSafeArea(.container, edges: isIPad ? [] : .top)
             }
         }
+        // Der erste Zug aus dem Sternbild führt zum Player zurück; erst dort
+        // übernimmt wieder die systemeigene Sheet-/Zoom-Schließgeste.
+        .interactiveDismissDisabled(immersiveLyricsVisible)
+        .presentationDragIndicator(immersiveLyricsVisible ? .hidden : .visible)
     }
     #endif
 

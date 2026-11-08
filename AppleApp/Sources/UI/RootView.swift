@@ -409,6 +409,9 @@ struct RootView: View {
             Task { await loadSidebarPlaylists() }
         }
         .onChange(of: selection) { _, raw in
+            // Beim Tab-Wechsel keine eingefrorenen Toolbar-Koordinaten der
+            // vorherigen Seite weiterverwenden.
+            logoGlassBloom.dismiss()
             if let tab = AppModel.Tab(rawValue: raw), Self.isLibrarySection(tab) {
                 iPadLibraryTab = raw
             }
@@ -1302,11 +1305,9 @@ private struct NowPlayingSheetSizing: ViewModifier {
             content
                 .presentationDetents([.large])
                 .presentationSizing(.page)
-                .presentationDragIndicator(.visible)
         } else {
             content
                 .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
                 .presentationCornerRadius(24)
         }
     }
