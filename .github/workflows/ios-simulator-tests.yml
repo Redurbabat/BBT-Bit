@@ -7,6 +7,7 @@ on:
       - AppleApp/**
       - scripts/build-shared-framework.sh
       - scripts/build-native-core.sh
+      - scripts/retry-transient.sh
       - scripts/ci-ios-simulator-report.py
       - '*.gradle.kts'
       - gradle/**
@@ -49,9 +50,9 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Test progressive audio extraction
-        run: bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
+        run: bash scripts/retry-transient.sh bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
       - name: Test shared playback resolver recovery
-        run: bash gradlew :shared:macosArm64Test --tests '*StreamResolverRecoveryTest'
+        run: bash scripts/retry-transient.sh bash gradlew :shared:macosArm64Test --tests '*StreamResolverRecoveryTest'
 
   host-regressions:
     if: inputs.mode == 'host'
@@ -178,29 +179,12 @@ jobs:
           bash scripts/check-network-errors.sh
           bash scripts/check-stream-recovery.sh
 
-      - name: Warm Gradle and Kotlin/Native downloads (retry on server errors)
-        shell: bash
-        run: |
-          # Ein kalter Runner lädt Gradle und das Kotlin/Native-Paket von externen
-          # Servern. Kurze 5xx-Ausfälle dort sollen den Lauf nicht beenden, bevor
-          # ein einziger Test oder Compiler gelaufen ist.
-          set -uo pipefail
-          for attempt in 1 2 3 4 5 6; do
-            if bash gradlew --console=plain :innertubex:downloadKotlinNativeDistribution; then
-              exit 0
-            fi
-            echo "::warning::Gradle/Kotlin-Native-Download fehlgeschlagen (Versuch $attempt von 6); neuer Versuch nach Pause"
-            sleep $((attempt * 30))
-          done
-          echo "::error::Gradle- oder Kotlin/Native-Download blieb fehlerhaft; der eigentliche Build wurde nicht erreicht."
-          exit 1
-
       - name: Build Kotlin/Native iPhone Simulator framework
         id: kotlin_framework
         shell: bash
         run: |
           set -euo pipefail
-          CONFIG=debug ./scripts/build-shared-framework.sh
+          CONFIG=debug bash scripts/retry-transient.sh ./scripts/build-shared-framework.sh
           test -d AppleApp/Frameworks/BitChordShared.xcframework
           /usr/libexec/PlistBuddy -c "Print :AvailableLibraries" AppleApp/Frameworks/BitChordShared.xcframework/Info.plist
           # It must include an iOS Simulator variant, not only iphoneos.
@@ -316,11 +300,11 @@ jobs:
 
       - name: Run shared Kotlin tests on Apple Silicon
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
-        run: ./gradlew :shared:macosArm64Test
+        run: bash scripts/retry-transient.sh ./gradlew :shared:macosArm64Test
 
       - name: Run Kotlin playback extractor regressions on Apple Silicon
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
-        run: ./gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
+        run: bash scripts/retry-transient.sh ./gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
 
       - name: Run native Rust tests with the pinned dependency graph
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}

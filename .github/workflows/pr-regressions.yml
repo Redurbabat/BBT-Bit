@@ -41,6 +41,8 @@ jobs:
         run: python3 scripts/check-red-morph-source.py
       - name: Check native Dynamic Island / Now Playing (ohne Apple-Build)
         run: python3 scripts/check-native-island-source.py
+      - name: Check CI retry helper (retries network errors only)
+        run: bash scripts/retry-transient-verify/check.sh
       - name: Scan introduced commits for secrets
         if: ${{ !cancelled() }}
         run: |
