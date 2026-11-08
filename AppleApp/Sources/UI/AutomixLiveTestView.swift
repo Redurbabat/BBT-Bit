@@ -318,7 +318,7 @@ struct AutomixLiveTestView: View {
     var body: some View {
         Form {
             Section {
-                Text("Prüfe BBT-Bit während der normalen Nutzung: KI-Modelle, Audiopfad, Queue, Streaming, Übergänge und App-Funktionen. Verlasse die Seite und nutze die App weiter. Die Aufzeichnung endet nach spätestens 30 Minuten. Deine Queue und Wiedergabe werden durch den Monitor nicht verändert.")
+                Text("Prüfe RED Bit während der normalen Nutzung: KI-Modelle, Audiopfad, Queue, Streaming, Übergänge und App-Funktionen. Verlasse die Seite und nutze die App weiter. Die Aufzeichnung endet nach spätestens 30 Minuten. Deine Queue und Wiedergabe werden durch den Monitor nicht verändert.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Button {
@@ -350,7 +350,7 @@ struct AutomixLiveTestView: View {
                 Text("Im Hintergrund kann iOS die App pausieren. Aufzeichnung läuft nur, solange die App tatsächlich ausgeführt wird.")
                     .font(.caption).foregroundStyle(.secondary)
             } header: {
-                Text("BBT-Bit-Livetest")
+                Text("RED-Bit-Livetest")
             }
 
             Section {
@@ -510,7 +510,7 @@ struct AutomixLiveTestView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("BBT-Bit Testzentrale")
+        .navigationTitle("RED Bit Testzentrale")
     }
 
     private func modelName(_ id: AutomixModelStore.ModelID) -> String {

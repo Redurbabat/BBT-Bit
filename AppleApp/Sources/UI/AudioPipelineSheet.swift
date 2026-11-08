@@ -81,7 +81,7 @@ struct AudioPipelineSheet: View {
                         row("Bit-perfect", bitPerfectStatus)
                         row("Loudness", loudness)
                         row("EQ Preset", eqPreset)
-                        row("BitChord spatial effect", spatial && AudioRouteState.shared.permitsCustomSpatial ? "On" : "Off")
+                        row("RED Bit spatial effect", spatial && AudioRouteState.shared.permitsCustomSpatial ? "On" : "Off")
                         row("Apple spatial playback", AudioRouteState.shared.spatialDescription)
                         row("Output API", "CoreAudio")
                         // Reports engine-side sample changes; a clean engine path

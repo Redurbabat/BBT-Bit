@@ -5,7 +5,7 @@ import BitChordShared
 /// Captures a Discord user token the same unofficial way upstream's Kizzy login does.
 struct DiscordLoginView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var status = "Sign in to Discord. BitChord reads the token Discord stores locally — never your password."
+    @State private var status = "Sign in to Discord. RED Bit reads the token Discord stores locally — never your password."
     @State private var username: String?
 
     var body: some View {

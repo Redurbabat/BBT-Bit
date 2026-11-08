@@ -34,7 +34,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p = Path('AppleApp/project.yml').read_text()
-          assert 'CFBundleDisplayName: BBT-Bit' in p
+          assert 'CFBundleDisplayName: RED Bit' in p
           assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
           assert 'group.com.babat.bbtbit' in p
           assert 'CFBundleURLSchemes: [bbtbit]' in p

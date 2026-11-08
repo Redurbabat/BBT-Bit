@@ -65,7 +65,7 @@ def verify(ipa: Path, source_sha: str, source_ref: str, run_url: str):
         app_path = roots[0].removesuffix("Info.plist")
         info = plistlib.loads(archive.read(roots[0]))
         require(info.get("CFBundleIdentifier") == "com.babat.bbtbit", "Bundle-ID verändert; Update wäre unsicher.")
-        require(info.get("CFBundleDisplayName") == "BBT-Bit", "Unerwarteter App-Name.")
+        require(info.get("CFBundleDisplayName") == "RED Bit", "Unerwarteter App-Name.")
         require(info.get("CFBundleSupportedPlatforms") == ["iPhoneOS"], "Kein iPhone-Gerätepaket.")
         require(info.get("BBTTestDistribution") == "SideStore", "SideStore-Testkonfiguration fehlt.")
         require(info.get("BBTTestSourceBranch") == source_ref and info.get("BBTTestRunURL") == run_url,

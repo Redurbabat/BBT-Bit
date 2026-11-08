@@ -125,7 +125,7 @@ extension SettingsView {
             SettingsToggleLine(
                 glyph: .musicOnly,
                 title: "Play Alongside Other Apps",
-                subtitle: "Keep other apps audible alongside BitChord. This can prevent iOS Lock Screen, Control Center and headphone controls from controlling BitChord. Turn off to give BitChord audio priority. Applies immediately while playing, or on the next play.",
+                subtitle: "Keep other apps audible alongside RED Bit. This can prevent iOS Lock Screen, Control Center and headphone controls from controlling RED Bit. Turn off to give RED Bit audio priority. Applies immediately while playing, or on the next play.",
                 isOn: Binding(
                     get: { controller.mixWithOtherAudio },
                     set: { controller.setMixWithOtherAudio($0) }
@@ -201,13 +201,13 @@ extension SettingsView {
     }
 
     private func appendTestCenterRow(_ rows: inout SettingsRows) {
-        rows.row("BBT-Bit Testzentrale", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
+        rows.row("RED Bit Testzentrale", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
             PushLink {
                 AutomixLiveTestView()
             } label: {
                 SettingsLine(
                     glyph: .automix,
-                    title: "BBT-Bit Testzentrale",
+                    title: "RED Bit Testzentrale",
                     subtitle: "Musik, Audio, KI, Netzwerk, Queue und App-Funktionen prüfen"
                 ) {
                     EmptyView()

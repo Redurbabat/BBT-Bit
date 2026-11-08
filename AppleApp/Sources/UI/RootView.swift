@@ -292,7 +292,7 @@ struct RootView: View {
             RenamePlaylistAlert()
         }
         #if os(iOS)
-        .alert("A BitChord update is available", isPresented: Binding(
+        .alert("A RED Bit update is available", isPresented: Binding(
             get: { updateChecker.available != nil },
             set: { if !$0 { updateChecker.dismiss() } }
         )) {
@@ -302,7 +302,7 @@ struct RootView: View {
             }
             Button("Later", role: .cancel) { updateChecker.dismiss() }
         } message: {
-            Text("BitChord \(updateChecker.available?.identity.label ?? "") is available. Update using the same method you used to install BitChord. The release page has the change notes.")
+            Text("RED Bit \(updateChecker.available?.identity.label ?? "") is available. Update using the same method you used to install RED Bit. The release page has the change notes.")
         }
         .sheet(item: $updateDetails) { release in UpdateSheet(release: release) }
         #endif
@@ -390,7 +390,7 @@ struct RootView: View {
             }
             Button("Close", role: .cancel) { verificationAlert = nil }
         } message: {
-            Text("YouTube is asking for verification on this network. BBT-Bit cannot complete it. Try again later, or open this song in YouTube. If it happens only on mobile data, compare with Wi-Fi.")
+            Text("YouTube is asking for verification on this network. RED Bit cannot complete it. Try again later, or open this song in YouTube. If it happens only on mobile data, compare with Wi-Fi.")
         }
     }
 
@@ -653,7 +653,7 @@ struct RootView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("BitChord")
+        .navigationTitle("RED Bit")
     }
 
     private func sideRow(_ side: MacSide, _ title: LocalizedStringKey, _ icon: String) -> some View {

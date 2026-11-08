@@ -292,7 +292,7 @@
     "+%lld": {},
     "123.5 MB total · Runs 100% on-device · Private": {},
     "46.7 MB of models · Runs 100% on-device · Private": {},
-    "A BitChord update is available": {},
+    "A RED Bit update is available": {},
     "A library you host yourself, played from the server rather than from a catalogue. It takes no part in the ranking above — it holds your own files, so it is not standing in for anything.": {},
     "A party server is a deployment somebody has to run. This app does not ship one.": {},
     "A version switch resumes where you left off. With this off it restarts from the top, since no alignment is attempted.": {},
@@ -1122,7 +1122,7 @@
         }
       }
     },
-    "Apple’s Headphone Accommodations, Adaptive Audio and Conversation Awareness are managed in system Accessibility, AirPods settings and Control Center. BitChord keeps your manual EQ choices.": {},
+    "Apple’s Headphone Accommodations, Adaptive Audio and Conversation Awareness are managed in system Accessibility, AirPods settings and Control Center. RED Bit keeps your manual EQ choices.": {},
     "Apply to all %lld conflicts": {},
     "Artists": {
       "localizations": {
@@ -1295,13 +1295,13 @@
     },
     "Automix Transitions": {},
     "Automix times every transition itself; the crossfade slider returns when Automix is off.": {},
-    "BBT-Bit cannot access the internet. On iPhone, check Settings > Cellular > BBT-Bit (allow mobile data), Wi-Fi, and VPN, then retry.": {
+    "RED Bit cannot access the internet. On iPhone, check Settings > Cellular > RED Bit (allow mobile data), Wi-Fi, and VPN, then retry.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "BBT-Bit hat keinen Internetzugriff. Prüfe auf dem iPhone unter Einstellungen → Mobilfunk → BBT-Bit die mobilen Daten sowie WLAN und VPN. Versuche es danach erneut."
+            "value": "RED Bit hat keinen Internetzugriff. Prüfe auf dem iPhone unter Einstellungen → Mobilfunk → RED Bit die mobilen Daten sowie WLAN und VPN. Versuche es danach erneut."
           }
         }
       }
@@ -1458,25 +1458,25 @@
         }
       }
     },
-    "BitChord %@": {},
-    "BitChord %@ is available. Update using the same method you used to install BitChord. The release page has the change notes.": {},
-    "BitChord %@ is out": {},
-    "BitChord analyzes your tracks on-device to match beats, time crossfades, and prevent vocal clashes between songs.": {},
-    "BitChord audio priority": {},
-    "BitChord could not read YouTube’s player, so it could not open a stream. Check the connection and try again.": {
+    "RED Bit %@": {},
+    "RED Bit %@ is available. Update using the same method you used to install RED Bit. The release page has the change notes.": {},
+    "RED Bit %@ is out": {},
+    "RED Bit analyzes your tracks on-device to match beats, time crossfades, and prevent vocal clashes between songs.": {},
+    "RED Bit audio priority": {},
+    "RED Bit could not read YouTube’s player, so it could not open a stream. Check the connection and try again.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "BBT-Bit konnte die YouTube-Playerdaten nicht lesen und deshalb keinen Stream öffnen. Prüfe die Verbindung und versuche es erneut."
+            "value": "RED Bit konnte die YouTube-Playerdaten nicht lesen und deshalb keinen Stream öffnen. Prüfe die Verbindung und versuche es erneut."
           }
         }
       }
     },
-    "BitChord installs from its releases page, so this opens it in your browser.": {},
-    "BitChord watches the folder you choose for music files. Filtering keeps everything that is not a song out of the list.": {},
-    "BitChord will still prefer its copy when the match is the same recording. It will not when it is not.": {},
+    "RED Bit installs from its releases page, so this opens it in your browser.": {},
+    "RED Bit watches the folder you choose for music files. Filtering keeps everything that is not a song out of the list.": {},
+    "RED Bit will still prefer its copy when the match is the same recording. It will not when it is not.": {},
     "Bluetooth": {},
     "Bring your library, playlists and mixes with you, and start a Listen Together party with friends.": {
       "localizations": {
@@ -2183,7 +2183,7 @@
     "Confirm": {},
     "Confirm your profile": {},
     "Connect your YouTube Music account": {},
-    "Connect your YouTube Music profile to BitChord.": {},
+    "Connect your YouTube Music profile to RED Bit.": {},
     "Continue in Background": {},
     "Contour %@": {},
     "Controls": {},
@@ -3132,7 +3132,7 @@
       }
     },
     "Downloaded collections": {},
-    "Downloaded once and kept in BitChord's storage. Removing a model takes effect immediately: Automix falls back to tempo analysis without the beat model, and stops watching for vocal clashes without the vocal one.": {},
+    "Downloaded once and kept in RED Bit's storage. Removing a model takes effect immediately: Automix falls back to tempo analysis without the beat model, and stops watching for vocal clashes without the vocal one.": {},
     "Downloading in Background — Done": {},
     "Downloads": {
       "localizations": {
@@ -3566,12 +3566,12 @@
         }
       }
     },
-    "Exported downloads live in the shared Music folder. Private ones stay inside BitChord's own storage.": {
+    "Exported downloads live in the shared Music folder. Private ones stay inside RED Bit's own storage.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exportierte Downloads liegen im gemeinsamen Musikordner. Private Downloads verbleiben im App-Speicher von BBT-Bit."
+            "value": "Exportierte Downloads liegen im gemeinsamen Musikordner. Private Downloads verbleiben im App-Speicher von RED Bit."
           }
         }
       }
@@ -3582,7 +3582,7 @@
     "Filter this library": {},
     "Finds the singing at the start and end of each track so two vocals do not overlap during a transition.": {},
     "Finish signing in": {},
-    "Finishing sign-in to BitChord.": {},
+    "Finishing sign-in to RED Bit.": {},
     "First button": {
       "localizations": {
         "de": {
@@ -4277,7 +4277,7 @@
       }
     },
     "History couldn't load": {},
-    "Holding a high refresh rate keeps the display working harder the whole time BitChord is open, and the battery drains faster for it. Turn it on anyway?": {},
+    "Holding a high refresh rate keeps the display working harder the whole time RED Bit is open, and the battery drains faster for it. Turn it on anyway?": {},
     "Home": {
       "localizations": {
         "de": {
@@ -4484,48 +4484,48 @@
         }
       }
     },
-    "If a source does not have a track or cannot be reached, BitChord tries the next one. Sources above YouTube can replace its recording when they return a better version.": {
+    "If a source does not have a track or cannot be reached, RED Bit tries the next one. Sources above YouTube can replace its recording when they return a better version.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn eine Quelle einen Titel nicht hat oder nicht erreichbar ist, versucht BitChord die nächste. Quellen über YouTube können dessen Aufnahme ersetzen, wenn sie eine bessere Version liefern."
+            "value": "Wenn eine Quelle einen Titel nicht hat oder nicht erreichbar ist, versucht RED Bit die nächste. Quellen über YouTube können dessen Aufnahme ersetzen, wenn sie eine bessere Version liefern."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si una fuente no tiene una canción o no responde, BitChord prueba la siguiente. Las fuentes situadas antes de YouTube pueden reemplazar su grabación si devuelven una versión mejor."
+            "value": "Si una fuente no tiene una canción o no responde, RED Bit prueba la siguiente. Las fuentes situadas antes de YouTube pueden reemplazar su grabación si devuelven una versión mejor."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si une source n'a pas un titre ou est inaccessible, BitChord essaie la suivante. Les sources situées au-dessus de YouTube peuvent remplacer son enregistrement lorsqu'elles renvoient une meilleure version."
+            "value": "Si une source n'a pas un titre ou est inaccessible, RED Bit essaie la suivante. Les sources situées au-dessus de YouTube peuvent remplacer son enregistrement lorsqu'elles renvoient une meilleure version."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אם למקור אין רצועה, BitChord מנסה את הבא. מקורות מעל YouTube יכולים להחליפו כשהם מוצאים גרסה טובה יותר."
+            "value": "אם למקור אין רצועה, RED Bit מנסה את הבא. מקורות מעל YouTube יכולים להחליפו כשהם מוצאים גרסה טובה יותר."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "अगर किसी स्रोत के पास कोई ट्रैक नहीं है या उस तक पहुंचा नहीं जा सकता, तो BitChord अगला स्रोत आज़माता है। YouTube से ऊपर के स्रोत बेहतर वर्शन मिलने पर उसकी रिकॉर्डिंग बदल सकते हैं।"
+            "value": "अगर किसी स्रोत के पास कोई ट्रैक नहीं है या उस तक पहुंचा नहीं जा सकता, तो RED Bit अगला स्रोत आज़माता है। YouTube से ऊपर के स्रोत बेहतर वर्शन मिलने पर उसकी रिकॉर्डिंग बदल सकते हैं।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jika suatu sumber tidak memiliki trek atau tidak dapat dijangkau, BitChord mencoba sumber berikutnya. Sumber di atas YouTube dapat menggantikan rekamannya saat menghasilkan versi yang lebih baik."
+            "value": "Jika suatu sumber tidak memiliki trek atau tidak dapat dijangkau, RED Bit mencoba sumber berikutnya. Sumber di atas YouTube dapat menggantikan rekamannya saat menghasilkan versi yang lebih baik."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se una sorgente non ha un brano o non è raggiungibile, BitChord prova la successiva. Le sorgenti sopra YouTube possono sostituire la sua registrazione quando restituiscono una versione migliore."
+            "value": "Se una sorgente non ha un brano o non è raggiungibile, RED Bit prova la successiva. Le sorgenti sopra YouTube possono sostituire la sua registrazione quando restituiscono una versione migliore."
           }
         },
         "ja": {
@@ -4537,55 +4537,55 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jeśli źródło nie ma utworu lub jest niedostępne, BitChord próbuje następne. Źródła przed YouTube mogą je zastąpić, gdy znajdą lepszą wersję."
+            "value": "Jeśli źródło nie ma utworu lub jest niedostępne, RED Bit próbuje następne. Źródła przed YouTube mogą je zastąpić, gdy znajdą lepszą wersję."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se uma fonte não tiver a faixa, o BitChord tenta a próxima. Fontes acima do YouTube podem substituí-lo quando encontram uma versão melhor."
+            "value": "Se uma fonte não tiver a faixa, o RED Bit tenta a próxima. Fontes acima do YouTube podem substituí-lo quando encontram uma versão melhor."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Если у источника нет трека или он недоступен, BitChord пробует следующий. Источники выше YouTube могут заменить его запись, если предоставляют более качественную версию."
+            "value": "Если у источника нет трека или он недоступен, RED Bit пробует следующий. Источники выше YouTube могут заменить его запись, если предоставляют более качественную версию."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "หากแหล่งข้อมูลหนึ่งไม่มีแทร็กหรือเชื่อมต่อไม่ได้ BitChord จะลองแหล่งถัดไป แหล่งข้อมูลที่อยู่เหนือ YouTube สามารถแทนที่การบันทึกของ YouTube ได้เมื่อให้เวอร์ชันที่ดีกว่า"
+            "value": "หากแหล่งข้อมูลหนึ่งไม่มีแทร็กหรือเชื่อมต่อไม่ได้ RED Bit จะลองแหล่งถัดไป แหล่งข้อมูลที่อยู่เหนือ YouTube สามารถแทนที่การบันทึกของ YouTube ได้เมื่อให้เวอร์ชันที่ดีกว่า"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bir kaynakta parça yoksa veya ulaşılamıyorsa BitChord bir sonrakini dener. YouTube üzerindeki kaynaklar daha iyi bir sürüm döndürdüklerinde onun kaydının yerini alabilir."
+            "value": "Bir kaynakta parça yoksa veya ulaşılamıyorsa RED Bit bir sonrakini dener. YouTube üzerindeki kaynaklar daha iyi bir sürüm döndürdüklerinde onun kaydının yerini alabilir."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nếu một nguồn không có bản nhạc hoặc không thể kết nối, BitChord sẽ thử nguồn tiếp theo. Các nguồn nằm trên YouTube có thể thay thế bản ghi âm của YouTube khi tìm được phiên bản tốt hơn."
+            "value": "Nếu một nguồn không có bản nhạc hoặc không thể kết nối, RED Bit sẽ thử nguồn tiếp theo. Các nguồn nằm trên YouTube có thể thay thế bản ghi âm của YouTube khi tìm được phiên bản tốt hơn."
           }
         },
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果某個來源沒有該曲目或無法訪問，BitChord 會嘗試下一個來源。排在 YouTube 之前的來源如果返回更好的版本，可以替換其錄音。"
+            "value": "如果某個來源沒有該曲目或無法訪問，RED Bit 會嘗試下一個來源。排在 YouTube 之前的來源如果返回更好的版本，可以替換其錄音。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果某个来源没有该曲目或无法访问，BitChord 会尝试下一个来源。排在 YouTube 之前的来源如果返回更好的版本，可以替换其录音。"
+            "value": "如果某个来源没有该曲目或无法访问，RED Bit 会尝试下一个来源。排在 YouTube 之前的来源如果返回更好的版本，可以替换其录音。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果某個來源沒有該曲目或無法訪問，BitChord 會嘗試下一個來源。排在 YouTube 之前的來源如果返回更好的版本，可以替換其錄音。"
+            "value": "如果某個來源沒有該曲目或無法訪問，RED Bit 會嘗試下一個來源。排在 YouTube 之前的來源如果返回更好的版本，可以替換其錄音。"
           }
         }
       }
@@ -4593,7 +4593,7 @@
     "Import Playlist File": {},
     "Import a CSV or TSV playlist export from Spotify or Apple Music, or drop an .m3u file in your music folder.": {},
     "Import a CSV or TSV playlist export from Spotify or Apple Music, save a playlist on YouTube Music, or drop an .m3u file in your music folder.": {},
-    "Imported to BitChord": {},
+    "Imported to RED Bit": {},
     "Importing a backup replaces the settings and listening history on this device. This cannot be undone.": {},
     "In progress": {},
     "Installed": {},
@@ -6079,7 +6079,7 @@
         }
       }
     },
-    "Listen with me on BitChord — party code %@": {},
+    "Listen with me on RED Bit — party code %@": {},
     "Listening": {
       "localizations": {
         "de": {
@@ -8150,48 +8150,48 @@
     },
     "Open Album": {},
     "Open Artist": {},
-    "Open BitChord": {
+    "Open RED Bit": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "BitChord öffnen"
+            "value": "RED Bit öffnen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir BitChord"
+            "value": "Abrir RED Bit"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ouvrir BitChord"
+            "value": "Ouvrir RED Bit"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "פתיחת BitChord"
+            "value": "פתיחת RED Bit"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "BitChord खोलें"
+            "value": "RED Bit खोलें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buka BitChord"
+            "value": "Buka RED Bit"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apri BitChord"
+            "value": "Apri RED Bit"
           }
         },
         "ja": {
@@ -8203,49 +8203,49 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir BitChord"
+            "value": "Abrir RED Bit"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Открыть BitChord"
+            "value": "Открыть RED Bit"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "เปิด BitChord"
+            "value": "เปิด RED Bit"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "BitChord'u Aç"
+            "value": "RED Bit'u Aç"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mở BitChord"
+            "value": "Mở RED Bit"
           }
         },
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "開啟 BitChord"
+            "value": "開啟 RED Bit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开 BitChord"
+            "value": "打开 RED Bit"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "開啟 BitChord"
+            "value": "開啟 RED Bit"
           }
         }
       }
@@ -8568,7 +8568,16 @@
         }
       }
     },
-    "Paste the sp_dc cookie from an open Spotify web session. BitChord uses it only to look up looping motion art. Leave blank to skip.": {},
+    "Paste the sp_dc cookie from an open Spotify web session. RED Bit uses it only to look up looping motion art. Leave blank to skip.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge das sp_dc-Cookie aus einer geöffneten Spotify-Websitzung ein. RED Bit nutzt es ausschließlich für animierte Cover. Leer lassen, um diese Funktion nicht zu verwenden."
+          }
+        }
+      }
+    },
     "Pause": {
       "localizations": {
         "es": {
@@ -8775,7 +8784,7 @@
       }
     },
     "Personalized recommendations and your library, on every device.": {},
-    "Pick a folder — BitChord reads its tags, artwork and plays it with gapless and crossfade.": {},
+    "Pick a folder — RED Bit reads its tags, artwork and plays it with gapless and crossfade.": {},
     "Pin": {
       "localizations": {
         "de": {
@@ -9439,7 +9448,7 @@
     "Plays this track": {},
     "Podcasts": {},
     "Podcasts you follow show up here.": {},
-    "Point BitChord at a WebDAV share in Sources and it will appear here.": {},
+    "Point RED Bit at a WebDAV share in Sources and it will appear here.": {},
     "Portuguese": {
       "localizations": {
         "de": {
@@ -10496,7 +10505,7 @@
     },
     "Save %lld": {},
     "Save Diagnostic Report": {},
-    "Save a track from Now Playing — BitChord tags it and keeps it here.": {},
+    "Save a track from Now Playing — RED Bit tags it and keeps it here.": {},
     "Save albums on YouTube Music — or scan a folder on this device.": {},
     "Save to Library": {},
     "Saved Artists": {},
@@ -14166,7 +14175,7 @@
       }
     },
     "Turn On": {},
-    "Turn off to give BitChord audio priority. Other apps may pause.": {},
+    "Turn off to give RED Bit audio priority. Other apps may pause.": {},
     "Turn on to keep other apps audible.": {},
     "USB Audio": {},
     "Unlike": {},
@@ -14879,13 +14888,13 @@
         }
       }
     },
-    "YouTube is requiring verification for this network. BBT-Bit cannot complete that check for you; try again later or use the official YouTube Music service.": {
+    "YouTube is requiring verification for this network. RED Bit cannot complete that check for you; try again later or use the official YouTube Music service.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "YouTube verlangt eine Bestätigung für dieses Netzwerk. BBT-Bit kann diese Bestätigung nicht für dich durchführen. Versuche es später erneut oder öffne YouTube Music."
+            "value": "YouTube verlangt eine Bestätigung für dieses Netzwerk. RED Bit kann diese Bestätigung nicht für dich durchführen. Versuche es später erneut oder öffne YouTube Music."
           }
         }
       }
@@ -16013,12 +16022,12 @@
         }
       }
     },
-    "Keep other apps audible alongside BitChord. This can prevent iOS Lock Screen, Control Center and headphone controls from controlling BitChord. Turn off to give BitChord audio priority. Applies immediately while playing, or on the next play.": {
+    "Keep other apps audible alongside RED Bit. This can prevent iOS Lock Screen, Control Center and headphone controls from controlling RED Bit. Turn off to give RED Bit audio priority. Applies immediately while playing, or on the next play.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lässt den Ton anderer Apps gleichzeitig mit BBT-Bit laufen. Dadurch funktionieren möglicherweise die Wiedergabesteuerungen auf dem Sperrbildschirm, im Kontrollzentrum oder an Kopfhörern nicht für BBT-Bit. Ausschalten gibt BBT-Bit Audiopriorität. Gilt sofort oder beim nächsten Start."
+            "value": "Lässt den Ton anderer Apps gleichzeitig mit RED Bit laufen. Dadurch funktionieren möglicherweise die Wiedergabesteuerungen auf dem Sperrbildschirm, im Kontrollzentrum oder an Kopfhörern nicht für RED Bit. Ausschalten gibt RED Bit Audiopriorität. Gilt sofort oder beim nächsten Start."
           }
         }
       }
@@ -16543,12 +16552,12 @@
         }
       }
     },
-    "Pauses playback when BBT-Bit is hidden or deactivated on Mac; closing a window uses its own setting": {
+    "Pauses playback when RED Bit is hidden or deactivated on Mac; closing a window uses its own setting": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pausiert die Wiedergabe, wenn BBT-Bit auf dem Mac ausgeblendet oder deaktiviert wird; für das Schließen eines Fensters gibt es eine eigene Option"
+            "value": "Pausiert die Wiedergabe, wenn RED Bit auf dem Mac ausgeblendet oder deaktiviert wird; für das Schließen eines Fensters gibt es eine eigene Option"
           }
         }
       }
@@ -16973,12 +16982,12 @@
         }
       }
     },
-    "BitChord spatial effect": {
+    "RED Bit spatial effect": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Räumlicher BitChord-Effekt"
+            "value": "Räumlicher RED-Bit-Effekt"
           }
         }
       }
@@ -17063,7 +17072,7 @@
         }
       }
     },
-    "This is the quality BitChord requests, not a guarantee of the returned format. Lossless includes Hi-Res when a source supplies it. Downloads have their own quality setting.": {
+    "This is the quality RED Bit requests, not a guarantee of the returned format. Lossless includes Hi-Res when a source supplies it. Downloads have their own quality setting.": {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -17453,22 +17462,22 @@
         }
       }
     },
-    "Apple’s Dolby renderer handles this track; BitChord’s PCM effects are bypassed.": {
+    "Apple’s Dolby renderer handles this track; RED Bit’s PCM effects are bypassed.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apples Dolby-Renderer übernimmt diesen Titel; die PCM-Effekte von BBT-Bit werden umgangen."
+            "value": "Apples Dolby-Renderer übernimmt diesen Titel; die PCM-Effekte von RED Bit werden umgangen."
           }
         }
       }
     },
-    "Exclusive bit-perfect output bypasses BitChord’s volume, effects and transitions.": {
+    "Exclusive bit-perfect output bypasses RED Bit’s volume, effects and transitions.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exklusive bitgenaue Ausgabe umgeht Lautstärkeregelung, Effekte und Übergänge von BBT-Bit."
+            "value": "Exklusive bitgenaue Ausgabe umgeht Lautstärkeregelung, Effekte und Übergänge von RED Bit."
           }
         }
       }
@@ -17719,16 +17728,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bis zu 4 Verarbeitungsthreads · höhere CPU-Last"
-          }
-        }
-      }
-    },
-    "Paste the sp_dc cookie from an open Spotify web session. BBT-Bit uses it only to look up looping motion art. Leave blank to skip.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Füge das sp_dc-Cookie aus einer geöffneten Spotify-Websitzung ein. BBT-Bit nutzt es ausschließlich für animierte Cover. Leer lassen, um diese Funktion nicht zu verwenden."
           }
         }
       }

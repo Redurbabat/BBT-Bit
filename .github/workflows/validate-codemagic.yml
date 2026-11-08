@@ -75,7 +75,7 @@ jobs:
           assert 'shasum -a 256' in cache_script
           p = Path('AppleApp/project.yml').read_text()
           assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
-          assert 'CFBundleDisplayName: BBT-Bit' in p
+          assert 'CFBundleDisplayName: RED Bit' in p
           assert re.search(r'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"', p)
           package = Path('scripts/package-ios-ipa.sh').read_text()
           assert 'BBT-Bit-$version-' in package

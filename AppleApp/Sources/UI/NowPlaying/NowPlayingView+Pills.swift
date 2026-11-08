@@ -186,10 +186,10 @@ extension NowPlayingView {
                 .accessibilityLabel("Mix with Other Apps")
                 .accessibilityValue(controller.mixWithOtherAudio ? "On" : "Off")
                 .accessibilityHint(controller.mixWithOtherAudio
-                    ? "Turn off to give BitChord audio priority. Other apps may pause."
+                    ? "Turn off to give RED Bit audio priority. Other apps may pause."
                     : "Turn on to keep other apps audible.")
                 .accessibilityAddTraits(controller.mixWithOtherAudio ? .isSelected : [])
-                .help(controller.mixWithOtherAudio ? "Mixing on" : "BitChord audio priority")
+                .help(controller.mixWithOtherAudio ? "Mixing on" : "RED Bit audio priority")
 
                 pillDivider
             }

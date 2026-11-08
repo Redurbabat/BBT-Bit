@@ -96,7 +96,8 @@ targets:
     info:
       path: BitChord-Info.plist
       properties:
-        CFBundleDisplayName: BBT-Bit
+        CFBundleDisplayName: RED Bit
+        CFBundleName: RED Bit
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         BitChordRevision: "$(BITCHORD_BUILD_REVISION)"
@@ -128,9 +129,9 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         UILaunchScreen: {}
-        NSMotionUsageDescription: BBT-Bit uses headphone motion to keep its spatial effect anchored when you turn your head.
-        NSPhotoLibraryAddUsageDescription: BBT-Bit saves lyric share cards and Liquid Motion design previews to Photos only when you choose to export them.
-        NSSpeechRecognitionUsageDescription: BBT-Bit uses on-device speech recognition to align fetched lyrics with the playing audio. Audio is not sent to a server for alignment.
+        NSMotionUsageDescription: RED Bit uses headphone motion to keep its spatial effect anchored when you turn your head.
+        NSPhotoLibraryAddUsageDescription: RED Bit saves lyric share cards and Liquid Motion design previews to Photos only when you choose to export them.
+        NSSpeechRecognitionUsageDescription: RED Bit uses on-device speech recognition to align fetched lyrics with the playing audio. Audio is not sent to a server for alignment.
     entitlements:
       path: BitChord.entitlements
       properties:
@@ -157,7 +158,7 @@ targets:
     info:
       path: BitChordWidget-Info.plist
       properties:
-        CFBundleDisplayName: BBT-Bit Widget
+        CFBundleDisplayName: RED Bit Widget
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         BitChordRevision: "$(BITCHORD_BUILD_REVISION)"

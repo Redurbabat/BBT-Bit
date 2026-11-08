@@ -13,7 +13,7 @@ Die vom Nutzer geteilte iPhone-Aufnahme und das anschließend bereitgestellte Re
 3. **Aufwärtsscrollen / Richtungsumkehr:** Die Leiste expandiert wieder und das Pill steht darüber. Die `DockScrollCoordinator`-Logik erhält schnelle Richtungswechsel.
 4. **Mini-Player → Vollplayer → zurück:** `matchedTransitionSource` und `navigationTransition(.zoom(...))` erhalten den zusammenhängenden Artwork-/Player-Übergang. Such-Tastatur, Safe Area, Reduce Motion und laufende Audiowiedergabe dürfen nicht beeinträchtigt werden.
 
-**Was schiefging:** Zuerst wurde die zuvor integrierte iPhone-Suche durch ein separates Feld ersetzt. Danach wurde zur Ruhigstellung der unteren Navigation `content.tabBarMinimizeBehavior(.never)` dauerhaft gesetzt. Das trennte die Suche optisch ab und beseitigte die vom Nutzer erwartete Scroll-Animation. Beide Änderungen wurden nach konkretem Nutzerfeedback auf diesem Feature-Branch **im Quellcode zurückgenommen**; nicht auf `main` gemergt. Siehe [Entscheidungen E-006/E-007](../ENTSCHEIDUNGEN.md) und [Probleme P-004/P-005](../PROBLEME.md).
+**Was schiefging:** Zuerst wurde die zuvor integrierte iPhone-Suche durch ein separates Feld ersetzt. Danach wurde zur Ruhigstellung der unteren Navigation `content.tabBarMinimizeBehavior(.never)` dauerhaft gesetzt. Das trennte die Suche optisch ab und beseitigte die vom Nutzer erwartete Scroll-Animation. Beide Änderungen wurden nach konkretem Nutzerfeedback auf diesem Feature-Branch **im Quellcode zurückgenommen**; nicht auf `main` gemergt. Siehe [Entscheidungen E-014/E-015](../ENTSCHEIDUNGEN.md) und [Probleme P-011/P-012](../PROBLEME.md).
 
 **Status:** Die Soll-Implementierung ist im Quellcode wieder angeschlossen, aber auf einem neuen iPhone-Build **NICHT GETESTET**. Ein Screenshot des alten installierten Builds beweist nicht, dass die Korrektur bereits auf dem Gerät ist. Keine CI-Neustarts bei ausgeschöpftem Build-Kontingent.
 
@@ -127,7 +127,7 @@ Die statische Quellprüfung kontrolliert diese Anbindung nun. Verifikation auf e
 
 ## Offizielle Apple-Skills als optionale Entwicklungsunterstützung
 
-Das Projekt unterstützt ab diesem Branch einen **lokalen Vollimport** aller von Xcode 27+ exportierten Apple-Agent-Skills ([Anleitung](APPLE_XCODE_SKILLS.md)). SwiftUI Specialist, SwiftUI-Neuerungen, adaptive UIKit-/App-Größen, Gerätetests, Testmodernisierung und Sicherheitsprüfungen können ergänzend helfen. Die Inhalte wurden hier **nicht aus Xcode exportiert oder installiert**. Sie ersetzen keine BBT-Bit-Vorgabe: E-006 native Suche und E-007 gemeinsamer Mini-Player/Tab-Bar-Scroll-Morph aus dem Nutzer-Referenzvideo haben Vorrang. UI-/Audiotests bleiben **NICHT GETESTET**.
+Das Projekt unterstützt ab diesem Branch einen **lokalen Vollimport** aller von Xcode 27+ exportierten Apple-Agent-Skills ([Anleitung](APPLE_XCODE_SKILLS.md)). SwiftUI Specialist, SwiftUI-Neuerungen, adaptive UIKit-/App-Größen, Gerätetests, Testmodernisierung und Sicherheitsprüfungen können ergänzend helfen. Die Inhalte wurden hier **nicht aus Xcode exportiert oder installiert**. Sie ersetzen keine BBT-Bit-Vorgabe: E-014 native Suche und E-015 gemeinsamer Mini-Player/Tab-Bar-Scroll-Morph aus dem Nutzer-Referenzvideo haben Vorrang. UI-/Audiotests bleiben **NICHT GETESTET**.
 
 ## Originale Apple Dynamic Island statt eigener Musik-Live-Activity (06.11.2026)
 

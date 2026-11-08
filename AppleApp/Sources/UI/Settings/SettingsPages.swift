@@ -88,7 +88,7 @@ struct SpotifyCanvasAuthView: View {
             } header: {
                 Text("Spotify Canvas Setup")
             } footer: {
-                Text("Paste the sp_dc cookie from an open Spotify web session. BBT-Bit uses it only to look up looping motion art. Leave blank to skip.")
+                Text("Paste the sp_dc cookie from an open Spotify web session. RED Bit uses it only to look up looping motion art. Leave blank to skip.")
             }
         }
         .formStyle(.grouped)

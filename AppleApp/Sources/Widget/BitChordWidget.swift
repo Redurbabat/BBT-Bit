@@ -24,7 +24,7 @@ struct MediaWidgetEntry: TimelineEntry {
     /// Upstream's last-played fallback: the widget is never blank after a
     /// first play, so an empty snapshot renders the placeholder, not nothing.
     static let empty = MediaWidgetEntry(
-        date: .now, title: "BBT-Bit", artist: "Nothing queued",
+        date: .now, title: "RED Bit", artist: "Nothing queued",
         playing: false, canNext: false, canPrevious: false,
         artwork: nil, hasSession: false
     )
@@ -120,7 +120,7 @@ struct MediaWidgetView: View {
             VStack(spacing: 6) {
                 Image(systemName: "music.note")
                     .foregroundStyle(.secondary)
-                Text("BBT-Bit")
+                Text("RED Bit")
                     .font(.callout.weight(.semibold))
             }
         }
@@ -163,7 +163,7 @@ struct BitChordMediaWidget: Widget {
         StaticConfiguration(kind: "BitChordMediaWidget", provider: MediaWidgetProvider()) { entry in
             MediaWidgetView(entry: entry)
         }
-        .configurationDisplayName("BitChord")
+        .configurationDisplayName("RED Bit")
         .description("Now-playing state, transport controls, and a tap back into the player.")
         // systemSmall ~= upstream square, systemMedium ~= upstream wide (spec §9).
         .supportedFamilies([.systemSmall, .systemMedium])
@@ -178,7 +178,7 @@ struct BitChordWidgetBundle: WidgetBundle {
 }
 
 struct WidgetTransportIntent: AppIntent {
-    static var title: LocalizedStringResource = "BitChord Transport"
+    static var title: LocalizedStringResource = "RED Bit Transport"
     static var isDiscoverable = false
 
     @Parameter(title: "Command")

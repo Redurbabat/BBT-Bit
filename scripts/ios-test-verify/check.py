@@ -40,7 +40,7 @@ class DevicePackageTest(unittest.TestCase):
     def make_ipa(self, directory, *, platform=2, encrypted=False, extra=None, changes=None, executable=True):
         path = Path(directory) / "test.ipa"
         info = {
-            "CFBundleIdentifier": "com.babat.bbtbit", "CFBundleDisplayName": "BBT-Bit",
+            "CFBundleIdentifier": "com.babat.bbtbit", "CFBundleDisplayName": "RED Bit",
             "CFBundleExecutable": "BitChord", "CFBundleSupportedPlatforms": ["iPhoneOS"],
             "CFBundleShortVersionString": "1.0.4", "CFBundleVersion": "13",
             "BBTTestDistribution": "SideStore", "BitChordRevision": SHA[:12],

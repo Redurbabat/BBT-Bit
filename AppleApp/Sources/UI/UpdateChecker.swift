@@ -161,11 +161,11 @@ struct ReleaseInstallationView: View {
                 Link("View older release", destination: release.releaseUrl)
             } else {
                 #if os(macOS)
-                Text("Use BitChord’s Mac updater to download, verify and replace the app. It uses the project’s signed update feed.")
+                Text("Use RED Bit’s Mac updater to download, verify and replace the app. It uses the project’s signed update feed.")
                 Button("Open Mac Updater") { MacUpdateManager.shared.checkNow() }.buttonStyle(.borderedProminent)
-                Text("For a first installation or manual recovery, download the DMG, open it and move BitChord into Applications, replacing the existing app.").font(.footnote).foregroundStyle(.secondary)
+                Text("For a first installation or manual recovery, download the DMG, open it and move RED Bit into Applications, replacing the existing app.").font(.footnote).foregroundStyle(.secondary)
                 #else
-                Text("Download the IPA, then sign and install it with the same signing app and identity used for your current BitChord. Keeping the same app identity preserves its local data.")
+                Text("Download the IPA, then sign and install it with the same signing app and identity used for your current RED Bit. Keeping the same app identity preserves its local data.")
                 #endif
                 if let download = release.download, let url = download.url {
                     Link(destination: url) { Text(download.name.lowercased().hasSuffix(".ipa") ? "Download iOS IPA" : "Download Mac DMG") }

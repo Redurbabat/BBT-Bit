@@ -271,7 +271,7 @@ struct LiquidMotionDesignPhotosView: View {
 
         let permission = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard permission == .authorized || permission == .limited else {
-            message = "Bitte erlaube in den iPhone-Einstellungen, dass BBT-Bit Fotos hinzufügen darf."
+            message = "Bitte erlaube in den iPhone-Einstellungen, dass RED Bit Fotos hinzufügen darf."
             return
         }
 

@@ -82,7 +82,7 @@ struct YtMusicLoginView: View {
             Image(systemName: "key.icloud")
                 .font(.system(size: 38, weight: .medium))
                 .foregroundStyle(.tint)
-            Text("Use \(offer.accountName.isEmpty ? offer.email : offer.accountName)’s BitChord session from \(offer.deviceName)?")
+            Text("Use \(offer.accountName.isEmpty ? offer.email : offer.accountName)’s RED Bit session from \(offer.deviceName)?")
                 .font(.headline)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -151,7 +151,7 @@ struct SignInCompletionStep: View {
                     VStack(spacing: 8) {
                         Text(flow.taking ? "Signing you in" : "Confirm your profile")
                             .font(.title2.weight(.semibold))
-                        Text("Connect your YouTube Music profile to BitChord.")
+                        Text("Connect your YouTube Music profile to RED Bit.")
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
@@ -187,7 +187,7 @@ struct SignInCompletionStep: View {
                     }
                     if flow.taking {
                         ProgressView("Verifying your profile…")
-                        Text("Finishing sign-in to BitChord.")
+                        Text("Finishing sign-in to RED Bit.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     } else if flow.profile != nil || flow.checkingPage || flow.loadingProfile {

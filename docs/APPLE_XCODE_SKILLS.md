@@ -57,7 +57,7 @@ Der Installer ergänzt **ausschließlich die lokale `.git/info/exclude`** um die
 ## Priorität und Projektgrenzen
 
 1. **BBT-Bit-AGENTS.md, Arbeitsbranch und Nutzerdatenregeln** sind verbindlich. Apple-Skills ergänzen technische Empfehlungen; sie überschreiben nicht die Projektarchitektur, den Nutzerauftrag oder die Sicherheitsregeln.
-2. **RED Morph (E-006/E-007):** native iPhone-Suche bleibt integriert; `tabViewBottomAccessory` plus `tabBarMinimizeBehavior(dockScroll.keepExpanded ? .never : .onScrollDown)` erhält das gemeinsame Schrumpfen/Aufklappen von Tab-Leiste und Mini-Player. `matchedTransitionSource` und `navigationTransition(.zoom(...))` erhalten den Vollplayer-Morph. Ein Apple-Skill darf nicht stillschweigend die feste `.never`-Regression wieder einführen.
+2. **RED Morph (E-014/E-015):** native iPhone-Suche bleibt integriert; `tabViewBottomAccessory` plus `tabBarMinimizeBehavior(dockScroll.keepExpanded ? .never : .onScrollDown)` erhält das gemeinsame Schrumpfen/Aufklappen von Tab-Leiste und Mini-Player. `matchedTransitionSource` und `navigationTransition(.zoom(...))` erhalten den Vollplayer-Morph. Ein Apple-Skill darf nicht stillschweigend die feste `.never`-Regression wieder einführen.
 3. **Audio zuerst:** Kotlin/Innertube, Rust-Engine und Streaming nur nach explizitem Auftrag ändern; keine DRM-Umgehung und kein simulierter Audioerfolg.
 4. **API-Verfügbarkeit:** iOS-/macOS-27-Neuerungen nur nach Prüfung von Deployment Target, `#available`, iOS 26 und realem Geräteverhalten übernehmen.
 5. **Prüfstatus unterscheiden:** lokaler Skill-Import ist kein Swift-Typecheck, kein Simulator-Build, keine signierte IPA und kein Beweis hörbarer Wiedergabe. Bei fehlendem Xcode/CI-Kontingent ausdrücklich **NICHT GETESTET**.

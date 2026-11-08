@@ -48,7 +48,7 @@ struct WebDavLibraryView: View {
             EmptyStateView(
                 icon: Image(.bchLibrary),
                 title: "No remote library yet",
-                subtitle: "Point BitChord at a WebDAV share in Sources and it will appear here.",
+                subtitle: "Point RED Bit at a WebDAV share in Sources and it will appear here.",
                 buttonTitle: nil,
                 action: nil
             )
