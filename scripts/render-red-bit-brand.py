@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rendert den eigenen Signalband-Marker ohne Laufzeitabhängigkeiten der App.
 
-Entwicklungswerkzeuge: resvg-py 0.5.0 (MIT), Pillow 13.0.0 (HPND).
+Entwicklungswerkzeuge: resvg-py 0.5.0 (MIT), Pillow 13.0.0 (MIT-CMU).
 Installation und Aufruf stehen in artwork/red-bit/README.md.
 """
 from io import BytesIO

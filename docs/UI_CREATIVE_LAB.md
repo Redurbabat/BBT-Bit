@@ -2,6 +2,8 @@
 
 Stand: 2026-11-08. Ausgangspunkt: PR #50 (`feature/bitchord-v1-9-1-port-20261106`).
 
+Integrationshinweis: Die nachfolgenden Angaben beschreiben den ursprünglichen Entwurfsbranch #54. Seine Änderungen und die gestapelten Tests #57/#58 werden inzwischen gemeinsam in [PR #59](https://github.com/Redurbabat/RED-Bit/pull/59) geprüft. Den aktuellen Befund und Prüfstand enthält [RED_BIT_INTEGRATION.md](RED_BIT_INTEGRATION.md); dieser ersetzt die ursprünglichen Statusangaben für den Integrationsbranch.
+
 ## Zweck und Grenzen
 
 Dieser Branch ist ein isolierter, **nicht freigegebener** Experimentierraum. Änderungen bleiben als Draft-PR gegen PR #50 sichtbar; keine direkten Commits nach `main`, kein automatisches Merge. Wiedergabe, Queue, Streaming, Rust/Kotlin, Datenmodelle, Nutzerbibliothek und die drei Automix-Modelle werden für reine UI-Ideen nicht verändert. Vor jeder Implementierung prüfen, ob die Funktion schon existiert.

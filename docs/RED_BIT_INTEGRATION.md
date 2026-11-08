@@ -12,6 +12,8 @@ Arbeitsbranch: `codex/red-bit-integration-motion-20261108`. Ausgangspunkt: `main
 
 Die drei Köpfe sind durch Merge-Commit `7baa81f` im Integrationsbranch enthalten. Git meldete keine Textkonflikte. Die früheren PRs #49, #50 und #51 waren schon über #56 in `main`; ihre Konfliktlösungen, neuen Künstler-/Lyrics-Funktionen, Downloadkorrektur und das SideStore-Testsystem bleiben erhalten. Fremde Branches werden nicht überschrieben.
 
+Die semantische Nachprüfung fand im Creative-Lab-PR denselben Automix-VoiceOver-Wert zweimal am selben Dock-Button. Eine Deklaration wurde entfernt; der gewünschte Zustandswert bleibt erhalten. Der Queue-Horizon-Hinweis aus #54 bleibt abhängig von tatsächlichem Fokus und Reduce Motion.
+
 ## Befunde und Änderungen
 
 - **Dock:** `beganDragging()` setzte `keepExpanded` bei jeder neuen Berührung auf `false`. Ein schon aufgeklapptes Dock konnte so vor der ersten bestätigten Bewegung erneut minimieren. Der Zustand bleibt jetzt bis zu einer wirklich erkannten Gegenrichtung erhalten. Die native Tab-Leiste, Suchrolle, Inline-Montage und Zoom-Quelle bleiben bestehen.
@@ -34,11 +36,13 @@ Die drei Köpfe sind durch Merge-Commit `7baa81f` im Integrationsbranch enthalte
 | `python scripts/release-verify/check.py` | BESTANDEN |
 | `python scripts/ios-test-verify/check.py` | 8 Fixtures BESTANDEN |
 | `python scripts/render-red-bit-brand.py` | BESTANDEN; große Form sowie kleine Marker auf hellem/dunklem Grund visuell geprüft; Legacy-Icon 1024 × 1024 RGB ohne Alpha |
-| Neue Swift-Verhaltenstests / vollständiger App-Build | Cloud-Prüfung ausstehend; unter Windows kein Apple-SDK |
+| Neue Swift-Verhaltenstests und Swift-Syntax | [PR-Regressionen](https://github.com/Redurbabat/RED-Bit/actions/runs/42490026284) BESTANDEN auf macOS; vollständiger App-Build separat ausstehend |
 | Simulator, neue Logo-/Island-Screenshots aus der App | NICHT GETESTET bis zum abgeschlossenen Cloud-Lauf |
 | Echtes iPhone, signierte IPA, Audio, App-Update | NICHT GETESTET |
 
 Die ersten Fixture-Aufrufe scheiterten an den Sandbox-Rechten des Windows-Temp-Verzeichnisses. Mit `TEMP`/`TMP` im ignorierten Workspace-Verzeichnis `build/test-tmp` liefen die Prüfungen erfolgreich; dafür wurden keine Produktdateien geändert.
+
+Die erste Codemagic-Quellprüfung erwartete noch den parameterlosen Island-Aufruf und `controller.duration > 0` direkt im View-Text. Diese überholten Textbedingungen wurden auf den gemessenen Ursprung und den endlichen, geklammerten Fortschritt aktualisiert. Die echten Swift-Verhaltenstests liefen zuvor bereits erfolgreich.
 
 Der vorangegangene [CI-Lauf von #58](https://github.com/Redurbabat/RED-Bit/actions/runs/42486459967) kompilierte Kotlin, Rust-Framework und Swift-App, scheiterte aber bei einem alten Automix-Testlabel und vor dem Suchfeld. Außerdem scheiterten `direct-drop` und Rust `a_planned_transition_overlaps_rather_than_waits_for_the_end` (313 bestanden, 1 fehlgeschlagen, 1 ignoriert). Dieser Lauf prüfte **nicht** die Integration auf dem neueren `main`, das die Automix-Test- und Downloadkorrekturen aus #56 enthält. Die Rust-Ursache ist damit nicht als behoben nachgewiesen. Keine grünen UI-/Audio-Erfolge aus diesem roten Lauf ableiten.
 

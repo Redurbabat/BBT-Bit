@@ -19,7 +19,7 @@ python -m pip install --target build/brand-tools resvg-py==0.5.0 Pillow==13.0.0
 python scripts/render-red-bit-brand.py
 ```
 
-Eigener Entwurf für dieses Projekt, keine fremden Marken- oder Bilddateien übernommen. Rendering: `resvg-py` (MIT), Pillow (HPND), ausschließlich lokale Entwicklungswerkzeuge. Das Skript kopiert die kanonische Geometrie in die bestehenden Asset-Pfade und lässt deren Namen unverändert. Das Vorschau-Board verwendet die lokale Systemschrift; die App bekommt keine neue Schriftabhängigkeit. Icon Composer und das neue Icon im echten iPhone-/Mac-Build: **NICHT GETESTET** bis zur Plattformabnahme.
+Eigener Entwurf für dieses Projekt, keine fremden Marken- oder Bilddateien übernommen. Rendering: [resvg-py](https://github.com/baseplate-admin/resvg-py) (MIT), [Pillow](https://github.com/python-pillow/Pillow) (MIT-CMU), ausschließlich lokale Entwicklungswerkzeuge. Lizenzen und Herkunft wurden in den installierten Wheel-Metadaten bzw. deren `licenses/LICENSE` geprüft. Das Skript kopiert die kanonische Geometrie in die bestehenden Asset-Pfade und lässt deren Namen unverändert. Das Vorschau-Board verwendet die lokale Systemschrift; die App bekommt keine neue Schriftabhängigkeit. Icon Composer und das neue Icon im echten iPhone-/Mac-Build: **NICHT GETESTET** bis zur Plattformabnahme.
 
 ## Historischer REC-Entwurf
 

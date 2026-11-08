@@ -17920,6 +17920,46 @@
           }
         }
       }
+    },
+    "Automix eingeschaltet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix eingeschaltet"
+          }
+        }
+      }
+    },
+    "Automix ausgeschaltet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automix ausgeschaltet"
+          }
+        }
+      }
+    },
+    "Doppeltippen, um den Titel abzuspielen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppeltippen, um den Titel abzuspielen"
+          }
+        }
+      }
+    },
+    "Doppeltippen, um diesen Titel im Karussell zu fokussieren": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppeltippen, um diesen Titel im Karussell zu fokussieren"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

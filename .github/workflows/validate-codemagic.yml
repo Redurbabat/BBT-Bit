@@ -138,7 +138,9 @@ jobs:
           assert 'case .idle' in bloom and 'case .spark' in bloom
           assert '.seconds(8)' in bloom and '.seconds(4)' in bloom
           assert 'LiquidLiveCaptureMarker(id: "island")' in bloom
-          assert 'LogoGlassBloomIsland()' in root
+          assert 'LogoGlassBloomIsland(maximumWidth:' in root
+          assert 'logoGlassBloom.presentationLogoFrame' in root
+          assert 'bloom.updateLogoFrame(frame)' in mark
           assert '.overlay(alignment: .topLeading)' in root
           assert 'logoGlassBloom.isVisible' in root
           assert '.onChange(of: canRevealLogoBloom)' in root
@@ -192,7 +194,8 @@ jobs:
           assert 'isArtworkMiniTintActive' not in miniPill
           assert 'content.glassEffect(.regular, in: Capsule())' in miniPill
           assert 'NowPlayingZoomSource()' in miniPill
-          assert 'controller.duration > 0' in miniPill
+          assert 'duration.isFinite && duration > 0 && position.isFinite' in miniPill
+          assert 'min(1, max(0, position / duration))' in miniPill
           assert 'NowPlayingZoomSource()' in miniPill
           assert 'CoverMorphFullBackdrop(entry: controller.current)' in fullLayout
           assert '.navigationTransition(.zoom(sourceID:' in zoomRoot
