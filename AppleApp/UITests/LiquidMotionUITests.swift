@@ -9,12 +9,14 @@ final class LiquidMotionUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    /// Issue #55: exercise the real search keyboard, not the offline preview.
-    /// This is a keyboard smoke test only; a visible playback pill still
-    /// requires a separate seeded/real playback state before asserting handoff.
+    /// Prüft die native Suche mit sichtbarer leerer Pill, Tastatur-Handoff
+    /// und anschließendem Öffnen des Vollplayers. Kein Audio-Nachweis.
     func testSearchKeyboardCanOpenAndDismissOnRegularAppLaunch() throws {
         let app = XCUIApplication()
-        app.launchArguments += ["-onboarding_done", "YES"]
+        // Beide vorhandenen Erststart-Fragen sind für diesen wiederkehrenden
+        // Nutzerweg schon beantwortet. Die echte App startet ohne Test-Preview.
+        app.launchArguments += ["-onboarding_done", "YES",
+                                "-automix_models_prompt_dismissed_v2", "YES"]
         app.launch()
 
         // The iOS 26 simulator exposes the localized Search tab as a Button
@@ -95,6 +97,9 @@ final class LiquidMotionUITests: XCTestCase {
                       "Mini-player missing after keyboard dismissal")
         XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
                        "Mini-player duplicated after keyboard dismissal")
+        pill.tap()
+        XCTAssertTrue(app.buttons["bbt.nowPlaying.play"].waitForExistence(timeout: 15),
+                      "Der Mini-Player öffnet den Vollplayer nach dem Tastaturwechsel nicht")
     }
 
     func testEveryDesignPreviewIsRenderedAndOpenableOnIPhone() throws {

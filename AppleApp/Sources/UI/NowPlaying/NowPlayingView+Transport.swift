@@ -182,6 +182,7 @@ extension NowPlayingView {
             .disabled(controller.current == nil && !controller.isBuffering)
             .help(controller.isPlaying ? "Pause" : "Play")
             .accessibilityLabel(controller.isBuffering ? "Buffering" : (controller.isPlaying ? "Pause" : "Play"))
+            .accessibilityIdentifier("bbt.nowPlaying.play")
 
             Button {
                 Haptics.play(.skipNext)

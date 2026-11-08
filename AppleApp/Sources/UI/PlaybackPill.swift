@@ -101,7 +101,7 @@ struct PlaybackPill: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("\(controller.current?.title ?? String(localized: "Not Playing")), \(controller.current?.artist ?? "")")
+            .accessibilityLabel("\(controller.current?.title ?? AppLanguage.localized("Not Playing")), \(controller.current?.artist ?? "")")
             .accessibilityHint("Opens Now Playing")
             .accessibilityIdentifier("bbt.playback.pill.open")
 
@@ -368,13 +368,13 @@ struct PlaybackPill: View {
 
     private var info: some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(controller.current?.title ?? String(localized: "Not Playing"))
+            Text(controller.current?.title ?? AppLanguage.localized("Not Playing"))
                 .font(.callout.weight(.semibold))
                 .foregroundStyle(controller.current == nil ? Color.secondary : Color.primary)
                 .lineLimit(1)
             // Inline there is room for the title alone, as in Music.
             if !inline {
-                Text(controller.current?.artist ?? String(localized: "Music you start appears here"))
+                Text(controller.current?.artist ?? AppLanguage.localized("Music you start appears here"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -638,16 +638,18 @@ struct PlaybackPill: View {
                 Haptics.play(controller.isPlaying ? .pause : .resume)
                 controller.togglePlayPause()
             } label: {
-                if controller.isBuffering {
-                    ProgressView().controlSize(.small).frame(width: 22, height: 22)
-                } else {
-                    Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
-                        .scaledFont(size: 20, weight: .semibold)
+                Group {
+                    if controller.isBuffering {
+                        ProgressView().controlSize(.small).frame(width: 22, height: 22)
+                    } else {
+                        Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
+                            .scaledFont(size: 20, weight: .semibold)
+                    }
                 }
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
             .disabled(controller.current == nil && !controller.isBuffering)
             .accessibilityLabel(controller.isPlaying ? "Pause" : "Play")
             .accessibilityIdentifier("bbt.playback.pill.play")
@@ -658,10 +660,10 @@ struct PlaybackPill: View {
             } label: {
                 Image(systemName: "forward.fill")
                     .scaledFont(size: 19, weight: .semibold)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
             .foregroundStyle(Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1))
             .disabled(!controller.canPlayNext || PartyStore.shared.state.controlsLocked)
             .accessibilityLabel("Next")

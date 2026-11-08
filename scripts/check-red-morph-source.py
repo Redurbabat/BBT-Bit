@@ -35,6 +35,9 @@ localization_keys = (
     "Automix transition planned",
     "Top result",
     "Add to Playlist",
+    "Not Playing",
+    "Music you start appears here",
+    "Opens Now Playing",
 )
 
 checks = {
