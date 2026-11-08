@@ -1,5 +1,7 @@
 # Testplan
 
+Die [RED-Bit-Integration vom 8. November](RED_BIT_INTEGRATION.md) ergänzt konkrete Prüfungen für langsame Scrollbewegung, Dock-Zustand über mehrere Berührungen, Logo-Ursprung und Tastatur-Pill. Swift-Verhaltenstest: `swiftc AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift scripts/test-dock-direction-tracker.swift -o /tmp/red-bit-scroll-test && /tmp/red-bit-scroll-test`. Dieser reine Foundation-Test ersetzt weder SwiftUI-Typecheck noch Geräteanimation oder Audio.
+
 ## Prüfmatrix
 
 | Bereich | Befehl oder Nachweis | Aussage |

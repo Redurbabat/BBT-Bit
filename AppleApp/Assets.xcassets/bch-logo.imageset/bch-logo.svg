@@ -1,6 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="26" height="31" viewBox="255 225 510 604" fill="#000000">
-  <rect x="275" y="245" width="110" height="564" rx="55"/>
-  <path fill-rule="evenodd" d="M330 245 H500 A183 183 0 0 1 500 611 H330 Z M385 355 H500 A73 73 0 0 1 500 501 H385 Z"/>
-  <rect x="-55" y="-55" width="377.3" height="110" rx="55" transform="translate(500 566) rotate(44.70)"/>
-  <circle cx="488" cy="428" r="40"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#000000">
+  <path d="M22 15H49C68 15 80 26 80 43C80 56 73 65 61 69L82 87H59L40 69H38V87H22V51H49C58 51 64 49 64 43C64 36 58 31 49 31H38V42H22Z"/>
 </svg>

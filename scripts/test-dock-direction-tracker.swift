@@ -24,6 +24,31 @@ struct DockDirectionTrackerSmokeTests {
                      "Upward motion can be the first movement")
         precondition(drag.sample(125) == .towardBottom,
                      "Reverse downward during SAME touch is recognized")
-        print("DockDirectionTracker: 8 gesture assertions PASSED")
+        // Kleine Schritte auf 120-Hz-Displays müssen sich zu einem Weg addieren.
+        drag.end()
+        drag.begin(at: 100)
+        var slowDirection: DockScrollDirection?
+        for step in 1...60 {
+            slowDirection = drag.sample(100 - CGFloat(step) * 0.25) ?? slowDirection
+        }
+        precondition(slowDirection == .towardTop,
+                     "Langsame Bewegung unter 0,75 pt pro Bild muss erkannt werden")
+
+        // Abwechselndes Mikrozittern darf den Gesamtweg nicht löschen.
+        drag.end()
+        drag.begin(at: 100)
+        for offset: CGFloat in [104, 103, 108, 107, 112, 111] {
+            precondition(drag.sample(offset) == nil, "Unterhalb der Hysterese bleibt das Dock ruhig")
+        }
+        precondition(drag.sample(114) == .towardBottom,
+                     "Ein kleiner Gegenimpuls darf den erkennbaren Scrollweg nicht zurücksetzen")
+        precondition(drag.sample(.nan) == nil, "Ungültige Layoutwerte ignorieren")
+        precondition(drag.sample(130) == nil, "Ein ungültiger Wert darf den Tracker nicht vergiften")
+        precondition(drag.sample(116) == .towardTop, "Umkehr nach einem Layoutfehler bleibt möglich")
+        drag.end()
+        drag.begin(at: .infinity)
+        precondition(drag.sample(100) == nil, "Erster gültiger Wert setzt den Startpunkt")
+        precondition(drag.sample(80) == .towardTop, "Nach ungültigem Start normal weiterarbeiten")
+        print("DockDirectionTracker: Scrollumkehr, langsame Schritte, Zittern und ungültige Werte BESTANDEN")
     }
 }

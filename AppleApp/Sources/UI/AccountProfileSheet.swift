@@ -621,6 +621,11 @@ struct TopBarLeadingMark: View {
             .accessibilityLabel("RED Bit: Glass Bloom öffnen")
             .accessibilityHint("Tippen für die Musikblase, halten oder nach unten ziehen für die Musiksteuerung. Beim Hochscrollen erscheint sie auch automatisch.")
             .accessibilityIdentifier("bbt.logoGlassBloom.trigger")
+            .onGeometryChange(for: CGRect.self) { proxy in
+                proxy.frame(in: .global)
+            } action: { frame in
+                bloom.updateLogoFrame(frame)
+            }
         } else {
             logoImage
         }
@@ -633,7 +638,7 @@ struct TopBarLeadingMark: View {
         Image(.bchLogo)
             .resizable()
             .scaledToFit()
-            .frame(width: 28, height: 18)
+            .frame(width: 24, height: 24)
             .accessibilityHidden(true)
     }
 }

@@ -60,11 +60,13 @@ checks = {
         ".safeAreaInset(edge: .bottom, spacing: 0)" in root
         and "PlaybackPill(inline: true)\n                            .frame(maxWidth: 440)" in root
         and "#if compiler(>=6.2.3)" in root
-        and "#else\n        if #available(iOS 26.1, *)" in root
         and "if #available(iOS 26.1, *)" in root
         and "content.tabViewBottomAccessory(isEnabled: !keyboardUp)" in root
         and "if !keyboardUp {\n                    PlaybackAccessory()" in root
-        and "content.tabViewBottomAccessory {\n                PlaybackAccessory()" in root
+        and "if !keyboardUp {\n                PlaybackAccessory()" in root
+        and "var usesSystemChrome = false" in pill
+        and "usesSystemChrome: usesSystemChrome" in pill
+        and "horizontalSizeClass == .compact, usesSystemChrome" in pill
     ),
     "Native Tab-Leiste und Mini-Player minimieren beim Scrollen": (
         "private struct PlaybackAccessory: View" in root
@@ -75,7 +77,7 @@ checks = {
         and ".modifier(DockScrollDirectionObserver())" in home
         and ".modifier(DockScrollDirectionObserver())" in explore
         and "keepExpanded = newDirection == .towardTop" in dock
-        and "inline: placement == .inline" in root
+        and "inline: placement == .inline, usesSystemChrome: true" in root
         and ".modifier(NowPlayingZoomSource())" in pill
         and "matchedTransitionSource(id: NowPlayingZoom.sourceID" in pill
         and ".navigationTransition(.zoom(sourceID: NowPlayingZoom.sourceID" in root

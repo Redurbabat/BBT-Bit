@@ -57,6 +57,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile and test network error handling
         run: bash scripts/check-network-errors.sh
+      - name: Scrollrichtung bei langsamen Gesten und Umkehr prüfen
+        run: |
+          swiftc AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift \
+            scripts/test-dock-direction-tracker.swift -o "$RUNNER_TEMP/red-bit-scroll-test"
+          "$RUNNER_TEMP/red-bit-scroll-test"
+          for file in AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift \
+                      AppleApp/Sources/UI/LiquidMotion/DockScrollDirection.swift \
+                      AppleApp/Sources/UI/AccountProfileSheet.swift \
+                      AppleApp/Sources/UI/RootView.swift \
+                      AppleApp/Sources/UI/PlaybackPill.swift \
+                      AppleApp/UITests/LiquidMotionUITests.swift; do
+            swiftc -frontend -parse "$file"
+          done
       - name: Parse App-wide Testzentrale and model loader Swift syntax
         run: |
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixLiveTestView.swift

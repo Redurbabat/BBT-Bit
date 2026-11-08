@@ -42,7 +42,6 @@ struct RootView: View {
     @Namespace private var nowPlayingZoom
     @State private var logoGlassBloom = LogoGlassBloomCoordinator.shared
     @State private var dockScroll = DockScrollCoordinator.shared
-    @Environment(\.accessibilityReduceMotion) private var reduceLogoMotion
     /// Regular width is the iPad layout — on any device. A Max phone turned
     /// sideways is a regular-width window too, and it has the room.
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -110,16 +109,19 @@ struct RootView: View {
                 if logoGlassBloom.isVisible
                     && controller.current != nil
                     && canRevealLogoBloom {
-                    LogoGlassBloomIsland()
-                        .padding(.leading, 45)
-                        .padding(.top, 8)
-                        .transition(reduceLogoMotion ? .opacity :
-                            .asymmetric(
-                                insertion: .scale(scale: 0.36, anchor: .topLeading).combined(with: .opacity),
-                                removal: .scale(scale: 0.34, anchor: .topLeading).combined(with: .opacity)
-                            )
-                        )
-                        .zIndex(10)
+                    GeometryReader { proxy in
+                        let container = proxy.frame(in: .global)
+                        let source = logoGlassBloom.presentationLogoFrame
+                        let leading = min(max(16, (source?.minX ?? container.minX + 16) - container.minX),
+                                          max(16, proxy.size.width - 62))
+                        let top = (source?.midY ?? container.minY + 31) - container.minY - 23
+                        LogoGlassBloomIsland(maximumWidth: max(46, proxy.size.width - leading - 16))
+                            .offset(x: leading, y: top)
+                    }
+                    // Die Fläche selbst morpht; keine zweite Skalierung um
+                    // einen geratenen Bildschirmpunkt darüberlegen.
+                    .transition(.opacity)
+                    .zIndex(10)
                 }
             }
             .onChange(of: controller.current?.id) { _, trackID in
@@ -147,12 +149,8 @@ struct RootView: View {
             // an existing scroll gesture, without a separate tap on the logo.
             // Never invent a track or overlay a modal view.
             .onChange(of: dockScroll.directionRevision) { _, _ in
-                if dockScroll.direction == .towardTop {
-                    guard canRevealLogoBloom, !logoGlassBloom.isVisible else { return }
-                    logoGlassBloom.playbackStartedOrTrackChanged()
-                } else if logoGlassBloom.phase != .expanded {
-                    logoGlassBloom.dismiss()
-                }
+                guard canRevealLogoBloom else { return }
+                logoGlassBloom.scrollChanged(dockScroll.direction)
             }
     }
 
@@ -1223,7 +1221,7 @@ private struct PlaybackAccessory: View {
     @Environment(\.tabViewBottomAccessoryPlacement) private var placement
 
     var body: some View {
-        PlaybackPill(inline: placement == .inline)
+        PlaybackPill(inline: placement == .inline, usesSystemChrome: true)
     }
 }
 

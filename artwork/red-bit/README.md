@@ -1,5 +1,28 @@
 # RED Bit – Logo
 
+## Neuer Signalband-Entwurf vom 8. November 2026
+
+Der aktuelle Integrationsbranch verwendet ein eigenes geöffnetes R als Signalband. Der seitliche Einschnitt verbindet die Wortmarke mit einem unterbrochenen digitalen Signal; die breite, ruhige Form bleibt als Toolbar-Marker lesbar. Warmes Rot (`#FF5A42`, `#D62236`, `#7C1028`) und gebrochenes Weiß (`#FFF9F0`) prägen das App-Icon. Der Template-Marker folgt der Systemfarbe. Der frühere REC-Entwurf bleibt unten als historische Quelle erhalten.
+
+| Aktuelle Datei | Zweck |
+| --- | --- |
+| [signal-mark.svg](signal-mark.svg) | Kanonische eigene Pfadgeometrie, 100 × 100 |
+| [signal-glyph.svg](signal-glyph.svg) | Ebene des bestehenden Icon-Composer-Pakets |
+| [signal-icon.svg](signal-icon.svg) | Opaques Icon mit Rotverlauf |
+| [signal-icon-1024.png](signal-icon-1024.png) | 1024 × 1024 RGB ohne Alpha; identisch zum Legacy-App-Icon |
+| [signal-brand-preview.png](signal-brand-preview.png) | Visuelle Prüfung von großem Icon und kleinen hellen/dunklen Markern |
+
+Reproduzierbar erzeugen:
+
+```powershell
+python -m pip install --target build/brand-tools resvg-py==0.5.0 Pillow==13.0.0
+python scripts/render-red-bit-brand.py
+```
+
+Eigener Entwurf für dieses Projekt, keine fremden Marken- oder Bilddateien übernommen. Rendering: `resvg-py` (MIT), Pillow (HPND), ausschließlich lokale Entwicklungswerkzeuge. Das Skript kopiert die kanonische Geometrie in die bestehenden Asset-Pfade und lässt deren Namen unverändert. Das Vorschau-Board verwendet die lokale Systemschrift; die App bekommt keine neue Schriftabhängigkeit. Icon Composer und das neue Icon im echten iPhone-/Mac-Build: **NICHT GETESTET** bis zur Plattformabnahme.
+
+## Historischer REC-Entwurf
+
 Ein fettes **R** mit leuchtendem **REC-Punkt** im Bogen. Der Punkt steht für „RED“, für die Aufnahmetaste und für die Spindel einer Schallplatte. Der Verlauf von hellem Rot zu fast schwarzem Rot passt zum RED-Morph-Look der App (schwarzer Grund, rote Akzente).
 
 | Datei | Zweck |

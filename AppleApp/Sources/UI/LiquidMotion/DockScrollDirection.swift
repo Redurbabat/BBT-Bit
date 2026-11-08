@@ -12,12 +12,6 @@ final class DockScrollCoordinator {
 
     private init() {}
 
-    /// Re-arm Apple's normal minimization at the beginning of a new drag.
-    /// The previous upward reversal used .never to restore its native bar.
-    func beganDragging() {
-        keepExpanded = false
-    }
-
     func moved(_ newDirection: DockScrollDirection) {
         direction = newDirection
         directionRevision &+= 1
@@ -45,7 +39,8 @@ struct DockScrollDirectionObserver: ViewModifier {
                         let highest = max(0, g.contentSize.height + g.contentInsets.top +
                                              g.contentInsets.bottom - g.containerSize.height)
                         tracker.begin(at: min(max(0, value), highest))
-                        coordinator.beganDragging()
+                        // Den sichtbaren Dock-Zustand bis zur bestätigten
+                        // Bewegungsrichtung bewahren; Touch-down ist kein Scroll-down.
                     } else if tracker.isInteracting {
                         tracker.end()
                     }

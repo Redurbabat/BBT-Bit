@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-08 · RED-Bit-PRs im eigenen Branch integriert, Motion und Logo überarbeitet
+
+Die offenen PRs #54, #57 und #58 sind auf dem aktuellen `main` im eigenen Integrationsbranch zusammengeführt. Korrigiert sind die vorzeitige Dock-Minimierung bei neuer Berührung, verlorene langsame Scrollbewegungen sowie die fehlende eigene Glasfläche der Tastatur-Pill. Die obere Insel nutzt den gemessenen Logo-Ursprung und einen direkten kompakten Scroll-Einstieg. Ein neuer eigener Vektor-Marker ist in App-Icon und In-App-Logo eingebunden. Lokale Struktur-, Release-, SideStore-, Übersetzungs- und Quellprüfungen bestehen. [Analyse, Regressionen, offene Cloud- und Geräteprüfungen](docs/RED_BIT_INTEGRATION.md). **Kein Merge nach main.**
+
 ## 2026-11-07 · Cloud-Bau und SideStore-Gerätetest vorbereitet
 
 Der neue Workflow verwendet die bestehenden nativen Bauskripte und eine ausschließlich generierte SideStore-Konfiguration. Bundle-ID, App-Quellen und lokale Datenformate bleiben bestehen; die kostenlose Testvariante enthält keine Widget-Erweiterung oder iCloud-/App-Group-Freigaben. Acht ausgeführte Fixture-Tests und Actionlint bestehen. Der aktuelle GitHub-Lauf meldet eine Actions-Budgetsperre. **Echte IPA-Erzeugung, Signierung, Installation, Update und Audio sind NICHT GETESTET.** Redion wurde ausschließlich gelesen und enthält bereits einen Capacitor-iOS-Wrapper. [Anleitung, offene Voraussetzungen und Prüfstand](docs/IPHONE_TESTSYSTEM.md)

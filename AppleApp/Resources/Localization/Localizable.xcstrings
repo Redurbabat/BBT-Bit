@@ -8262,7 +8262,16 @@
     },
     "Open system output switcher": {},
     "Open the release": {},
-    "Opens Now Playing": {},
+    "Opens Now Playing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet die aktuelle Wiedergabe"
+          }
+        }
+      }
+    },
     "Opens the lyrics": {},
     "Output": {},
     "Output Precision": {
@@ -17848,6 +17857,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deine meistgehörten Songs, Künstler, Alben und Genres"
+          }
+        }
+      }
+    },
+    "Not Playing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Wiedergabe"
+          }
+        }
+      }
+    },
+    "Music you start appears here": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier erscheint deine Musik"
+          }
+        }
+      }
+    },
+    "Music Island erweitern": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Music Island erweitern"
+          }
+        }
+      }
+    },
+    "Glass Bloom schließen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glass Bloom schließen"
+          }
+        }
+      }
+    },
+    "Glass Bloom einklappen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glass Bloom einklappen"
+          }
+        }
+      }
+    },
+    "RED Bit: Glass Bloom öffnen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RED Bit: Glass Bloom öffnen"
           }
         }
       }

@@ -29,11 +29,19 @@ final class LiquidMotionUITests: XCTestCase {
         }
         XCTAssertTrue(searchTab.exists,
                       "Search tab unavailable on regular app launch. Accessibility tree: \(app.debugDescription)")
+        let searchReady = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: searchTab)
+        wait(for: [searchReady], timeout: 15)
         searchTab.tap()
 
         let searchField = app.searchFields.firstMatch
-        XCTAssertTrue(searchField.waitForExistence(timeout: 15),
-                      "Native iPhone search field did not appear")
+        if !searchField.waitForExistence(timeout: 15) {
+            let missing = XCTAttachment(screenshot: app.screenshot())
+            missing.name = "RED-Bit-Suchfeld-fehlt"
+            missing.lifetime = .keepAlways
+            add(missing)
+        }
+        XCTAssertTrue(searchField.exists,
+                      "Natives iPhone-Suchfeld fehlt. Hierarchie: \(app.debugDescription)")
         let pillID = "bbt.playback.pill.open"
         let pill = app.buttons[pillID]
         XCTAssertTrue(pill.waitForExistence(timeout: 10),
@@ -57,6 +65,14 @@ final class LiquidMotionUITests: XCTestCase {
         XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
                        "Native bottom accessory and keyboard inset duplicated the mini-player")
         XCTAssertTrue(pill.isHittable, "Mini-player is not reachable above the keyboard")
+        XCTAssertGreaterThanOrEqual(pill.frame.height, 44,
+                                    "Öffnen-Trefffläche des Mini-Players ist zu klein")
+        for identifier in ["bbt.playback.pill.play", "bbt.playback.pill.next"] {
+            let control = app.buttons[identifier]
+            XCTAssertTrue(control.exists, "Transport-Bedienelement fehlt: \(identifier)")
+            XCTAssertGreaterThanOrEqual(control.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(control.frame.height, 44)
+        }
         XCTAssertLessThanOrEqual(pill.frame.maxY, keyboard.frame.minY + 4,
                                  "Mini-player overlaps the native keyboard")
 
@@ -73,8 +89,8 @@ final class LiquidMotionUITests: XCTestCase {
         }
         XCTAssertNotNil(searchKey, "Native search keyboard has no recognized submit key")
         searchKey?.tap()
-        XCTAssertFalse(keyboard.waitForExistence(timeout: 5),
-                       "Search keyboard stayed open after submitting")
+        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: keyboard)
+        wait(for: [dismissed], timeout: 10)
         XCTAssertTrue(pill.waitForExistence(timeout: 10),
                       "Mini-player missing after keyboard dismissal")
         XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
