@@ -45,10 +45,12 @@ final class LiquidMotionUITests: XCTestCase {
             // instead of treating every static illustration as interactive.
             switch index {
             case 1:
-                let toggle = app.buttons["Automix transition"]
+                let toggle = app.buttons["Automix transition running"]
                 XCTAssertTrue(toggle.exists, "Automix preview control is missing")
                 toggle.tap()
-                XCTAssertTrue(app.staticTexts["Transition in progress"].exists)
+                XCTAssertTrue(app.staticTexts["Transition running"].waitForExistence(timeout: 8),
+                              "Automix transition details did not open")
+                app.buttons["Done"].tap()
             case 2:
                 let flip = app.buttons["Translated lyric"]
                 XCTAssertTrue(flip.exists, "Lyrics switch is missing")

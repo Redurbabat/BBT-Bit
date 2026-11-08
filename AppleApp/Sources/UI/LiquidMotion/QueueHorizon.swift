@@ -134,7 +134,11 @@ struct QueueHorizon: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(entry.title), \(entry.artist)")
-        .accessibilityHint("Titel auswählen oder abspielen")
+        .accessibilityHint(
+            reduceMotion || focusedIndex == index
+                ? "Doppeltippen, um den Titel abzuspielen"
+                : "Doppeltippen, um diesen Titel im Karussell zu fokussieren"
+        )
     }
 
     private func focus(_ index: Int) {
