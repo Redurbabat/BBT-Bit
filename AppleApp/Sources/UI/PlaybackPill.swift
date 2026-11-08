@@ -89,8 +89,8 @@ struct PlaybackPill: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("\(controller.current?.title ?? "Not Playing"), \(controller.current?.artist ?? "")")
-            .accessibilityHint("Opens Now Playing")
+            .accessibilityLabel("\(controller.current?.title ?? "Keine Wiedergabe"), \(controller.current?.artist ?? "")")
+            .accessibilityHint("Öffnet die aktuelle Wiedergabe")
 
             if isRegularWidth {
                 padTrailingControls
@@ -359,13 +359,13 @@ struct PlaybackPill: View {
 
     private var info: some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(controller.current?.title ?? "Not Playing")
+            Text(controller.current?.title ?? "Keine Wiedergabe")
                 .font(.callout.weight(.semibold))
                 .foregroundStyle(controller.current == nil ? Color.secondary : Color.primary)
                 .lineLimit(1)
             // Inline there is room for the title alone, as in Music.
             if !inline {
-                Text(controller.current?.artist ?? "Music you start appears here")
+                Text(controller.current?.artist ?? "Hier erscheint deine Musik")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
