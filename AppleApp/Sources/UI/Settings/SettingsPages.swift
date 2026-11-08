@@ -20,9 +20,9 @@ struct QualityPickerPage: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(option.title)
+                            Text(LocalizedStringKey(option.title))
                                 .foregroundStyle(.primary)
-                            Text(option.detail)
+                            Text(LocalizedStringKey(option.detail))
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -36,7 +36,7 @@ struct QualityPickerPage: View {
                 }
             }
         }
-        .navigationTitle(title)
+        .navigationTitle(LocalizedStringKey(title))
     }
 }
 
@@ -57,9 +57,9 @@ struct AutomixPerformancePage: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(mode.1)
+                            Text(LocalizedStringKey(mode.1))
                                 .foregroundStyle(.primary)
-                            Text(mode.2)
+                            Text(LocalizedStringKey(mode.2))
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -88,7 +88,7 @@ struct SpotifyCanvasAuthView: View {
             } header: {
                 Text("Spotify Canvas Setup")
             } footer: {
-                Text("Paste the sp_dc cookie from an open Spotify web session. BBT-Bit uses it only to look up looping motion art. Leave blank to skip.")
+                Text("Paste the sp_dc cookie from an open Spotify web session. RED Bit uses it only to look up looping motion art. Leave blank to skip.")
             }
         }
         .formStyle(.grouped)

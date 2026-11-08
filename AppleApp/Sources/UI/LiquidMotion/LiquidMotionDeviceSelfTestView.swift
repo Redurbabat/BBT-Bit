@@ -20,7 +20,7 @@ struct LiquidMotionDeviceSelfTestView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("15 Beispiel-Vorschauen prüfen")
                         .font(.headline)
-                    Text("BBT-Bit rendert alle 15 Design-Vorschauen auf deinem iPhone und prüft, ob jeweils ein gültiges PNG entsteht. Es werden keine Musikdateien, Konten oder Fotos gelesen.")
+                    Text("RED Bit rendert alle 15 Design-Vorschauen auf deinem iPhone und prüft, ob jeweils ein gültiges PNG entsteht. Es werden keine Musikdateien, Konten oder Fotos gelesen.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 

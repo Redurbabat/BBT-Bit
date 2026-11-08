@@ -290,16 +290,16 @@ object InnertubeParser {
      * Shelves off a browse page (Home, Explore, charts, new releases all
      * arrive through `browse`). Upstream's `parseHome` verbatim.
      */
-    fun parseHome(response: JsonObject): List<HomeShelf> {
+    fun parseHome(response: JsonObject, includeVideos: Boolean = false): List<HomeShelf> {
         val sections = homeSectionContents(response)
         val fromColumn = sections.mapNotNull { section ->
-            section.o("musicCarouselShelfRenderer")?.let(::carouselShelf)
-                ?: section.o("musicShelfRenderer")?.let(::plainShelf)
+            section.o("musicCarouselShelfRenderer")?.let { carouselShelf(it, includeVideos) }
+                ?: section.o("musicShelfRenderer")?.let { plainShelf(it, includeVideos) }
         }
         if (fromColumn.isNotEmpty()) return fromColumn
         // Signed-in WEB_REMIX often serves twoColumnBrowseResultsRenderer;
         // walk the tree the same way continuations do.
-        return parseHomeContinuation(response)
+        return parseHomeContinuation(response, includeVideos)
     }
 
     private fun homeSectionContents(response: JsonObject): List<JsonElement> {
@@ -323,15 +323,15 @@ object InnertubeParser {
      * More Home shelves off a continuation (or a two-column first page).
      * Walks carousel/plain shelves wherever they land.
      */
-    fun parseHomeContinuation(root: JsonElement): List<HomeShelf> {
+    fun parseHomeContinuation(root: JsonElement, includeVideos: Boolean = false): List<HomeShelf> {
         val out = mutableListOf<HomeShelf>()
         fun walk(node: JsonElement) {
             when (node) {
                 is JsonObject -> {
                     (node["musicCarouselShelfRenderer"] as? JsonObject)
-                        ?.let(::carouselShelf)?.let(out::add)
+                        ?.let { carouselShelf(it, includeVideos) }?.let(out::add)
                     (node["musicShelfRenderer"] as? JsonObject)
-                        ?.let(::plainShelf)?.let(out::add)
+                        ?.let { plainShelf(it, includeVideos) }?.let(out::add)
                     node.values.forEach(::walk)
                 }
                 is JsonArray -> node.forEach(::walk)
@@ -416,36 +416,35 @@ object InnertubeParser {
         return collectRenderers(root, "nextContinuationData").firstOrNull().s("continuation")
     }
 
-    private fun carouselShelf(carousel: JsonObject): HomeShelf? {
+    private fun carouselShelf(carousel: JsonObject, includeVideos: Boolean): HomeShelf? {
         val header = carousel.o("header").o("musicCarouselShelfBasicHeaderRenderer")
         val title = header.o("title").runs()
         val strapline = header.o("strapline").runs()
-        // Whole shelves like "Video charts" carry nothing but video
-        // compilations — each card would fail its own video check on the
-        // way to a dead-end page, so the shelf is dropped outright.
-        if (VIDEO_WORD.containsMatchIn(title)) return null
-        val items = carousel.a("contents").orEmpty().mapNotNull { item ->
-            parseTwoRowItem(item.o("musicTwoRowItemRenderer"))
+        // Nur Home zeigt die Video-Karten; Explore behält seine alten Filter.
+        if (!includeVideos && VIDEO_WORD.containsMatchIn(title)) return null
+        val parsed = carousel.a("contents").orEmpty().mapNotNull { item ->
+            parseTwoRowItem(item.o("musicTwoRowItemRenderer"), includeVideos)
                 ?: parseResponsiveListItem(item.o("musicResponsiveListItemRenderer"))
-                    ?.takeUnless { it.isVideo }
+                    ?.takeIf { includeVideos || !it.isVideo }
                     ?.let { song ->
-                        ShelfItem(song.title, song.artist, song.thumbnailUrl, song.videoId, null)
+                        ShelfItem(song.title, song.artist, song.thumbnailUrl, song.videoId, null, song.isVideo)
                     }
-                // A chart row with nothing to play — "Top artists" lists the
-                // artist alone, no track — falls through parseResponsiveListItem
-                // (it demands a videoId) and would drop the whole shelf.
                 ?: parseArtistRow(item.o("musicResponsiveListItemRenderer"))
         }
+        // Video-Shelves dürfen nur abspielbare Einträge, keine Sammlungen enthalten.
+        val items = if (includeVideos && VIDEO_WORD.containsMatchIn(title)) {
+            parsed.filter { it.videoId != null }
+        } else parsed
         return if (items.isEmpty()) null else HomeShelf(title.ifBlank { "For you" }, items, strapline)
     }
 
-    private fun plainShelf(shelf: JsonObject): HomeShelf? {
+    private fun plainShelf(shelf: JsonObject, includeVideos: Boolean): HomeShelf? {
         val title = shelf.o("title").runs()
-        if (VIDEO_WORD.containsMatchIn(title)) return null
+        if (!includeVideos && VIDEO_WORD.containsMatchIn(title)) return null
         val items = shelf.a("contents").orEmpty().mapNotNull {
             parseResponsiveListItem(it.o("musicResponsiveListItemRenderer"))
-        }.filterNot { it.isVideo }
-            .map { ShelfItem(it.title, it.artist, it.thumbnailUrl, it.videoId, null) }
+        }.filter { includeVideos || !it.isVideo }
+            .map { ShelfItem(it.title, it.artist, it.thumbnailUrl, it.videoId, null, it.isVideo) }
         return if (items.isEmpty()) null else HomeShelf(title.ifBlank { "For you" }, items)
     }
 
@@ -504,7 +503,7 @@ object InnertubeParser {
      * (videoId). Upstream's `parseTwoRowItem` verbatim, including the MPED
      * non-music-audio unwrap and the video-compilation dead-end drops.
      */
-    private fun parseTwoRowItem(renderer: JsonObject?): ShelfItem? {
+    private fun parseTwoRowItem(renderer: JsonObject?, includeVideos: Boolean = false): ShelfItem? {
         if (renderer == null) return null
         val title = renderer.o("title").runs()
         if (title.isBlank()) return null
@@ -520,9 +519,10 @@ object InnertubeParser {
         val thumbnails = renderer.o("thumbnailRenderer").o("musicThumbnailRenderer")
             .o("thumbnail").a("thumbnails")
         val subtitle = renderer.o("subtitle").runs()
-        // A card with no browse target is a playable track; widescreen art
-        // on one means a music-video upload rather than the catalogue track.
-        if (resolvedBrowseId == null && videoId != null && thumbnails.isNotSquare()) return null
+        // Ein Widescreen-Cover oder 16:9-Marker kennzeichnet einen Video-Upload.
+        val isVideo = resolvedBrowseId == null && videoId != null &&
+            (thumbnails.isNotSquare() || renderer.s("aspectRatio")?.contains("16_9") == true)
+        if (!includeVideos && isVideo) return null
         // An album/playlist billed as a video chart/compilation is a
         // dead-end. A plain track card is exempt: a song can legitimately
         // be titled "Video Games" without being a music-video upload.
@@ -537,6 +537,7 @@ object InnertubeParser {
             thumbnailUrl = thumbnails.best(),
             videoId = videoId,
             browseId = resolvedBrowseId,
+            isVideo = isVideo,
         )
     }
 
@@ -773,34 +774,63 @@ object InnertubeParser {
 
     // ---- Watch queue (AutoPlay radio) ---------------------------------------
 
-    /** Tracks of a watch queue (`next` response) — the AutoPlay radio mix. */
-    fun parseWatchQueue(root: JsonElement): List<Song> {
+    /**
+     * Radio-Titel des Next-Endpunkts. Eine Audio-/Video-Paarung besetzt
+     * genau eine Queue-Position, entsprechend BitChord v1.9.1.
+     */
+    fun parseWatchQueue(
+        root: JsonElement, preferAudio: Boolean = false, preferVideo: Boolean = false
+    ): List<Song> {
         val out = LinkedHashMap<String, Song>()
-        collectRenderers(root, "playlistPanelVideoRenderer").forEach { renderer ->
-            val videoId = renderer.s("videoId") ?: return@forEach
-            val title = renderer.o("title").runs()
-            if (title.isBlank()) return@forEach
-            // The byline packs artist, views and likes into one run list;
-            // only the leading runs before the first bullet are the credit.
-            val bylineRuns = renderer.o("longBylineText").a("runs").orEmpty()
-            val byline = bylineRuns.map { it.s("text").orEmpty() }
-            val artist = byline.takeWhile { !it.contains("•") }.joinToString("").trim()
-            val credits = creditsOf(bylineRuns)
-            out[videoId] = Song(
-                videoId = videoId,
-                title = title,
-                artist = artist.ifBlank { "Unknown artist" },
-                thumbnailUrl = renderer.o("thumbnail").a("thumbnails").best(),
-                durationText = renderer.o("lengthText").runs().takeIf { it.isNotBlank() },
-                artistId = credits.artistId,
-                albumId = credits.albumId,
-                albumName = credits.albumName,
-                // A catalogue track is credited "Artist • Album • Year"; the
-                // matching music video is "Artist • 417M views • 2.4M likes".
-                isVideo = byline.any { it.contains("views", ignoreCase = true) },
-            )
+        val replacements = HashMap<String, JsonObject>()
+        val dropped = HashSet<String>()
+        if (preferAudio || preferVideo) {
+            collectRenderers(root, "playlistPanelVideoWrapperRenderer").forEach { wrapper ->
+                val primary = wrapper.o("primaryRenderer").o("playlistPanelVideoRenderer")
+                    ?: return@forEach
+                val paired = listOf(primary) + wrapper.a("counterpart").orEmpty().mapNotNull {
+                    it.o("counterpartRenderer").o("playlistPanelVideoRenderer")
+                }
+                val selected = paired.firstOrNull {
+                    if (preferVideo) !it.isWatchQueueAudioTrack() else it.isWatchQueueAudioTrack()
+                } ?: return@forEach
+                val primaryId = primary.s("videoId") ?: return@forEach
+                replacements[primaryId] = selected
+                paired.filter { it !== primary }.mapNotNullTo(dropped) { it.s("videoId") }
+            }
+        }
+        collectRenderers(root, "playlistPanelVideoRenderer").forEach { found ->
+            val videoId = found.s("videoId") ?: return@forEach
+            if (videoId in dropped) return@forEach
+            val song = watchQueueSong(replacements[videoId] ?: found) ?: return@forEach
+            out[song.videoId] = song
         }
         return out.values.toList()
+    }
+
+    private fun JsonObject.isWatchQueueAudioTrack(): Boolean =
+        o("navigationEndpoint").o("watchEndpoint").o("watchEndpointMusicSupportedConfigs")
+            .o("watchEndpointMusicConfig").s("musicVideoType") == "MUSIC_VIDEO_TYPE_ATV"
+
+    private fun watchQueueSong(renderer: JsonObject): Song? {
+        val videoId = renderer.s("videoId") ?: return null
+        val title = renderer.o("title").runs()
+        if (title.isBlank()) return null
+        val bylineRuns = renderer.o("longBylineText").a("runs").orEmpty()
+        val byline = bylineRuns.map { it.s("text").orEmpty() }
+        val artist = byline.takeWhile { !it.contains("•") }.joinToString("").trim()
+        val credits = creditsOf(bylineRuns)
+        return Song(
+            videoId = videoId,
+            title = title,
+            artist = artist.ifBlank { "Unknown artist" },
+            thumbnailUrl = renderer.o("thumbnail").a("thumbnails").best(),
+            durationText = renderer.o("lengthText").runs().takeIf { it.isNotBlank() },
+            artistId = credits.artistId,
+            albumId = credits.albumId,
+            albumName = credits.albumName,
+            isVideo = byline.any { it.contains("views", ignoreCase = true) },
+        )
     }
 
     // ---- Account ------------------------------------------------------------

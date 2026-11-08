@@ -32,7 +32,7 @@ struct MusicIsland: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             Image(systemName: controller.isPlaying ? "waveform" : "pause.fill")
                                 .font(.caption.weight(.medium))
-                                .foregroundStyle(.cyan)
+                                .foregroundStyle(.primary)
                         }
                     }
                     .frame(minHeight: 32)
@@ -50,7 +50,7 @@ struct MusicIsland: View {
                     } label: {
                         Image(systemName: "minus")
                             .font(.caption.weight(.semibold))
-                            .frame(width: 24, height: 28)
+                            .frame(width: 44, height: 44)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Minimize music island to a dot")
@@ -90,10 +90,8 @@ struct MusicIsland: View {
         .padding(.horizontal, level == 0 ? 8 : 12)
         .padding(.vertical, 7)
         .frame(width: level == 0 ? 43 : (level == 2 ? 286 : 220))
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: level == 0 ? 22 : 21))
-        .overlay(RoundedRectangle(cornerRadius: level == 0 ? 22 : 21)
-            .strokeBorder(.white.opacity(0.18), lineWidth: 0.7))
-        .shadow(color: .black.opacity(0.18), radius: 18, y: 6)
+        .chromeGlass(in: RoundedRectangle(cornerRadius: level == 0 ? 22 : 21, style: .continuous))
+        .shadow(color: .black.opacity(0.14), radius: 12, y: 5)
         .gesture(
             DragGesture(minimumDistance: 20).onEnded { value in
                 let dx = value.translation.width

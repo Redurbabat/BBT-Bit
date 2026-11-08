@@ -1,6 +1,6 @@
 use super::curves::{
     automix_gains, cold_end_gains, db_to_gain, effect_intro_db, effect_intro_gains, effect_landing,
-    fade_gains, fall_gain, hold_fraction, ride_effect_intro, ride_filters, rise_gain,
+    blend_headroom_target, fade_gains, fall_gain, hold_fraction, ride_effect_intro, ride_filters, rise_gain,
     COLD_END_UNDERLAY_DB,
 };
 use super::deck::{
@@ -500,6 +500,7 @@ fn armed_test_state(
         sleep_gain: 1.0,
         hold_end: false,
         crossfade_window_s: 4.0,
+        mix_headroom: 1.0,
         spatial_enabled: false,
         head_yaw: 0.0,
         device_rate: 44_100,

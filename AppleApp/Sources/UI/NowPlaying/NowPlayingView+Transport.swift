@@ -29,21 +29,28 @@ extension NowPlayingView {
                 }
             )
             .tint(.white)
-            if controller.automixEnabled, let window = controller.smartTransitionWindow {
-                AutomixWeave(
-                    start: window.start, end: window.end,
-                    position: controller.position,
-                    tier: controller.analysisTier,
-                    reason: controller.transitionReason,
-                    isMixing: controller.smartMixInProgress
-                )
-            }
-
-            HStack {
+            // Zeitangaben und Automix-Status teilen sich eine feste Zeile.
+            // Ein eintreffendes Übergangsfenster darf den Seek-/Transportblock
+            // nicht mehr durch eine zusätzliche Zeile verschieben.
+            HStack(spacing: 8) {
                 Text(Self.timestamp(controller.position))
-                Spacer()
+                    .fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 0)
+                if controller.automixEnabled, let window = controller.smartTransitionWindow {
+                    AutomixWeave(
+                        start: window.start, end: window.end,
+                        position: controller.position,
+                        tier: controller.analysisTier,
+                        reason: controller.transitionReason,
+                        isMixing: controller.smartMixInProgress
+                    )
+                    .frame(maxWidth: 200)
+                }
+                Spacer(minLength: 0)
                 Text(remainingLabel)
+                    .fixedSize(horizontal: true, vertical: false)
             }
+            .frame(minHeight: 44)
             .font(.caption.monospacedDigit().weight(.medium))
             .foregroundStyle(.white.opacity(0.7))
             .shadow(color: .black.opacity(0.4), radius: 3, y: 1)
@@ -213,6 +220,48 @@ extension NowPlayingView {
             if !controller.displayedLyrics.isEmpty {
                 Divider()
                 Button("Lyrics Offset…") { showLyricsOffset = true }
+                Toggle("Lyrics Constellation", isOn: $lyricsConstellation)
+            }
+            // Alle bisherigen Infinity-Dock-Aktionen bleiben erreichbar,
+            // ohne die Transportsteuerung durch zusätzliche Reihen zu verdrängen.
+            if controller.current != nil {
+                Section("Music tools") {
+                    Button {
+                        pane = .lyrics
+                    } label: {
+                        Label("Lyrics", systemImage: "text.quote")
+                    }
+                    Button {
+                        pane = .queue
+                    } label: {
+                        Label("Queue", systemImage: "list.bullet")
+                    }
+                }
+                Section("Audio tools") {
+                    Button {
+                        showOutputDevice = true
+                    } label: {
+                        Label("Audio output", systemImage: "headphones")
+                    }
+                    Button {
+                        showEqualizerFromDock = true
+                    } label: {
+                        Label("Equalizer", systemImage: "slider.horizontal.3")
+                    }
+                    Button {
+                        showPipeline = true
+                    } label: {
+                        Label("Audio pipeline", systemImage: "waveform.path")
+                    }
+                    Button {
+                        controller.toggleAutomix()
+                    } label: {
+                        Label(
+                            controller.automixEnabled ? "Disable Automix" : "Enable Automix",
+                            systemImage: "arrow.triangle.2.circlepath"
+                        )
+                    }
+                }
             }
         } label: {
             Image(systemName: "ellipsis")
@@ -220,9 +269,15 @@ extension NowPlayingView {
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
                 .background(.white.opacity(0.14), in: Circle())
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help("More")
+        .accessibilityLabel("More player tools")
+        // Der bestehende Live-Screenshot-Marker bleibt nach dem Entfernen
+        // des Dock-Regals beim neuen Zugang zu den Player-Werkzeugen.
+        .background { LiquidLiveCaptureMarker(id: "dock") }
     }
 
     static func timestamp(_ seconds: Double) -> String {

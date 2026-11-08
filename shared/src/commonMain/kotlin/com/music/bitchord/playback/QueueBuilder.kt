@@ -13,23 +13,31 @@ object QueueBuilder {
     /** No more than this many tracks by one artist in a single batch. */
     private const val PER_ARTIST_LIMIT = 2
 
-    /** The artist the station was seeded on gets more room, but not the run of it. */
+    /** Der Startkünstler erhält mehr Plätze als andere Künstler. */
     private const val SEED_ARTIST_LIMIT = 4
+
+    /** Erst ab drei Videos entsteht ein reiner Video-Sender. */
+    const val MIN_VIDEO_STATION = 3
 
     /**
      * The subset of [candidates] worth appending after [existing]: nothing
      * already queued, nothing repeated, at most [limit] tracks.
      */
-    fun extend(existing: List<Song>, candidates: List<Song>, limit: Int): List<Song> {
+    fun extend(existing: List<Song>, candidates: List<Song>, limit: Int, preferVideos: Boolean = false): List<Song> {
         val taken = existing.toMutableList()
         val perArtist = mutableMapOf<String, Int>()
         val seedArtists = existing.lastOrNull()?.artist?.let(::artistSet).orEmpty()
         val out = mutableListOf<Song>()
 
-        // The catalogue cut is the one a music app wants; videos only stand in
-        // when there is nothing else.
+        // Das Original bevorzugt bei Audio-Radio Katalogsongs. Ein Video-Sender
+        // nutzt Videos, sofern der Dienst mindestens drei davon geliefert hat.
         val songsOnly = candidates.filterNot { it.isVideo }
-        val ordered = songsOnly.ifEmpty { candidates }
+        val videosOnly = candidates.filter { it.isVideo }
+        val ordered = when {
+            preferVideos && videosOnly.size >= MIN_VIDEO_STATION -> videosOnly
+            preferVideos -> candidates
+            else -> songsOnly.ifEmpty { candidates }
+        }
 
         for (candidate in ordered) {
             if (out.size >= limit) break

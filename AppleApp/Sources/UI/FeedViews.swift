@@ -135,8 +135,54 @@ struct FeedSectionHeader: View {
     let title: String
     var subtitle: String? = nil
     var onShowAll: (() -> Void)? = nil
+    /// Redaktioneller Stil der Künstlerseite: zentrierte Serifenschrift kursiv
+    /// mit „SEE ALL“-Kapsel unter dem Titel.
+    var editorial = false
 
     var body: some View {
+        if editorial {
+            editorialBody
+        } else {
+            standardBody
+        }
+    }
+
+    private var editorialBody: some View {
+        VStack(spacing: 8) {
+            Text(title)
+                .scaledFont(size: 32, weight: .regular, design: .serif, relativeTo: .title)
+                .italic()
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+            if let subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            if let onShowAll {
+                Button(action: onShowAll) {
+                    HStack(spacing: 4) {
+                        Text("Show all")
+                            .textCase(.uppercase)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .font(.system(size: 11, weight: .semibold))
+                    .tracking(0.8)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(.thinMaterial, in: Capsule())
+                    .overlay(Capsule().strokeBorder(.white.opacity(0.18)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Show all \(title)")
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var standardBody: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -181,25 +227,41 @@ struct ShelfCarousel: View {
     var onShowAll: (() -> Void)? = nil
     /// The side padding of the page the shelf sits in; see [ShelfScroller].
     var inset: CGFloat = 24
+    /// Karussell-Stil der Künstlerseite: kippende Karten, redaktionelle Überschrift
+    /// und Seitenpunkte. Aus, wo ein Regal keine Schiene sein soll.
+    var rail = false
     @Environment(PlaybackController.self) private var controller
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var activeDot = 0
     /// The shelf's own width, measured: an inspector or a split view narrows it
     /// without changing the window.
     @State private var width: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            FeedSectionHeader(title: shelf.title, subtitle: shelf.subtitle, onShowAll: onShowAll)
-            ShelfScroller(inset: inset) {
+            FeedSectionHeader(title: shelf.title, subtitle: shelf.subtitle, onShowAll: onShowAll, editorial: rail)
+            ShelfScroller(inset: inset, onProgress: rail ? { updateDot($0) } : nil) {
                 LazyHStack(alignment: .top, spacing: 14) {
                     ForEach(items ?? shelf.items) { card in
                         ShelfCardView(card: card, artworkSide: cardSide, preferTrack: preferTrack)
+                            .modifier(HorizonRailMotion(enabled: rail))
                     }
                 }
                 .padding(.vertical, 2)
             }
+            if rail, dotCount > 1 {
+                HorizonRailDots(count: dotCount, active: min(activeDot, dotCount - 1))
+                    .frame(maxWidth: .infinity)
+            }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+    }
+
+    private var dotCount: Int { min((items ?? shelf.items).count, 5) }
+
+    private func updateDot(_ progress: Double) {
+        let target = Int((progress * Double(max(dotCount - 1, 0))).rounded())
+        if target != activeDot { activeDot = target }
     }
 
     /// A wide shelf shows four sleeves across, sized to the room it has rather
@@ -223,6 +285,8 @@ struct ShelfCarousel: View {
 ///   move one screenful, the way Music's shelves do. A trackpad swipe still works.
 struct ShelfScroller<Content: View>: View {
     var inset: CGFloat = 24
+    /// Scrollfortschritt 0 bis 1, für Seitenpunkte. Nur gesetzt, wo sie gezeigt werden.
+    var onProgress: ((Double) -> Void)? = nil
     @ViewBuilder var content: Content
 
     @State private var position = ScrollPosition(edge: .leading)
@@ -242,6 +306,10 @@ struct ShelfScroller<Content: View>: View {
             [geometry.contentOffset.x, geometry.containerSize.width, geometry.contentSize.width]
         } action: { _, value in
             offset = value[0]; viewport = value[1]; extent = value[2]
+            if let onProgress {
+                let span = max(value[2] - value[1] + 2 * inset, 1)
+                onProgress(Double(min(max((value[0] + inset) / span, 0), 1)))
+            }
         }
         .padding(.horizontal, -inset)
         .overlay(alignment: .leading) { pager(forward: false) }
@@ -306,7 +374,7 @@ struct ShelfCardTap<Content: View>: View {
         Button {
             controller.playRadio(QueueEntry.youtube(
                 videoId: videoId, title: card.title, artist: card.subtitle ?? "",
-                thumbnailUrl: card.thumbnailUrl
+                thumbnailUrl: card.thumbnailUrl, isVideo: card.isVideo
             ))
         } label: {
             content
@@ -380,7 +448,13 @@ struct ShelfCardView: View {
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
-                ArtworkView(url: card.thumbnailUrl, data: nil, side: artworkSide)
+                ArtworkView(
+                    url: card.thumbnailUrl, data: nil, side: artworkSide,
+                    fill: card.isVideo
+                )
+                    // Wie im Original sind Home-Musikvideos 16:9 statt
+                    // quadratischer Albumcover; die Kartenbreite bleibt stabil.
+                    .frame(width: artworkSide, height: card.isVideo ? artworkSide * 9 / 16 : artworkSide)
                     .clipShape(.rect(cornerRadius: 10, style: .continuous))
                     .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
                     .modifier(NowPlayingCardAccent(
@@ -526,6 +600,7 @@ struct HeroCard: View {
     let side: CGFloat
     @Environment(PlaybackController.self) private var controller
     @State private var hovering = false
+    private var tileHeight: CGFloat { card.isVideo ? side * 9 / 16 : side * 0.92 }
 
     /// Whether this card is the track loaded in the player right now.
     private var isCurrentTrack: Bool {
@@ -536,8 +611,8 @@ struct HeroCard: View {
     var body: some View {
         ShelfCardTap(card: card, preferTrack: preferTrack) {
             ZStack(alignment: .bottom) {
-                ArtworkView(url: card.thumbnailUrl, data: nil, side: side)
-                    .frame(width: side, height: side * 0.92)
+                ArtworkView(url: card.thumbnailUrl, data: nil, side: side, fill: card.isVideo)
+                    .frame(width: side, height: tileHeight)
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.10), .black.opacity(0.72)],
                     startPoint: .center,
@@ -558,7 +633,7 @@ struct HeroCard: View {
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: side, height: side * 0.92)
+            .frame(width: side, height: tileHeight)
             // Over the scrim, not under it: the pill sits on the darkest part
             // of the tile, and the gradient would grey it out from beneath.
             .modifier(NowPlayingCardAccent(

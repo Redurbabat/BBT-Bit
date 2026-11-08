@@ -6,5 +6,6 @@ BBT-Bit ist eine native Musik-App für iOS, iPadOS und macOS. SwiftUI zeigt die 
 2. Finde den Einstieg in der [Architektur](docs/ARCHITEKTUR.md) und wähle den passenden Skill aus dem [Arbeitsablauf](docs/AGENT_WORKFLOW.md).
 3. Lies die [bekannten Probleme](PROBLEME.md), [Lücken](LUECKEN.md) und [Entscheidungen](ENTSCHEIDUNGEN.md) zum betroffenen Bereich.
 4. Nutze den [Testplan](docs/TESTPLAN.md) für einen reproduzierbaren Nachweis. Halte Ergebnisse in [erledigten Aufgaben](ERLEDIGTE-AUFGABEN.md) fest.
+5. Auf einem Mac mit Xcode 27+ lassen sich [alle originalen Xcode-Agent-Skills lokal integrieren](docs/APPLE_XCODE_SKILLS.md), ohne unsere zehn Projekt-Skills zu überschreiben.
 
 [Setup](BBT-BIT-SETUP.md) · [Datenregeln](docs/DATENREGELN.md) · [Designsystem](docs/DESIGN_SYSTEM.md) · [Versionen](version.md) · [Release](docs/RELEASE.md) · [Fremdcode](FREMDCODE.md)

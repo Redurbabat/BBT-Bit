@@ -16,7 +16,7 @@ enum UserFacingRequestError {
         let lower = raw.lowercased()
         if isOffline(lower) { return offlineMessage }
         if isYouTubeVerification(raw) {
-            return AppLanguage.localized("YouTube is requiring verification for this network. BBT-Bit cannot complete that check for you; try again later or use the official YouTube Music service.")
+            return AppLanguage.localized("YouTube is requiring verification for this network. RED Bit cannot complete that check for you; try again later or use the official YouTube Music service.")
         }
         // The FFI bridge can include a full NSError dump (request URLs, task
         // identifiers and nested UserInfo). Those belong in diagnostics, not UI.
@@ -63,7 +63,7 @@ enum UserFacingRequestError {
     }
 
     private static var offlineMessage: String {
-        AppLanguage.localized("BBT-Bit cannot access the internet. On iPhone, check Settings > Cellular > BBT-Bit (allow mobile data), Wi-Fi, and VPN, then retry.")
+        AppLanguage.localized("RED Bit cannot access the internet. On iPhone, check Settings > Cellular > RED Bit (allow mobile data), Wi-Fi, and VPN, then retry.")
     }
 }
 
@@ -161,7 +161,7 @@ struct YouTubeStreamError: Error, LocalizedError {
             return AppLanguage.localized("That track isn’t available right now.")
         }
         if said.contains("no signature timestamp") {
-            return AppLanguage.localized("BitChord could not read YouTube’s player, so it could not open a stream. Check the connection and try again.")
+            return AppLanguage.localized("RED Bit could not read YouTube’s player, so it could not open a stream. Check the connection and try again.")
         }
         return AppLanguage.localized("Couldn’t open a stream for that track.")
     }

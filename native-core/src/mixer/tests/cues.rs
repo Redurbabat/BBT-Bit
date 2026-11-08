@@ -243,6 +243,7 @@ fn the_recording_duration_takes_precedence_over_its_mix_out_anchor() {
         sleep_gain: 1.0,
         hold_end: false,
         crossfade_window_s: 4.0,
+        mix_headroom: 1.0,
         spatial_enabled: false,
         head_yaw: 0.0,
         device_rate: 44_100,

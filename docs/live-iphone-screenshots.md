@@ -17,8 +17,10 @@ nachweisen. Sie werden künftig ausdrücklich "Design-Vorschauen" genannt.
 5. Sobald eine der 15 Liquid-Motion-Komponenten tatsächlich sichtbar wird,
    nimmt die App nach einer kurzen Verzögerung das **gerade sichtbare
    iOS-App-Fenster** (UIKit UIWindow) mit UIGraphicsImageRenderer auf.
-6. Klappe Music Island, Infinity Dock oder Glass Portal auf, um eine
-   erneute Aufnahme mit erweitertem Zustand zu speichern.
+6. Öffne Music Island, die Player-Werkzeuge über das Mehr-Menü beim Songtitel
+   oder Glass Portal. Das frühere aufklappende Infinity Dock ist im
+   Live-Player durch das Mehr-Menü ersetzt; die Foto-Kennung `dock`
+   bleibt für bestehende Aufnahmen erhalten.
 7. Gehe zurück zu Einstellungen → Echte Screenshots, drücke
    **Aufnahme beenden** und **Screenshots als ZIP teilen**.
 8. Teile die ZIP-Datei (PNG-Screenshots und JSON-Bericht) über das iPhone-Teilenmenü.

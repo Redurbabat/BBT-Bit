@@ -25,6 +25,27 @@ private actor SwapResultProbe {
             fatalError("A ready YouTube fallback must not beat the requested lossless source")
         }
 
+        // BitChord v1.9.1 Prefer Music Only: no video fallback is started
+        // until the audio search has answered or its deadline has elapsed.
+        // The preferred recording must work even when video resolution would fail.
+        let musicOnlyHit = Race(preferPrimary: true)
+        await musicOnlyHit.finishFallback(nil)
+        await musicOnlyHit.finishLookup("catalogue-audio")
+        guard case .preferred("catalogue-audio") = await musicOnlyHit.wait(timeoutNanoseconds: 1_000_000) else {
+            fatalError("Music-only playback must accept audio without a valid video stream")
+        }
+        let musicOnlyMiss = Race(preferPrimary: true)
+        await musicOnlyMiss.finishFallback(nil)
+        await musicOnlyMiss.finishLookup(nil)
+        guard case .none = await musicOnlyMiss.wait(timeoutNanoseconds: 1_000_000) else {
+            fatalError("A missing music-only candidate must release the video fallback")
+        }
+        let musicOnlyDeadline = Race(preferPrimary: true)
+        await musicOnlyDeadline.finishFallback(nil)
+        guard case .timedOut = await musicOnlyDeadline.wait(timeoutNanoseconds: 1_000_000) else {
+            fatalError("A music-only lookup timeout must release the video fallback")
+        }
+
         let fastest = Race(preferPrimary: false)
         await fastest.finishFallback("youtube")
         await fastest.finishLookup("flac")
@@ -101,6 +122,6 @@ private actor SwapResultProbe {
         while await superseded.count() == 0 { await Task.yield() }
         await superseded.supersede()
         guard await obsolete.value == nil else { fatalError("An obsolete track must not update source metadata") }
-        print("PASS source priority (8), submitted swap reconciliation (3), next-track timing (4 scenarios)")
+        print("PASS source priority (11), submitted swap reconciliation (3), next-track timing (4 scenarios)")
     }
 }

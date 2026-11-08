@@ -1,15 +1,15 @@
-# BBT-Bit
+# RED Bit
 
-BBT-Bit is an independently maintained native music app for iPhone, iPad,
+RED Bit (repository name: BBT-Bit) is an independently maintained native music app for iPhone, iPad,
 and Apple Silicon Mac under the BABAT app family.
 
-BBT-Bit is a derivative of the open-source BitChord Apple port by Martin BAGUMA,
+RED Bit is a derivative of the open-source BitChord Apple port by Martin BAGUMA,
 itself based on BitChord by Kushagra Singh. It is not an official BitChord release.
 
 ## Independent development
 
 - Repository and source: https://github.com/Redurbabat/BBT-Bit
-- Display name: BBT-Bit
+- Display name: RED Bit (bundle identifier `com.babat.bbtbit`, the `bbtbit://` URL scheme, data folders and release file names keep their BBT-Bit/BitChord spelling for compatibility)
 - iOS/macOS bundle: com.babat.bbtbit
 - Widget bundle: com.babat.bbtbit.widget
 - Keychain and App Group use separate BBT-Bit namespaces.

@@ -25,7 +25,7 @@ enum LiquidPhotoFeature: Int, CaseIterable, Identifiable {
         case .handoff: "Handoff Comet"
         case .echo: "Echo Trail"
         case .island: "Music Island"
-        case .dock: "Infinity Dock"
+        case .dock: "Player-Werkzeuge"
         case .portal: "Glass Portal"
         }
     }
@@ -271,7 +271,7 @@ struct LiquidMotionDesignPhotosView: View {
 
         let permission = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard permission == .authorized || permission == .limited else {
-            message = "Bitte erlaube in den iPhone-Einstellungen, dass BBT-Bit Fotos hinzufügen darf."
+            message = "Bitte erlaube in den iPhone-Einstellungen, dass RED Bit Fotos hinzufügen darf."
             return
         }
 

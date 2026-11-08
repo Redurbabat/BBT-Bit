@@ -7,6 +7,7 @@ on:
       - AppleApp/**
       - scripts/build-shared-framework.sh
       - scripts/build-native-core.sh
+      - scripts/retry-transient.sh
       - scripts/ci-ios-simulator-report.py
       - '*.gradle.kts'
       - gradle/**
@@ -49,9 +50,9 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Test progressive audio extraction
-        run: bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
+        run: bash scripts/retry-transient.sh bash gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
       - name: Test shared playback resolver recovery
-        run: bash gradlew :shared:macosArm64Test --tests '*StreamResolverRecoveryTest'
+        run: bash scripts/retry-transient.sh bash gradlew :shared:macosArm64Test --tests '*StreamResolverRecoveryTest'
 
   host-regressions:
     if: inputs.mode == 'host'
@@ -107,8 +108,12 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # Der Cache wird auch nach einem roten Lauf gespeichert (siehe letzter Schritt).
+      # Sonst startet jeder Lauf nach einem Download-Ausfall wieder kalt und lädt
+      # dieselben großen Dateien erneut vom ausfallenden Server. Der Schlüssel ist je
+      # Lauf eindeutig; wiederhergestellt wird der neueste passende Eintrag.
       - name: Restore Gradle, Kotlin/Native and Rust download caches
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.gradle/caches
@@ -116,8 +121,9 @@ jobs:
             ~/.konan
             ~/.cargo/registry
             ~/.cargo/git
-          key: bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/**', 'gradle.properties', '**/*.gradle.kts', 'native-core/Cargo.lock', 'native-core/Cargo.toml') }}
+          key: bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/**', 'gradle.properties', '**/*.gradle.kts', 'native-core/Cargo.lock', 'native-core/Cargo.toml') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/**', 'gradle.properties', '**/*.gradle.kts', 'native-core/Cargo.lock', 'native-core/Cargo.toml') }}-
             bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install native tools (XcodeGen, CMake, Rust)
@@ -153,7 +159,11 @@ jobs:
           for file in AppleApp/Sources/UI/LiquidMotion/*.swift \
                       AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Transport.swift \
                       AppleApp/Sources/UI/PlaybackPill.swift \
+                      AppleApp/Sources/UI/SearchView.swift \
+                      AppleApp/Sources/UI/TopResultSection.swift \
                       AppleApp/UITests/*.swift; do
             swiftc -frontend -parse "$file"
           done
@@ -179,7 +189,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CONFIG=debug ./scripts/build-shared-framework.sh
+          CONFIG=debug bash scripts/retry-transient.sh ./scripts/build-shared-framework.sh
           test -d AppleApp/Frameworks/BitChordShared.xcframework
           /usr/libexec/PlistBuddy -c "Print :AvailableLibraries" AppleApp/Frameworks/BitChordShared.xcframework/Info.plist
           # It must include an iOS Simulator variant, not only iphoneos.
@@ -230,6 +240,17 @@ jobs:
           set -euo pipefail
           xcrun simctl boot "$SIMULATOR_UDID" || true
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+
+      - name: Resolve Swift packages (retry on server errors)
+        shell: bash
+        run: |
+          # Sparkle liegt als Binärpaket auf GitHub-Releases; ein 503 dort ließ den
+          # Xcode-Build schon vor dem Kompilieren scheitern. Gleicher derivedDataPath
+          # wie im Build, damit er die aufgelösten Pakete wiederverwendet.
+          bash scripts/retry-transient.sh xcodebuild -resolvePackageDependencies \
+            -project AppleApp/BitChord.xcodeproj \
+            -scheme BitChord \
+            -derivedDataPath "$RUNNER_TEMP/BBT-Bit-DerivedData"
 
       - name: Xcode build and XCUITest - 15 preview screens and screenshots
         id: xcode_test
@@ -295,12 +316,24 @@ jobs:
 
       - name: Run shared Kotlin tests on Apple Silicon
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
-        run: ./gradlew :shared:macosArm64Test
+        run: bash scripts/retry-transient.sh ./gradlew :shared:macosArm64Test
 
       - name: Run Kotlin playback extractor regressions on Apple Silicon
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
-        run: ./gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
+        run: bash scripts/retry-transient.sh ./gradlew :innertubex:macosArm64Test --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*YouTubeLocaleTest'
 
       - name: Run native Rust tests with the pinned dependency graph
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
         run: cargo test --locked --manifest-path native-core/Cargo.toml
+
+      - name: Save Gradle, Kotlin/Native and Rust download caches (also after a failed run)
+        if: ${{ !cancelled() }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: bbt-ios-sim-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/**', 'gradle.properties', '**/*.gradle.kts', 'native-core/Cargo.lock', 'native-core/Cargo.toml') }}-${{ github.run_id }}-${{ github.run_attempt }}

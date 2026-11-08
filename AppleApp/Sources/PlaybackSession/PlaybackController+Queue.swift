@@ -436,7 +436,7 @@ extension PlaybackController {
         state = .paused
         if let entry = current {
             nowPlaying.update(
-                id: entry.id, title: entry.title, artist: entry.artist,
+                id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName,
                 duration: duration, artworkData: entry.artworkData,
                 thumbnailUrl: entry.thumbnailUrl, isPlaying: false, position: position
             )

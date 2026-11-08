@@ -292,7 +292,7 @@ struct RootView: View {
             RenamePlaylistAlert()
         }
         #if os(iOS)
-        .alert("A BitChord update is available", isPresented: Binding(
+        .alert("A RED Bit update is available", isPresented: Binding(
             get: { updateChecker.available != nil },
             set: { if !$0 { updateChecker.dismiss() } }
         )) {
@@ -302,7 +302,7 @@ struct RootView: View {
             }
             Button("Later", role: .cancel) { updateChecker.dismiss() }
         } message: {
-            Text("BitChord \(updateChecker.available?.identity.label ?? "") is available. Update using the same method you used to install BitChord. The release page has the change notes.")
+            Text("RED Bit \(updateChecker.available?.identity.label ?? "") is available. Update using the same method you used to install RED Bit. The release page has the change notes.")
         }
         .sheet(item: $updateDetails) { release in UpdateSheet(release: release) }
         #endif
@@ -390,7 +390,7 @@ struct RootView: View {
             }
             Button("Close", role: .cancel) { verificationAlert = nil }
         } message: {
-            Text("YouTube is asking for verification on this network. BBT-Bit cannot complete it. Try again later, or open this song in YouTube. If it happens only on mobile data, compare with Wi-Fi.")
+            Text("YouTube is asking for verification on this network. RED Bit cannot complete it. Try again later, or open this song in YouTube. If it happens only on mobile data, compare with Wi-Fi.")
         }
     }
 
@@ -653,7 +653,7 @@ struct RootView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("BitChord")
+        .navigationTitle("RED Bit")
     }
 
     private func sideRow(_ side: MacSide, _ title: LocalizedStringKey, _ icon: String) -> some View {
@@ -808,6 +808,8 @@ struct RootView: View {
                 Tab("Library", systemImage: "square.stack.fill", value: RootPage.tab(.library)) {
                     LibraryView()
                 }
+                // Native iOS-Suchrolle: Suche und Tab-Bar bilden wie zuvor
+                // eine zusammenhängende Systemoberfläche.
                 Tab("Search", systemImage: "magnifyingglass", value: RootPage.tab(.search), role: .search) {
                     SearchView()
                 }
@@ -1103,6 +1105,7 @@ struct PlaybackPillMount: ViewModifier {
     /// inset does that on its own).
     @State private var keyboardUp = false
     @State private var dockScroll = DockScrollCoordinator.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #endif
 
     func body(content: Content) -> some View {
@@ -1117,35 +1120,37 @@ struct PlaybackPillMount: ViewModifier {
             // the sidebar and keeps Music's 620 pt width.
             content
         } else if #available(iOS 26.0, *) {
-            // iPhone from 26: Music's own bottom accessory, full width. A scroll
-            // down minimizes the tab bar and the pill drops into it, between
-            // the selected tab and Search.
-            // A single continuous finger-down reversal doesn't always restore
-            // the system's onScrollDown bar. A passive scroll observer on Home /
-            // Explore briefly requests .never when movement turns upward.
-            // Native tabs, Search, accessibility and the inline player remain
-            // provided by TabView, never a second homemade navigation bar.
+            // iOS 26: Die native Tab-Leiste schrumpft beim Scrollen nach unten,
+            // der systemeigene Bottom Accessory bewegt den Mini-Player mit.
+            // Bei Richtungsumkehr nach oben verhindert DockScrollCoordinator,
+            // dass die Leiste trotz Gegenbewegung eingeklappt bleibt.
+            // Die Keyboard-Safe-Area-Korrektur darunter bleibt erhalten.
             accessory(
                 content.tabBarMinimizeBehavior(
                     dockScroll.keepExpanded ? .never : .onScrollDown
                 )
             )
-                .overlay(alignment: .bottom) {
+                // Das kompakte Pill belegt oberhalb der Tastatur echten
+                // Safe-Area-Platz, statt die Suchergebnisse zu überdecken.
+                // Der native Bottom Accessory wird währenddessen ausgeblendet.
+                .safeAreaInset(edge: .bottom, spacing: 0) {
                     if keyboardUp {
-                        PlaybackPill()
-                            // The accessory's glass is the tab bar's; out here
-                            // the pill would otherwise have none.
-                            .chromeGlass(in: Capsule())
-                            .padding(.horizontal, 10)
-                            .padding(.bottom, 8)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        // PlaybackPill besitzt bereits seinen eigenen
+                        // MiniPlayerChrome mit Reduce-Transparency-Fallback.
+                        // Kein zweites Material über denselben Bedienelementen.
+                        PlaybackPill(inline: true)
+                            .frame(maxWidth: 440)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .frame(maxWidth: .infinity)
+                            .transition(.opacity)
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-                    withAnimation(.smooth(duration: 0.25)) { keyboardUp = true }
+                    withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { keyboardUp = true }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                    withAnimation(.smooth(duration: 0.25)) { keyboardUp = false }
+                    withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { keyboardUp = false }
                 }
         } else {
             fallbackMount(content)
@@ -1158,12 +1163,24 @@ struct PlaybackPillMount: ViewModifier {
     }
 
     #if os(iOS)
-    /// The bottom accessory, stood down from 26.1 while the pill rides the
-    /// keyboard, so there is only ever one pill (and one zoom source for Now
-    /// Playing). On 26.0 the covered one stays mounted.
+    /// Die neue Apple-Variante kann den nativen Bottom Accessory vollständig
+    /// während der Such-Tastatur abschalten. Sie benötigt ein neueres SDK
+    /// (Xcode 26.2 / Swift 6.2.3); Codemagic baut derzeit mit Xcode 26.0.
+    /// Der ältere SDK-Pfad bewahrt daher das bisherige Verhalten.
     @available(iOS 26.0, *)
     @ViewBuilder
     private func accessory(_ content: some View) -> some View {
+        #if compiler(>=6.2.3)
+        if #available(iOS 26.1, *) {
+            content.tabViewBottomAccessory(isEnabled: !keyboardUp) {
+                PlaybackAccessory()
+            }
+        } else {
+            content.tabViewBottomAccessory {
+                PlaybackAccessory()
+            }
+        }
+        #else
         if #available(iOS 26.1, *) {
             content.tabViewBottomAccessory {
                 if !keyboardUp {
@@ -1175,6 +1192,7 @@ struct PlaybackPillMount: ViewModifier {
                 PlaybackAccessory()
             }
         }
+        #endif
     }
 
     private func fallbackMount(_ content: Content) -> some View {

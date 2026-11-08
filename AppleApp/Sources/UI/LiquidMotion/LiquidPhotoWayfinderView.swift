@@ -23,8 +23,8 @@ private struct PhotoGuideRoute {
               requirement: "Ein Song muss geladen sein.",
               destination: .home),
         .init(feature: .dock,
-              path: ["Vollbild-Player öffnen", "Ganz unten zu „Infinity Dock“ scrollen", "Auf „Lift tools“ tippen, bis EQ / Pipeline / Automix erscheinen"],
-              takePhotoWhen: "Wenn alle sechs Tasten des aufgeklappten Infinity Docks sichtbar sind.",
+              path: ["Vollbild-Player öffnen", "Beim Songtitel das Mehr-Menü (···) öffnen", "Dort Songtexte, Warteschlange, Equalizer, Pipeline, Output und Automix finden"],
+              takePhotoWhen: "Wenn der kompakte Zugang zu den Player-Werkzeugen sichtbar ist.",
               requirement: "Ein Song muss geladen sein.",
               destination: .player),
         .init(feature: .portal,
@@ -88,7 +88,7 @@ private struct PhotoGuideRoute {
               requirement: "Für mehrere Teilnehmer sind weitere angemeldete Geräte erforderlich.",
               destination: .party),
         .init(feature: .handoff,
-              path: ["BBT-Bit auf zwei kompatiblen Geräten vorbereiten", "Wiedergabe vom zweiten Gerät übergeben", "Die Annahme auf diesem iPhone beobachten"],
+              path: ["RED Bit auf zwei kompatiblen Geräten vorbereiten", "Wiedergabe vom zweiten Gerät übergeben", "Die Annahme auf diesem iPhone beobachten"],
               takePhotoWhen: "Genau wenn „Handoff received“ auf dem iPhone erscheint.",
               requirement: "Ein zweites Gerät und eine echte erfolgreiche Übergabe sind erforderlich.",
               destination: .player)
@@ -132,7 +132,7 @@ struct LiquidPhotoWayfinderView: View {
 
                     ProgressView(value: Double(capturedCount), total: 15)
                         .tint(.cyan)
-                    Text("Öffne echte BBT-Bit-Ansichten. Der Recorder fotografiert sichtbare Änderungen automatisch. Fehlende Fotos bleiben offen.")
+                    Text("Öffne echte RED-Bit-Ansichten. Der Recorder fotografiert sichtbare Änderungen automatisch. Fehlende Fotos bleiben offen.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 

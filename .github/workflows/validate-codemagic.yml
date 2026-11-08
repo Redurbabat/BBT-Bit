@@ -75,7 +75,7 @@ jobs:
           assert 'shasum -a 256' in cache_script
           p = Path('AppleApp/project.yml').read_text()
           assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
-          assert 'CFBundleDisplayName: BBT-Bit' in p
+          assert 'CFBundleDisplayName: RED Bit' in p
           assert re.search(r'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"', p)
           package = Path('scripts/package-ios-ipa.sh').read_text()
           assert 'BBT-Bit-$version-' in package
@@ -153,12 +153,18 @@ jobs:
           assert 'struct GlassBloomSwipeHint' in motion
           assert 'isLowPowerModeEnabled' in motion
           assert 'GlassBloomStatusRow(playing: controller.isPlaying)' in bloom
-          assert 'GlassBloomAtmosphere(' in bloom
+          # The iOS 26 native glass surface must not be covered by an
+          # artwork gradient or custom cyan/purple atmosphere.
+          assert 'GlassBloomAtmosphere(' not in bloom
+          assert 'shape.fill(.clear).glassEffect(.regular, in: shape)' in bloom
+          assert 'Theme.Materials.opaque' in bloom
           assert 'private func handleSwipe' in bloom
           assert 'private func openQuickPane' in bloom
           assert 'PartyStore.shared.state.controlsLocked' in bloom
           assert 'bbt.glassBloom.lyrics' in bloom and 'bbt.glassBloom.queue' in bloom
-          assert 'flashTrackGlint()' in bloom
+          assert 'flashTrackGlint()' not in bloom
+          assert 'controller.togglePlayPause()' in bloom
+          assert 'controller.next()' in bloom
           diagnostics = Path('AppleApp/Sources/UI/DiagnosticReportsView.swift').read_text()
           playbackSettings = Path('AppleApp/Sources/UI/Settings/SettingsView+Playback.swift').read_text()
           loadResults = Path('AppleApp/Sources/PlaybackSession/PlaybackController+LoadResults.swift').read_text()
@@ -180,7 +186,12 @@ jobs:
           assert 'ArtworkCache.shared.load' in miniCover
           assert 'accessibilityReduceTransparency' in miniCover
           assert 'accessibilityReduceMotion' in miniCover
-          assert 'CoverMorphMiniSurface(' in miniPill
+          # User chose neutral native Apple Liquid Glass rather than the
+          # historical cover-linked mini-player color wash.
+          assert 'CoverMorphMiniSurface(' not in miniPill
+          assert 'isArtworkMiniTintActive' not in miniPill
+          assert 'content.glassEffect(.regular, in: Capsule())' in miniPill
+          assert 'NowPlayingZoomSource()' in miniPill
           assert 'controller.duration > 0' in miniPill
           assert 'NowPlayingZoomSource()' in miniPill
           assert 'CoverMorphFullBackdrop(entry: controller.current)' in fullLayout

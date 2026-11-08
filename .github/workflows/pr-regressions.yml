@@ -35,6 +35,14 @@ jobs:
           python scripts/check-repository.py --base "$BASE_SHA"
           python scripts/repository-verify/check.py
           python scripts/release-verify/check.py
+          python scripts/verify-automix-model-sources.py
+          python scripts/verify-settings-german.py
+      - name: Check RED-Morph-Quellinvarianten (ohne Apple-Build)
+        run: python3 scripts/check-red-morph-source.py
+      - name: Check native Dynamic Island / Now Playing (ohne Apple-Build)
+        run: python3 scripts/check-native-island-source.py
+      - name: Check CI retry helper (retries network errors only)
+        run: bash scripts/retry-transient-verify/check.sh
       - name: Scan introduced commits for secrets
         if: ${{ !cancelled() }}
         run: |
@@ -49,6 +57,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile and test network error handling
         run: bash scripts/check-network-errors.sh
+      - name: Parse App-wide Testzentrale and model loader Swift syntax
+        run: |
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixLiveTestView.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Playback.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixModelsSheet.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/AutomixModelLoader.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+AutomixState.swift
       - name: Verify Google sign-in browser device identity
         run: bash scripts/check-signin-device.sh
       - name: Validate release shell scripts
@@ -56,3 +71,7 @@ jobs:
           bash -n scripts/check-network-errors.sh
           bash -n scripts/check-signin-device.sh
           bash -n scripts/package-ios-ipa.sh
+      - name: Check RED-Morph-Quellinvarianten (ohne Apple-Build)
+        run: python3 scripts/check-red-morph-source.py
+      - name: Check native Dynamic Island / Now Playing (ohne Apple-Build)
+        run: python3 scripts/check-native-island-source.py

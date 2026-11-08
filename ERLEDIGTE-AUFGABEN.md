@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-07 · Cloud-Bau und SideStore-Gerätetest vorbereitet
+
+Der neue Workflow verwendet die bestehenden nativen Bauskripte und eine ausschließlich generierte SideStore-Konfiguration. Bundle-ID, App-Quellen und lokale Datenformate bleiben bestehen; die kostenlose Testvariante enthält keine Widget-Erweiterung oder iCloud-/App-Group-Freigaben. Acht ausgeführte Fixture-Tests und Actionlint bestehen. Der aktuelle GitHub-Lauf meldet eine Actions-Budgetsperre. **Echte IPA-Erzeugung, Signierung, Installation, Update und Audio sind NICHT GETESTET.** Redion wurde ausschließlich gelesen und enthält bereits einen Capacitor-iOS-Wrapper. [Anleitung, offene Voraussetzungen und Prüfstand](docs/IPHONE_TESTSYSTEM.md)
+
 ## 2026-11-05 · YouTube-Anfragen bei deutscher Gerätesprache
 
 Der neue Gerätebericht führte zur fehlerhaften Übergabe regionaler Apple-Sprachkennungen. Im kontrollierten Live-Vergleich scheiterte `hl=de-CH`, während derselbe Titel mit `hl=de` und unverändertem `gl=CH` echte progressive Audio-Bytes lieferte. Die Umwandlung ist korrigiert, 12 gezielte Kotlin-Fixtures und der Metadatenbau der echten Module bestehen. Ein zusätzlicher Cachetest verhindert veraltete Extractor-Frameworks. Der korrigierte iPhone-Build bleibt **ECHTGERÄT NICHT GETESTET**. [Befund, Änderungen und Prüfstand](docs/claude-youtube-playback-handoff-20261104.md#nachuntersuchung-am-5-november-2026)
@@ -31,3 +35,6 @@ Die Auswahl prüft eine Antwort auf progressives Audio, bevor sie weitere Profil
 Die [GitHub-Regressionen für `c294252`](https://github.com/Redurbabat/BBT-Bit/actions/runs/41833137474) sind `BESTANDEN`. Die Jobs prüften Netzwerkfehler, Google-Anmeldeidentität, Release-Shellsyntax, Doku, Skills, Version, Modulgrenzen, Herkunft und Geheimnisse.
 
 Der [Apple-Silicon-Lauf für `c294252`](https://github.com/Redurbabat/BBT-Bit/actions/runs/41833137485) erreichte `SYNTAX GEPRÜFT` für die ausgewählten Swift-Dateien. Simulator-, Kotlin- und Rust-Ergebnisse stehen in diesem Lauf. BBT-001 bleibt bis zur Auswertung offen.
+
+## 2026-11-07 · Cloud-Bau und SideStore-Gerätetest vorbereitet
+Der neue Workflow verwendet die bestehenden nativen Bauskripte und eine ausschließlich generierte SideStore-Konfiguration. Bundle-ID, App-Quellen und lokale Datenformate bleiben bestehen; die kostenlose Testvariante enthält keine Widget-Erweiterung oder iCloud-/App-Group-Freigaben. Acht ausgeführte Fixture-Tests und Actionlint bestehen. Der aktuelle GitHub-Lauf meldet eine Actions-Budgetsperre. **Echte IPA-Erzeugung, Signierung, Installation, Update und Audio sind NICHT GETESTET.** Redion wurde ausschließlich gelesen und enthält bereits einen Capacitor-iOS-Wrapper. [Anleitung, offene Voraussetzungen und Prüfstand](docs/IPHONE_TESTSYSTEM.md)

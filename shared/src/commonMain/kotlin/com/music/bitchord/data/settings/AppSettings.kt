@@ -899,10 +899,26 @@ object AppSettings {
         settings.putBoolean("hide_song_status", value)
     }
 
+    /** Home zeigt Musikvideos standardmäßig; diese Option filtert nur die Anzeige. */
+    private val _hideHomeVideos = MutableStateFlow(settings.getBoolean("hide_home_videos", false))
+    val hideHomeVideos: StateFlow<Boolean> = _hideHomeVideos.asStateFlow()
+    fun setHideHomeVideos(value: Boolean) {
+        _hideHomeVideos.value = value
+        settings.putBoolean("hide_home_videos", value)
+    }
+
+    /** Hide only the home shelf; keep listening-history data untouched. */
+    private val _hideRecents = MutableStateFlow(settings.getBoolean("hide_recents", false))
+    val hideRecents: StateFlow<Boolean> = _hideRecents.asStateFlow()
+    fun setHideRecents(value: Boolean) {
+        _hideRecents.value = value
+        settings.putBoolean("hide_recents", value)
+    }
+
     /**
-     * Prefer the catalogue audio release when the selected result is a music
-     * video. The video itself still plays first so its metadata appears
-     * immediately while the catalogue match is resolved.
+     * Prefer catalogue audio for a music video. The native player holds its
+     * source decision before playback and falls back to the video's audio
+     * when no verified music recording is available within the deadline.
      */
     private val _preferMusicOnly = MutableStateFlow(settings.getBoolean("prefer_music_only", false))
     val preferMusicOnly: StateFlow<Boolean> = _preferMusicOnly.asStateFlow()
@@ -1105,6 +1121,7 @@ object AppSettings {
             "scrobble_delay_seconds", "output_pcm_mode", "prefer_usb_dac", "loudness_normalization",
             "automix_performance", "high_performance_mode", "performance_refresh_rate",
             "export_downloads", "hide_song_status", "prefer_music_only", "smart_version_alignment",
+            "hide_recents", "hide_home_videos",
             "filter_non_music_audio", "legacy_mesh_gradient", "scrobble_primary_artist",
             "discord_rpc_enabled", "discord_status",
             "discord_activity_type", "discord_activity_name", "discord_swap_title",
@@ -1136,6 +1153,7 @@ object AppSettings {
                 "prefer_usb_dac", "loudness_normalization", "high_performance_mode",
                 "loudness_off_on_speaker", "hide_status_bar_in_player", "show_queue_history", "stop_music_on_close", "artist_signatures_enabled",
                 "export_downloads", "hide_song_status", "prefer_music_only", "smart_version_alignment",
+            "hide_recents", "hide_home_videos",
                 "filter_non_music_audio", "legacy_mesh_gradient",
                 "discord_use_details", "discord_advanced_mode", "discord_info_dismissed",
                 "discord_button_1_visible", "discord_button_2_visible",
@@ -1219,6 +1237,8 @@ object AppSettings {
                 "export_downloads" -> setExportDownloads(value.toBoolean())
                 "hide_song_status" -> setHideSongStatus(value.toBoolean())
                 "prefer_music_only" -> setPreferMusicOnly(value.toBoolean())
+                "hide_recents" -> setHideRecents(value.toBoolean())
+                "hide_home_videos" -> setHideHomeVideos(value.toBoolean())
                 "smart_version_alignment" -> setSmartVersionAlignment(value.toBoolean())
                 "filter_non_music_audio" -> setFilterNonMusicAudio(value.toBoolean())
                 "legacy_mesh_gradient" -> setLegacyMeshGradient(value.toBoolean())

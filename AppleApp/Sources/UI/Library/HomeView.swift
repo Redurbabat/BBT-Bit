@@ -20,6 +20,8 @@ struct HomeView: View {
     /// is a singleton while the reader's place in it was not (upstream hoists
     /// `homeListState` outside its tab switch for the same reason).
     var scrollPosition: Binding<ScrollPosition>? = nil
+    @AppStorage("hide_recents") private var hideRecents = false
+    @AppStorage("hide_home_videos") private var hideHomeVideos = false
 
     var body: some View {
         PageStack {
@@ -86,26 +88,35 @@ struct HomeView: View {
                 buttonTitle: "Retry"
             ) { Task { await feed.load() } }
         case .loaded(let shelves):
+            let withoutRecents = hideRecents ? shelves.filter { !isRecentsShelf($0) } : shelves
+            // Der Originalfeed bleibt erhalten; nur die sichtbaren Videos und
+            // dadurch leere Regale verschwinden bei eingeschalteter Option.
+            let visibleShelves = hideHomeVideos ? withoutRecents.compactMap { shelf -> FeedShelf? in
+                let items = shelf.items.filter { !$0.isVideo }
+                return items.isEmpty ? nil : FeedShelf(
+                    title: shelf.title, items: items, subtitle: shelf.subtitle
+                )
+            } : withoutRecents
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     if !auth.signedIn {
                         SignInBanner { auth.loginPresented = true }
                     }
-                    ForEach(Array(shelves.enumerated()), id: \.element.id) { index, shelf in
+                    ForEach(Array(visibleShelves.enumerated()), id: \.element.id) { index, shelf in
                         if index == 0, isRecentsShelf(shelf) {
                             RecentShelf(shelf: shelf)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id { Task { await feed.loadMore() } }
+                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
                                 }
                         } else if index == 0 {
                             HeroShelf(shelf: shelf, preferTrack: true)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id { Task { await feed.loadMore() } }
+                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
                                 }
                         } else {
                             ShelfCarousel(shelf: shelf, preferTrack: true)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id {
+                                    if shelf.id == visibleShelves.last?.id {
                                         Task { await feed.loadMore() }
                                     }
                                 }
@@ -147,6 +158,7 @@ private enum RecentShelfLayout {
 /// The upstream Home loading state reserves the Recents shelf and matches the
 /// saved list/grid layout so content does not jump when the feed arrives.
 private struct HomeFeedSkeleton: View {
+    @AppStorage("hide_recents") private var hideRecents = false
     @State private var viewType = PlatformSettings.shared.getString(
         key: "home_recents_view_type", default: "LIST"
     )
@@ -155,6 +167,7 @@ private struct HomeFeedSkeleton: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 26) {
+            if !hideRecents {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     RecentsSkeletonBlock(height: 22, cornerRadius: 6).frame(width: 112)
@@ -212,6 +225,7 @@ private struct HomeFeedSkeleton: View {
                     }
                     .frame(height: 202)
                 }
+            }
             }
             ForEach(0..<2, id: \.self) { shelf in
                 VStack(alignment: .leading, spacing: 10) {
@@ -288,7 +302,7 @@ struct RecentShelf: View {
     /// points, and the heroes drew straight through the shelf below.
     @State private var gridWidth: CGFloat = 0
 
-    private var isList: Bool { viewType.uppercased() != "GRID" }
+    private var isList: Bool { viewType.uppercased() == "LIST" }
 
     /// Upstream's hero width: 70% of the row, capped at 320.
     private var heroSide: CGFloat {
@@ -306,20 +320,15 @@ struct RecentShelf: View {
                     }
                 }
                 Spacer(minLength: 8)
-                Button {
-                    viewType = isList ? "GRID" : "LIST"
-                    PlatformSettings.shared.putString(key: "home_recents_view_type", value: viewType)
+                Menu {
+                    Button("Liste", systemImage: "list.bullet") { selectView("LIST") }
+                    Button("Raster", systemImage: "square.grid.2x2") { selectView("GRID") }
+                    Button("Depth Ribbon", systemImage: "square.stack.3d.up") { selectView("RIBBON") }
                 } label: {
-                    Image(isList ? .bchGridView : .bchListView)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(.secondary)
-                        .frame(width: 19, height: 19)
+                    Image(systemName: viewType == "RIBBON" ? "square.stack.3d.up" : "square.grid.2x2")
                         .frame(width: 32, height: 32)
                 }
-                .buttonStyle(.plain)
-                .help(isList ? "Switch to grid view" : "Switch to list view")
-                .accessibilityLabel(isList ? "Switch to grid view" : "Switch to list view")
+                .accessibilityLabel("Ansicht auswählen")
             }
             if isList {
                 GeometryReader { geometry in
@@ -342,6 +351,17 @@ struct RecentShelf: View {
                 }
                 .frame(height: 4 * 56 + 4)
                 .padding(.horizontal, -24)
+            } else if viewType == "RIBBON" {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 6) {
+                        ForEach(shelf.items) { card in
+                            HeroCard(card: card, preferTrack: true, side: 184)
+                                .modifier(RecentRibbonTransform())
+                        }
+                    }
+                    .padding(.vertical, 18)
+                }
+                .frame(height: 242)
             } else {
                 // Upstream's Recents GRID mode is the hero treatment: the
                 // same 0.92-ratio scrim-caption tiles as Home's first shelf.
@@ -360,6 +380,11 @@ struct RecentShelf: View {
             }
         }
     }
+    private func selectView(_ type: String) {
+        viewType = type
+        PlatformSettings.shared.putString(key: "home_recents_view_type", value: type)
+    }
+
 }
 
 /// One recent track: 48pt sleeve, title/artist, overflow menu. Matches
@@ -440,5 +465,25 @@ private extension Array {
             index = end
         }
         return out
+    }
+}
+
+
+private struct RecentRibbonTransform: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            content
+        } else {
+            content.scrollTransition(.interactive, axis: .horizontal) { view, phase in
+                view
+                    .rotation3DEffect(.degrees(Double(phase.value) * -30), axis: (0, 1, 0), perspective: 0.75)
+                    .rotationEffect(.degrees(Double(phase.value) * 5))
+                    .offset(y: abs(phase.value) * 24)
+                    .scaleEffect(1 - abs(phase.value) * 0.14)
+                    .opacity(1 - abs(phase.value) * 0.25)
+            }
+        }
     }
 }

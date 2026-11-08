@@ -32,7 +32,7 @@ extension PlaybackController {
         state = newState
         if let current {
             nowPlaying.update(
-                id: current.id, title: current.title, artist: current.artist,
+                id: current.id, title: current.title, artist: current.artist, albumName: current.albumName,
                 duration: duration, artworkData: current.artworkData,
                 thumbnailUrl: current.thumbnailUrl,
                 isPlaying: newState == .playing
@@ -107,11 +107,17 @@ extension PlaybackController {
             PlaybackTrackerBridge.shared.onTrackChanged(positionSeconds: Int64(outgoingPosition))
             if let id = historyVideoID {
                 QueueBuilderBridge.shared.rememberPlayed(videoId: id)
+                // Original: auch bei manuell gestarteten Aufnahmen ein
+                // anderes YouTube-ID-Pendant derselben Aufnahme vermeiden.
+                if let data = try? JSONEncoder().encode(entry.asSongJSON(videoIDOverride: id)),
+                   let json = String(data: data, encoding: .utf8) {
+                    QueueBuilderBridge.shared.rememberPlayedSongJson(songJson: json)
+                }
                 PlaybackTrackerBridge.shared.onPlaying(videoId: id)
             }
             publishPresence()
             nowPlaying.update(
-                id: entry.id, title: entry.title, artist: entry.artist,
+                id: entry.id, title: entry.title, artist: entry.artist, albumName: entry.albumName,
                 duration: info.durationSeconds, artworkData: entry.artworkData,
                 thumbnailUrl: entry.thumbnailUrl, isPlaying: isPlaying, position: position
             )
@@ -130,7 +136,15 @@ extension PlaybackController {
     func handleTrackEnded(_ reason: TrackEndReason, source: String) {
         guard state != .paused else { return }
         if reason == .error {
-            _ = recoverInterruptedStream(source: source, explanation: "The audio decoder stopped; requesting a fresh stream at the same position.")
+            // A decoder failure is not a natural end. If bounded recovery is
+            // exhausted, surface the failure instead of silently abandoning
+            // playback with the UI still claiming the track is playing.
+            if !recoverInterruptedStream(
+                source: source,
+                explanation: "The audio decoder stopped; requesting a fresh stream at the same position."
+            ) {
+                stopAfterFailedRecovery(source: source)
+            }
             return
         }
         guard reason == .natural else { return }

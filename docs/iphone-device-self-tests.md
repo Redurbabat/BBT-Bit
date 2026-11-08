@@ -18,6 +18,32 @@ Automix-Songübergänge, Handoff, Geräteausgabe noch Party-Synchronisation.
 Es werden keine persönlichen Songs, Fotos oder Zugangsdaten gelesen.
 Ein PNG-Render-Erfolg ist kein vollständiger Funktionstest.
 
+## 1b. BBT-Bit Testzentrale – produktive App im Alltag prüfen
+
+Zusätzlich zum reinen Design-Selbsttest besitzt die BitChord-v1.9.1-Portierungsbranche
+`feature/bitchord-v1-9-1-port-20261106` die **BBT-Bit Testzentrale**:
+`Einstellungen → Wiedergabe → BBT-Bit Testzentrale` (direkt oben)
+oder `Einstellungen → Erweiterte Optionen → BBT-Bit Testzentrale`
+oder `Automix Models → BBT-Bit Testzentrale öffnen`.
+
+- Bis zu 30 Minuten **echte** Player-Zustände während der normalen App-Nutzung
+  aufzeichnen, ohne die Queue zu ersetzen oder künstliche Testtöne abzuspielen.
+- Die drei optionalen Modelle einschließlich Bytezahl und SHA-256 prüfen;
+  die tatsächliche Rust-/Core-ML-/Open-Unmix-Verwendung bei **neuen**
+  Automix-Planungen erkennen.
+- Decoder, Queue, Netzwerk, Ausgabestream, Audio-Session und Fehlerindikatoren
+  einsehen. 14 manuelle Bereiche selbst mit `Offen`/`Bestanden`/`Fehler` bewerten.
+- Einen **lokalen JSON-Bericht** speichern und nur auf eigenen Wunsch teilen.
+  Er enthält keine Songtitel, YouTube-IDs, Stream-URLs oder Zugangsdaten.
+
+Dies ist ein **Passivtest plus Handcheckliste**, kein vollständiger automatischer
+UI-Robotertest. Die App kann nicht beweisen, dass Lautsprecher physisch hörbar
+ausgeben; das muss die testende Person bestätigen. Xcode-Kompilierung, signierte
+IPA, GitHub-CI und alle externen Tests bleiben separat erforderlich.
+
+**Status:** Implementierter Quellcode auf Draft-Branch; erfolgreiche iPhone-IPA,
+tatsächliche Wiedergabe und UI-Prüfung **NICHT GETESTET**.
+
 ## 2. Echte automatische Fingertipps auf deinem iPhone
 
 Benötigt:

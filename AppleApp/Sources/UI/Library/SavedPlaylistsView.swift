@@ -208,7 +208,7 @@ struct SavedPlaylistsView: View {
         }
         .sheet(item: $importDraft) { draft in
             PlaylistImportReviewView(draft: draft) { importError in
-                importMessage = importError ?? "Playlist saved to BitChord. Reimporting this file will update the same playlist."
+                importMessage = importError ?? "Playlist saved to RED Bit. Reimporting this file will update the same playlist."
                 showImportMessage = true
             }
         }

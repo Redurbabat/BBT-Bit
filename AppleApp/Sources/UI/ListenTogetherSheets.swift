@@ -351,7 +351,7 @@ struct InviteSheet: View {
                         ShareLink(
                             item: link,
                             subject: Text("Listen together"),
-                            message: Text("Listen with me on BitChord — party code \(party.code)")
+                            message: Text("Listen with me on RED Bit — party code \(party.code)")
                         ) {
                             Label("Share invite", systemImage: "link")
                         }

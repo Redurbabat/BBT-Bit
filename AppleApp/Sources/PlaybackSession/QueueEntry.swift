@@ -78,13 +78,15 @@ struct QueueEntry: Identifiable, Hashable, Sendable, Codable {
         artistId: String? = nil,
         albumId: String? = nil,
         setVideoId: String? = nil,
-        fromAutoplay: Bool = false
+        fromAutoplay: Bool = false,
+        isVideo: Bool = false
     ) -> QueueEntry {
         QueueEntry(
             id: videoId, title: title, artist: artist, source: "yt:\(videoId)",
             thumbnailUrl: thumbnailUrl, durationText: durationText, albumName: albumName,
             artworkData: nil, isLocal: false, fromAutoplay: fromAutoplay,
-            artistId: artistId, albumId: albumId, setVideoId: setVideoId
+            artistId: artistId, albumId: albumId, setVideoId: setVideoId,
+            isVideo: isVideo
         )
     }
 

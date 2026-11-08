@@ -115,7 +115,7 @@ struct DownloadsView: View {
                 } else { EmptyStateView(
                     icon: Image(.bchLibrary),
                     title: "No downloads yet",
-                    subtitle: "Save a track from Now Playing — BitChord tags it and keeps it here.",
+                    subtitle: "Save a track from Now Playing — RED Bit tags it and keeps it here.",
                     buttonTitle: nil, action: nil
                 ) }
             } else {

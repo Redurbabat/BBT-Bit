@@ -460,7 +460,7 @@ struct AutomixModelsSheet: View {
                                     .font(.title2.weight(.bold))
                                     .multilineTextAlignment(.center)
 
-                                Text("BitChord analyzes your tracks on-device to match beats, time crossfades, and prevent vocal clashes between songs.")
+                                Text("RED Bit analyzes your tracks on-device to match beats, time crossfades, and prevent vocal clashes between songs.")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                                     .multilineTextAlignment(.center)
@@ -674,13 +674,18 @@ struct AutomixModelsPage: View {
     var body: some View {
         Form {
             Section {
+                NavigationLink("RED Bit Testzentrale öffnen") { AutomixLiveTestView() }
+            } footer: {
+                Text("Prüfe hier während der normalen Wiedergabe, welche Modelle wirklich verwendet werden.")
+            }
+            Section {
                 ForEach(AutomixModelStore.ModelID.allCases) { id in
                     AutomixModelRow(id: id, store: store)
                 }
             } header: {
                 Text("Models")
             } footer: {
-                Text("Downloaded once and kept in BitChord's storage. Removing a model takes effect immediately: Automix falls back to tempo analysis without the beat model, and stops watching for vocal clashes without the vocal one.")
+                Text("Downloaded once and kept in RED Bit's storage. Removing a model takes effect immediately: Automix falls back to tempo analysis without the beat model, and stops watching for vocal clashes without the vocal one.")
             }
             Section {
                 if store.totalBytesOnDisk > 0 {

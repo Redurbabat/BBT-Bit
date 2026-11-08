@@ -21,7 +21,7 @@ require AppleApp/Sources/UI/MacMiniPlayer.swift \
 require AppleApp/Sources/UI/MacMiniPlayer.swift \
   'mac.closeToTray' 'close-to-tray preference is shared with the menu-bar toggle'
 require AppleApp/Sources/UI/MacMiniPlayer.swift \
-  'Keep BitChord open when windows close' 'menu-bar player exposes the close-to-tray toggle'
+  'Keep RED Bit open when windows close' 'menu-bar player exposes the close-to-tray toggle'
 require AppleApp/Sources/UI/MacMiniPlayer.swift \
   'stop_music_on_close' 'window close honors the Stop Music on Close preference'
 require AppleApp/Sources/UI/MacShell.swift \

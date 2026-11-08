@@ -32,7 +32,9 @@ definitions:
         java -version
         /usr/libexec/java_home -v 21
         grep -q 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' AppleApp/project.yml
-        grep -q 'CFBundleDisplayName: BBT-Bit' AppleApp/project.yml
+        grep -q 'CFBundleDisplayName: RED Bit' AppleApp/project.yml
+        # Verify all three public pinned sources before Debug or Release IPA.
+        python3 scripts/verify-automix-model-sources.py
         ./scripts/check-network-errors.sh
 
     - &install_native_tools
@@ -101,7 +103,7 @@ definitions:
         test -n "$IPA"
         unzip -p "$IPA" Payload/BitChord.app/Info.plist > /tmp/BBT-Bit-Info.plist
         test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /tmp/BBT-Bit-Info.plist)" = "com.babat.bbtbit"
-        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/BBT-Bit-Info.plist)" = "BBT-Bit"
+        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/BBT-Bit-Info.plist)" = "RED Bit"
         echo "OK: fast unsigned Debug IPA for iPhone/iPad — signing required before installation"
 
     - &build_release_ipa
@@ -118,7 +120,7 @@ definitions:
         test -n "$IPA"
         unzip -p "$IPA" Payload/BitChord.app/Info.plist > /tmp/BBT-Bit-Info.plist
         test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /tmp/BBT-Bit-Info.plist)" = "com.babat.bbtbit"
-        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/BBT-Bit-Info.plist)" = "BBT-Bit"
+        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/BBT-Bit-Info.plist)" = "RED Bit"
         echo "OK: unsigned Release IPA — signing required before installation"
 
 workflows:

@@ -67,7 +67,7 @@ extension NowPlayingView {
                 outputPartyPill
             }
         }
-        .transition(.opacity.combined(with: .scale(scale: 0.94)))
+        .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.94)))
     }
 
     /// Which of the three panes is showing.
@@ -186,10 +186,10 @@ extension NowPlayingView {
                 .accessibilityLabel("Mix with Other Apps")
                 .accessibilityValue(controller.mixWithOtherAudio ? "On" : "Off")
                 .accessibilityHint(controller.mixWithOtherAudio
-                    ? "Turn off to give BitChord audio priority. Other apps may pause."
+                    ? "Turn off to give RED Bit audio priority. Other apps may pause."
                     : "Turn on to keep other apps audible.")
                 .accessibilityAddTraits(controller.mixWithOtherAudio ? .isSelected : [])
-                .help(controller.mixWithOtherAudio ? "Mixing on" : "BitChord audio priority")
+                .help(controller.mixWithOtherAudio ? "Mixing on" : "RED Bit audio priority")
 
                 pillDivider
             }
@@ -236,8 +236,7 @@ extension NowPlayingView {
             .buttonStyle(.plain)
             .accessibilityLabel(party.inParty ? "People listening" : "Listen Together")
         }
-        .background(.white.opacity(0.12))
-        .clipShape(Capsule())
+        .modifier(PlayerModeGlassChrome())
         .accessibilityElement(children: .contain)
     }
 
@@ -290,18 +289,18 @@ extension NowPlayingView {
             pillDivider
 
             Button {
-                Haptics.play(controller.autoplayEnabled ? .toggleOff : .toggleOn)
+                Haptics.play(controller.effectiveAutoplayEnabled ? .toggleOff : .toggleOn)
                 controller.toggleAutoplay()
             } label: {
                 Image(.bchInfinity)
                     .resizable().scaledToFit()
                     .frame(width: 22, height: 22)
-                    .foregroundStyle(.white.opacity(controller.autoplayEnabled ? 1 : 0.75))
+                    .foregroundStyle(.white.opacity(controller.effectiveAutoplayEnabled ? 1 : 0.75))
                     .frame(width: 52, height: 44)
-                    .background(.white.opacity(controller.autoplayEnabled ? 0.14 : 0))
+                    .background(.white.opacity(controller.effectiveAutoplayEnabled ? 0.14 : 0))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(controller.autoplayEnabled ? "AutoPlay on" : "AutoPlay off")
+            .accessibilityLabel(controller.effectiveAutoplayEnabled ? "AutoPlay on" : "AutoPlay off")
 
             pillDivider
 
@@ -323,9 +322,25 @@ extension NowPlayingView {
                 ? "AutoMix blends the end of one track into the next"
                 : "AutoMix off — tracks change at the end")
         }
-        .background(.white.opacity(0.12))
-        .clipShape(Capsule())
+        .modifier(PlayerModeGlassChrome())
         .accessibilityElement(children: .contain)
+    }
+
+    /// Eine neutrale native Glasfläche für Infinity-, Automix- und Ausgabemodi.
+    /// Keine albumabhängige Tönung und keine zweite eingefärbte Schicht.
+    private struct PlayerModeGlassChrome: ViewModifier {
+        @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+        @ViewBuilder
+        func body(content: Content) -> some View {
+            if reduceTransparency {
+                content.background(.black.opacity(0.82), in: Capsule())
+            } else if #available(iOS 26.0, macOS 26.0, *) {
+                content.glassEffect(.regular, in: Capsule())
+            } else {
+                content.background(.ultraThinMaterial, in: Capsule())
+            }
+        }
     }
 
     private var pillDivider: some View {

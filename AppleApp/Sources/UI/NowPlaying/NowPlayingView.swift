@@ -22,6 +22,7 @@ struct NowPlayingView: View {
     @Environment(AppModel.self) var appModel
     @Environment(PartyStore.self) var party
     @Environment(\.dismiss) var dismiss
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
@@ -44,6 +45,8 @@ struct NowPlayingView: View {
     /// The same switch as Settings ▸ Playback ▸ Show Music Videos, flipped
     /// from the pill while the track plays.
     @AppStorage("show_music_videos") var showMusicVideos = false
+    /// Lyrics als Sternbild statt Liste (nur bei zeitlich synchronisierten Lyrics).
+    @AppStorage("lyrics_constellation") var lyricsConstellation = false
     @AppStorage("hide_status_bar_in_player") private var hideStatusBarInPlayer = false
     @State var showEqualizerFromDock = false
     @State var showPipeline = false
@@ -101,13 +104,13 @@ struct NowPlayingView: View {
         }
         .onChange(of: appModel.queueRevealRequested) { _, requested in
             if requested {
-                withAnimation(.easeInOut(duration: 0.2)) { pane = .queue }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { pane = .queue }
                 appModel.queueRevealRequested = false
             }
         }
         .onChange(of: appModel.lyricsRevealRequested) { _, requested in
             if requested {
-                withAnimation(.easeInOut(duration: 0.2)) { pane = .lyrics }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { pane = .lyrics }
                 appModel.lyricsRevealRequested = false
             }
         }
@@ -127,7 +130,7 @@ struct NowPlayingView: View {
                 }
                 guard !Task.isCancelled, pane == .lyrics, lyricsControlsOpen else { return }
                 if lyricsScrubbing { continue }
-                withAnimation(.easeInOut(duration: 0.22)) { lyricsControlsOpen = false }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) { lyricsControlsOpen = false }
                 return
             }
         }

@@ -1,8 +1,8 @@
 {
   "fill": {
     "linear-gradient": [
-      "srgb:0.43137,0.24706,0.84314,1.00000",
-      "srgb:0.10196,0.07059,0.27059,1.00000"
+      "srgb:0.94118,0.09412,0.18039,1.00000",
+      "srgb:0.14902,0.00000,0.03922,1.00000"
     ]
   },
   "groups": [
@@ -10,8 +10,8 @@
       "layers": [
         {
           "glass": true,
-          "image-name": "waves.svg",
-          "name": "waves"
+          "image-name": "rbit.svg",
+          "name": "rbit"
         }
       ],
       "shadow": {

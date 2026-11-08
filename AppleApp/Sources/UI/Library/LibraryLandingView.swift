@@ -183,6 +183,7 @@ struct LibraryLandingView: View {
     private func shelfSection(_ shelf: FeedShelf) -> some View {
         let isPlaylists = isPlaylistsShelf(shelf)
         let totalCount = shelf.items.count + (isPlaylists ? 1 : 0)
+        let usesAlbumRail = isPlaylists || shelf.title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "artists"
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(shelf.title).font(.title3.weight(.bold))
@@ -217,6 +218,7 @@ struct LibraryLandingView: View {
                     }
                     ForEach(displayItems(shelf)) { card in
                         ShelfCardView(card: card)
+                            .modifier(AlbumRailMotion(enabled: usesAlbumRail))
                     }
                 }
                 .padding(.vertical, 2)
@@ -309,5 +311,33 @@ struct OnDeviceCard<Destination: View>: View {
         }
         .buttonStyle(.plain)
         .modifier(MacCardHoverLift())
+    }
+}
+
+
+/// Native Album Rail-inspired motion for playlist and artist shelves.
+/// Preserves ShelfCardView's original navigation and artwork, and never
+/// changes the backing library collection or its ordering.
+private struct AlbumRailMotion: ViewModifier {
+    let enabled: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if enabled && !reduceMotion {
+            content
+                .scrollTransition(.interactive, axis: .horizontal) { view, phase in
+                    view
+                        .rotation3DEffect(
+                            .degrees(Double(phase.value) * -18),
+                            axis: (0, 1, 0),
+                            perspective: 0.65
+                        )
+                        .rotationEffect(.degrees(Double(phase.value) * -3))
+                        .scaleEffect(1 - abs(phase.value) * 0.08)
+                        .opacity(1 - abs(phase.value) * 0.16)
+                }
+        } else {
+            content
+        }
     }
 }

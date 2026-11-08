@@ -618,7 +618,7 @@ struct TopBarLeadingMark: View {
                         }
                     }
             )
-            .accessibilityLabel("BBT-Bit: Glass Bloom öffnen")
+            .accessibilityLabel("RED Bit: Glass Bloom öffnen")
             .accessibilityHint("Tippen für die Musikblase, halten oder nach unten ziehen für die Musiksteuerung. Beim Hochscrollen erscheint sie auch automatisch.")
             .accessibilityIdentifier("bbt.logoGlassBloom.trigger")
         } else {

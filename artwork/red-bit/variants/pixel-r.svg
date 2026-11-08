@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#F0182E"/>
+      <stop offset="0.6" stop-color="#B00B1F"/>
+      <stop offset="1" stop-color="#26000A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.28" cy="0.15" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="rec" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFB4BA"/>
+      <stop offset="0.45" stop-color="#FF3B4A"/>
+      <stop offset="1" stop-color="#C40E22"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <g fill="#FFFFFF">
+    <rect x="292" y="202" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="382" y="202" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="472" y="202" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="562" y="202" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="292" y="292" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="652" y="292" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="292" y="382" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="652" y="382" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="292" y="472" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="382" y="472" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="472" y="472" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="562" y="472" width="80" height="80" rx="22" opacity="1.0"/>
+    <rect x="292" y="562" width="80" height="80" rx="22" opacity="0.9"/>
+    <rect x="472" y="562" width="80" height="80" rx="22" opacity="0.9"/>
+    <rect x="292" y="652" width="80" height="80" rx="22" opacity="0.9"/>
+    <rect x="562" y="652" width="80" height="80" rx="22" opacity="0.9"/>
+    <rect x="292" y="742" width="80" height="80" rx="22" opacity="0.78"/>
+    <rect x="652" y="742" width="80" height="80" rx="22" opacity="0.78"/>
+  </g>
+</svg>

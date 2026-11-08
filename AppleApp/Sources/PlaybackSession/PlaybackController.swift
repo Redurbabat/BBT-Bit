@@ -53,7 +53,7 @@ extension QueueEntry {
             albumName: albumName,
             artistId: artistId,
             albumId: albumId,
-            isVideo: false,
+            isVideo: isVideo,
             fromAutoplay: fromAutoplay
         )
     }
@@ -313,6 +313,12 @@ final class PlaybackController {
     /// `id` of the track that was current when [repeatAllStash] was taken.
     var repeatAllStashSeed: String?
     @ObservationIgnored var autoplayRefresh = AutoplayRefreshState()
+    // Wartet auf die Rückmeldung des Party-Servers, bevor neu aufgefüllt wird.
+    @ObservationIgnored var partyAutoplayPendingIDs: Set<String> = []
+    @ObservationIgnored var partyAutoplayEchoTask: Task<Void, Never>?
+    @ObservationIgnored var autoplayEmptyContext: AutoplayRefreshState.Context?
+    @ObservationIgnored var autoplayEmptyFailures: Int = 0
+    @ObservationIgnored var autoplayEmptyRetryTask: Task<Void, Never>?
     @ObservationIgnored var queueEditRevision: UInt64 = 0
     @ObservationIgnored var sequencingTask: Task<Void, Never>?
     @ObservationIgnored var sequencingGeneration: UInt64 = 0
@@ -377,6 +383,11 @@ final class PlaybackController {
     /// Analysis backends for the last planned pair: outgoing / incoming
     /// (`music_understanding`, `beat_this`, `dsp`, `disk_cache`).
     var analysisSources: String?
+    /// Incremented only after the Rust engine has produced a real pair plan.
+    /// The live test uses this instead of claiming installed models were run.
+    var automixPlanRevision: UInt64 = 0
+    /// Incremented when the engine reports a real transition starting.
+    var automixTransitionRevision: UInt64 = 0
     /// Beat-grid confidence when native-core exposes it. Nil until then.
     var analysisConfidence: Double?
     /// Marker on the progress bar while a planned Automix window is known.

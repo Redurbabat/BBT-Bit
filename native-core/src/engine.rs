@@ -289,6 +289,12 @@ impl PlayerEngine {
             active_bit_perfect_depth: self.active_bit_perfect_depth.clone(),
             bit_perfect_reason: self.bit_perfect_reason.clone(),
             prefer_usb: self.prefer_usb.clone(),
+            #[cfg(target_os = "macos")]
+            idle_release_generation: Arc::new(AtomicU64::new(0)),
+            #[cfg(target_os = "macos")]
+            exclusive_suspended: Arc::new(AtomicBool::new(false)),
+            #[cfg(target_os = "macos")]
+            suspended_device_id: Arc::new(AtomicU32::new(0)),
         };
         let stream = open_output_stream(
             &device,
@@ -516,6 +522,15 @@ impl PlayerEngine {
         }
 
         let active_depth = self.active_bit_perfect_depth.load(Ordering::Relaxed);
+        // Ein pausierter CoreAudio-Stream hält keinen DAC-Hog-Mode,
+        // bleibt jedoch als Integer-Ausgabestream vorbereitet. Andernfalls
+        // würde SetBitPerfect den erhaltenen PCM-Ring falsch interpretieren.
+        #[cfg(target_os = "macos")]
+        let active_depth = if control.exclusive_suspended.load(Ordering::Acquire) {
+            self.bit_perfect_depth.load(Ordering::Acquire)
+        } else {
+            active_depth
+        };
         if try_bit_perfect && active_depth != source_bit_depth {
             bit_perfect_reason = "The route could not open the exact source format".into();
             release_output_exclusive();
@@ -638,7 +653,20 @@ impl PlayerEngine {
     pub fn play(&self) -> Result<(), EngineError> {
         #[cfg(target_os = "ios")]
         self.set_ios_output_running(true)?;
-        #[cfg(not(target_os = "ios"))]
+        #[cfg(target_os = "macos")]
+        {
+            // Beim Fortsetzen bleiben Consumer und ungespielte PCM-Frames
+            // erhalten. Gerät-/Formatwechsel erzeugen einen Fehler statt
+            // fälschlich als bit-perfekte Wiedergabe zu gelten.
+            let control = self
+                .control
+                .lock()
+                .unwrap()
+                .clone()
+                .ok_or(EngineError::NotStarted)?;
+            control.resume_exclusive_idle_output()?;
+        }
+        #[cfg(not(any(target_os = "ios", target_os = "macos")))]
         self.output_paused.store(false, Ordering::Release);
         self.send(Command::Play)
     }
@@ -648,16 +676,26 @@ impl PlayerEngine {
         self.send(Command::Pause)?;
         #[cfg(target_os = "ios")]
         self.set_ios_output_running(false)?;
+        #[cfg(target_os = "macos")]
+        if let Some(control) = self.control.lock().unwrap().clone() {
+            control.schedule_exclusive_idle_release();
+        }
         Ok(())
     }
 
     pub fn stop(&self) -> Result<(), EngineError> {
-        #[cfg(target_os = "ios")]
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
         self.output_paused.store(true, Ordering::Release);
         self.bail_flush.store(true, Ordering::Release);
         self.send(Command::Stop)?;
         #[cfg(target_os = "ios")]
         self.set_ios_output_running(false)?;
+        #[cfg(target_os = "macos")]
+        if let Some(control) = self.control.lock().unwrap().clone() {
+            // Stop soll einen exklusiven USB-DAC nicht unbegrenzt halten;
+            // der inaktive Ausgabepfad wird nach derselben Frist freigegeben.
+            control.schedule_exclusive_idle_release();
+        }
         Ok(())
     }
 

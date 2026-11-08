@@ -271,7 +271,7 @@ struct LiquidLiveScreenshotSettingsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Echte App-Screenshots")
                         .font(.headline)
-                    Text("Aufnahme starten, diese Seite verlassen und die neuen Funktionen in BBT-Bit öffnen. Bei jeder sichtbaren Liquid-Motion-Funktion speichert die App automatisch den tatsächlichen Bildschirm als PNG.")
+                    Text("Aufnahme starten, diese Seite verlassen und die neuen Funktionen in RED Bit öffnen. Bei jeder sichtbaren Liquid-Motion-Funktion speichert die App automatisch den tatsächlichen Bildschirm als PNG.")
                         .foregroundStyle(.secondary)
                     if recorder.recording {
                         Button {
@@ -315,7 +315,7 @@ struct LiquidLiveScreenshotSettingsView: View {
             } header: {
                 Text("Automatische Aufnahme bei sichtbaren Funktionen")
             } footer: {
-                Text("Es werden ausschließlich echte BBT-Bit-App-Fenster aufgenommen. Manche Funktionen sind nur bei aktiver Musik, Downloads, Canvas oder einer Handoff-/Party-Sitzung sichtbar. Die App öffnet diese Funktionen nicht heimlich und erzeugt keine Fake-Screenshots.")
+                Text("Es werden ausschließlich echte RED-Bit-App-Fenster aufgenommen. Manche Funktionen sind nur bei aktiver Musik, Downloads, Canvas oder einer Handoff-/Party-Sitzung sichtbar. Die App öffnet diese Funktionen nicht heimlich und erzeugt keine Fake-Screenshots.")
             }
 
             Section("Fortschritt") {

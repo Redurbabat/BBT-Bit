@@ -44,10 +44,11 @@ struct ShelfCard: Codable, Identifiable, Hashable {
     let thumbnailUrl: String?
     let videoId: String?
     let browseId: String?
+    let isVideo: Bool
 
     var id: String { videoId ?? browseId ?? title }
 
-    enum CodingKeys: String, CodingKey { case title, subtitle, thumbnailUrl, videoId, browseId }
+    enum CodingKeys: String, CodingKey { case title, subtitle, thumbnailUrl, videoId, browseId, isVideo }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         title = try c.decodeIfPresent(String.self, forKey: .title) ?? ""
@@ -55,9 +56,11 @@ struct ShelfCard: Codable, Identifiable, Hashable {
         thumbnailUrl = try c.decodeIfPresent(String.self, forKey: .thumbnailUrl)
         videoId = try c.decodeIfPresent(String.self, forKey: .videoId)
         browseId = try c.decodeIfPresent(String.self, forKey: .browseId)
+        isVideo = try c.decodeIfPresent(Bool.self, forKey: .isVideo) ?? false
     }
-    init(title: String, subtitle: String? = nil, thumbnailUrl: String? = nil, videoId: String? = nil, browseId: String? = nil) {
-        self.title = title; self.subtitle = subtitle; self.thumbnailUrl = thumbnailUrl; self.videoId = videoId; self.browseId = browseId
+    init(title: String, subtitle: String? = nil, thumbnailUrl: String? = nil, videoId: String? = nil, browseId: String? = nil, isVideo: Bool = false) {
+        self.title = title; self.subtitle = subtitle; self.thumbnailUrl = thumbnailUrl
+        self.videoId = videoId; self.browseId = browseId; self.isVideo = isVideo
     }
 }
 

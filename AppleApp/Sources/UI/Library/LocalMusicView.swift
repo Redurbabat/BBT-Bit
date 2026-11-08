@@ -139,7 +139,7 @@ struct LocalSongsBrowser: View {
             EmptyStateView(
                 icon: Image(.bchLibrary),
                 title: "Scan your music",
-                subtitle: "Pick a folder — BitChord reads its tags, artwork and plays it with gapless and crossfade.",
+                subtitle: "Pick a folder — RED Bit reads its tags, artwork and plays it with gapless and crossfade.",
                 buttonTitle: "Choose Folder"
             ) { onPickFolder() }
         } else if local.tracks.isEmpty {
@@ -314,7 +314,7 @@ struct LocalAlbumGrid: View {
             EmptyStateView(
                 icon: Image(.bchLibrary),
                 title: "Scan your music",
-                subtitle: "Pick a folder — BitChord reads its tags, artwork and plays it with gapless and crossfade.",
+                subtitle: "Pick a folder — RED Bit reads its tags, artwork and plays it with gapless and crossfade.",
                 buttonTitle: "Choose Folder"
             ) { onPickFolder() }
         } else if local.albumGroups.isEmpty {
@@ -375,7 +375,7 @@ struct LocalArtistList: View {
             EmptyStateView(
                 icon: Image(.bchLibrary),
                 title: "Scan your music",
-                subtitle: "Pick a folder — BitChord reads its tags, artwork and plays it with gapless and crossfade.",
+                subtitle: "Pick a folder — RED Bit reads its tags, artwork and plays it with gapless and crossfade.",
                 buttonTitle: "Choose Folder"
             ) { onPickFolder() }
         } else if local.artistGroups.isEmpty {

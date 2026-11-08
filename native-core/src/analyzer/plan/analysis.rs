@@ -58,6 +58,10 @@ pub(super) struct Analysis {
     /// the record of what a stored analysis actually ran on.
     #[serde(default)]
     pub(super) beat_backend: String,
+    /// True only after open-unmix returned a usable nonempty vocal mask;
+    /// a configured model or DSP heuristic alone must not count as inference.
+    #[serde(default)]
+    pub(super) vocal_model_used: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -356,6 +360,10 @@ pub(super) fn ingest_vocals(
     let Some(mask) = vocal::track(&left, &right, rate as f64) else {
         return;
     };
+    if mask.is_empty() {
+        return;
+    }
+    analysis.vocal_model_used = true;
     merge_open_unmix_window(analysis, &mask, offset);
 }
 

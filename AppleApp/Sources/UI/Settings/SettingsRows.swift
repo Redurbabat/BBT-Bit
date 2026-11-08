@@ -19,7 +19,7 @@ struct SettingsLine<Trailing: View>: View {
             SettingsGlyph(kind: glyph)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                     if let badge {
                         Text(badge.uppercased())
                             .font(.caption2.weight(.semibold))
@@ -30,7 +30,7 @@ struct SettingsLine<Trailing: View>: View {
                     }
                 }
                 if let subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
+                    Text(LocalizedStringKey(subtitle))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -67,7 +67,7 @@ struct SettingsSubToggle: View {
     var body: some View {
         Toggle(isOn: $isOn) {
             HStack(spacing: 8) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                 if let badge {
                     Text(badge.uppercased())
                         .font(.caption2.weight(.semibold))

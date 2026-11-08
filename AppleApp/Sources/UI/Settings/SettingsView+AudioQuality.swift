@@ -93,7 +93,7 @@ extension SettingsView {
             #if os(macOS)
             Picker(selection: selection) {
                 ForEach(options) { option in
-                    Text(option.title).tag(option.id)
+                    Text(LocalizedStringKey(option.title)).tag(option.id)
                 }
             } label: {
                 SettingsLine(glyph: glyph, title: title, subtitle: subtitle, badge: badge) {
@@ -106,7 +106,7 @@ extension SettingsView {
                 QualityPickerPage(title: title, selection: selection, options: options)
             } label: {
                 SettingsLine(glyph: glyph, title: title, subtitle: subtitle, badge: badge) {
-                    Text(AudioQualityOption.label(selection.wrappedValue, in: options))
+                    Text(LocalizedStringKey(AudioQualityOption.label(selection.wrappedValue, in: options)))
                         .foregroundStyle(.secondary)
                 }
             }

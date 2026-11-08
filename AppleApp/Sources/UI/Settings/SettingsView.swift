@@ -66,6 +66,8 @@ struct SettingsView: View {
     @State var smartAlign = PlatformSettings.shared.getBoolean(key: "smart_version_alignment", default: true)
     @State var legacyMesh = PlatformSettings.shared.getBoolean(key: "legacy_mesh_gradient", default: false)
     @State var preferMusicOnly = PlatformSettings.shared.getBoolean(key: "prefer_music_only", default: false)
+    @AppStorage("hide_recents") var hideRecents = false
+    @AppStorage("hide_home_videos") var hideHomeVideos = false
     @State var confirmImport = false
     @State var theme = PlatformSettings.shared.getString(key: "theme_mode", default: "dark")
     @State var lyricsSources = LyricsSourceNames.normalizeList(
@@ -153,7 +155,7 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) {}
             Button("Turn On") { highPerf = true }
         } message: {
-            Text("Holding a high refresh rate keeps the display working harder the whole time BitChord is open, and the battery drains faster for it. Turn it on anyway?")
+            Text("Holding a high refresh rate keeps the display working harder the whole time RED Bit is open, and the battery drains faster for it. Turn it on anyway?")
         }
         .fileImporter(isPresented: $pickingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result {
@@ -171,6 +173,9 @@ struct SettingsView: View {
             PerformanceTuner.shared.apply(highPerformance: highPerf, refreshRateHz: refreshRate)
             localFolderName = SettingsView.storedLocalFolderName()
         }
+        // App Language defaults to German; SwiftUI must receive that locale
+        // even when the device itself is configured for English.
+        .environment(\.locale, AppLanguage.locale(for: language))
         .preferredColorScheme(appModel.preferredScheme)
         .onChange(of: dolbyAtmos) { _, value in AppSettings.shared.setDolbyAtmos(value: value) }
         .onChange(of: loudnessOffOnSpeaker) { _, value in
@@ -179,6 +184,8 @@ struct SettingsView: View {
         }
         .onChange(of: hidePlayerStatusBar) { _, value in AppSettings.shared.setHideStatusBarInPlayer(value: value) }
         .onChange(of: showQueueHistory) { _, value in AppSettings.shared.setShowQueueHistory(value: value) }
+        .onChange(of: hideRecents) { _, value in AppSettings.shared.setHideRecents(value: value) }
+        .onChange(of: hideHomeVideos) { _, value in AppSettings.shared.setHideHomeVideos(value: value) }
         .onChange(of: stopMusicOnClose) { _, value in AppSettings.shared.setStopMusicOnClose(value: value) }
         .onChange(of: videoOverCellular) { _, value in
             PlatformSettings.shared.putBoolean(key: "video_over_cellular", value: value)
@@ -372,7 +379,11 @@ struct SettingsView: View {
             keywords: [String],
             @ViewBuilder content: () -> V
         ) {
-            let terms = ([sectionTitle, title] + keywords).joined(separator: Self.separator)
+            // A German search must also match German labels; retain upstream
+            // English identifiers so existing deep links and search terms work.
+            let terms = ([sectionTitle, title,
+                          AppLanguage.localized(sectionTitle), AppLanguage.localized(title)]
+                         + keywords).joined(separator: Self.separator)
             // The matching policy stays in the shared layer (SettingsSearchBridge),
             // where the terms and the comparison cannot drift apart.
             guard SettingsSearchBridge.shared.matches(
@@ -459,13 +470,13 @@ struct SettingsView: View {
         case .audioQuality:
             Text("Source Quality is the request. Current Output shows the decoded audio, device format and processing actually in use. Technical Audio & DAC contains output-specific options.")
         case .downloads:
-            Text("Exported downloads live in the shared Music folder. Private ones stay inside BitChord's own storage.")
+            Text("Exported downloads live in the shared Music folder. Private ones stay inside RED Bit's own storage.")
         case .playback:
             Text("Gapless stays on at 0s. Automix picks timing per track; crossfade sets the manual blend length.")
         case .advanced:
             Text("Analysis and display performance options can increase CPU use and battery consumption. Version alignment controls how a source switch resumes the recording.")
         case .about:
-            Text("BitChord \(update.currentVersion)")
+            Text("RED Bit \(update.currentVersion)")
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(.center)
         case .sources, .account, .appearance, .yourData:
@@ -481,7 +492,7 @@ struct SettingsView: View {
             selection: $selectedMacSettingsSection,
             sidebarLabel: { section in
                 NavigationLink(value: section) {
-                    Label(section.title, systemImage: section.systemImage)
+                    Label(LocalizedStringKey(section.title), systemImage: section.systemImage)
                 }
             },
             detail: { section in
@@ -530,7 +541,7 @@ struct SettingsView: View {
         return Form {
             Section {
                 ForEach(entries.filter { !cleanupTitles.contains($0.title) }) { row in row.content }
-            } header: { Text(section.title) } footer: { if search.isEmpty { footer(for: section) } }
+            } header: { Text(LocalizedStringKey(section.title)) } footer: { if search.isEmpty { footer(for: section) } }
             if section == .downloads {
                 Section {
                     ForEach(entries.filter { cleanupTitles.contains($0.title) }) { row in row.content }
@@ -544,7 +555,7 @@ struct SettingsView: View {
 
     @ViewBuilder private func settingsSectionPage(_ section: SettingsSection) -> some View {
         if section == .sources { SourcesView() }
-        else { settingsSectionForm(section).navigationTitle(section.title) }
+        else { settingsSectionForm(section).navigationTitle(LocalizedStringKey(section.title)) }
     }
 
     private func sectionSummary(_ section: SettingsSection) -> String {
@@ -556,7 +567,8 @@ struct SettingsView: View {
             let attention = state.loadError != nil || state.configs.contains { config in
                 config.enabled && (state.health[config.id]?.name == "rejected" || state.health[config.id]?.name == "unreachable")
             }
-            return "\(enabled) enabled" + (attention ? " · needs attention" : "")
+            let label = String(format: AppLanguage.localized("%lld enabled"), Int64(enabled))
+            return label + (attention ? AppLanguage.localized(" · needs attention") : "")
         case .audioQuality: return "Requested quality, decoded format, effects and device output"
         case .playback: return "Queue, transitions, speed and background playback"
         case .downloads: return "Offline quality, local folders and temporary storage"
@@ -577,8 +589,8 @@ struct SettingsView: View {
                         ForEach(SettingsSection.allCases) { section in
                             PushLink { settingsSectionPage(section) } label: {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Label(section.title, systemImage: section.systemImage)
-                                    Text(sectionSummary(section)).font(.caption).foregroundStyle(.secondary)
+                                    Label(LocalizedStringKey(section.title), systemImage: section.systemImage)
+                                    Text(LocalizedStringKey(sectionSummary(section))).font(.caption).foregroundStyle(.secondary)
                                 }.padding(.vertical, 3)
                             }
                             .id(section.id)
@@ -591,7 +603,7 @@ struct SettingsView: View {
                             row.content
                         }
                     } header: {
-                        Text(built.section.title)
+                        Text(LocalizedStringKey(built.section.title))
                     } footer: {
                         // Not while searching. A footer explains the rows that sat above
                         // it, and the search has filtered those: the Audio Quality note
