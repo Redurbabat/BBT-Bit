@@ -9,6 +9,78 @@ final class LiquidMotionUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// Issue #55: exercise the real search keyboard, not the offline preview.
+    /// This is a keyboard smoke test only; a visible playback pill still
+    /// requires a separate seeded/real playback state before asserting handoff.
+    func testSearchKeyboardCanOpenAndDismissOnRegularAppLaunch() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-onboarding_done", "YES"]
+        app.launch()
+
+        // The iOS 26 simulator exposes the localized Search tab as a Button
+        // with identifier "magnifyingglass" and label "Suchen" (not "Search").
+        // Prefer the SF Symbol identifier; the label can change with locale.
+        let searchTab = app.tabBars.buttons["magnifyingglass"]
+        if !searchTab.waitForExistence(timeout: 20) {
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "BBT-Bit-Search-Tab-Missing"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+        }
+        XCTAssertTrue(searchTab.exists,
+                      "Search tab unavailable on regular app launch. Accessibility tree: \(app.debugDescription)")
+        searchTab.tap()
+
+        let searchField = app.searchFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 15),
+                      "Native iPhone search field did not appear")
+        let pillID = "bbt.playback.pill.open"
+        let pill = app.buttons[pillID]
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player must be present even in the empty playback state")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Expected exactly one mini-player before keyboard focus")
+
+        searchField.tap()
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 10),
+                      "Search field did not display the keyboard")
+        // Keep a diagnostic screenshot even when a subsequent geometry
+        // assertion fails. XCTest otherwise loses the interesting layout.
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "BBT-Bit-Search-Keyboard-Visible"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player disappeared when the search keyboard opened")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Native bottom accessory and keyboard inset duplicated the mini-player")
+        XCTAssertTrue(pill.isHittable, "Mini-player is not reachable above the keyboard")
+        XCTAssertLessThanOrEqual(pill.frame.maxY, keyboard.frame.minY + 4,
+                                 "Mini-player overlaps the native keyboard")
+
+        // Native return-key labels are localized (e.g. "Suchen" on a
+        // German simulator). A missing key must fail, not skip the whole
+        // test and conceal already-executed keyboard layout assertions.
+        let searchKey = ["Suchen", "Search", "search"].map { keyboard.buttons[$0] }
+            .first(where: { $0.exists })
+        if searchKey == nil {
+            let noKey = XCTAttachment(screenshot: app.screenshot())
+            noKey.name = "BBT-Bit-Search-Key-Unavailable"
+            noKey.lifetime = .keepAlways
+            add(noKey)
+        }
+        XCTAssertNotNil(searchKey, "Native search keyboard has no recognized submit key")
+        searchKey?.tap()
+        XCTAssertFalse(keyboard.waitForExistence(timeout: 5),
+                       "Search keyboard stayed open after submitting")
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player missing after keyboard dismissal")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Mini-player duplicated after keyboard dismissal")
+    }
+
     func testEveryDesignPreviewIsRenderedAndOpenableOnIPhone() throws {
         let app = XCUIApplication()
         app.launchArguments += ["--bbt-ui-test-designs"]

@@ -54,6 +54,8 @@ struct InfinityDock: View {
                     .contentShape(Capsule())
             }
             .accessibilityLabel("Player-Werkzeuge")
+            .accessibilityValue(automixEnabled ? "Automix eingeschaltet" : "Automix ausgeschaltet")
+            .accessibilityValue(automixEnabled ? "Automix eingeschaltet" : "Automix ausgeschaltet")
             .accessibilityHint("Öffnet Songtexte, Warteschlange und Audio-Werkzeuge")
         }
         .accessibilityElement(children: .contain)
