@@ -17,10 +17,18 @@ final class LiquidMotionUITests: XCTestCase {
         app.launchArguments += ["-onboarding_done", "YES"]
         app.launch()
 
-        let searchTab = app.tabBars.buttons["Search"]
-        guard searchTab.waitForExistence(timeout: 20) else {
-            throw XCTSkip("Regular search tab unavailable; check onboarding or app startup")
+        // The iOS 26 native search-role tab may be exposed as a button
+        // outside XCUIElementTypeTabBar. Inspect the full button tree instead
+        // of assuming UIKit's legacy tab-bar accessibility hierarchy.
+        let searchTab = app.buttons.matching(identifier: "Search").firstMatch
+        if !searchTab.waitForExistence(timeout: 20) {
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "BBT-Bit-Search-Tab-Missing"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
         }
+        XCTAssertTrue(searchTab.exists,
+                      "Search tab unavailable on regular app launch. Accessibility tree: \\(app.debugDescription)")
         searchTab.tap()
 
         let searchField = app.searchFields.firstMatch
