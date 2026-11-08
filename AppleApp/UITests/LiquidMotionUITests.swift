@@ -17,10 +17,10 @@ final class LiquidMotionUITests: XCTestCase {
         app.launchArguments += ["-onboarding_done", "YES"]
         app.launch()
 
-        // The iOS 26 native search-role tab may be exposed as a button
-        // outside XCUIElementTypeTabBar. Inspect the full button tree instead
-        // of assuming UIKit's legacy tab-bar accessibility hierarchy.
-        let searchTab = app.buttons.matching(identifier: "Search").firstMatch
+        // The iOS 26 simulator exposes the localized Search tab as a Button
+        // with identifier "magnifyingglass" and label "Suchen" (not "Search").
+        // Prefer the SF Symbol identifier; the label can change with locale.
+        let searchTab = app.tabBars.buttons["magnifyingglass"]
         if !searchTab.waitForExistence(timeout: 20) {
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "BBT-Bit-Search-Tab-Missing"
@@ -28,7 +28,7 @@ final class LiquidMotionUITests: XCTestCase {
             add(screenshot)
         }
         XCTAssertTrue(searchTab.exists,
-                      "Search tab unavailable on regular app launch. Accessibility tree: \\(app.debugDescription)")
+                      "Search tab unavailable on regular app launch. Accessibility tree: \(app.debugDescription)")
         searchTab.tap()
 
         let searchField = app.searchFields.firstMatch
