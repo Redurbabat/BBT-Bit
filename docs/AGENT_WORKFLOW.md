@@ -15,7 +15,7 @@
 
 ## Skill-Auswahl
 
-Codex entdeckt die vollständigen Skills aus [`.agents/skills/`](../.agents/skills/). Claude Code entdeckt [`.claude/skills/`](../.claude/skills/). Jeder Claude-Einstieg verweist auf die kanonische Datei. Name und Beschreibung müssen übereinstimmen. In einer bereits geöffneten Sitzung bei Bedarf den Skill direkt lesen. [Codex-Dokumentation](https://learn.chatgpt.com/docs/build-skills) · [Claude-Code-Dokumentation](https://code.claude.com/docs/en/skills)
+Codex entdeckt die vollständigen Skills aus [`.agents/skills/`](../.agents/skills/). Claude Code entdeckt [`.claude/skills/`](../.claude/skills/). Jeder **BBT-Bit-Skill** hat einen kanonischen Eintrag und einen Claude-Verweis. Name und Beschreibung müssen übereinstimmen. Auf einem Mac können **sämtliche offiziell aus Xcode exportierten Apple-Skills** optional mit dem [lokalen Importwerkzeug](APPLE_XCODE_SKILLS.md) in beide Verzeichnisse kopiert werden; sie werden absichtlich nicht im Git-Repository verteilt. Bei Konflikten gelten die Projektregeln einschließlich der nativen RED-Morph-Scrollanimation. In einer bereits geöffneten Sitzung bei Bedarf den Skill direkt lesen. [Codex-Dokumentation](https://learn.chatgpt.com/docs/build-skills) · [Claude-Code-Dokumentation](https://code.claude.com/docs/en/skills)
 
 | Aufgabe | Skill |
 | --- | --- |

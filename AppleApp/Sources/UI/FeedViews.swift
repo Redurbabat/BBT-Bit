@@ -306,7 +306,7 @@ struct ShelfCardTap<Content: View>: View {
         Button {
             controller.playRadio(QueueEntry.youtube(
                 videoId: videoId, title: card.title, artist: card.subtitle ?? "",
-                thumbnailUrl: card.thumbnailUrl
+                thumbnailUrl: card.thumbnailUrl, isVideo: card.isVideo
             ))
         } label: {
             content
@@ -380,7 +380,13 @@ struct ShelfCardView: View {
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
-                ArtworkView(url: card.thumbnailUrl, data: nil, side: artworkSide)
+                ArtworkView(
+                    url: card.thumbnailUrl, data: nil, side: artworkSide,
+                    fill: card.isVideo
+                )
+                    // Wie im Original sind Home-Musikvideos 16:9 statt
+                    // quadratischer Albumcover; die Kartenbreite bleibt stabil.
+                    .frame(width: artworkSide, height: card.isVideo ? artworkSide * 9 / 16 : artworkSide)
                     .clipShape(.rect(cornerRadius: 10, style: .continuous))
                     .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
                     .modifier(NowPlayingCardAccent(
@@ -526,6 +532,7 @@ struct HeroCard: View {
     let side: CGFloat
     @Environment(PlaybackController.self) private var controller
     @State private var hovering = false
+    private var tileHeight: CGFloat { card.isVideo ? side * 9 / 16 : side * 0.92 }
 
     /// Whether this card is the track loaded in the player right now.
     private var isCurrentTrack: Bool {
@@ -536,8 +543,8 @@ struct HeroCard: View {
     var body: some View {
         ShelfCardTap(card: card, preferTrack: preferTrack) {
             ZStack(alignment: .bottom) {
-                ArtworkView(url: card.thumbnailUrl, data: nil, side: side)
-                    .frame(width: side, height: side * 0.92)
+                ArtworkView(url: card.thumbnailUrl, data: nil, side: side, fill: card.isVideo)
+                    .frame(width: side, height: tileHeight)
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.10), .black.opacity(0.72)],
                     startPoint: .center,
@@ -558,7 +565,7 @@ struct HeroCard: View {
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: side, height: side * 0.92)
+            .frame(width: side, height: tileHeight)
             // Over the scrim, not under it: the pill sits on the darkest part
             // of the tile, and the gradient would grey it out from beneath.
             .modifier(NowPlayingCardAccent(

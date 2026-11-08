@@ -7,7 +7,7 @@ enum PlaybackQueuePolicy {
 
     static let autoplayRefillThreshold = 3
     /// How many recommendations the tail is topped up to.
-    static let autoplayTarget = 8
+    static let autoplayTarget = 10
     /// Upcoming rows nothing automatic may move: the listener can see them.
     static let committedRows = 2
     /// Rows after the committed queue that can be reconsidered by AutoMix.
@@ -92,6 +92,19 @@ enum PlaybackQueuePolicy {
         let recent = (playedAt ?? 0) > now - 14 * 24 * 60 * 60 * 1000
         let novelty = playedAt == nil ? 1.0 : (recent ? 0.0 : 0.65)
         return (transitionFit ?? 0.5) * 0.60 + affinity * 0.25 + novelty * 0.15 - (recent ? 0.25 : 0)
+    }
+}
+
+/// BitChord v1.9.1: 2 s einmalige Leerantwort-Wiederholung, danach alle
+/// 15 s ein Watchdog mit einem früheren Queue-Titel als Radio-Startpunkt.
+enum AutoplayEmptyPolicy {
+    static func waitSeconds(forFailureCount failures: Int) -> Int {
+        failures <= 1 ? 2 : 15
+    }
+
+    static func seedIndex(currentIndex: Int, failureCount: Int) -> Int {
+        let behind = max(0, failureCount - 1)
+        return currentIndex - behind >= 0 ? currentIndex - behind : currentIndex
     }
 }
 

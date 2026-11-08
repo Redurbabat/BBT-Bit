@@ -784,6 +784,7 @@ fn outgoing_eof_does_not_finish_an_incoming_fade_early() {
         sleep_gain: 1.0,
         hold_end: false,
         crossfade_window_s: 4.0,
+        mix_headroom: 1.0,
         spatial_enabled: false,
         head_yaw: 0.0,
         device_rate: 44_100,

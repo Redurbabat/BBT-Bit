@@ -10,6 +10,8 @@ import AppKit
 // Playback: crossfade, AutoMix and its models, and the rest of playback.
 extension SettingsView {
     func buildPlaybackRows(_ rows: inout SettingsRows) {
+        // Always visible at the top of Playback, not only in Advanced Options.
+        appendTestCenterRow(&rows)
         rows.row("Crossfade", "blend", "fade", "transition", "gapless", "automix") {
             VStack(alignment: .leading, spacing: 6) {
                 SettingsSliderRow(glyph: .crossfade, title: "Crossfade",
@@ -161,7 +163,7 @@ extension SettingsView {
     }
 
     private var automixSubtitle: String {
-        if let bypass = controller.settingsAudioReadout.processingBypass { return "Requested transition settings are inactive · " + bypass }
+        if let bypass = controller.settingsAudioReadout.processingBypass { return AppLanguage.localized("Requested transition settings are inactive") + " · " + bypass }
         guard automix else { return "Times and blends transitions automatically when enabled." }
         if AutomixModelStore.shared.beatAvailable { return "Blends transitions automatically from each track’s timing." }
         return "Uses tempo analysis while the beat model is missing. Install it under Advanced Options → Automix Models for beat-aligned transitions."
@@ -175,13 +177,14 @@ extension SettingsView {
                 SettingsLine(
                     glyph: .cpu,
                     title: "Automix Performance",
-                    subtitle: "CPU inference budget — up to \(controller.automixInferenceThreads) worker\(controller.automixInferenceThreads == 1 ? "" : "s")"
+                    subtitle: automixWorkerSubtitle
                 ) {
-                    Text(Self.automixPerfLabel(automixPerf))
+                    Text(LocalizedStringKey(Self.automixPerfLabel(automixPerf)))
                         .foregroundStyle(.secondary)
                 }
             }
         }
+        appendTestCenterRow(&rows)
         rows.row("Automix Models", "models", "model", "onnx", "beat", "downbeat", "vocal", "install", "download models") {
             PushLink {
                 AutomixModelsPage()
@@ -195,6 +198,30 @@ extension SettingsView {
                 }
             }
         }
+    }
+
+    private func appendTestCenterRow(_ rows: inout SettingsRows) {
+        rows.row("BBT-Bit Testzentrale", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
+            PushLink {
+                AutomixLiveTestView()
+            } label: {
+                SettingsLine(
+                    glyph: .automix,
+                    title: "BBT-Bit Testzentrale",
+                    subtitle: "Musik, Audio, KI, Netzwerk, Queue und App-Funktionen prüfen"
+                ) {
+                    EmptyView()
+                }
+            }
+        }
+    }
+
+    private var automixWorkerSubtitle: String {
+        let count = Int64(controller.automixInferenceThreads)
+        let key = count == 1
+            ? "CPU inference budget — up to %lld worker"
+            : "CPU inference budget — up to %lld workers"
+        return String(format: AppLanguage.localized(key), count)
     }
 
     private static func automixPerfLabel(_ mode: String) -> String {
@@ -215,7 +242,8 @@ extension SettingsView {
         // A verified previous graph is still a working model: say so, and say that
         // an update is waiting, rather than calling the pair "not installed".
         if store.isUsingPreviousGraph(.beat) || store.isUsingPreviousGraph(.beatCoreML) || store.isUsingPreviousGraph(.vocals) {
-            return "Update available. Using the previous version — \(AutomixModelStore.bytes(store.totalBytesOnDisk)) on disk"
+            return String(format: AppLanguage.localized("Update available. Using the previous version — %@ on disk"),
+                          AutomixModelStore.bytes(store.totalBytesOnDisk))
         }
         let beat = store.status(of: .beat).isInstalled
         let vocals = store.status(of: .vocals).isInstalled
@@ -223,9 +251,11 @@ extension SettingsView {
         switch (beat, vocals) {
         case (true, true):
             if accelerated {
-                return "Beat, downbeat and vocal models installed, accelerated by Core ML — \(AutomixModelStore.bytes(store.totalBytesOnDisk)) on disk"
+                return String(format: AppLanguage.localized("Beat, downbeat and vocal models installed, accelerated by Core ML — %@ on disk"),
+                              AutomixModelStore.bytes(store.totalBytesOnDisk))
             }
-            return "Beat, downbeat and vocal models installed — \(AutomixModelStore.bytes(store.totalBytesOnDisk)) on disk"
+            return String(format: AppLanguage.localized("Beat, downbeat and vocal models installed — %@ on disk"),
+                          AutomixModelStore.bytes(store.totalBytesOnDisk))
         case (true, false):
             if accelerated {
                 return "Beat model installed with Core ML acceleration; vocal detection can be added for vocal-clash avoidance"

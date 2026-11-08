@@ -22,14 +22,15 @@ object AutoPlayBridge {
         fun onResult(json: String?, message: String?)
     }
 
-    fun related(videoId: String, callback: AutoPlayCallback) {
+    fun related(videoId: String, preferVideo: Boolean, callback: AutoPlayCallback) {
         val generation = Innertube.sessionGeneration
         bridgeScope.launch {
             try {
                 Innertube.checkSession(generation)
                 val response = Innertube.next(videoId)
-                val songs = InnertubeParser.parseWatchQueue(response)
-                    .filterNot { it.isVideo }
+                // Die Auswahl von Audio-/Video-Sendern trifft der gemeinsame
+                // QueueBuilder. Videos hier vorab zu löschen wäre nicht originalgetreu.
+                val songs = InnertubeParser.parseWatchQueue(response, preferVideo = preferVideo)
                 Innertube.checkSession(generation)
                 callback.onResult(
                     json.encodeToString(songListSerializer, songs),

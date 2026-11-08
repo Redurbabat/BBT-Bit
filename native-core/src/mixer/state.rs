@@ -70,6 +70,9 @@ pub(super) struct MixerState {
     pub(super) sleep_gain: f32,
     pub(super) hold_end: bool,
     pub(super) crossfade_window_s: f64,
+    /// Smooth bus trim from BitChord's paired-deck headroom rule. Retained
+    /// across rendered chunks to avoid zipper noise at buffer boundaries.
+    pub(super) mix_headroom: f32,
     pub(super) spatial_enabled: bool,
     pub(super) head_yaw: f32,
     pub(super) device_rate: u32,
@@ -263,6 +266,9 @@ impl MixerState {
         self.clarity.reset();
         self.protector.reset();
         self.pipeline_tail_frames = 0;
+        // A new, user-selected track must never inherit the old blend's
+        // bus attenuation. The existing bail-flush protects the audible seam.
+        self.mix_headroom = 1.0;
         self.transition = None;
         self.incoming = None;
         self.pending_next = None;

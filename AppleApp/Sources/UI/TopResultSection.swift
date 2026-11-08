@@ -28,13 +28,18 @@ struct TopResultSection: View {
                 .padding(.horizontal, 24)
         }
         .padding(.top, 12)
-        .padding(.bottom, 20)
+        .padding(.bottom, 8)
     }
 
     private var card: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                artwork
+                Button(action: play) {
+                    artwork
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(hit.title)
+                .accessibilityHint("Plays the top result")
                 details
                 Menu {
                     menu
@@ -42,7 +47,7 @@ struct TopResultSection: View {
                     Image(systemName: "ellipsis")
                         .scaledFont(size: 16, weight: .semibold)
                         .foregroundStyle(.secondary)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
                         .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
@@ -52,13 +57,14 @@ struct TopResultSection: View {
             actionsRow
         }
         .padding(14)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(.separator.opacity(0.5), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(.separator.opacity(0.35), lineWidth: 0.5)
         )
-        .contentShape(Rectangle())
-        .onTapGesture(perform: play)
+        // Keine Tap-Geste auf der gesamten Karte: sie konnte unabhängig
+        // von den eingebetteten Buttons "Play" auslösen, etwa beim Hinzufügen
+        // zur Playlist. Artwork, Titel und Play besitzen eigene Aktionen.
         .liftPreview {
             menu
         } preview: {
@@ -67,9 +73,8 @@ struct TopResultSection: View {
                 roundArtwork: hit.browseType?.uppercased() == "ARTIST"
             )
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(hit.title), \(hit.subtitle ?? "")")
-        .accessibilityHint("Plays the top result")
+        // Aktionen bleiben für VoiceOver einzeln erreichbar.
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder
@@ -114,10 +119,15 @@ struct TopResultSection: View {
 
     private var details: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(hit.title)
-                .font(.headline.weight(.semibold))
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
+            Button(action: play) {
+                Text(hit.title)
+                    .font(.headline.weight(.semibold))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Plays the top result")
             if let subtitle = hit.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
                     .font(.subheadline)
@@ -130,38 +140,60 @@ struct TopResultSection: View {
                     .font(.subheadline)
                     .foregroundStyle(.tint)
                     .lineLimit(1)
+                    .frame(minHeight: 44, alignment: .leading)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     /// Upstream's `TopResultCard` button pair: Play and Add to Playlist.
+    /// Abgestufte Aktionstasten: nebeneinander, solange der intrinsische
+    /// Text passt; auf schmalen Geräten oder mit großer Schrift untereinander.
+    /// Beide Aktionen bleiben auch im vertikalen Layout mindestens 44 pt hoch.
     private var actionsRow: some View {
-        HStack(spacing: 10) {
-            Button(action: play) {
-                Label("Play", systemImage: "play.fill")
-                    .font(.callout.weight(.semibold))
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                playButton
+                addToPlaylistButton
             }
-            .buttonStyle(.bordered)
-            Button {
-                if let videoId = hit.videoId {
-                    RecentSearchStore.record(RecentSearchEntity(
-                        id: videoId, title: hit.title,
-                        subtitle: hit.subtitle ?? "",
-                        artworkUrl: hit.thumbnailUrl,
-                        entityType: "TRACK"
-                    ))
-                    appModel.playlistPicker = PlaylistPickerRequest(
-                        videoId: videoId, title: hit.title
-                    )
-                }
-            } label: {
-                Label("Add to Playlist", systemImage: "text.badge.plus")
-                    .font(.callout.weight(.semibold))
+            .fixedSize(horizontal: true, vertical: false)
+
+            VStack(alignment: .leading, spacing: 8) {
+                playButton
+                addToPlaylistButton
             }
-            .buttonStyle(.bordered)
-            .disabled(hit.videoId == nil)
         }
+    }
+
+    private var playButton: some View {
+        Button(action: play) {
+            Label("Play", systemImage: "play.fill")
+                .font(.callout.weight(.semibold))
+                .frame(minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private var addToPlaylistButton: some View {
+        Button {
+            if let videoId = hit.videoId {
+                RecentSearchStore.record(RecentSearchEntity(
+                    id: videoId, title: hit.title,
+                    subtitle: hit.subtitle ?? "",
+                    artworkUrl: hit.thumbnailUrl,
+                    entityType: "TRACK"
+                ))
+                appModel.playlistPicker = PlaylistPickerRequest(
+                    videoId: videoId, title: hit.title
+                )
+            }
+        } label: {
+            Label("Add to Playlist", systemImage: "text.badge.plus")
+                .font(.callout.weight(.semibold))
+                .frame(minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .disabled(hit.videoId == nil)
     }
 
     @ViewBuilder

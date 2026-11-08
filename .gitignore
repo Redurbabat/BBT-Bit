@@ -63,3 +63,8 @@ native-core/fixtures/automix/*.aiff
 /AppleApp/tests/NativeResumeDeviceVerification/
 /AppleApp/tests/NowPlayingDeviceFindings.md
 /AppleApp/tests/NowPlayingMixingRepro/device-*
+
+# SideStore-Testsystem
+__pycache__/
+AppleApp/project.sidestore.yml
+!/docs/IPHONE_TESTSYSTEM.md

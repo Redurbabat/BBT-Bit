@@ -94,6 +94,10 @@ check(PlaybackQueueWindow.appendCount(upcomingCount: 12, canonicalRemaining: 100
 check(PlaybackQueueWindow.appendCount(upcomingCount: 12, canonicalRemaining: 3) == 3, "Context window drains the canonical page before continuation")
 check(PlaybackQueueWindow.shouldFetchContinuation(upcomingCount: 12, canonicalRemaining: 0, hasContinuation: true), "Playback requests continuation only after canonical songs run out at low water")
 check(!PlaybackQueueWindow.shouldFetchContinuation(upcomingCount: 13, canonicalRemaining: 0, hasContinuation: true), "Playback does not fetch continuation above low water")
+check(AutoplayEmptyPolicy.waitSeconds(forFailureCount: 1) == 2, "First empty radio answer gets a two-second retry")
+check(AutoplayEmptyPolicy.waitSeconds(forFailureCount: 2) == 15, "Later empty answers use the 15-second watchdog")
+check(AutoplayEmptyPolicy.seedIndex(currentIndex: 3, failureCount: 2) == 2, "Watchdog falls back to the previous queue song")
+check(AutoplayEmptyPolicy.seedIndex(currentIndex: 0, failureCount: 4) == 0, "Watchdog never goes before queue start")
 let defaults = UserDefaults.standard
 let previousSnapshot = defaults.object(forKey: "bitchord_last_played")
 defer {

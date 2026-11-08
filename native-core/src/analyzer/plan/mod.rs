@@ -353,7 +353,66 @@ fn log_plan(outgoing: &Analysis, incoming: &Analysis, plan: &TransitionPlan, tie
         grid(incoming),
         window_vocal(incoming, in_start, in_start + 8.0 * in_beat)
     );
-    last_sources::set(&outgoing.analysis_source, &incoming.analysis_source);
+    let outgoing_details = analysis_live_source(outgoing);
+    let incoming_details = analysis_live_source(incoming);
+    last_sources::set(&outgoing_details, &incoming_details);
+}
+
+/// Observable model evidence for the *actual plan*, not a guess based
+/// on whether downloads exist. The source strings are used for diagnostics;
+/// they never contain paths, song identifiers, or authentication material.
+fn analysis_live_source(analysis: &Analysis) -> String {
+    // Only allow known diagnostic labels into the user-shareable report.
+    // Overlay providers may supply arbitrary free-text source identifiers:
+    // never copy them into a privacy-minimal on-device export.
+    let base = match analysis.analysis_source.as_str() {
+        "" | "dsp" => "dsp",
+        "beat_this" => "beat_this",
+        "music_understanding" => "music_understanding",
+        "beat_this+music_understanding" => "beat_this+music_understanding",
+        "disk_cache" => "disk_cache",
+        _ => "other",
+    };
+    let mut source = base.to_string();
+    match analysis.beat_backend.as_str() {
+        "coreml" => source.push_str(" [beat:coreml]"),
+        "rten" => source.push_str(" [beat:rten]"),
+        _ => {}
+    }
+    if analysis.vocal_model_used {
+        source.push_str(" [vocals:open_unmix]");
+    }
+    source
+}
+
+#[cfg(test)]
+mod live_source_test {
+    use super::{analysis_live_source, Analysis};
+
+    #[test]
+    fn only_actual_model_results_are_reported() {
+        let empty = Analysis::default();
+        assert_eq!(analysis_live_source(&empty), "dsp");
+        let onnx = Analysis {
+            analysis_source: "beat_this".into(),
+            beat_backend: "rten".into(),
+            ..Analysis::default()
+        };
+        assert_eq!(analysis_live_source(&onnx), "beat_this [beat:rten]");
+        let coreml_and_vocals = Analysis {
+            analysis_source: "beat_this".into(),
+            beat_backend: "coreml".into(),
+            vocal_model_used: true,
+            ..Analysis::default()
+        };
+        assert_eq!(analysis_live_source(&coreml_and_vocals),
+            "beat_this [beat:coreml] [vocals:open_unmix]");
+        let untrusted = Analysis {
+            analysis_source: "/private/Users/listener/track.mp3".into(),
+            ..Analysis::default()
+        };
+        assert_eq!(analysis_live_source(&untrusted), "other");
+    }
 }
 
 /// The plain equal-power fallback shared by the speech guard and the tier.

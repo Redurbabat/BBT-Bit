@@ -175,6 +175,7 @@ pub fn run_mixer(
         sleep_gain: 1.0,
         hold_end: false,
         crossfade_window_s: 0.0,
+        mix_headroom: 1.0,
         spatial_enabled: false,
         head_yaw: 0.0,
         device_rate,

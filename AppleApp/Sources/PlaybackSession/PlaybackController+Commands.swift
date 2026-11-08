@@ -93,15 +93,40 @@ extension PlaybackController {
         removed.forEach { QualityUpgrade.forget($0.id) }
         queue.removeSubrange((playingIndex + 1)...)
         queueEditRevision &+= 1
+        autoplayRefresh.invalidate()
         persistSession()
         syncEngineQueueNext()
+        // Im Original wird eine geleerte Autoplay-Queue wieder aufgefüllt,
+        // solange die Einstellung aktiv ist und Repeat-All nicht greift.
+        if effectiveAutoplayEnabled, repeatMode != .all { maybeAutoplay(force: true) }
     }
 
     func toggleAutoplay() {
+        let party = PartyStore.shared.state
+        if party.inParty {
+            // Original: Die Party-Einstellung wird vom Server geteilt.
+            // Ein gesperrtes Mitglied ändert die lokale Vorgabe nicht.
+            guard party.canControl else { return }
+            if PartyCoordinator.shared.setAutoplay(enabled: !party.playback.autoplayEnabled) {
+                autoplayRefresh.invalidate()
+            }
+            return
+        }
         autoplayEnabled.toggle()
         AppSettings.shared.setAutoplay(value: autoplayEnabled)
         if !autoplayEnabled {
             autoplayRefresh.invalidate()
+            // BitChord entfernt beim Abschalten alle noch nicht gehörten
+            // automatischen Titel, nicht die manuell hinzugefügte Queue.
+            let before = queue.count
+            queue = queue.enumerated().filter {
+                $0.offset <= playingIndex || !$0.element.fromAutoplay
+            }.map(\.element)
+            if queue.count != before {
+                queueEditRevision &+= 1
+                persistSession()
+                syncEngineQueueNext()
+            }
             // Upstream clears the stash when AutoPlay is switched off mid-loop
             // so ending ALL later does not resurrect dropped suggestions.
             repeatAllStash = []

@@ -18,6 +18,7 @@ struct PlaybackPill: View {
     /// minimizes on scroll (iOS 26's inline bottom accessory, as in Music).
     var inline = false
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -67,7 +68,7 @@ struct PlaybackPill: View {
     @State private var lockedPillDrag: (start: CGPoint, axis: PillDragAxis)?
     private var isRegularWidth: Bool { horizontalSizeClass == .regular }
     private var pillPullLift: CGFloat {
-        guard pillDrag.axis == .vertical, pillDrag.translation.height < 0 else { return 0 }
+        guard !reduceMotion, pillDrag.axis == .vertical, pillDrag.translation.height < 0 else { return 0 }
         return min(max(-pillDrag.translation.height * 0.5, 0), 72)
     }
 
@@ -99,15 +100,9 @@ struct PlaybackPill: View {
         }
         .padding(.horizontal, inline ? 8 : 12)
         .padding(.vertical, inline ? 4 : 8)
-        .background {
-            if controller.current != nil && !reduceTransparency && !reduceBlur {
-                CoverMorphMiniSurface(
-                    entry: controller.current,
-                    isPlaying: controller.isPlaying,
-                    inline: inline
-                )
-            }
-        }
+        // Native TabView bottom accessory on iOS 26 owns its Liquid Glass.
+        // Do not paint artwork gradients beneath this translucent control.
+        // The full-screen player still gets its artwork-led CoverMorph backdrop.
         .modifier(MiniPlayerChrome(fill: chromeFill, reduceTransparency: reduceTransparency || reduceBlur))
         .overlay(alignment: .bottom) { progressHairline.clipShape(Capsule()) }
         .contentShape(.rect)
@@ -120,7 +115,7 @@ struct PlaybackPill: View {
         // Direct gesture-state updates make the pill follow the finger at half
         // rate. Only the release back to rest springs; the pull itself does not lag.
         .animation(
-            pillDrag == PillDragState()
+            !reduceMotion && pillDrag == PillDragState()
                 ? .spring(response: 0.38, dampingFraction: 0.86)
                 : nil,
             value: pillDrag
@@ -366,29 +361,16 @@ struct PlaybackPill: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(controller.current?.title ?? "Not Playing")
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(
-                    controller.current == nil ? Color.secondary :
-                    (isArtworkMiniTintActive ? Color.white : Color.primary)
-                )
+                .foregroundStyle(controller.current == nil ? Color.secondary : Color.primary)
                 .lineLimit(1)
             // Inline there is room for the title alone, as in Music.
             if !inline {
                 Text(controller.current?.artist ?? "Music you start appears here")
                     .font(.subheadline)
-                    .foregroundStyle(isArtworkMiniTintActive ? Color.white.opacity(0.83) : Color.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
         }
-    }
-
-    /// On the iPhone, the artwork-linked mini-player uses white controls for
-    /// reliable contrast even when the app uses a light appearance.
-    private var isArtworkMiniTintActive: Bool {
-        #if os(iOS)
-        controller.current != nil && !isRegularWidth && !reduceTransparency && !reduceBlur
-        #else
-        false
-        #endif
     }
 
     // MARK: - The party
@@ -540,43 +522,40 @@ struct PlaybackPill: View {
     }
 
     #if os(iOS)
-    /// The mini-player's capsule shell — drawn by us everywhere except inside
-    /// iOS 27's bottom accessory on iPhone, whose container draws its own
-    /// pill. Keeping ours there nests a second capsule inside the system's
-    /// (verified by stripping ours in the simulator: the pill still renders
-    /// fully). iPad mounts via inset with no system shell, so it keeps ours,
-    /// as do iOS 26 and the pre-26 fallback.
+    /// One glass layer only: iPhone's iOS 26+ TabView accessory owns its
+    /// system glass. iPad is inset-mounted and needs a single native surface.
+    /// Older iOS versions use a semantic material; Reduce Transparency and the
+    /// existing reduce-blur preference always yield a readable opaque capsule.
     private struct MiniPlayerChrome: ViewModifier {
         var fill: AnyShapeStyle
         var reduceTransparency: Bool
         @Environment(\.horizontalSizeClass) private var sizeClass
 
+        @ViewBuilder
         func body(content: Content) -> some View {
-            if #available(iOS 27.0, *), sizeClass == .compact {
-                content
+            if #available(iOS 26.0, *), sizeClass == .compact {
+                if reduceTransparency {
+                    content.background(Capsule().fill(Theme.Materials.opaque))
+                } else {
+                    // No custom gradient, fill, shadow or border inside the
+                    // system-managed bottom accessory.
+                    content
+                }
             } else if sizeClass == .regular {
-                // Over the library the pill has artwork under it, so on iPad
-                // (where it floats in a safeAreaInset with no system accessory
-                // container) use regular material with the system background
-                // colour beneath — matching the Mac pill's frosted texture so
-                // album sleeves beneath don't bleed through the controls.
-                content
-                    .background {
-                        if reduceTransparency {
-                            Capsule().fill(Color(uiColor: .secondarySystemBackground))
-                        } else {
-                            Capsule().fill(Color(uiColor: .systemBackground).opacity(0.55))
-                                .background(.regularMaterial, in: Capsule())
-                        }
-                    }
-                    .overlay { Capsule().stroke(.white.opacity(0.12), lineWidth: 0.5) }
-                    .clipShape(Capsule())
-                    .shadow(color: .black.opacity(0.18), radius: 12, y: 5)
+                if reduceTransparency {
+                    content.background(Capsule().fill(Theme.Materials.opaque))
+                } else if #available(iOS 26.0, *) {
+                    content.glassEffect(.regular, in: Capsule())
+                } else {
+                    content.background(.regularMaterial, in: Capsule())
+                }
             } else {
-                content
-                    .background { Capsule().fill(fill) }
-                    .overlay { Capsule().stroke(.white.opacity(0.10), lineWidth: 0.5) }
-                    .clipShape(Capsule())
+                if reduceTransparency {
+                    content.background(Capsule().fill(Theme.Materials.opaque))
+                } else {
+                    // Ältere iPhones: neutrales Systemmaterial, keine Cover-Farbe.
+                    content.background(.regularMaterial, in: Capsule())
+                }
             }
         }
     }
@@ -668,11 +647,7 @@ struct PlaybackPill: View {
             }
             .buttonStyle(.plain)
             .frame(width: inline ? 34 : 40, height: inline ? 34 : 40)
-            .foregroundStyle(
-                isArtworkMiniTintActive
-                    ? Color.white.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
-                    : Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
-            )
+            .foregroundStyle(Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1))
             .disabled(!controller.canPlayNext || PartyStore.shared.state.controlsLocked)
             .accessibilityLabel("Next")
 
@@ -680,7 +655,7 @@ struct PlaybackPill: View {
                 partyButton.frame(width: 40, height: 40)
             }
         }
-        .foregroundStyle(isArtworkMiniTintActive ? Color.white : Color.primary)
+        .foregroundStyle(.primary)
     }
 
     private var padLeadingTransport: some View {
@@ -729,11 +704,7 @@ struct PlaybackPill: View {
                     .contentShape(.rect)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(
-                isArtworkMiniTintActive
-                    ? Color.white.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
-                    : Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1)
-            )
+            .foregroundStyle(Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1))
             .disabled(!controller.canPlayNext || PartyStore.shared.state.controlsLocked)
             .accessibilityLabel("Next")
         }
@@ -832,7 +803,7 @@ private struct MacNowPlayingSlot<Artwork: View, Info: View>: View {
         }
         .frame(height: 44)
         .clipped()
-        .animation(.easeInOut(duration: 0.16), value: scrubbing)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: scrubbing)
     }
 
     private func clock(_ seconds: Double, remaining: Bool = false) -> String {

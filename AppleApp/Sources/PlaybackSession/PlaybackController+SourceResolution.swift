@@ -82,7 +82,10 @@ extension PlaybackController {
                 wantLossless: streamQuality == "LOSSLESS",
                 jiosaavn: PlatformSettings.shared.getBoolean(key: "jiosaavn_enabled", default: true),
                 canSubstitute: QualityUpgrade.canSubstituteForYouTube(),
+                // Upstream disables automatic video→audio conversion during
+                // Listen Together: the party must share one recording identity.
                 preferMusicOnly: PlatformSettings.shared.getBoolean(key: "prefer_music_only", default: false)
+                    && !PartyStore.shared.inParty
             )
         }
     }
@@ -237,19 +240,25 @@ extension PlaybackController {
             }
             return await Self.resolveSubstitute(entry, prefs: prefs, diagnostic: report.record)?.asCandidate()
         }
-        let fallback = Task<ResolvedSource, Error> {
-            try await Self.resolveYouTube(videoId: videoId, prefs: prefs)
-        }
-
-        // Prefer-music-only for a music video: the video's own upload is the
-        // wrong answer when the catalogue audio was asked for, so the race is
-        // not run at all — the substitute lookup is awaited, and YouTube's
-        // upload is only the fallback when the lookup misses. Upstream does the
-        // same switch after the fact (`switchToMusicOnly`); here the wait
-        // happens before anything starts, so the video never plays first.
+        // Upstream v1.9.1 (MusicOnlyPlayback) holds a video until an answer
+        // arrives, but releases the hold after 15 s. Keep the native resolver
+        // and its recording verifier; do not fetch the video's own bytes while
+        // a usable audio candidate is still being checked.
         if prefs.preferMusicOnly, entry.isVideo {
-            if let stream = await lookup.value {
-                _ = try await fallback.value
+            let answer = PlaybackSourceRace<QualityUpgrade.Candidate, ResolvedSource>(preferPrimary: true)
+            let publication = Task { await answer.finishLookup(await lookup.value) }
+            await answer.finishFallback(nil)
+            let decision = await answer.wait(timeoutNanoseconds: 15_000_000_000)
+            publication.cancel()
+            if Task.isCancelled {
+                lookup.cancel()
+                throw CancellationError()
+            }
+
+            // If this device joined a party while the lookup was running,
+            // ignore the private audio version and keep the party's track ID.
+            let joinedParty = await MainActor.run { PartyStore.shared.inParty }
+            if case .preferred(let stream) = decision, !joinedParty {
                 let selected = ResolveOutcome(
                     source: ResolvedSource(
                         source: stream.url, headers: stream.headers,
@@ -260,21 +269,51 @@ extension PlaybackController {
                     ),
                     leftover: nil
                 )
-                let buffered = try await bufferPreparedSource(selected, mediaId: entry.id)
-                if buffered.source.source.hasPrefix("/"),
-                   await RecordingIdentityVerifier.matches(videoId: videoId, candidate: buffered.source.source, allowTimingEdits: true) {
-                    await StreamFileCache.shared.markRecordingVerified(mediaID: entry.id,
-                        cacheKey: "\(entry.id)#prepared-\(DiskCache.hashName(stream.url))", sourcePath: buffered.source.source)
-                    await latencyResolved?(ProcessInfo.processInfo.systemUptime, "cold", "verified source substitute")
-                    return buffered
+                do {
+                    let buffered = try await bufferPreparedSource(selected, mediaId: entry.id)
+                    if buffered.source.source.hasPrefix("/"),
+                       await RecordingIdentityVerifier.matches(
+                           videoId: videoId, candidate: buffered.source.source, allowTimingEdits: true
+                       ) {
+                        await StreamFileCache.shared.markRecordingVerified(mediaID: entry.id,
+                            cacheKey: "\(entry.id)#prepared-\(DiskCache.hashName(stream.url))", sourcePath: buffered.source.source)
+                        await latencyResolved?(ProcessInfo.processInfo.systemUptime, "cold", "verified source substitute")
+                        return buffered
+                    }
+                    PlaybackDebugLog.shared.record(
+                        "music-only candidate rejected: recording identity could not be verified", about: videoId
+                    )
+                } catch is CancellationError {
+                    lookup.cancel()
+                    throw CancellationError()
+                } catch {
+                    // Do not write provider error text here: signed URLs and
+                    // request headers may contain credentials.
+                    PlaybackDebugLog.shared.record(
+                        "music-only candidate unavailable; using original upload", about: videoId
+                    )
                 }
-                PlaybackDebugLog.shared.record("music-only candidate rejected: recording identity could not be verified", about: videoId)
+            } else if case .cancelled = decision {
+                lookup.cancel()
+                throw CancellationError()
+            } else if case .timedOut = decision {
+                PlaybackDebugLog.shared.record(
+                    "music-only lookup exceeded 15 seconds; using the video's own audio", about: videoId
+                )
             }
-            let source = try await fallback.value
+            lookup.cancel()
+            try Task.checkCancellation()
+            // A miss, timeout or rejected recording falls back to the video
+            // upload's audio. Never fail solely because a preferred source
+            // could not be buffered or verified.
+            let source = try await Self.resolveYouTube(videoId: videoId, prefs: prefs)
             await latencyResolved?(source.resolutionAt ?? ProcessInfo.processInfo.systemUptime,
                                    "cold", source.clientName ?? "unknown")
-            return ResolveOutcome(source: source, leftover: nil, decisionNote: source.lossless
-                ? "A preferred source supplied verified lossless audio." : report.explanation)
+            return ResolveOutcome(source: source, leftover: nil, decisionNote: report.explanation)
+        }
+
+        let fallback = Task<ResolvedSource, Error> {
+            try await Self.resolveYouTube(videoId: videoId, prefs: prefs)
         }
 
         let race = PlaybackSourceRace<QualityUpgrade.Candidate, ResolvedSource>(preferPrimary: false)

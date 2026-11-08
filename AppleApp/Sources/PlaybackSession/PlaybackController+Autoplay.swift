@@ -17,18 +17,40 @@ extension PlaybackController {
     /// listener does — a skip, a like, a new pick — steers the *next* fill,
     /// because the next fill is seeded from whatever is playing then. It never
     /// rewrites the fill already shown.
-    func maybeAutoplay(force: Bool = false, lowWaterRefill: Bool = false) {
-        guard NetworkQuality.shared.connected else { return }
+    /// In Party-Sitzungen liefert nur der per BitChord-Regel gewählte Teilnehmer.
+    private var canSupplyRecommendations: Bool {
+        PartyAutoplayRules.shared.canSupply(
+            party: PartyStore.shared.state, localPreference: autoplayEnabled
+        )
+    }
+
+    private func autoplayRoom() -> Int {
+        let party = PartyStore.shared.state
+        guard party.inParty else {
+            return max(0, PlaybackQueuePolicy.fillRoom(queue, after: playingIndex))
+        }
+        let playingID = current.flatMap { youtubeVideoID(for: $0) }
+        let index = party.queue.items.firstIndex { $0.videoId == playingID }
+            ?? Int(party.queue.index)
+        let upcoming = party.queue.items.dropFirst(max(0, index + 1))
+        return max(0, PlaybackQueuePolicy.autoplayTarget
+            - upcoming.filter(\.fromAutoplay).count)
+    }
+
+    func maybeAutoplay(force: Bool = false, lowWaterRefill: Bool = false, seedOverride: String? = nil) {
+        guard NetworkQuality.shared.connected, canSupplyRecommendations else { return }
+        // Server-Echo abwarten, sonst könnten fünf identische Queue-Batches entstehen.
+        if PartyStore.shared.inParty, !partyAutoplayPendingIDs.isEmpty { return }
         if force {
             // A forced fill tops the tail up to its target; it does not replace it.
-            guard PlaybackQueuePolicy.fillRoom(queue, after: playingIndex) > 0 else { return }
+            guard autoplayRoom() > 0 else { return }
         }
-        let due = force || (lowWaterRefill && PlaybackQueuePolicy.shouldRefillAutoplay(
-            upcomingCount: queue.count - playingIndex - 1
-        ))
+        // BitChord füllt nach jedem Titelwechsel auf zehn Empfehlungen auf,
+        // nicht erst bei weniger als drei vorausliegenden Queue-Einträgen.
+        let due = force || (lowWaterRefill && autoplayRoom() > 0)
         guard due else { return }
         guard let context = recommendationContext else {
-            if autoplayEnabled {
+            if effectiveAutoplayEnabled {
                 PlaybackDebugLog.shared.record(
                     "autoplay: no context (repeatAll=\(repeatMode == .all) state=\(state) youtube=\(current.flatMap { youtubeVideoID(for: $0) } != nil))",
                     about: current?.id
@@ -36,14 +58,28 @@ extension PlaybackController {
             }
             return
         }
+        if autoplayEmptyContext != context {
+            autoplayEmptyContext = context
+            autoplayEmptyFailures = 0
+            autoplayEmptyRetryTask?.cancel()
+            autoplayEmptyRetryTask = nil
+        }
         guard let request = autoplayRefresh.begin(context, force: force) else { return }
-        let videoId = String(context.source.dropFirst(3))
+        let currentVideoId = String(context.source.dropFirst(3))
+        let videoId = seedOverride ?? currentVideoId
         PlaybackDebugLog.shared.record("autoplay: fill requested (force=\(force) count=\(queue.count) index=\(playingIndex))", about: current?.id)
-        fetchRecommendations(videoId: videoId) { [weak self] json, _ in
+        // Ein Video-Upload startet einen Video-Sender, solange die Option
+        // „Prefer Music Only“ seine Audioversion nicht bevorzugt.
+        let radioEntry = queue.last { youtubeVideoID(for: $0) == videoId } ?? current
+        let videoRadio = radioEntry?.isVideo == true
+            && (PartyStore.shared.inParty
+                || !PlatformSettings.shared.getBoolean(key: "prefer_music_only", default: false))
+        fetchRecommendations(videoId: videoId, preferVideo: videoRadio) { [weak self] json, _ in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self, self.canSupplyRecommendations else { return }
                 guard let json else {
                     PlaybackDebugLog.shared.record("autoplay: recommendations fetch returned nothing", about: videoId)
+                    self.scheduleEmptyAutoplayRetry(request: request)
                     return
                 }
                 guard let currentContext = self.recommendationContext,
@@ -67,17 +103,29 @@ extension PlaybackController {
                 // its place.
                 let kept = self.queue
                 guard kept.indices.contains(self.playingIndex) else { return }
-                let room = PlaybackQueuePolicy.fillRoom(kept, after: self.playingIndex)
+                let room = self.autoplayRoom()
                 guard room > 0 || !force else { return }
                 // QueueBuilder reads the final existing entry as the station seed.
                 // Its filtering snapshot ends with the current song; actual queue
                 // positions and manual/list priority are unchanged.
-                let filteringEntries = kept.enumerated().filter { $0.offset != self.playingIndex }.map(\.element) + [kept[self.playingIndex]]
+                // Der Server-Stand ist maßgebend; die lokale Party-Queue
+                // enthält nur das synchronisierte aktuelle Stück.
+                let party = PartyStore.shared.state
+                let serverEntries: [QueueEntry] = party.inParty ? party.queue.items.map {
+                    QueueEntry.youtube(
+                        videoId: $0.videoId, title: $0.title, artist: $0.artist,
+                        thumbnailUrl: $0.thumbnailUrl, fromAutoplay: $0.fromAutoplay
+                    )
+                } : []
+                let filteringEntries = (party.inParty
+                    ? serverEntries.filter { $0.id != kept[self.playingIndex].id }
+                    : kept.enumerated().filter { $0.offset != self.playingIndex }.map(\.element))
+                    + [kept[self.playingIndex]]
                 let existing = (try? JSONEncoder().encode(filteringEntries.map { $0.asSongJSON(videoIDOverride: self.youtubeVideoID(for: $0)) }))
                     .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
                 let extraJson = QueueBuilderBridge.shared.extendJson(
                     existingJson: existing, candidatesJson: json,
-                    limit: Int32(max(room, PlaybackQueuePolicy.autoplayRefillThreshold))
+                    limit: Int32(max(0, room)), preferVideos: videoRadio
                 )
                 guard let data = extraJson.data(using: .utf8),
                       let songs = try? JSONDecoder().decode([SongDTO].self, from: data) else {
@@ -85,21 +133,33 @@ extension PlaybackController {
                     return
                 }
                 var known = Set(kept.map(\.id))
+                if party.inParty { known.formUnion(party.queue.items.map(\.videoId)) }
                 let extras = songs.filter { known.insert($0.videoId).inserted }.map {
                     QueueEntry.youtube(
                         videoId: $0.videoId, title: $0.title, artist: $0.artist,
                         thumbnailUrl: $0.thumbnailUrl, durationText: $0.durationText,
                         albumName: $0.albumName, artistId: $0.artistId, albumId: $0.albumId,
-                        fromAutoplay: true
+                        fromAutoplay: true, isVideo: $0.isVideo ?? false
                     )
                 }
-                // Ordered by taste once, as a batch, before anyone has seen it.
-                let scores = self.tasteScores(extras)
-                let ordered = PlaybackQueuePolicy.ranked(Array(extras.indices), scores: scores).map { extras[$0] }
+                // Original-BitChord respektiert die Reihenfolge der Radio-Antwort.
+                // Nur ein ausdrücklich eingeschaltetes AutoMix kann später den
+                // noch nicht abgespielten Bereich neu ordnen.
+                let ordered = extras
                 PlaybackDebugLog.shared.record("autoplay: \(songs.count) candidates, \(ordered.count) appended (room=\(room))", about: videoId)
-                guard !ordered.isEmpty else { return }
+                guard !ordered.isEmpty else {
+                    self.scheduleEmptyAutoplayRetry(request: request)
+                    return
+                }
+                if party.inParty {
+                    self.sendPartyAutoplay(ordered, currentID: currentVideoId)
+                    return
+                }
                 self.autoplayRefresh.noteFilled()
+                self.autoplayEmptyFailures = 0
+                self.autoplayEmptyRetryTask?.cancel()
                 self.queue = PlaybackQueuePolicy.appendingFill(kept, extras: ordered)
+                self.rememberQueuedRecommendations(ordered)
                 self.persistSession()
                 self.syncEngineQueueNext()
                 self.scheduleSequencing()
@@ -107,11 +167,111 @@ extension PlaybackController {
         }
     }
 
-    private func fetchRecommendations(videoId: String, response: @escaping (String?, String?) -> Void) {
+    /// Eine leere Antwort bekommt einen kurzen Zweitversuch. Nur am echten
+    /// Queue-Ende läuft der 15-Sekunden-Watchdog, und niemals nach Trackwechsel.
+    private func scheduleEmptyAutoplayRetry(request: AutoplayRefreshState.Request) {
+        guard let context = recommendationContext,
+              autoplayRefresh.accepts(request, current: context),
+              autoplayRoom() > 0 else { return }
+        let party = PartyStore.shared.state
+        let atEnd: Bool
+        if party.inParty {
+            let id = current.flatMap { youtubeVideoID(for: $0) }
+            let index = party.queue.items.firstIndex { $0.videoId == id }
+                ?? Int(party.queue.index)
+            atEnd = index >= party.queue.items.count - 1
+        } else {
+            atEnd = playingIndex >= 0 && playingIndex == queue.count - 1
+        }
+        guard atEnd else { return }
+        autoplayEmptyFailures += 1
+        let failures = autoplayEmptyFailures
+        let delay = AutoplayEmptyPolicy.waitSeconds(forFailureCount: failures)
+        let previousIndex = AutoplayEmptyPolicy.seedIndex(
+            currentIndex: playingIndex, failureCount: failures
+        )
+        let precedingID = queue.indices.contains(previousIndex)
+            ? youtubeVideoID(for: queue[previousIndex]) : nil
+        autoplayEmptyRetryTask?.cancel()
+        autoplayEmptyRetryTask = Task { @MainActor [weak self] in
+            do { try await Task.sleep(for: .seconds(delay)) }
+            catch { return }
+            guard let self, let latest = self.recommendationContext,
+                  self.autoplayRefresh.accepts(request, current: latest) else { return }
+            // Wie das Original fragt ein pausierter Player nicht weiter.
+            while self.state == .paused {
+                do { try await Task.sleep(for: .seconds(15)) }
+                catch { return }
+                guard let updated = self.recommendationContext,
+                      self.autoplayRefresh.accepts(request, current: updated) else { return }
+            }
+            self.maybeAutoplay(force: true, seedOverride: failures > 1 ? precedingID : nil)
+        }
+    }
+
+    /// Anders als die lokale Wiedergabe darf eine Party-Queue niemals direkt
+    /// geändert werden. Bestätigt ist eine Ergänzung erst beim Server-Echo.
+    private func sendPartyAutoplay(_ entries: [QueueEntry], currentID: String) {
+        let party = PartyStore.shared.state
+        guard party.inParty, canSupplyRecommendations,
+              current.flatMap({ youtubeVideoID(for: $0) }) == currentID,
+              partyAutoplayPendingIDs.isEmpty else { return }
+        let index = party.queue.items.firstIndex { $0.videoId == currentID }
+            ?? Int(party.queue.index)
+        let upcoming = party.queue.items.dropFirst(max(0, index + 1))
+        let room = max(0, PlaybackQueuePolicy.autoplayTarget
+            - upcoming.filter(\.fromAutoplay).count)
+        var known = Set(party.queue.items.map(\.videoId))
+        let fresh = Array(entries.filter { known.insert($0.id).inserted }.prefix(room))
+        guard !fresh.isEmpty else { return }
+        guard PartyCoordinator.shared.queueAdd(
+            tracks: fresh.map { $0.asPartyTrack() }, playNext: false
+        ) else { return }
+        partyAutoplayPendingIDs = Set(fresh.map(\.id))
+        partyAutoplayEchoTask?.cancel()
+        partyAutoplayEchoTask = Task { @MainActor [weak self] in
+            for _ in 0..<12 {
+                do { try await Task.sleep(for: .milliseconds(500)) }
+                catch { return }
+                guard let self else { return }
+                let state = PartyStore.shared.state
+                guard state.inParty,
+                      self.current.flatMap({ self.youtubeVideoID(for: $0) }) == currentID else {
+                    self.partyAutoplayPendingIDs = []
+                    return
+                }
+                if !self.partyAutoplayPendingIDs.isDisjoint(
+                    with: Set(state.queue.items.map(\.videoId))
+                ) {
+                    self.partyAutoplayPendingIDs = []
+                    self.rememberQueuedRecommendations(fresh)
+                    self.autoplayRefresh.noteFilled()
+                    self.autoplayEmptyFailures = 0
+                    self.autoplayEmptyRetryTask?.cancel()
+                    return
+                }
+            }
+            // Kein Echo ist kein Erfolg. Beim nächsten Titelwechsel ist die
+            // Empfehlung wieder möglich; kein stiller lokaler Queue-Eingriff.
+            self?.partyAutoplayPendingIDs = []
+            self?.autoplayRefresh.invalidate()
+        }
+    }
+
+    /// Erst nachdem die Queue lokal bzw. auf dem Party-Server bestätigt wurde,
+    /// zählen Vorschläge für die Option „Nicht erneut empfehlen“ als angeboten.
+    private func rememberQueuedRecommendations(_ entries: [QueueEntry]) {
+        guard !entries.isEmpty,
+              let data = try? JSONEncoder().encode(entries.map { $0.asSongJSON() }),
+              let json = String(data: data, encoding: .utf8) else { return }
+        QueueBuilderBridge.shared.rememberSuggestedJson(songsJson: json)
+    }
+
+    private func fetchRecommendations(videoId: String, preferVideo: Bool, response: @escaping (String?, String?) -> Void) {
         #if DEBUG
         if let recommendationFetchOverride { recommendationFetchOverride(videoId, response); return }
         #endif
-        AutoPlayBridge.shared.related(videoId: videoId, callback: AutoPlayAdapter(response))
+        AutoPlayBridge.shared.related(videoId: videoId, preferVideo: preferVideo, callback: AutoPlayAdapter(response))
     }
 
     func tasteScores(_ entries: [QueueEntry], transitionFits: [Int: Double] = [:]) -> [Double] {
@@ -324,6 +484,7 @@ extension PlaybackController {
         let albumName: String?
         let artistId: String?
         let albumId: String?
+        let isVideo: Bool?
     }
 
     func publishPresence() {
