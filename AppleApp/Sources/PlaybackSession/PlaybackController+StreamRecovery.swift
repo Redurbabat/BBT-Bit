@@ -1,5 +1,8 @@
 import Foundation
 import BitChordShared
+#if canImport(UIKit)
+import UIKit
+#endif
 
 extension PlaybackController {
     func pollStreamRecovery() {
@@ -48,7 +51,7 @@ extension PlaybackController {
               duration <= 0 || playbackPosition < duration - 3 else { return }
         wakeGrowingReader(source)
         let at = playbackPosition
-        let diagnostic = "stream recovery exhausted: source=\(source.hasPrefix("/") ? "local-cache" : "remote") position=\(at) duration=\(duration) state=\(state)"
+        let diagnostic = "stream recovery exhausted: position=\(at) duration=\(duration) state=\(state) \(streamStallEvidence(source: source))"
         debugLog.record(diagnostic, about: entry.id)
         pausePlayback()
         engineLoadedId = nil
@@ -56,6 +59,32 @@ extension PlaybackController {
         recoveryNeedsFreshResolution = true
         lastError = "Playback interrupted at \(Int(at))s; automatic stream recovery failed. Press Play to retry."
         sourceDecisionNotes[entry.id] = lastError
+    }
+
+    /// Kurzer Befund für den Diagnosebericht. Er trennt die möglichen Ursachen eines
+    /// Abbruchs mitten im Titel: Download unvollständig (`bytes` unter der erwarteten
+    /// Länge, `.failed`), leerer Ausgabepuffer trotz vollständiger Datei (Engine oder
+    /// Ausgabe) oder ein Wechsel der App in den Hintergrund (`app`: 0 aktiv, 1 inaktiv,
+    /// 2 Hintergrund). Enthält keine URLs und keine Pfade.
+    private func streamStallEvidence(source: String) -> String {
+        var parts = ["source=\(source.hasPrefix("/") ? "local-cache" : "remote")"]
+        if source.hasPrefix("/") {
+            let files = FileManager.default
+            let attributes = try? files.attributesOfItem(atPath: source)
+            let size = (attributes?[.size] as? NSNumber)?.int64Value ?? -1
+            let declared = (try? String(contentsOfFile: source + ".len", encoding: .utf8))
+                .flatMap { Int64($0.trimmingCharacters(in: .whitespacesAndNewlines)) } ?? -1
+            parts.append("bytes=\(size)/\(declared)")
+            parts.append("grow=\(files.fileExists(atPath: source + ".grow"))")
+            parts.append("complete=\(files.fileExists(atPath: source + ".complete"))")
+            parts.append("failed=\(files.fileExists(atPath: source + ".failed"))")
+        }
+        parts.append("bufferedFrames=\(engine.outputHealth().bufferedFrames)")
+        parts.append("network=\(NetworkQuality.shared.connected ? "up" : "down")")
+        #if canImport(UIKit)
+        parts.append("app=\(UIApplication.shared.applicationState.rawValue)")
+        #endif
+        return parts.joined(separator: " ")
     }
 
     private func wakeGrowingReader(_ source: String) {
@@ -83,7 +112,7 @@ extension PlaybackController {
         wakeGrowingReader(source)
         recoveringEntryID = entry.id
         sourceDecisionNotes[entry.id] = explanation
-        debugLog.record(explanation, about: entry.id)
+        debugLog.record("\(explanation) position=\(at) duration=\(duration) \(streamStallEvidence(source: source))", about: entry.id)
         QualityUpgrade.forget(entry.id)
         // A fresh resolution bypasses growing/completed playback caches and clears
         // only issued URLs, preserving local downloads and the user's source order.
