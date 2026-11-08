@@ -1,0 +1,172 @@
+name: BBT-Bit iPhone-Testversion
+run-name: iPhone-Test · ${{ inputs.source_ref || github.ref_name }} · ${{ github.run_number }}
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - AppleApp/**
+      - shared/**
+      - vendor/innertubex/**
+      - native-core/**
+      - gradle/**
+      - '*.gradle.kts'
+      - gradle.properties
+      - gradlew
+      - scripts/**
+      - .github/workflows/ios-sidestore-test.yml
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Quellbranch oder Commit im selben Repository; leer verwendet den ausgewählten Workflow-Branch
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Pro ausgewähltem Branch ersetzt der neueste Push einen noch laufenden Testbau.
+concurrency:
+  group: bbt-iphone-${{ inputs.source_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    if: github.event_name == 'workflow_dispatch' || (vars.BBT_IOS_TEST_AUTO_BUILD == 'true' && vars.BBT_IOS_TEST_BRANCH != '' && github.ref_name == vars.BBT_IOS_TEST_BRANCH)
+    runs-on: macos-26
+    timeout-minutes: 120
+    env:
+      SOURCE_REF: ${{ inputs.source_ref || github.ref_name }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Geprüfte Workflow-Werkzeuge laden
+        uses: actions/checkout@v4
+        with:
+          path: infrastructure
+          persist-credentials: false
+      - name: Gewählten App-Stand laden
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_REF }}
+          path: source
+          persist-credentials: false
+      - name: Apple-Silicon-Werkzeuge und Quellrevision prüfen
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          git -C source config core.fileMode false
+          echo "SOURCE_SHA=$(git -C source rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          echo /opt/homebrew/bin >> "$GITHUB_PATH"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Native Bauwerkzeuge vorbereiten
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xcodegen >/dev/null || brew install xcodegen
+          command -v cmake >/dev/null || brew install cmake
+          if ! command -v rustup >/dev/null; then
+            curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal
+          fi
+          rustup default stable
+          rustup target add aarch64-apple-darwin aarch64-apple-ios
+          python3 -m pip install --user --break-system-packages PyYAML==6.0.3
+      - name: Paketprüfung mit Gegenproben ausführen
+        run: python3 infrastructure/scripts/ios-test-verify/check.py
+      - name: Native Zwischenergebnisse wiederverwenden
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cache/bbt-bit/ios-frameworks
+          key: bbt-sidestore-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('source/gradle/**', 'source/**/*.gradle.kts', 'source/native-core/Cargo.lock', 'source/native-core/Cargo.toml') }}
+          restore-keys: bbt-sidestore-${{ runner.os }}-${{ runner.arch }}-
+      - name: Kotlin und Rust für das echte iPhone bauen
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Ausführungsrechte werden nur im flüchtigen Checkout gesetzt.
+          chmod +x gradlew scripts/build-shared-framework.sh scripts/build-native-core.sh
+          bash scripts/ci-ios-native-cache.sh kotlin
+          bash scripts/ci-ios-native-cache.sh rust
+      - name: Separate SideStore-Testkonfiguration erzeugen
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 infrastructure/scripts/prepare-sidestore-project.py \
+            --project source/AppleApp/project.yml --output source/AppleApp/project.sidestore.yml \
+            --branch "$SOURCE_REF" --run-url "$RUN_URL"
+          # Der Generator verändert keine Quelldatei. Der Bau behält die echte Quellrevision.
+          printf '\n/AppleApp/project.sidestore.yml\n' >> source/.git/info/exclude
+          xcodegen generate --spec source/AppleApp/project.sidestore.yml
+      - name: Unsignierte Geräte-IPA erzeugen
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(python3 -c 'import yaml; print(yaml.safe_load(open("AppleApp/project.yml"))["settings"]["base"]["MARKETING_VERSION"])')"
+          mkdir -p build/iphone-test
+          bash scripts/package-ios-ipa.sh "$version" --fast --output-dir build/iphone-test 2>&1 | tee build/iphone-test/build.log
+      - name: IPA-Inhalt und Zuordnung prüfen
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir=source/build/iphone-test
+          ipa="$(find "$package_dir" -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -n "$ipa"
+          python3 infrastructure/scripts/verify-ios-test-ipa.py "$ipa" \
+            --source-sha "$SOURCE_SHA" --source-ref "$SOURCE_REF" --run-url "$RUN_URL" \
+            --output "$package_dir/build.json"
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          root = pathlib.Path('source/build/iphone-test')
+          data = json.loads((root / 'build.json').read_text())
+          branch = re.sub(r'[^A-Za-z0-9._-]+', '-', data['source_ref'])[:60]
+          identity = f"BBT-Bit-{data['version']}-build{data['build']}-{branch}-{data['source_sha'][:12]}-{os.environ['GITHUB_RUN_ID']}"
+          original = root / data['ipa']
+          renamed = root / f'{identity}.ipa'
+          original.rename(renamed)
+          data['ipa'] = renamed.name
+          (root / 'build.json').write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+          (root / 'SHA256.txt').write_text(f"{data['sha256']}  {renamed.name}\n")
+          (root / 'INSTALLIEREN.txt').write_text('ZIP in Dateien entpacken. Die enthaltene IPA in SideStore über + auswählen.\n'
+              'Diese IPA benötigt die Signierung mit deinem Apple-Konto. Installation und Audio sind NICHT GETESTET.\n'
+              'Anleitung: https://github.com/Redurbabat/BBT-Bit/blob/' + os.environ['GITHUB_SHA'] + '/docs/IPHONE_TESTSYSTEM.md\n')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'artifact_name={identity}\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f"IPA-Struktur geprüft. Version {data['version']}, Build {data['build']}.\n\n"
+                  f"Quellrevision `{data['source_sha']}`. Branch steht in `build.json`.\n\n"
+                  'Signierung, Installation, Update und hörbare Wiedergabe: **NICHT GETESTET**.\n')
+          PY
+      - name: IPA für das iPhone bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: |
+            source/build/iphone-test/*.ipa
+            source/build/iphone-test/build.json
+            source/build/iphone-test/SHA256.txt
+            source/build/iphone-test/INSTALLIEREN.txt
+          if-no-files-found: error
+          retention-days: 3
+      - name: Bauprotokoll sichern
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iPhone-Test-Fehler-${{ github.run_id }}
+          path: source/build/iphone-test/build.log
+          if-no-files-found: ignore
+          retention-days: 3

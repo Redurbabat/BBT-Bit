@@ -14,6 +14,7 @@
 | Simulator | [GitHub-Simulatorlauf](github-iphone-simulator-tests.md) oder derselbe Xcode-Aufruf lokal mit einem iPhone-Simulator als Destination. XCResult und Screenshots sichern. | Xcode kompiliert App und Widget. Der bestehende UI-Test öffnet Designvorschauen. Weitere Interaktionen benötigen einen passenden Testfall. |
 | UI manuell | Navigation und Rückkehr, Lade-/Fehlerzustände, Dynamic Type, VoiceOver, Reduce Motion, Reduce Transparency, Hell/Dunkel, Safe Areas und Gesten. | Gerätegröße, OS, Eingabemethode und betroffenen Nutzerweg vermerken. |
 | Release | `python scripts/release-verify/check.py` und [Artefaktprüfung](RELEASE.md). | Fixture prüft gepaarte Metadaten und Checksummen. Für ein Release die echten Artefakte und das Update prüfen. |
+| SideStore-Testsystem | `python scripts/ios-test-verify/check.py`, danach erfolgreicher Lauf von `ios-sidestore-test.yml` und [Installation/Update am iPhone](IPHONE_TESTSYSTEM.md). | Fixtures prüfen Konfiguration und Paketfehler. Die echte IPA wird auf Gerätearchitektur, Revision, Frameworks und Identität geprüft. Signierung, Installation, Datenbestand und Audio haben eigene Abnahmen. |
 
 ## Echtes iPhone
 
