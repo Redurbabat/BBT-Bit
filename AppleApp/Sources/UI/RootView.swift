@@ -1182,19 +1182,19 @@ struct PlaybackPillMount: ViewModifier {
                 PlaybackAccessory()
             }
         } else {
-            content.tabViewBottomAccessory {
-                PlaybackAccessory()
-            }
-        }
-        #else
-        if #available(iOS 26.1, *) {
+            // iOS 26.0 has no isEnabled overload. Do not render a second
+            // mini-player while the keyboard-safe-area pill is visible.
             content.tabViewBottomAccessory {
                 if !keyboardUp {
                     PlaybackAccessory()
                 }
             }
-        } else {
-            content.tabViewBottomAccessory {
+        }
+        #else
+        // Xcode 26.0 SDK: the accessory has no isEnabled parameter.
+        // Keep its content mutually exclusive with the keyboard pill.
+        content.tabViewBottomAccessory {
+            if !keyboardUp {
                 PlaybackAccessory()
             }
         }
