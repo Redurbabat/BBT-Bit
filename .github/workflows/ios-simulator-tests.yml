@@ -241,6 +241,17 @@ jobs:
           xcrun simctl boot "$SIMULATOR_UDID" || true
           xcrun simctl bootstatus "$SIMULATOR_UDID" -b
 
+      - name: Resolve Swift packages (retry on server errors)
+        shell: bash
+        run: |
+          # Sparkle liegt als Binärpaket auf GitHub-Releases; ein 503 dort ließ den
+          # Xcode-Build schon vor dem Kompilieren scheitern. Gleicher derivedDataPath
+          # wie im Build, damit er die aufgelösten Pakete wiederverwendet.
+          bash scripts/retry-transient.sh xcodebuild -resolvePackageDependencies \
+            -project AppleApp/BitChord.xcodeproj \
+            -scheme BitChord \
+            -derivedDataPath "$RUNNER_TEMP/BBT-Bit-DerivedData"
+
       - name: Xcode build and XCUITest - 15 preview screens and screenshots
         id: xcode_test
         shell: bash

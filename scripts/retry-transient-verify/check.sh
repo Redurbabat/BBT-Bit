@@ -40,4 +40,18 @@ chmod +x "$work/down.sh"
 bash "$retry" "$work/down.sh" "$work/count3" >/dev/null 2>&1 && fail "dauerhafter Netzfehler muss scheitern"
 [ "$(cat "$work/count3")" = "3" ] || fail "erwartet 3 Versuche, war $(cat "$work/count3")"
 
+# 4) Swift-Paketauflösung (Xcode) mit 503: wird wiederholt wie ein anderer Netzfehler.
+cat > "$work/spm.sh" <<'SH'
+#!/usr/bin/env bash
+n=$(cat "$1" 2>/dev/null || echo 0); n=$((n+1)); echo "$n" > "$1"
+if [ "$n" -lt 2 ]; then
+  echo "failed downloading 'https://example.invalid/Sparkle.zip' which is required by binary target 'Sparkle': badResponseStatusCode(503)"
+  exit 74
+fi
+echo ok
+SH
+chmod +x "$work/spm.sh"
+bash "$retry" "$work/spm.sh" "$work/count4" >/dev/null || fail "SPM-Netzfehler wurde nicht überwunden"
+[ "$(cat "$work/count4")" = "2" ] || fail "erwartet 2 Aufrufe für SPM-Fall, war $(cat "$work/count4")"
+
 echo "PASS retry-transient: Netzfehler wiederholt, echte Fehler nicht"

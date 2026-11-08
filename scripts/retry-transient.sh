@@ -10,7 +10,7 @@ set -uo pipefail
 
 attempts="${RETRY_ATTEMPTS:-8}"
 pause="${RETRY_PAUSE:-45}"
-transient='Received status code 5[0-9][0-9]|Gateway Time-?out|HTTP response code: 5[0-9][0-9]|Read timed out|SocketTimeoutException|Connection (reset|refused)|Could not (GET|HEAD|download)|Downloading from .* failed|UnknownHostException|Premature end of Content-Length'
+transient='Received status code 5[0-9][0-9]|Gateway Time-?out|HTTP response code: 5[0-9][0-9]|Read timed out|SocketTimeoutException|Connection (reset|refused)|Could not (GET|HEAD|download)|Downloading from .* failed|UnknownHostException|Premature end of Content-Length|badResponseStatusCode\\(5[0-9][0-9]\\)|failed downloading .https'
 
 if [ "$#" -eq 0 ]; then
   echo "Aufruf: $0 <Befehl> [Argumente...]" >&2
