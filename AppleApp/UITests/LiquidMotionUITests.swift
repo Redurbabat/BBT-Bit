@@ -60,25 +60,25 @@ final class LiquidMotionUITests: XCTestCase {
         XCTAssertLessThanOrEqual(pill.frame.maxY, keyboard.frame.minY + 4,
                                  "Mini-player overlaps the native keyboard")
 
-        // The native Search key should dismiss the keyboard. Do not silently
-        // report the return transition as tested when the key is unavailable.
-        let searchKey = keyboard.buttons["Search"].exists
-            ? keyboard.buttons["Search"] : keyboard.buttons["search"]
-        if searchKey.exists {
-            searchKey.tap()
-            XCTAssertFalse(keyboard.waitForExistence(timeout: 5),
-                           "Search keyboard stayed open after submitting")
-            XCTAssertTrue(pill.waitForExistence(timeout: 10),
-                          "Mini-player missing after keyboard dismissal")
-            XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
-                           "Mini-player duplicated after keyboard dismissal")
-        } else {
+        // Native return-key labels are localized (e.g. "Suchen" on a
+        // German simulator). A missing key must fail, not skip the whole
+        // test and conceal already-executed keyboard layout assertions.
+        let searchKey = ["Suchen", "Search", "search"].map { keyboard.buttons[$0] }
+            .first(where: { $0.exists })
+        if searchKey == nil {
             let noKey = XCTAttachment(screenshot: app.screenshot())
             noKey.name = "BBT-Bit-Search-Key-Unavailable"
             noKey.lifetime = .keepAlways
             add(noKey)
-            throw XCTSkip("Native Search key unavailable: keyboard-dismissal transition not tested")
         }
+        XCTAssertNotNil(searchKey, "Native search keyboard has no recognized submit key")
+        searchKey?.tap()
+        XCTAssertFalse(keyboard.waitForExistence(timeout: 5),
+                       "Search keyboard stayed open after submitting")
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player missing after keyboard dismissal")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Mini-player duplicated after keyboard dismissal")
     }
 
     func testEveryDesignPreviewIsRenderedAndOpenableOnIPhone() throws {
