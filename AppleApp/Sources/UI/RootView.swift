@@ -1143,7 +1143,13 @@ struct PlaybackPillMount: ViewModifier {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 6)
                             .frame(maxWidth: .infinity)
-                            .transition(.opacity)
+                            // Keep the keyboard handoff spatially continuous;
+                            // never animate the system-owned TabView accessory.
+                            .transition(
+                                reduceMotion
+                                    ? .opacity
+                                    : .move(edge: .bottom).combined(with: .opacity)
+                            )
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
