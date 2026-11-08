@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 struct ConstellationWord: Equatable {
     let text: String

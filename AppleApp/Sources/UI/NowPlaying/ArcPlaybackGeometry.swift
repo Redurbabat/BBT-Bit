@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 /// Gemeinsame Geometrie für Zeichnung, Trefferbereich und Seek des Wiedergabebogens.
 struct ArcPlaybackGeometry {
