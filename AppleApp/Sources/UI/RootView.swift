@@ -1208,6 +1208,7 @@ extension EnvironmentValues {
 struct KeyboardPlaybackChrome: ViewModifier {
     @Environment(\.keyboardPlaybackVisible) private var visible
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var searchClearance: CGFloat = 0
 
     func body(content: Content) -> some View {
         content.safeAreaInset(edge: .bottom, spacing: 0) {
@@ -1216,8 +1217,13 @@ struct KeyboardPlaybackChrome: ViewModifier {
                     .frame(maxWidth: 440)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 6)
+                    .padding(.bottom, searchClearance)
                     .frame(maxWidth: .infinity)
             }
+        }
+        .background {
+            NativeSearchClearance(active: visible && sizeClass == .compact) { searchClearance = $0 }
+                .accessibilityHidden(true)
         }
     }
 }

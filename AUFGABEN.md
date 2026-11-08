@@ -2,6 +2,7 @@
 
 | ID | Aufgabe und Abnahme | Nachweis |
 | --- | --- | --- |
+| BBT-021 | Zwölf kreative Musikinteraktionen in PR #59 abnehmen: echte Datenzustände, Sternbild-Verlauf und automatischer Gesamtzoom bei zehn Sekunden Restzeit mit vollständigem Lichtweg zum Songende; sichere native Suche und Dock beibehalten. | [Umsetzung und Prüfmatrix](docs/RED_BIT_KREATIVE_INTERAKTIONEN.md). Quellprüfung, Swift-/Rust-Build und Simulator getrennt dokumentieren. Echtgerät, VoiceOver und hörbares Audio bis Durchführung **NICHT GETESTET**. |
 | BBT-020 | Videoverhalten auf Künstlerseite, Bogen-Vollplayer und wählbare Liste/Sternbild-Lyrics sowie Foto-Regressionen für Suchfeld, Top-Ergebnis und Dock auf echtem iPhone abnehmen. | [Referenzanalyse und Abnahme](docs/VIDEO_REFERENZEN_20261108.md), [Livetest-Auswertung](docs/RED_BIT_INTEGRATION.md). Geräte-, Hör- und visuelle 1:1-Abnahme **NICHT GETESTET**. |
 | BBT-019 | Integration der PRs #54/#57/#58, Signalband-Logo sowie Dock-/Island-/Tastatur-Mini-Player auf echtem iPhone und iPad/Mac abnehmen; erst danach über den Merge entscheiden. | [Analyse und konkrete Prüfmatrix](docs/RED_BIT_INTEGRATION.md). Native Builds/Simulator und hörbares Audio bis zum tatsächlichen Nachweis **NICHT GETESTET**. |
 | BBT-001 | Erste vollständige native Prüfmatrix auf Apple Silicon erfassen. Die Berichte nennen SHA, Xcode und Zielgerät. | Kotlin `:shared:macosArm64Test`, Rust `cargo test --locked`, iOS-XCUITest und XCResult |

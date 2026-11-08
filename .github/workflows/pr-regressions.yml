@@ -71,12 +71,14 @@ jobs:
           "$RUNNER_TEMP/red-bit-scroll-test"
           swiftc AppleApp/Sources/UI/NowPlaying/ArcPlaybackGeometry.swift \
             AppleApp/Sources/UI/NowPlaying/ConstellationGeometry.swift \
+            AppleApp/Sources/UI/LiquidMotion/MusicMotionGeometry.swift \
             scripts/test-video-reference-geometry.swift -o "$RUNNER_TEMP/red-bit-video-geometry"
           "$RUNNER_TEMP/red-bit-video-geometry"
           for file in AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift \
                       AppleApp/Sources/UI/LiquidMotion/DockScrollDirection.swift \
                       AppleApp/Sources/UI/AccountProfileSheet.swift \
                       AppleApp/Sources/UI/RootView.swift \
+                      AppleApp/Sources/UI/KeyboardPlaybackClearance.swift \
                       AppleApp/Sources/UI/PlaybackPill.swift \
                       AppleApp/Sources/UI/FeedViews.swift \
                       AppleApp/Sources/UI/SearchView.swift \
@@ -84,6 +86,8 @@ jobs:
                       AppleApp/Sources/UI/BrowseNavigation.swift \
                       AppleApp/Sources/UI/NowPlaying/ArcPlaybackDeck.swift \
                       AppleApp/Sources/UI/NowPlaying/LyricsConstellationView.swift \
+                      AppleApp/Sources/UI/NowPlaying/RhythmicConstellationCanvas.swift \
+                      AppleApp/Sources/UI/NowPlaying/CreativeMotionPreviewView.swift \
                       AppleApp/Sources/UI/NowPlaying/VideoReferencePreviewView.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift \

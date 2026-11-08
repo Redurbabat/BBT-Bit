@@ -7,6 +7,7 @@ import SwiftUI
 /// liegen in einer eigenen Ansicht und verändern nicht die Höhe des Decks.
 /// Diese View liest ausschließlich Engine-Werte und verändert keine Mischung.
 struct AutomixWeave: View {
+    @Environment(PlaybackController.self) private var controller
     let start: Double
     let end: Double
     let position: Double
@@ -80,6 +81,11 @@ struct AutomixWeave: View {
                     )
                     .font(.headline)
 
+                    AutomixLightBridge(current: controller.current,
+                        next: controller.queue.indices.contains(controller.playingIndex + 1)
+                            ? controller.queue[controller.playingIndex + 1] : nil,
+                        progress: progress, isMixing: isMixing)
+
                     LabeledContent("Time window", value: String(format: "%.1f–%.1f s", start, end))
                     if isMixing {
                         LabeledContent("Progress", value: "\(Int((progress * 100).rounded())) %")
@@ -107,7 +113,7 @@ struct AutomixWeave: View {
                 }
             }
             #if os(iOS)
-            .presentationDetents([.height(280), .medium])
+            .presentationDetents([.medium, .large])
             #else
             .frame(minWidth: 340, minHeight: 280)
             #endif

@@ -140,6 +140,7 @@ struct DownloadsView: View {
     @ViewBuilder
     private var content: some View {
         VStack(spacing: 0) {
+            DownloadTransferScene()
             tabPicker
             toolbar
             switch selectedTab {

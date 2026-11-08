@@ -54,8 +54,10 @@ extension NowPlayingView {
                         immersive: true,
                         trackTitle: controller.current?.title ?? "",
                         sourceLabel: controller.lyricsSourceLabel,
-                        onShowList: { lyricsConstellation = false }
+                        onShowList: { lyricsConstellation = false },
+                        duration: controller.duration
                     )
+                    .id(controller.current?.id)
                 }
                 .toolbar(.hidden, for: .navigationBar)
                 .ignoresSafeArea(.container)
@@ -170,6 +172,7 @@ extension NowPlayingView {
             if pane != .lyrics || lyricsControlsOpen || keepsLyricsPlaybackDeckVisible {
                 deck
                     .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                SleepEclipseView()
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: lyricsControlsOpen)

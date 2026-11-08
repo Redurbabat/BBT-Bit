@@ -3,6 +3,22 @@
 use super::*;
 
 #[test]
+fn beat_snapshot_is_read_only_finite_and_rejects_changed_audio() {
+    let path = std::env::temp_dir().join(format!("red-bit-beat-snapshot-{}.bin", std::process::id()));
+    std::fs::write(&path, b"original").unwrap();
+    let source = path.to_string_lossy().to_string();
+    assert!(analysis_cache::cached_beat_times(&source).is_empty());
+    analysis_cache::get_or_compute(&source, true, 30.0, || Analysis {
+        beats: vec![1.0, 0.5, f64::NAN, -1.0, 0.5, f64::INFINITY],
+        ..Default::default()
+    });
+    assert_eq!(analysis_cache::cached_beat_times(&source), vec![0.5, 1.0]);
+    std::fs::write(&path, b"changed and longer").unwrap();
+    assert!(analysis_cache::cached_beat_times(&source).is_empty());
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
 fn changed_overlay_cannot_reuse_an_old_disk_analysis() {
     let dir = std::env::temp_dir().join(format!("bitchord-overlay-disk-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);

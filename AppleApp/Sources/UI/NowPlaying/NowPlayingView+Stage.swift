@@ -20,8 +20,10 @@ extension NowPlayingView {
                     lines: controller.displayedLyrics,
                     position: controller.livePosition(at: timeline.date),
                     offsetMs: lyricsOffsetMs,
-                    onClose: { lyricsConstellation = false }
+                    onClose: { lyricsConstellation = false },
+                    duration: controller.duration
                 )
+                .id(controller.current?.id)
             } else {
             LyricsPane(
                 lines: controller.displayedLyrics,
@@ -235,8 +237,10 @@ extension NowPlayingView {
                     lines: controller.displayedLyrics,
                     position: controller.livePosition(at: timeline.date),
                     offsetMs: lyricsOffsetMs,
-                    onClose: { lyricsConstellation = false }
+                    onClose: { lyricsConstellation = false },
+                    duration: controller.duration
                 )
+                .id(controller.current?.id)
             } else {
             LyricsPane(
                 lines: controller.displayedLyrics,

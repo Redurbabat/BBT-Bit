@@ -405,6 +405,7 @@ final class PlaybackController {
     var sleepDeadline: ContinuousClock.Instant?
     var sleepTask: Task<Void, Never>?
     var sleepSecondsRemaining: Int?
+    var sleepDurationSeconds: Double?
     var sleepAfterTrack = false
     var autoplayEnabled = PlatformSettings.shared.getBoolean(key: "autoplay", default: true)
     var automixEnabled = PlatformSettings.shared.getBoolean(key: "smart_fade_enabled", default: true)

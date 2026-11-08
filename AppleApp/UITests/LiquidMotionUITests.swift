@@ -145,6 +145,45 @@ final class LiquidMotionUITests: XCTestCase {
         XCTAssertTrue(open.waitForExistence(timeout: 10), "Rückkehr aus dem Sternbild zur Liste fehlt")
     }
 
+    func testCreativeCollectionsAndTimedConstellationFinale() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["--red-ui-test-creative"]
+        app.launch()
+        let next = app.buttons.matching(identifier: "red.collection.next").firstMatch
+        XCTAssertTrue(next.waitForExistence(timeout: 20))
+        if !next.isHittable { app.swipeUp() }
+        next.tap()
+        XCTAssertTrue(app.staticTexts["Farbenspiel"].firstMatch.waitForExistence(timeout: 5))
+        app.swipeDown()
+        let lyrics = app.buttons["red.fixture.lyrics"]
+        XCTAssertTrue(lyrics.isHittable)
+        lyrics.tap()
+        let map = app.buttons["red.lyrics.map"]
+        XCTAssertTrue(map.waitForExistence(timeout: 10))
+        app.swipeLeft()
+        XCTAssertTrue(app.staticTexts["red.lyrics.history"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["red.lyrics.current"].exists)
+        app.buttons["red.fixture.finale"].tap()
+        XCTAssertTrue(app.staticTexts["red.lyrics.finale"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["red.lyrics.finale"].value as? String, "0 %")
+        app.buttons["red.fixture.middle"].tap()
+        XCTAssertEqual(app.staticTexts["red.lyrics.finale"].value as? String, "50 %")
+        let middle = XCTAttachment(screenshot: app.screenshot())
+        middle.name = "RED-Bit-Sternkarte-fuenf-Sekunden-vor-Ende"
+        middle.lifetime = .keepAlways
+        add(middle)
+        app.buttons["red.fixture.end"].tap()
+        XCTAssertEqual(app.staticTexts["red.lyrics.finale"].value as? String, "100 %")
+        let end = XCTAttachment(screenshot: app.screenshot())
+        end.name = "RED-Bit-Sternkarte-vollstaendiger-Verlauf"
+        end.lifetime = .keepAlways
+        add(end)
+        app.buttons["Start"].tap()
+        XCTAssertFalse(app.staticTexts["red.lyrics.finale"].exists)
+        app.buttons["bbt.lyrics.constellation.list"].tap()
+        XCTAssertTrue(lyrics.waitForExistence(timeout: 5))
+    }
+
     func testTopResultAndNativeMinimizedAccessoryDoNotStretchOrOverlap() throws {
         let app = XCUIApplication()
         app.launchArguments += ["--bbt-ui-test-playback-chrome"]
@@ -183,9 +222,9 @@ final class LiquidMotionUITests: XCTestCase {
         // Das inline Accessory kann selbst AX-Nachfahre der Tab-Bar sein.
         // Nur die vier tatsächlichen Tab-Aktionen mit dem Player vergleichen.
         var checkedTabs = 0
-        for identifier in ["house.fill", "square.grid.2x2.fill", "square.stack.fill", "magnifyingglass"] {
-            let tab = app.tabBars.buttons[identifier]
-            guard tab.exists, tab.isHittable else { continue }
+        let tabNames = ["Home", "Start", "Jetzt hören", "Explore", "Entdecken", "Library", "Bibliothek", "Mediathek", "Search", "Suchen"]
+        let tabs = app.buttons.matching(NSPredicate(format: "label IN %@", tabNames)).allElementsBoundByIndex
+        for tab in tabs where tab.isHittable {
             checkedTabs += 1
             for identifier in ["bbt.playback.pill.open", "bbt.playback.pill.play", "bbt.playback.pill.next"] {
                 XCTAssertFalse(tab.frame.insetBy(dx: 1, dy: 1).intersects(app.buttons[identifier].frame),

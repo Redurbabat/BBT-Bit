@@ -71,3 +71,5 @@ native-core/fixtures/automix/*.aiff
 __pycache__/
 AppleApp/project.sidestore.yml
 !/docs/IPHONE_TESTSYSTEM.md
+
+!/docs/RED_BIT_KREATIVE_INTERAKTIONEN.md

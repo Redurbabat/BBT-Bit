@@ -24,7 +24,7 @@ struct SleeveArt: View {
 
     var body: some View {
         ZStack {
-            ArtworkView(entry: entry, side: side)
+            GlassArtworkTransition(entry: entry, side: side)
             if let canvasURL {
                 CanvasVeil(url: canvasURL, fallbackURL: fallbackURL,
                            isPlaying: isPlaying && canvasActive, side: side)
@@ -55,7 +55,7 @@ struct HeroArtwork: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                ArtworkView(entry: entry, side: max(geo.size.width, geo.size.height))
+                GlassArtworkTransition(entry: entry, side: max(geo.size.width, geo.size.height))
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
                     .allowsHitTesting(false)

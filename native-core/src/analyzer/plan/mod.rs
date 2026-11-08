@@ -16,7 +16,7 @@ mod wsola;
 mod tests;
 
 pub(crate) use cache::clear_analysis_cache;
-pub use cache::{last_analysis_sources, next_energy_dip, seed_analysis_overlay, AnalysisOverlay};
+pub use cache::{cached_beat_times, last_analysis_sources, next_energy_dip, seed_analysis_overlay, AnalysisOverlay};
 pub use cue::{last_transition_edges, TransitionEdges};
 
 use super::audio_analysis;

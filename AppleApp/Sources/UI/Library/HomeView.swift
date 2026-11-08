@@ -114,7 +114,8 @@ struct HomeView: View {
                                     if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
                                 }
                         } else {
-                            ShelfCarousel(shelf: shelf, preferTrack: true)
+                            ShelfCarousel(shelf: shelf, preferTrack: true,
+                                          records: shelf.items.contains { $0.browseId?.hasPrefix("MPRE") == true })
                                 .onAppear {
                                     if shelf.id == visibleShelves.last?.id {
                                         Task { await feed.loadMore() }

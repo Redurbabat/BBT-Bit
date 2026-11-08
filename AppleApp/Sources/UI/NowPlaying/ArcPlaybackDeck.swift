@@ -55,7 +55,9 @@ struct ArcPlaybackDeck<More: View>: View {
                         selected: controller.isLiked,
                         enabled: auth.signedIn && controller.current?.videoId != nil) {
                     controller.toggleLike()
-                }.position(controlPoint(1, geometry))
+                }
+                .modifier(FavoriteStarConfirmation(videoID: controller.current?.videoId))
+                .position(controlPoint(1, geometry))
                 control("quote.bubble", label: "Lyrics", action: onLyrics)
                     .position(controlPoint(2, geometry))
                 control(controller.isPlaying ? "pause.fill" : "play.fill", label: controller.isPlaying ? "Pause" : "Play",

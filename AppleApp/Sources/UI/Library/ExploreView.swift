@@ -55,6 +55,10 @@ struct ExploreView: View {
             ) { Task { await moods.load(force: true) } }
         case .loaded:
             ScrollView {
+                if case .loaded(let sections) = moods.phase {
+                    MoodGalaxy(categories: sections.flatMap(\.items).dedupedById())
+                        .padding(.horizontal, 24).padding(.top, 16)
+                }
                 moodGrid
                 .padding(.horizontal, 24)
                 .padding(.vertical, 20)

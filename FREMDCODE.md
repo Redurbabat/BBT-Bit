@@ -13,6 +13,8 @@ Vor jeder Übernahme Herkunft, exakte Version oder Revision, Lizenztext, Rechte 
 
 ## Lokale InnerTubeX-Änderungen
 
+Für [zwölf kreative Musikinteraktionen](docs/RED_BIT_KREATIVE_INTERAKTIONEN.md) wurden am 8. November 2026 die öffentlichen Vorschauen von [React Bits Pro](https://pro.reactbits.dev/docs/components) und deren [Lizenz](https://pro.reactbits.dev/license) geprüft. Sie dienen ausschließlich als visuelle Ideenreferenz; Pro-Code, Demo-Medien und Abhängigkeiten werden nicht übernommen. Die SwiftUI-/Canvas-Komponenten, Zeitgeometrie und Metal-Linse sind eigene Implementierungen für RED Bit. Es gibt keine neue Laufzeitabhängigkeit.
+
 Der YouTube-Reparaturbranch ergänzt in der bestehenden GPLv3-Kopie von InnerTubeX die Kandidatenauswahl für progressive Audioantworten, redigierbare Diagnosekategorien und eigene Regressionsfixtures. Die Herkunft und Lizenz des eingebundenen Codes stehen in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Am 5. November 2026 ergänzt BBT-Bit eine eigene Normalisierung der Apple-Gerätesprache für den Player sowie Regressionsfälle für deutsche Regionstags und unterstützte Sprachvarianten. Es wurden keine neue Laufzeitbibliothek und kein fremder Implementierungscode übernommen.

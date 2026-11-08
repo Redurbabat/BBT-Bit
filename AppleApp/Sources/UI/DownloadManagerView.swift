@@ -15,6 +15,7 @@ struct DownloadManagerView: View {
         NavigationStack {
             List {
                 if !store.jobs.isEmpty {
+                    DownloadTransferScene()
                     DownloadBloom(
                         active: store.activeCount,
                         finished: store.jobs.filter { $0.status == .done }.count,

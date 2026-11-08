@@ -6,6 +6,7 @@ struct QueueHorizon: View {
     let onSelect: (Int) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(PartyStore.self) private var party
     @State private var focusedIndex = 0
     @GestureState private var dragOffset: CGFloat = 0
 
@@ -26,6 +27,18 @@ struct QueueHorizon: View {
                     accessibleStrip
                 } else {
                     carousel
+                    HStack(spacing: 14) {
+                        Button { focus(focusedIndex - 1) } label: {
+                            Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                        }.accessibilityLabel("Previous track")
+                        Button("Play selected track") {
+                            guard entries.indices.contains(focusedIndex) else { return }
+                            onSelect(focusedIndex)
+                        }.frame(minHeight: 44).disabled(party.state.controlsLocked)
+                        Button { focus(focusedIndex + 1) } label: {
+                            Image(systemName: "chevron.right").frame(width: 44, height: 44)
+                        }.accessibilityLabel("Next track")
+                    }.buttonStyle(.plain).frame(maxWidth: .infinity)
                 }
             }
         }
@@ -79,7 +92,7 @@ struct QueueHorizon: View {
                 }
             }
         }
-        .frame(height: cardHeight + 24)
+        .frame(height: cardHeight + 80)
     }
 
     /// Keep the SwiftUI type-checker away from a nested ForEach + 3D transform.
@@ -91,12 +104,15 @@ struct QueueHorizon: View {
         if distance < 2.6 {
             let scale: CGFloat = max(0.74, 1 - distance * 0.14)
             let angle: Angle = .degrees(Double(-relative * 32))
-            let xOffset: CGFloat = relative * visibleStep
-            let yOffset: CGFloat = distance * 8
+            let theta = Double(relative) * 24 * .pi / 180
+            let radius = max(visibleStep * 2.1, 150)
+            let xOffset: CGFloat = sin(theta) * radius
+            let yOffset: CGFloat = (1 - cos(theta)) * radius
             let alpha: Double = Double(max(0.12, 1 - distance * 0.30))
             card(entries[index], index: index)
                 .scaleEffect(scale)
                 .rotation3DEffect(angle, axis: (x: 0, y: 1, z: 0), perspective: 0.55)
+                .rotationEffect(.degrees(Double(relative) * 9))
                 .offset(x: xOffset, y: yOffset)
                 .opacity(alpha)
                 .zIndex(10 - Double(distance))
@@ -133,6 +149,7 @@ struct QueueHorizon: View {
             }
         }
         .buttonStyle(.plain)
+        .disabled(party.state.controlsLocked)
         .accessibilityLabel("\(entry.title), \(entry.artist)")
         .accessibilityHint(
             reduceMotion || focusedIndex == index

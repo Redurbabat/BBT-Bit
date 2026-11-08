@@ -342,6 +342,28 @@ pub(super) mod analysis_cache {
             }
         })
     }
+
+    /// Nur vorhandene Beat-Marker der unveränderten Datei lesen; kein Decode,
+    /// kein Modellstart und kein Warten auf eine laufende Analyse.
+    pub(crate) fn cached_beat_times(path: &str) -> Vec<f64> {
+        let norm_path = path.strip_prefix("file://").unwrap_or(path);
+        let (size, modified) = file_identity(norm_path);
+        let guard = cache().lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        let mut beats = guard.order.iter().rev().find_map(|key| {
+            let key_path = key.0.strip_prefix("file://").unwrap_or(&key.0);
+            (key_path == norm_path && key.1 == size && key.2 == modified)
+                .then(|| guard.entries.get(key).map(|analysis| analysis.beats.clone()))
+                .flatten()
+        }).unwrap_or_default();
+        beats.retain(|time| time.is_finite() && *time >= 0.0);
+        beats.sort_by(f64::total_cmp);
+        beats.dedup();
+        beats
+    }
+}
+
+pub fn cached_beat_times(path: &str) -> Vec<f64> {
+    analysis_cache::cached_beat_times(path)
 }
 
 pub(crate) fn clear_analysis_cache() {

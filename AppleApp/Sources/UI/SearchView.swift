@@ -1328,7 +1328,9 @@ struct SearchView: View {
     private func searchHitRow(_ hit: SearchHitDTO) -> some View {
         Group {
             if hit.isBrowse, let browseId = hit.browseId {
-                PushLink(destination: DetailView(browseId: browseId, initialTitle: hit.title)) {
+                NativeCardZoomLink(id: browseId) {
+                    DetailView(browseId: browseId, initialTitle: hit.title)
+                } label: {
                     browseRow(hit)
                 }
                 .buttonStyle(.plain)
@@ -1381,7 +1383,9 @@ struct SearchView: View {
     private func typeaheadRow(_ hit: SearchHitDTO) -> some View {
         Group {
             if hit.isBrowse, let browseId = hit.browseId {
-                PushLink(destination: DetailView(browseId: browseId, initialTitle: hit.title)) {
+                NativeCardZoomLink(id: browseId) {
+                    DetailView(browseId: browseId, initialTitle: hit.title)
+                } label: {
                     browseRow(hit)
                 }
                 .buttonStyle(.plain)

@@ -52,6 +52,8 @@ struct BitChordApp: App {
             NavigationStack { LiquidMotionDeviceSelfTestView() }
         } else if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-video-references") {
             VideoReferencePreviewView()
+        } else if ProcessInfo.processInfo.arguments.contains("--red-ui-test-creative") {
+            CreativeMotionPreviewView()
         } else if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-playback-chrome") {
             PlaybackChromePreviewView()
         } else if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-search") {
@@ -84,6 +86,7 @@ struct BitChordApp: App {
                     #if DEBUG && os(iOS)
                     if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-designs")
                         || ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-video-references")
+                        || ProcessInfo.processInfo.arguments.contains("--red-ui-test-creative")
                         || ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-playback-chrome")
                         || ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-search") {
                         return

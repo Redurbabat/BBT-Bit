@@ -46,6 +46,7 @@ extension NowPlayingView {
                     controller.toggleLike()
                 }
                 .help(controller.isLiked ? "Remove from Liked Music" : "Like")
+                .modifier(FavoriteStarConfirmation(videoID: controller.current?.videoId))
             }
             moreMenu
         }

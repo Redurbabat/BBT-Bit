@@ -240,6 +240,12 @@ pub fn last_automix_analysis_sources() -> Vec<String> {
     vec![out, inc]
 }
 
+/// Vorhandene echte Beat-Zeitpunkte für die Darstellung; keine neue Analyse.
+#[uniffi::export]
+pub fn cached_beat_times(path: String) -> Vec<f64> {
+    crate::analyzer::cached_beat_times(&path)
+}
+
 /// Rank Autoplay/shuffle candidates for mixing after `current_path`.
 /// Returns candidate indices in preferred order (best first).
 #[uniffi::export]

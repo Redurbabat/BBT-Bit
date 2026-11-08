@@ -1717,7 +1717,16 @@
     },
     "Cancel All": {},
     "Cancel download": {},
-    "Cancel timer": {},
+    "Cancel timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer abbrechen"
+          }
+        }
+      }
+    },
     "Can’t reach it right now · %@": {},
     "Can’t read that share": {},
     "Capture 30 seconds": {},
@@ -18091,6 +18100,306 @@
           "stringUnit": {
             "state": "translated",
             "value": "Musikvideos"
+          }
+        }
+      }
+    },
+    "Your music galaxy": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Musikgalaxie"
+          }
+        }
+      }
+    },
+    "Discover your music universe": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entdecke dein Musikuniversum"
+          }
+        }
+      }
+    },
+    "Previous collection": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorherige Sammlung"
+          }
+        }
+      }
+    },
+    "Next collection": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Sammlung"
+          }
+        }
+      }
+    },
+    "Collection %lld of %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sammlung %1$lld von %2$lld"
+          }
+        }
+      }
+    },
+    "Focus collection: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sammlung auswählen: %@"
+          }
+        }
+      }
+    },
+    "Album presentation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Albumdarstellung"
+          }
+        }
+      }
+    },
+    "Records": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schallplatten"
+          }
+        }
+      }
+    },
+    "Cards": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karten"
+          }
+        }
+      }
+    },
+    "Close cover fan": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coverfächer schließen"
+          }
+        }
+      }
+    },
+    "Explore playlist covers": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playlist-Cover entdecken"
+          }
+        }
+      }
+    },
+    "Play track: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel abspielen: %@"
+          }
+        }
+      }
+    },
+    "Crossfade in progress": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überblendung läuft"
+          }
+        }
+      }
+    },
+    "Transition planned": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übergang geplant"
+          }
+        }
+      }
+    },
+    "Available offline: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline verfügbar: %@"
+          }
+        }
+      }
+    },
+    "Your offline collection": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Offline-Sammlung"
+          }
+        }
+      }
+    },
+    "%lld downloads active": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Downloads aktiv"
+          }
+        }
+      }
+    },
+    "Play selected track": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewählten Titel abspielen"
+          }
+        }
+      }
+    },
+    "Song map · final ten seconds": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songkarte · letzte zehn Sekunden"
+          }
+        }
+      }
+    },
+    "Lyrics history": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bisheriger Songtext"
+          }
+        }
+      }
+    },
+    "Light follows lyric timestamps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licht folgt den Songtext-Zeitmarken"
+          }
+        }
+      }
+    },
+    "Light follows detected beats": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licht folgt den erkannten Beats"
+          }
+        }
+      }
+    },
+    "Earlier lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frühere Textstelle"
+          }
+        }
+      }
+    },
+    "Later lyrics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spätere Textstelle"
+          }
+        }
+      }
+    },
+    "Current line": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Zeile"
+          }
+        }
+      }
+    },
+    "Close song map": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songkarte schließen"
+          }
+        }
+      }
+    },
+    "Song map": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Songkarte"
+          }
+        }
+      }
+    },
+    "Host": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gastgeber"
+          }
+        }
+      }
+    },
+    "Listener": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuhörer"
+          }
+        }
+      }
+    },
+    "Connected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden"
           }
         }
       }

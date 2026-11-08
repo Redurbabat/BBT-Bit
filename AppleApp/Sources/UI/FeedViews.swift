@@ -229,9 +229,11 @@ struct ShelfCarousel: View {
     /// Karussell-Stil der Künstlerseite: kippende Karten, redaktionelle Überschrift
     /// und Seitenpunkte. Aus, wo ein Regal keine Schiene sein soll.
     var rail = false
+    var records = false
     @Environment(PlaybackController.self) private var controller
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var activeDot = 0
+    @State private var recordsChosen = true
     /// The shelf's own width, measured: an inspector or a split view narrows it
     /// without changing the window.
     @State private var width: CGFloat = 0
@@ -239,6 +241,16 @@ struct ShelfCarousel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             FeedSectionHeader(title: shelf.title, subtitle: shelf.subtitle, onShowAll: onShowAll, editorial: rail)
+            if records {
+                Picker("Album presentation", selection: $recordsChosen) {
+                    Text("Records").tag(true)
+                    Text("Cards").tag(false)
+                }.pickerStyle(.segmented).padding(.horizontal, inset)
+            }
+            if records && recordsChosen {
+                MusicCollectionShowcase(items: items ?? shelf.items, style: .records, preferTrack: preferTrack)
+                    .padding(.horizontal, inset)
+            } else {
             ShelfScroller(inset: inset, onProgress: rail ? { updateDot($0) } : nil) {
                 LazyHStack(alignment: .top, spacing: 14) {
                     ForEach(items ?? shelf.items) { card in
@@ -248,7 +260,8 @@ struct ShelfCarousel: View {
                 }
                 .padding(.vertical, rail ? 14 : 2)
             }
-            if rail, dotCount > 1 {
+            }
+            if rail, !(records && recordsChosen), dotCount > 1 {
                 HorizonRailDots(count: dotCount, active: min(activeDot, dotCount - 1))
                     .frame(maxWidth: .infinity)
             }
@@ -358,7 +371,9 @@ struct ShelfCardTap<Content: View>: View {
             if preferTrack, let videoId = card.videoId, !videoId.isEmpty {
                 trackButton(videoId)
             } else if let browseId = card.browseId, !browseId.isEmpty {
-                PushLink(destination: DetailView(browseId: browseId, initialTitle: card.title)) {
+                NativeCardZoomLink(id: browseId) {
+                    DetailView(browseId: browseId, initialTitle: card.title)
+                } label: {
                     content
                 }
                 .buttonStyle(.plain)

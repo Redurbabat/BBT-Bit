@@ -5,6 +5,48 @@ struct ConstellationWord: Equatable {
     let text: String
     let start: Int64
     let end: Int64
+    var line: Int = 0
+}
+
+/// Die gesamte Route entsteht aus echten Zeitmarken, nicht aus Zufallsbewegungen.
+enum ConstellationTimeline {
+    static func finaleProgress(position: Double, duration: Double) -> Double? {
+        guard position.isFinite, duration.isFinite, duration > 0, position >= max(0, duration - 10) else { return nil }
+        let window = min(10, duration)
+        return min(1, max(0, (position - (duration - window)) / window))
+    }
+
+    static func activeIndex(words: [ConstellationWord], milliseconds: Int64) -> Int? {
+        var low = 0
+        var high = words.count
+        while low < high {
+            let middle = low + (high - low) / 2
+            if words[middle].start <= milliseconds { low = middle + 1 } else { high = middle }
+        }
+        return low == 0 ? nil : low - 1
+    }
+
+    static func pulse(position: Double, markers: [Double]) -> Double {
+        guard position.isFinite else { return 0 }
+        var low = 0
+        var high = markers.count
+        while low < high {
+            let middle = low + (high - low) / 2
+            if markers[middle] <= position { low = middle + 1 } else { high = middle }
+        }
+        guard low > 0 else { return 0 }
+        let age = position - markers[low - 1]
+        guard age >= 0, age < 0.20 else { return 0 }
+        return pow(1 - age / 0.20, 2)
+    }
+
+    static func point(word: ConstellationWord, span: Int64, size: CGSize) -> CGPoint {
+        let fraction = min(1, max(0, Double(word.start) / Double(max(1, span))))
+        let angle = -Double.pi / 2 + fraction * Double.pi * 6
+        let radius = min(size.width * 0.40, max(20, size.height - 240) * 0.42) * (0.18 + fraction * 0.82)
+        return CGPoint(x: size.width / 2 + cos(angle) * radius,
+                       y: size.height * 0.47 + sin(angle) * radius)
+    }
 }
 
 /// Zustandsfreie Geometrie: Seek und Wiederaufnahme liefern dieselbe Wortposition.

@@ -157,6 +157,11 @@ jobs:
         run: |
           set -euo pipefail
           for file in AppleApp/Sources/UI/LiquidMotion/*.swift \
+                      AppleApp/Sources/UI/NowPlaying/ConstellationGeometry.swift \
+                      AppleApp/Sources/UI/NowPlaying/LyricsConstellationView.swift \
+                      AppleApp/Sources/UI/NowPlaying/RhythmicConstellationCanvas.swift \
+                      AppleApp/Sources/UI/NowPlaying/CreativeMotionPreviewView.swift \
+                      AppleApp/Sources/UI/KeyboardPlaybackClearance.swift \
                       AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift \
