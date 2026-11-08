@@ -14,7 +14,7 @@ final class LiquidMotionUITests: XCTestCase {
     /// requires a separate seeded/real playback state before asserting handoff.
     func testSearchKeyboardCanOpenAndDismissOnRegularAppLaunch() throws {
         let app = XCUIApplication()
-        app.launchArguments += ["-bitchord.onboardingDone", "YES"]
+        app.launchArguments += ["-onboarding_done", "YES"]
         app.launch()
 
         let searchTab = app.tabBars.buttons["Search"]
