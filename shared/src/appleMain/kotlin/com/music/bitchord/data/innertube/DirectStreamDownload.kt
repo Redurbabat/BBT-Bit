@@ -30,6 +30,7 @@ internal object DirectStreamDownload {
             var validator: String? = null
             var failures = 0
             var announced = false
+            var emptyResponses = 0
             try {
                 while (true) {
                     StreamDownloadBridge.awaitConnectivity()
@@ -63,7 +64,10 @@ internal object DirectStreamDownload {
                             check(total == null || total!! <= 1024L * 1024 * 1024) { "Audio exceeds the cache size limit" }
                             val channel = response.bodyAsChannel()
                             val head = channel.readRemaining(4096).readByteArray()
-                            check(head.isNotEmpty()) { "Source returned no audio" }
+                            // Endet die Verbindung vor dem ersten Byte, ist das ein Netzproblem und
+                            // kein Beleg für eine leere Quelle. Bisher war es ein check() und damit
+                            // eine IllegalStateException, die ohne Wiederholung abbrach.
+                            if (head.isEmpty()) throw EmptySourceResponse()
                             if (path == null) {
                                 val ext = containerExtension(head) ?: error("Source returned a playlist or unsupported audio")
                                 path = "${NSTemporaryDirectory()}/bitchord-${NSUUID().UUIDString}.$ext"
@@ -100,6 +104,8 @@ internal object DirectStreamDownload {
                         break
                     } catch (cancelled: CancellationException) { throw cancelled }
                     catch (failure: Throwable) {
+                        // Eine wirklich leere Quelle soll nicht lange hingehalten werden.
+                        if (failure is EmptySourceResponse && ++emptyResponses > 2) throw failure
                         if ((failure is IllegalStateException && failure !is HttpStatusException) ||
                             (failure is HttpStatusException && failure.status in 400..499 && failure.status != 429) || ++failures > 8) throw failure
                         StreamDownloadBridge.awaitConnectivity()
@@ -119,6 +125,9 @@ internal object DirectStreamDownload {
                 done.onResult(null, failure.message ?: "Source transfer failed")
             } finally { output?.let { fclose(it) } }
         }
+
+    /** Antwort ohne ein einziges Audiobyte; wird höchstens zweimal wiederholt. */
+    private class EmptySourceResponse : Exception("Source returned no audio")
 
     private fun containerExtension(bytes: ByteArray): String? {
         fun ascii(start: Int, end: Int) = if (bytes.size >= end) bytes.copyOfRange(start, end).decodeToString() else ""

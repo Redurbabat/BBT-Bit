@@ -89,6 +89,8 @@ enum NetworkChecks {
         check(try Data(contentsOf: URL(fileURLWithPath: streamed)) == expected && (firstBytes.last?.0 ?? Int64.max) < Int64(expected.count), "ordinary-source playback starts on a bounded opening while the same GET fills its cache")
         let resumed = try await direct("direct-drop")
         check(try Data(contentsOf: URL(fileURLWithPath: resumed)) == expected, "direct-source streaming resumes a dropped connection at the validated byte offset")
+        let emptyFirst = try await direct("direct-empty-once")
+        check(try Data(contentsOf: URL(fileURLWithPath: emptyFirst)) == expected, "a first response without a single audio byte is retried instead of failing playback")
         let rangedProgress = ProgressSamples()
         let rangeURL = base.appendingPathComponent("ranges").absoluteString + "?clen=\(expected.count)"
         let ranged: String = try await withCheckedThrowingContinuation { continuation in
@@ -105,7 +107,7 @@ enum NetworkChecks {
                 })
         }
         check(try Data(contentsOf: URL(fileURLWithPath: ranged)) == expected && rangedProgress.last?.0 == Int64(expected.count), "ranged audio survives an outage and a 503 without restarting or changing bytes")
-        for temporary in [streamed, resumed, ranged] { for suffix in ["", ".len", ".grow", ".complete", ".failed"] { try? FileManager.default.removeItem(atPath: temporary + suffix) } }
+        for temporary in [streamed, resumed, emptyFirst, ranged] { for suffix in ["", ".len", ".grow", ".complete", ".failed"] { try? FileManager.default.removeItem(atPath: temporary + suffix) } }
 
         let cache = StreamFileCache(directory: root.appendingPathComponent("audio-cache"))
         let parts = StreamFileCache.qualityIdentity.split(separator: "|").map(String.init)

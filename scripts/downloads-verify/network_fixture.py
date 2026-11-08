@@ -50,6 +50,15 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Content-Length', '0')
             self.end_headers()
             return
+        if path == '/direct-empty-once' and count == 1:
+            # Eine Verbindung, die vor dem ersten Audiobyte endet: gleiche Kopfzeilen
+            # wie die echte Datei, aber kein Inhalt. Der zweite Aufruf liefert alles.
+            self.send_response(200)
+            self.send_header('Content-Type', 'audio/wav')
+            self.send_header('ETag', '"fixture-v1"')
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+            return
         data = b'#EXTM3U\n#EXT-X-TARGETDURATION:4\nsegment.aac\n' if path == '/playlist' else payload
         start, end = 0, len(data) - 1
         byte_range = self.headers.get('Range')
