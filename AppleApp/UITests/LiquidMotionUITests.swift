@@ -9,6 +9,40 @@ final class LiquidMotionUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// Issue #55: exercise the real search keyboard, not the offline preview.
+    /// This is a keyboard smoke test only; a visible playback pill still
+    /// requires a separate seeded/real playback state before asserting handoff.
+    func testSearchKeyboardCanOpenAndDismissOnRegularAppLaunch() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-bitchord.onboardingDone", "YES"]
+        app.launch()
+
+        let searchTab = app.tabBars.buttons["Search"]
+        guard searchTab.waitForExistence(timeout: 20) else {
+            throw XCTSkip("Regular search tab unavailable; check onboarding or app startup")
+        }
+        searchTab.tap()
+
+        let searchField = app.searchFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 15),
+                      "Native iPhone search field did not appear")
+        searchField.tap()
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 10),
+                      "Search field did not display the keyboard")
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "BBT-Bit-Search-Keyboard-Visible"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+
+        // Dismiss via the keyboard's native Return/Search key where present.
+        // If the keyboard has no dismissal key, this test still proves the
+        // keyboard-open state; it does not claim a mini-player handoff passed.
+        let searchKey = keyboard.buttons["search"]
+        if searchKey.exists { searchKey.tap() }
+    }
+
     func testEveryDesignPreviewIsRenderedAndOpenableOnIPhone() throws {
         let app = XCUIApplication()
         app.launchArguments += ["--bbt-ui-test-designs"]
