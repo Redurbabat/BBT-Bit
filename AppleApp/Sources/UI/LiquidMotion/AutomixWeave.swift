@@ -70,6 +70,7 @@ struct AutomixWeave: View {
         .accessibilityLabel(isMixing ? Text("Automix transition running") : Text("Automix transition planned"))
         .accessibilityValue(isMixing ? Text("\(Int((progress * 100).rounded())) %") : Text("Planned transition"))
         .accessibilityHint("Open real Automix transition details")
+        .accessibilityIdentifier("bbt.automix.status")
         .sheet(isPresented: $showsDetails) {
             NavigationStack {
                 VStack(alignment: .leading, spacing: 14) {
@@ -101,6 +102,7 @@ struct AutomixWeave: View {
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Done") { showsDetails = false }
+                            .accessibilityIdentifier("bbt.automix.details.done")
                     }
                 }
             }
