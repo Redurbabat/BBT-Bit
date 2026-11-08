@@ -91,6 +91,7 @@ struct PlaybackPill: View {
             .buttonStyle(.plain)
             .accessibilityLabel("\(controller.current?.title ?? "Keine Wiedergabe"), \(controller.current?.artist ?? "")")
             .accessibilityHint("Öffnet die aktuelle Wiedergabe")
+            .accessibilityIdentifier("bbt.playback.pill.open")
 
             if isRegularWidth {
                 padTrailingControls
