@@ -220,6 +220,7 @@ extension NowPlayingView {
             if !controller.displayedLyrics.isEmpty {
                 Divider()
                 Button("Lyrics Offset…") { showLyricsOffset = true }
+                Toggle("Lyrics Constellation", isOn: $lyricsConstellation)
             }
             // Alle bisherigen Infinity-Dock-Aktionen bleiben erreichbar,
             // ohne die Transportsteuerung durch zusätzliche Reihen zu verdrängen.

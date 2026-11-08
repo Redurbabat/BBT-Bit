@@ -2,6 +2,16 @@
   "sourceLanguage": "en",
   "strings": {
     "1": {},
+    "Lyrics Constellation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lyrics-Konstellation"
+          }
+        }
+      }
+    },
     "Search artists, songs and lyrics": {
       "localizations": {
         "de": {

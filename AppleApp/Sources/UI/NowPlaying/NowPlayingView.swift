@@ -45,6 +45,8 @@ struct NowPlayingView: View {
     /// The same switch as Settings ▸ Playback ▸ Show Music Videos, flipped
     /// from the pill while the track plays.
     @AppStorage("show_music_videos") var showMusicVideos = false
+    /// Lyrics als Sternbild statt Liste (nur bei zeitlich synchronisierten Lyrics).
+    @AppStorage("lyrics_constellation") var lyricsConstellation = false
     @AppStorage("hide_status_bar_in_player") private var hideStatusBarInPlayer = false
     @State var showEqualizerFromDock = false
     @State var showPipeline = false

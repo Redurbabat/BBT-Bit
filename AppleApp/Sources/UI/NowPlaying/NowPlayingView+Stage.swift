@@ -15,6 +15,14 @@ import AppKit
 extension NowPlayingView {
     var desktopLyricsPane: some View {
         TimelineView(.animation(minimumInterval: nil, paused: !controller.isPlaying)) { timeline in
+            if lyricsConstellation, LyricsConstellationView.isAvailable(lines: controller.displayedLyrics) {
+                LyricsConstellationView(
+                    lines: controller.displayedLyrics,
+                    position: controller.livePosition(at: timeline.date),
+                    offsetMs: lyricsOffsetMs,
+                    onClose: { lyricsConstellation = false }
+                )
+            } else {
             LyricsPane(
                 lines: controller.displayedLyrics,
                 originalLines: controller.lyrics,
@@ -38,6 +46,7 @@ extension NowPlayingView {
                 artworkData: controller.current?.artworkData,
                 artworkUrl: controller.current?.thumbnailUrl
             )
+            }
         }
     }
 
@@ -221,6 +230,14 @@ extension NowPlayingView {
             // position is still the engine's measurement; the TimelineView only
             // decides how often we ask where it has got to.
             TimelineView(.animation(minimumInterval: nil, paused: !controller.isPlaying)) { timeline in
+            if lyricsConstellation, LyricsConstellationView.isAvailable(lines: controller.displayedLyrics) {
+                LyricsConstellationView(
+                    lines: controller.displayedLyrics,
+                    position: controller.livePosition(at: timeline.date),
+                    offsetMs: lyricsOffsetMs,
+                    onClose: { lyricsConstellation = false }
+                )
+            } else {
             LyricsPane(
                 lines: controller.displayedLyrics,
                 originalLines: controller.lyrics,
@@ -246,6 +263,7 @@ extension NowPlayingView {
                 artworkData: controller.current?.artworkData,
                 artworkUrl: controller.current?.thumbnailUrl
             )
+            }
             }
         case .queue:
             UpNextPane(
