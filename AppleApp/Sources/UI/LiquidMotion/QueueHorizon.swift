@@ -51,19 +51,8 @@ struct QueueHorizon: View {
             let availableWidth = geometry.size.width
             let visibleStep = min(step, max(76, (availableWidth - cardWidth) * 0.44))
             ZStack {
-                ForEach(Array(entries.enumerated()), id: \.offset) { index, entry in
-                    let relative = CGFloat(relativeIndex(index, count: entries.count)) + dragOffset / visibleStep
-                    let distance = abs(relative)
-                    if distance < 2.6 {
-                        card(entry, index: index)
-                            .scaleEffect(max(0.74, 1 - distance * 0.14))
-                            .rotation3DEffect(.degrees(Double(-relative * 32)),
-                                              axis: (x: 0, y: 1, z: 0),
-                                              perspective: 0.55)
-                            .offset(x: relative * visibleStep, y: distance * 8)
-                            .opacity(max(0.12, 1 - distance * 0.30))
-                            .zIndex(10 - Double(distance))
-                    }
+                ForEach(entries.indices, id: \.self) { index in
+                    carouselItem(index: index, visibleStep: visibleStep)
                 }
             }
             .frame(width: availableWidth, height: geometry.size.height)
@@ -91,6 +80,27 @@ struct QueueHorizon: View {
             }
         }
         .frame(height: cardHeight + 24)
+    }
+
+    /// Keep the SwiftUI type-checker away from a nested ForEach + 3D transform.
+    @ViewBuilder
+    private func carouselItem(index: Int, visibleStep: CGFloat) -> some View {
+        let relative: CGFloat = CGFloat(relativeIndex(index, count: entries.count))
+            + dragOffset / visibleStep
+        let distance: CGFloat = abs(relative)
+        if distance < 2.6 {
+            let scale: CGFloat = max(0.74, 1 - distance * 0.14)
+            let angle: Angle = .degrees(Double(-relative * 32))
+            let xOffset: CGFloat = relative * visibleStep
+            let yOffset: CGFloat = distance * 8
+            let alpha: Double = Double(max(0.12, 1 - distance * 0.30))
+            card(entries[index], index: index)
+                .scaleEffect(scale)
+                .rotation3DEffect(angle, axis: (x: 0, y: 1, z: 0), perspective: 0.55)
+                .offset(x: xOffset, y: yOffset)
+                .opacity(alpha)
+                .zIndex(10 - Double(distance))
+        }
     }
 
     private func card(_ entry: QueueEntry, index: Int) -> some View {
