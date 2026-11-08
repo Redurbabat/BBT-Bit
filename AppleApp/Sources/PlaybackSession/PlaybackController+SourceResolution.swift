@@ -858,7 +858,20 @@ extension PlaybackController {
                         releaseObsoleteStreams()
                     }
                 } else if let message {
-                    print("[Playback] stream tail failed for \(videoId): \(message)")
+                    // Der Grund, warum der Downloader aufgab, stand bisher nur auf der
+                    // Konsole. Auf einem Gerät ohne Xcode war er damit unsichtbar: Der
+                    // Diagnosebericht zeigte nur, dass die Datei unvollständig blieb,
+                    // nie warum. Deshalb hier in den Bericht, mit dem Stand auf Platte.
+                    var progress = "unknown"
+                    if let failedPath {
+                        let files = FileManager.default
+                        let onDisk = ((try? files.attributesOfItem(atPath: failedPath)[.size]) as? NSNumber)?.int64Value ?? -1
+                        let declared = (try? String(contentsOfFile: failedPath + ".len", encoding: .utf8))
+                            .flatMap { Int64($0.trimmingCharacters(in: .whitespacesAndNewlines)) } ?? -1
+                        progress = "\(onDisk)/\(declared)"
+                    }
+                    PlaybackDebugLog.shared.record(
+                        "stream tail failed: bytes=\(progress) reason=\(message)", about: videoId)
                     if let failedPath {
                         streamGate.lock.withLock {
                             if streamGate.growing[videoId] == failedPath { streamGate.growing[videoId] = nil; streamGate.growingQuality[videoId] = nil; streamGate.growingKbps[videoId] = nil; streamGate.durations[videoId] = nil }
