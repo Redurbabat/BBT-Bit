@@ -40,6 +40,7 @@ Die semantische Nachprüfung fand im Creative-Lab-PR denselben Automix-VoiceOver
 | Vollständiger App-Build und 15 Designvorschauen | [Simulatorlauf für 96de5ba](https://github.com/Redurbabat/RED-Bit/actions/runs/42490417309): Xcode 26.6, iPhone 17 Pro / iOS 26.5: BESTANDEN; 15 Vorschau-Screenshots vorhanden. Name und neues Icon auch im Simulator-Home-Bildschirm sichtbar |
 | Regulärer Such-/Tastaturweg | Im selben Lauf am darüberliegenden Automix-Erststartdialog gescheitert; Korrektur des Teststarts und zusätzlicher Vollplayer-Nachweis vorbereitet, erneuter Lauf erforderlich |
 | Native Download-Recovery und Kotlin-Tests | Im selben Lauf BESTANDEN: Download-Recovery, gemeinsame Kotlin-Tests und Extractor-Regressionen |
+| Rust-Tests | Im selben Lauf BESTANDEN: 314 bestanden, 0 fehlgeschlagen, 1 ignoriert; der zuvor rote Handoff-Test ist in diesem Lauf erfolgreich |
 | Echte Logo-/Insel-Scrollanimationen, Bedienung unter Wiedergabelast | NICHT GETESTET; die 15 Designvorschauen ersetzen diesen Nutzerweg nicht |
 | Echtes iPhone, signierte IPA, Audio, App-Update | NICHT GETESTET |
 
