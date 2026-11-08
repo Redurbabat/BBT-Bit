@@ -155,8 +155,12 @@ struct ConstellationStage: View {
         let points = words.indices.map {
             ConstellationGeometry.point(index: $0, count: words.count, seed: lineStart, size: size, reduced: reduceMotion)
         }
+        let nextStart = current + 1 < words.count ? words[current + 1].start : words[current].end
+        // Die Kamera erreicht auch bei kurzen Silben ihr Ziel vor dem nächsten Wort.
+        let cameraDuration = min(260, max(1, nextStart - words[current].start))
         let camera = ConstellationGeometry.camera(points: points, current: current,
-            elapsed: positionMs - words[current].start, size: size, reduced: reduceMotion)
+            elapsed: positionMs - words[current].start, size: size, reduced: reduceMotion,
+            duration: cameraDuration)
         let visible = points.map { CGPoint(x: $0.x + camera.width, y: $0.y + camera.height) }
         let fade = reduceMotion ? 1 : min(1, max(0, Double(positionMs - lineStart) / 260))
         var path = Path()

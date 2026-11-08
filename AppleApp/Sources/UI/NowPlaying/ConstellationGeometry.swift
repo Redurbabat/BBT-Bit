@@ -24,11 +24,12 @@ enum ConstellationGeometry {
         return CGPoint(x: x, y: y)
     }
 
-    static func camera(points: [CGPoint], current: Int, elapsed: Int64, size: CGSize, reduced: Bool) -> CGSize {
+    static func camera(points: [CGPoint], current: Int, elapsed: Int64, size: CGSize, reduced: Bool,
+                       duration: Int64 = 260) -> CGSize {
         guard !reduced, points.indices.contains(current) else { return .zero }
         let previous = points[max(0, current - 1)]
         let target = points[current]
-        let t = min(1, max(0, Double(elapsed) / 260))
+        let t = min(1, max(0, Double(elapsed) / Double(max(1, duration))))
         let eased = t * t * (3 - 2 * t)
         let x = previous.x + (target.x - previous.x) * eased
         let y = previous.y + (target.y - previous.y) * eased

@@ -22,7 +22,9 @@ final class LogoGlassBloomCoordinator {
     private var revealTask: Task<Void, Never>?
     private var hideTask: Task<Void, Never>?
     @ObservationIgnored private var latestLogoFrame: CGRect?
+    @ObservationIgnored private var toolbarFrames: [UUID: CGRect] = [:]
     private(set) var presentationLogoFrame: CGRect?
+    private(set) var presentationTrailingFrame: CGRect?
 
     var isVisible: Bool { phase != .idle }
 
@@ -38,6 +40,10 @@ final class LogoGlassBloomCoordinator {
         guard frame.minX.isFinite, frame.minY.isFinite,
               frame.width > 0, frame.height > 0 else { return }
         latestLogoFrame = frame
+    }
+
+    func updateToolbarFrame(_ frame: CGRect?, id: UUID) {
+        toolbarFrames[id] = frame
     }
 
     func scrollChanged(_ direction: DockScrollDirection) {
@@ -95,7 +101,13 @@ final class LogoGlassBloomCoordinator {
     private func present(expanded: Bool, fromLogo: Bool = true) {
         revealTask?.cancel()
         hideTask?.cancel()
-        if phase == .idle { presentationLogoFrame = latestLogoFrame }
+        if phase == .idle {
+            presentationLogoFrame = latestLogoFrame
+            presentationTrailingFrame = toolbarFrames.values.filter { frame in
+                guard let logo = latestLogoFrame else { return false }
+                return frame.minX > logo.maxX && abs(frame.midY - logo.midY) < 24
+            }.min(by: { $0.minX < $1.minX })
+        }
         if phase == .idle && fromLogo && !UIAccessibility.isReduceMotionEnabled {
             withAnimation(motion(.easeOut(duration: 0.16))) {
                 phase = .spark
@@ -128,6 +140,19 @@ final class LogoGlassBloomCoordinator {
             guard !Task.isCancelled else { return }
             dismiss()
         }
+    }
+}
+
+/// Misst sichtbare Toolbar-Aktionen ohne eigene UIKit- oder Layout-Eingriffe.
+struct BloomToolbarBoundary: ViewModifier {
+    @State private var id = UUID()
+
+    func body(content: Content) -> some View {
+        content.onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+            guard frame.minX.isFinite, frame.minY.isFinite, frame.width > 0, frame.height > 0 else { return }
+            LogoGlassBloomCoordinator.shared.updateToolbarFrame(frame, id: id)
+        }
+        .onDisappear { LogoGlassBloomCoordinator.shared.updateToolbarFrame(nil, id: id) }
     }
 }
 

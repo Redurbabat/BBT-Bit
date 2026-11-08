@@ -32,6 +32,10 @@ struct VideoReferenceGeometryTests {
         let next = ConstellationGeometry.camera(points: points, current: 4, elapsed: 0, size: size, reduced: false)
         precondition(abs(end.width - next.width) < 0.000001 && abs(end.height - next.height) < 0.000001,
                      "Die Kamera darf beim Wortwechsel nicht springen")
+        let quickEnd = ConstellationGeometry.camera(points: points, current: 3, elapsed: 80,
+            size: size, reduced: false, duration: 80)
+        precondition(abs(quickEnd.width - next.width) < 0.000001 && abs(quickEnd.height - next.height) < 0.000001,
+                     "Auch kurze Wortzeiten müssen die Kamera vor dem Folgewort abschließen")
         precondition(ConstellationGeometry.camera(points: points, current: 3, elapsed: 100, size: size, reduced: true) == .zero)
         let repeated = ConstellationGeometry.point(index: 4, count: 12, seed: 1000, size: size, reduced: false)
         precondition(repeated == points[4], "Seek muss dieselbe Lage wiederherstellen")

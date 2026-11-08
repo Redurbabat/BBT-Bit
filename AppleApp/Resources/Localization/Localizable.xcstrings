@@ -5997,7 +5997,16 @@
         }
       }
     },
-    "Listen Together": {},
+    "Listen Together": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemeinsam hören"
+          }
+        }
+      }
+    },
     "Listen together": {
       "localizations": {
         "de": {
@@ -6694,7 +6703,16 @@
         }
       }
     },
-    "Mix with Other Apps": {},
+    "Mix with Other Apps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit anderen Apps mischen"
+          }
+        }
+      }
+    },
     "Mixing on": {},
     "Mode": {},
     "Models": {},
@@ -7028,7 +7046,16 @@
       }
     },
     "Next Track": {},
-    "Next track": {},
+    "Next track": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Titel"
+          }
+        }
+      }
+    },
     "No albums in the scanned folder.": {},
     "No albums yet": {},
     "No artists in the scanned folder.": {},
@@ -8710,7 +8737,16 @@
     "Paused at %@": {},
     "PaxSeniX Key": {},
     "PaxSeniX Spotify and PaxSeniX Musixmatch reach two catalogues Apple Music does not carry, and both need a key from paxsenix.org. Everything else on this list works without one. Stored in the Keychain, not in preferences.": {},
-    "People listening": {},
+    "People listening": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mithörende"
+          }
+        }
+      }
+    },
     "Performance": {
       "localizations": {
         "de": {
@@ -9713,7 +9749,16 @@
       }
     },
     "Previous Track": {},
-    "Previous track": {},
+    "Previous track": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriger Titel"
+          }
+        }
+      }
+    },
     "Privacy": {},
     "Privacy: %@": {},
     "Private": {},
@@ -18026,6 +18071,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Songtextquelle: %@"
+          }
+        }
+      }
+    },
+    "Repeat": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholen"
+          }
+        }
+      }
+    },
+    "Music Videos": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikvideos"
           }
         }
       }

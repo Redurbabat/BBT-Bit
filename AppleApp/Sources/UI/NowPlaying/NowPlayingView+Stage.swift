@@ -320,7 +320,7 @@ extension NowPlayingView {
                 .multilineTextAlignment(.center)
             ArtistCreditText(credit: controller.current?.artist ?? "", font: .subheadline,
                              color: .white.opacity(0.7), suffix: albumSuffix)
-            if let status = songStatusLine {
+            if showsPlaybackStatusLine, let status = songStatusLine {
                 Button { showPipeline = true } label: { Text(status) }
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.5))

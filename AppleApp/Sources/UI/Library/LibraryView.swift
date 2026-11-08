@@ -100,6 +100,7 @@ struct LibraryView: View {
                         }
                         .padding(.horizontal, 6)
                         .toolbarChrome(in: Capsule())
+                        .modifier(BloomToolbarBoundary())
 
                         TopBarAccountButton()
                     }

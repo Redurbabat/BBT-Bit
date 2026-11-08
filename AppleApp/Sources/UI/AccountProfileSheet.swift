@@ -315,6 +315,9 @@ struct TopBarAccountButton: View {
         }
         .buttonStyle(ProfileCircleButtonStyle())
         .accessibilityLabel(auth.signedIn ? "Account and Settings" : "Sign In and Settings")
+        #if os(iOS)
+        .modifier(BloomToolbarBoundary())
+        #endif
         .contextMenu {
             if auth.signedIn {
                 Button {

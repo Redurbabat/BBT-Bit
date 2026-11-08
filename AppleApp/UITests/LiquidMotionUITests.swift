@@ -180,12 +180,19 @@ final class LiquidMotionUITests: XCTestCase {
         let pill = app.buttons["bbt.playback.pill.open"]
         XCTAssertTrue(pill.waitForExistence(timeout: 10))
         XCTAssertEqual(app.buttons.matching(identifier: "bbt.playback.pill.open").count, 1)
-        for tab in app.tabBars.buttons.allElementsBoundByIndex where tab.isHittable {
+        // Das inline Accessory kann selbst AX-Nachfahre der Tab-Bar sein.
+        // Nur die vier tatsächlichen Tab-Aktionen mit dem Player vergleichen.
+        var checkedTabs = 0
+        for identifier in ["house.fill", "square.grid.2x2.fill", "square.stack.fill", "magnifyingglass"] {
+            let tab = app.tabBars.buttons[identifier]
+            guard tab.exists, tab.isHittable else { continue }
+            checkedTabs += 1
             for identifier in ["bbt.playback.pill.open", "bbt.playback.pill.play", "bbt.playback.pill.next"] {
                 XCTAssertFalse(tab.frame.insetBy(dx: 1, dy: 1).intersects(app.buttons[identifier].frame),
                                "Player überlagert nativen Tab: \(tab.label)")
             }
         }
+        XCTAssertGreaterThan(checkedTabs, 0, "Kein nativer Tab für die Überlagerungsprüfung erreichbar")
     }
 
     func testEveryDesignPreviewIsRenderedAndOpenableOnIPhone() throws {

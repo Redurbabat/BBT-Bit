@@ -227,6 +227,17 @@ extension NowPlayingView {
             // ohne die Transportsteuerung durch zusätzliche Reihen zu verdrängen.
             if controller.current != nil {
                 Section("Music tools") {
+                    #if os(iOS)
+                    Toggle("Mix with Other Apps", isOn: Binding(
+                        get: { controller.mixWithOtherAudio },
+                        set: { controller.setMixWithOtherAudio($0) }
+                    ))
+                    Toggle("Music Videos", isOn: $showMusicVideos)
+                    #endif
+                    Button(party.inParty ? LocalizedStringKey("People listening") : LocalizedStringKey("Listen Together")) {
+                        if party.inParty { appModel.partyMembersPresented = true }
+                        else { appModel.listenTogetherPresented = true }
+                    }
                     Button {
                         pane = .lyrics
                     } label: {

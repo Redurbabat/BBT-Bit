@@ -115,8 +115,14 @@ struct RootView: View {
                         let leading = min(max(16, (source?.minX ?? container.minX + 16) - container.minX),
                                           max(16, proxy.size.width - 62))
                         let top = (source?.midY ?? container.minY + 31) - container.minY - 23
-                        LogoGlassBloomIsland(maximumWidth: max(46, proxy.size.width - leading - 16))
-                            .offset(x: leading, y: top)
+                        let boundary = logoGlassBloom.presentationTrailingFrame?.minX ?? container.maxX - 8
+                        let compactWidth = max(46, boundary - container.minX - leading - 8)
+                        let expanded = logoGlassBloom.phase == .expanded
+                        LogoGlassBloomIsland(maximumWidth: max(46, min(proxy.size.width - leading - 16,
+                                                                       expanded ? 292 : compactWidth)))
+                            // Breite Transportsteuerung unterhalb der Toolbar;
+                            // die kompakte Insel endet vor deren ersten Aktion.
+                            .offset(x: leading, y: expanded ? top + 54 : top)
                     }
                     // Die Fläche selbst morpht; keine zweite Skalierung um
                     // einen geratenen Bildschirmpunkt darüberlegen.
