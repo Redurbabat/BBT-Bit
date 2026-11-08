@@ -22,6 +22,7 @@ struct PlaybackPill: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #if os(macOS)
     @Environment(\.macInspectorSelection) private var inspector
     #endif
@@ -68,8 +69,16 @@ struct PlaybackPill: View {
     @State private var lockedPillDrag: (start: CGPoint, axis: PillDragAxis)?
     private var isRegularWidth: Bool { horizontalSizeClass == .regular }
     private var pillPullLift: CGFloat {
-        guard !reduceMotion, pillDrag.axis == .vertical, pillDrag.translation.height < 0 else { return 0 }
+        // Der Wisch bleibt ein Navigationseingang, aber ohne sichtbaren
+        // Pull-/Spring-Effekt, wenn Reduce Motion aktiviert ist.
+        guard !reduceMotion, pillDrag.axis == .vertical,
+              pillDrag.translation.height < 0 else { return 0 }
         return min(max(-pillDrag.translation.height * 0.5, 0), 72)
+    }
+
+    private var pillReleaseAnimation: Animation? {
+        guard !reduceMotion, pillDrag == PillDragState() else { return nil }
+        return .spring(response: 0.38, dampingFraction: 0.86)
     }
 
     private var iOSPill: some View {
@@ -114,12 +123,7 @@ struct PlaybackPill: View {
         .offset(y: -pillPullLift)
         // Direct gesture-state updates make the pill follow the finger at half
         // rate. Only the release back to rest springs; the pull itself does not lag.
-        .animation(
-            !reduceMotion && pillDrag == PillDragState()
-                ? .spring(response: 0.38, dampingFraction: 0.86)
-                : nil,
-            value: pillDrag
-        )
+        .animation(pillReleaseAnimation, value: pillDrag)
         .modifier(NowPlayingZoomSource())
         // One detector resolves the axis after the system's touch slop: an
         // upward pull opens Now Playing, while a 72 pt horizontal swipe skips.

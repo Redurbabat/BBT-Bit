@@ -37,6 +37,10 @@ jobs:
           python scripts/release-verify/check.py
           python scripts/verify-automix-model-sources.py
           python scripts/verify-settings-german.py
+      - name: Check RED-Morph-Quellinvarianten (ohne Apple-Build)
+        run: python3 scripts/check-red-morph-source.py
+      - name: Check native Dynamic Island / Now Playing (ohne Apple-Build)
+        run: python3 scripts/check-native-island-source.py
       - name: Scan introduced commits for secrets
         if: ${{ !cancelled() }}
         run: |
