@@ -12,6 +12,15 @@ import AppKit
 
 // Lyrics: fetching, providers, per-track choice and alignment.
 extension PlaybackController {
+    /// Nur vorhandene Marker lesen; keine Inferenz oder Netzwerkarbeit für die
+    /// Darstellung starten. Ein Titelwechsel verwirft den alten Snapshot.
+    func cachedLyricsBeats() async -> [Double] {
+        guard let path = loadedSourcePath else { return [] }
+        let found = await Task.detached(priority: .utility) { cachedBeatTimes(path: path) }.value
+        guard !Task.isCancelled, loadedSourcePath == path else { return [] }
+        return found
+    }
+
     func fetchLyrics(for entry: QueueEntry) {
         lyricsAlignmentTask?.cancel()
         lyricsAlignmentTask = nil

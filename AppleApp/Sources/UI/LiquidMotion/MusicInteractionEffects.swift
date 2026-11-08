@@ -50,11 +50,13 @@ struct NativeCardZoomLink<Destination: View, Label: View>: View {
     @ViewBuilder var destination: Destination
     @ViewBuilder var label: Label
     @Namespace private var zoom
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         #if os(iOS)
         PushLink {
-            destination.navigationTransition(.zoom(sourceID: id, in: zoom))
+            if reduceMotion { destination }
+            else { destination.navigationTransition(.zoom(sourceID: id, in: zoom)) }
         } label: {
             label.matchedTransitionSource(id: id, in: zoom)
         }.buttonStyle(.plain)
@@ -163,7 +165,6 @@ struct DownloadTransferScene: View {
     @State private var known: Set<String> = []
     @State private var ready = false
     @State private var saved: QueueEntry?
-    @State private var arrived = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var completed: Set<String> { Set(store.jobs.filter { $0.status == .done }.map(\.id)) }
@@ -174,8 +175,8 @@ struct DownloadTransferScene: View {
             HStack(spacing: 18) {
                 if let saved {
                     ArtworkView(entry: saved, side: 48).clipShape(.rect(cornerRadius: 10))
-                        .offset(x: arrived || reduceMotion ? 0 : -45)
-                        .opacity(arrived || reduceMotion ? 1 : 0.2)
+                        .id(saved.id)
+                        .transition(reduceMotion ? .opacity : .offset(x: -45).combined(with: .opacity))
                 } else {
                     Image(systemName: "arrow.down").frame(width: 48, height: 48).foregroundStyle(.secondary)
                 }
@@ -199,9 +200,7 @@ struct DownloadTransferScene: View {
             let newIDs = completed.subtracting(known)
             known = completed
             guard let job = store.jobs.last(where: { newIDs.contains($0.id) }) else { return }
-            saved = job.entry
-            arrived = false
-            withAnimation(reduceMotion ? nil : .spring(response: 0.55, dampingFraction: 0.85)) { arrived = true }
+            withAnimation(reduceMotion ? nil : .spring(response: 0.55, dampingFraction: 0.85)) { saved = job.entry }
         }
     }
 }

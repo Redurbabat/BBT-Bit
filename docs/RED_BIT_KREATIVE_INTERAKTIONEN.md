@@ -49,3 +49,22 @@ Der neue Debug-Nutzerweg `--red-ui-test-creative` zeigt Produktionskomponenten m
 Der Ausgangsstand `c1f991d` kompiliert vollständig. Im Simulator scheitern Suchfeld-Überlagerung, die Tab-Erkennung des Dock-Tests und die durch einen Container überschriebene Kennung des Lyrics-Listenknopfs. Diese Fälle werden vor der Abnahme korrigiert und erneut geprüft. Top-Ergebnis-Höhenprüfung und die 15 bisherigen Designvorschauen bestehen bereits.
 
 Die neuen Effekte benötigen Swift-/Shader-Build, gezielte Geometrieprüfungen und Simulator-Screenshots. **Echtes iPhone, VoiceOver am Gerät, Leistungsaufnahme und hörbare Audiowiedergabe bleiben bis zur Durchführung NICHT GETESTET.**
+
+### Tatsächlich ausgeführt · 8. November 2026
+
+Arbeitsstand `e64efdb` mit anschließendem Review der Cover-Identität, bestätigten Favoriten und des Cache-Lesezugriffs:
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `python scripts/check-repository.py --base origin/main` | BESTANDEN: Dokumentstruktur, Verweise, Version, Modulgrenzen und Herkunft |
+| `python scripts/repository-verify/check.py` | BESTANDEN: sieben Gegenproben. Unter Windows `TEMP`/`TMP` auf `build/test-tmp` gesetzt; der erste Versuch im gesperrten System-Temp war ein Umgebungsfehler. |
+| `python scripts/release-verify/check.py` | BESTANDEN: Release-Identitäts-Fixtures; keine echte IPA erzeugt |
+| `python scripts/check-red-morph-source.py` / `python scripts/check-native-island-source.py` | BESTANDEN: je acht bestehende Quellinvarianten |
+| `python scripts/verify-settings-german.py` und neue Katalogeinträge | BESTANDEN: deutsche Einstellungen sowie neue Karten-/Musiktexte; gespeicherte Sprachwahl erhalten |
+| Sechs Workflow-YAMLs und Python-Prüfblock aus `validate-codemagic.yml` | BESTANDEN: YAML, native Buildabhängigkeiten, bestehende Produktidentität und IPA-Namen |
+| `git diff --check` | BESTANDEN |
+| Neuer Swift-/Kotlin-/Rust-App-Build, Shader, Geometrie-Ausführung und XCUITests | **NICHT GETESTET**: GitHub startet keine Runner wegen Actions-Budgetsperre. Windows/WSL enthalten hier keinen Swift-/Rust-Compiler oder Xcode. |
+
+GitHub meldet wörtlich: „The job was not started because an Actions budget is preventing further use.“ Betroffen sind [iPhone-Simulator](https://github.com/Redurbabat/RED-Bit/actions/runs/42524297188), [Regressionen](https://github.com/Redurbabat/RED-Bit/actions/runs/42524297234) und [Build-Konfiguration](https://github.com/Redurbabat/RED-Bit/actions/runs/42524297279); es wurde kein einziger Buildschritt ausgeführt. Die Anzeigen „failure“ sind deshalb **kein ausgeführter Code- oder Testerfolg**. Keine kostenpflichtigen Runner gestartet und kein Budget verändert. Nach verfügbarer Kapazität dieselben Prüfungen am aktuellen PR-Kopf erneut ausführen.
+
+Die Source-Review-Korrekturen halten das alte Cover im Vollplayer über den bestehenden titelgebundenen Video-Neuaufbau hinweg, lassen eine Download-Ankunft tatsächlich als Einfügeübergang erscheinen und verwerfen eine inzwischen entfernte Audioquelle. Die Beat-Abfrage bleibt eine Aktion der PlaybackSession. Die nativen Build- und Gerätenachweise bleiben ausdrücklich offen, Aufgabe BBT-021 bleibt in der Aufgabenliste.

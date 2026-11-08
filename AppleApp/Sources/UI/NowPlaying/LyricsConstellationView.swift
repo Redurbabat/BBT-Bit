@@ -15,6 +15,7 @@ struct LyricsConstellationView: View {
     var duration: Double = 0
     @Environment(PlaybackController.self) private var controller
     @State private var timelineWords: [ConstellationWord] = []
+    @State private var lineCaptions: [String] = []
     @State private var beats: [Double] = []
 
     static func isAvailable(lines: [LyricLineDto]) -> Bool {
@@ -42,16 +43,16 @@ struct LyricsConstellationView: View {
             sourceLabel: sourceLabel,
             onClose: onClose,
             onShowList: onShowList,
-            duration: duration, audioPosition: position, beatTimes: beats, lineTexts: lines.map(\.text)
+            duration: duration, audioPosition: position, beatTimes: beats, lineTexts: lineCaptions
         )
         .onChange(of: lines, initial: true) { _, _ in
             timelineWords = lines.indices.flatMap { starWords(for: $0) }.sorted { $0.start < $1.start }
+            lineCaptions = lines.map(\.text)
         }
         .task(id: "\(controller.loadedSourcePath ?? "")-\(controller.automixPlanRevision)") {
             beats = []
-            guard let path = controller.loadedSourcePath else { return }
-            let found = await Task.detached(priority: .utility) { cachedBeatTimes(path: path) }.value
-            guard !Task.isCancelled, controller.loadedSourcePath == path else { return }
+            let found = await controller.cachedLyricsBeats()
+            guard !Task.isCancelled else { return }
             beats = found
         }
     }

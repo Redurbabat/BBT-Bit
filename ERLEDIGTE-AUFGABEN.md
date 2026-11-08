@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-08 · Kreative Musikinteraktionen und Sternkarten-Schlusszoom implementiert
+
+PR #59 ergänzt zwölf eigene native Interaktionen mit vorhandenen Musik-, Queue-, Download-, Favoriten-, Party- und Timerdaten. Das Lyrics-Sternbild nutzt die gesamte Zeitroute, zeigt nach Links-Wischen den Verlauf und zoomt zehn Sekunden vor Songende automatisch auf die ganze Karte. Der Lichtweg endet mit der echten Wiedergabeposition; Beat-Marker werden ausschließlich aus vorhandenem Cache gelesen. Die gespeicherte Listenwahl bleibt bestehen. Lokale Struktur-, Release-, Übersetzungs-, Workflow- und Quellprüfungen bestehen. GitHub Actions verweigert neue Runner wegen Budgetgrenze; neuer Swift/Kotlin/Rust-Build, Geometrie-Ausführung, Simulator, Hardware und Audio sind **NICHT GETESTET**. Die Abnahme bleibt als BBT-021 offen. [Umfang, Befehle und genaue Grenze](docs/RED_BIT_KREATIVE_INTERAKTIONEN.md). **Kein Merge nach main.**
+
 ## 2026-11-08 · RED-Bit-PRs im eigenen Branch integriert, Motion und Logo überarbeitet
 
 Die offenen PRs #54, #57 und #58 sind auf dem aktuellen `main` im eigenen Integrationsbranch zusammengeführt. Korrigiert sind die vorzeitige Dock-Minimierung bei neuer Berührung, verlorene langsame Scrollbewegungen sowie die fehlende eigene Glasfläche der Tastatur-Pill. Die obere Insel nutzt den gemessenen Logo-Ursprung und einen direkten kompakten Scroll-Einstieg. Ein neuer eigener Vektor-Marker ist in App-Icon und In-App-Logo eingebunden. Lokale Struktur-, Release-, SideStore-, Übersetzungs- und Quellprüfungen bestehen. [Analyse, Regressionen, offene Cloud- und Geräteprüfungen](docs/RED_BIT_INTEGRATION.md). **Kein Merge nach main.**

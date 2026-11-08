@@ -13,7 +13,8 @@ enum LibraryActions {
                 cont.resume(returning: ok ? nil : (msg ?? "YouTube could not update this rating."))
             })
         }
-        if failure == nil, status == "LIKE", !wasLiked, generation == PageSession.generation() {
+        if failure == nil, status == "LIKE", !wasLiked, cachedLike(videoId) == "LIKE",
+           generation == PageSession.generation() {
             MusicConfirmation.shared.savedFavorite(videoId)
         }
         return failure

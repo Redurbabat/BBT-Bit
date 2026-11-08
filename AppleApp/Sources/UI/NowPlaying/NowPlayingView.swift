@@ -39,6 +39,7 @@ struct NowPlayingView: View {
     @State var trailingInset: CGFloat = 0
     #endif
     @State var lyricsControlsOpen = true
+    @State private var artworkHistory = ArtworkTransitionHistory()
     @State var lyricsControlActivity = 0
     @State var lyricsScrubbing = false
     @State var volumeDragging = false
@@ -72,6 +73,7 @@ struct NowPlayingView: View {
             iOSBody
             #endif
         }
+        .environment(\.artworkTransitionHistory, artworkHistory)
         #if os(iOS)
         .statusBarHidden(hideStatusBarInPlayer)
         #endif

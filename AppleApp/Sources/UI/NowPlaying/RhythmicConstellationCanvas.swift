@@ -22,7 +22,7 @@ struct RhythmicConstellationCanvas: View {
     }
 
     private func layer(size: CGSize) -> ConstellationMapLayer {
-        let span = max(1, ConstellationGeometry.milliseconds(position: duration, offset: 0), words.last?.end ?? 1)
+        let span = max(1, max(ConstellationGeometry.milliseconds(position: duration, offset: 0), words.last?.end ?? 1))
         let points = words.map { ConstellationTimeline.point(word: $0, span: span, size: size) }
         let current = ConstellationTimeline.activeIndex(words: words, milliseconds: positionMs) ?? 0
         let shown = min(max(0, historyIndex ?? current), max(0, words.count - 1))

@@ -1,5 +1,22 @@
 import SwiftUI
 
+/// Der Vollplayer hält genau ein vorheriges Cover über den titelgebundenen
+/// Neuaufbau seiner Videoansicht hinweg. Kein globaler Playback-Zustand.
+@MainActor final class ArtworkTransitionHistory {
+    var displayed: QueueEntry?
+}
+
+private struct ArtworkTransitionHistoryKey: EnvironmentKey {
+    static let defaultValue: ArtworkTransitionHistory? = nil
+}
+
+extension EnvironmentValues {
+    var artworkTransitionHistory: ArtworkTransitionHistory? {
+        get { self[ArtworkTransitionHistoryKey.self] }
+        set { self[ArtworkTransitionHistoryKey.self] = newValue }
+    }
+}
+
 /// Eigene Cover-Linse. Videoflächen und deren Transport werden nicht verändert.
 struct GlassArtworkTransition: View {
     let entry: QueueEntry?
@@ -7,12 +24,13 @@ struct GlassArtworkTransition: View {
     @State private var displayed: QueueEntry?
     @State private var previous: QueueEntry?
     @State private var reveal: CGFloat = 1
+    @Environment(\.artworkTransitionHistory) private var history
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         ZStack {
-            if let previous, reveal < 1, !reduceMotion {
+            if let previous, !reduceMotion {
                 ArtworkView(entry: previous, side: side)
             }
             if reduceMotion || reduceTransparency || previous == nil {
@@ -28,9 +46,11 @@ struct GlassArtworkTransition: View {
         }
         .frame(width: side, height: side).clipped()
         .task(id: entry?.id) {
-            guard displayed?.id != entry?.id else { return }
-            previous = displayed
+            let last = history?.displayed ?? displayed
+            guard last?.id != entry?.id else { return }
+            previous = last
             displayed = entry
+            history?.displayed = entry
             guard previous != nil, !reduceMotion, !reduceTransparency else { reveal = 1; return }
             reveal = 0
             withAnimation(.easeInOut(duration: 0.6)) { reveal = 1 }
