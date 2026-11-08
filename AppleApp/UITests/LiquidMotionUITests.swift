@@ -34,10 +34,24 @@ final class LiquidMotionUITests: XCTestCase {
         let searchField = app.searchFields.firstMatch
         XCTAssertTrue(searchField.waitForExistence(timeout: 15),
                       "Native iPhone search field did not appear")
+        let pillID = "bbt.playback.pill.open"
+        let pill = app.buttons[pillID]
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player must be present even in the empty playback state")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Expected exactly one mini-player before keyboard focus")
+
         searchField.tap()
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 10),
                       "Search field did not display the keyboard")
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player disappeared when the search keyboard opened")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Native bottom accessory and keyboard inset duplicated the mini-player")
+        XCTAssertTrue(pill.isHittable, "Mini-player is not reachable above the keyboard")
+        XCTAssertLessThanOrEqual(pill.frame.maxY, keyboard.frame.minY + 4,
+                                 "Mini-player overlaps the native keyboard")
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "BBT-Bit-Search-Keyboard-Visible"
