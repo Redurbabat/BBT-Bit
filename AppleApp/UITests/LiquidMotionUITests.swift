@@ -45,6 +45,13 @@ final class LiquidMotionUITests: XCTestCase {
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 10),
                       "Search field did not display the keyboard")
+        // Keep a diagnostic screenshot even when a subsequent geometry
+        // assertion fails. XCTest otherwise loses the interesting layout.
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "BBT-Bit-Search-Keyboard-Visible"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+
         XCTAssertTrue(pill.waitForExistence(timeout: 10),
                       "Mini-player disappeared when the search keyboard opened")
         XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
@@ -53,16 +60,25 @@ final class LiquidMotionUITests: XCTestCase {
         XCTAssertLessThanOrEqual(pill.frame.maxY, keyboard.frame.minY + 4,
                                  "Mini-player overlaps the native keyboard")
 
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "BBT-Bit-Search-Keyboard-Visible"
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
-
-        // Dismiss via the keyboard's native Return/Search key where present.
-        // If the keyboard has no dismissal key, this test still proves the
-        // keyboard-open state; it does not claim a mini-player handoff passed.
-        let searchKey = keyboard.buttons["search"]
-        if searchKey.exists { searchKey.tap() }
+        // The native Search key should dismiss the keyboard. Do not silently
+        // report the return transition as tested when the key is unavailable.
+        let searchKey = keyboard.buttons["Search"].exists
+            ? keyboard.buttons["Search"] : keyboard.buttons["search"]
+        if searchKey.exists {
+            searchKey.tap()
+            XCTAssertFalse(keyboard.waitForExistence(timeout: 5),
+                           "Search keyboard stayed open after submitting")
+            XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                          "Mini-player missing after keyboard dismissal")
+            XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                           "Mini-player duplicated after keyboard dismissal")
+        } else {
+            let noKey = XCTAttachment(screenshot: app.screenshot())
+            noKey.name = "BBT-Bit-Search-Key-Unavailable"
+            noKey.lifetime = .keepAlways
+            add(noKey)
+            throw XCTSkip("Native Search key unavailable: keyboard-dismissal transition not tested")
+        }
     }
 
     func testEveryDesignPreviewIsRenderedAndOpenableOnIPhone() throws {
