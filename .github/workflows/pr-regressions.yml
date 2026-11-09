@@ -35,6 +35,7 @@ jobs:
           python scripts/check-repository.py --base "$BASE_SHA"
           python scripts/repository-verify/check.py
           python scripts/release-verify/check.py
+          python scripts/ios-test-verify/check.py
           python scripts/verify-automix-model-sources.py
           python scripts/verify-settings-german.py
       - name: Check RED-Morph-Quellinvarianten (ohne Apple-Build)

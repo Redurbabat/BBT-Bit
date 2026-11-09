@@ -129,6 +129,13 @@ impl SymphoniaDecoder {
     ) -> Result<Self, DecodeError> {
         let mss: MediaSourceStream = match source {
             SourceKind::Path(path) => {
+                // Ein fehlgeschlagener Download besitzt ebenfalls `.complete`.
+                // Vor der Dateiauswahl prüfen, sonst wird er als normale lokale
+                // Datei geöffnet und sein Abbruch als Containerfehler verborgen.
+                if std::path::Path::new(&format!("{path}.grow")).exists() {
+                    GrowingFile::check_transfer_state(std::path::Path::new(path))
+                        .map_err(|e| DecodeError(format!("stream unavailable: {e}")))?;
+                }
                 let boxed: Box<dyn MediaSource> = if GrowingFile::is_growing(path) {
                     let growing = if block_on_growth {
                         GrowingFile::open(path)

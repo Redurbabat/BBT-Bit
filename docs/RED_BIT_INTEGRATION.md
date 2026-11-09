@@ -121,3 +121,42 @@ Der Gradle-Wrapper konnte in dieser Umgebung seine Distribution über Java nicht
 5. Reduce Motion, VoiceOver, Hintergrund und Audioausgabewechsel mit tatsächlich hörbarer Musik prüfen. Native Mini-Player-Scrollanimation und Suche zusätzlich gegenprüfen.
 
 Die Abnahme bleibt BBT-022. Kein Merge nach `main`.
+
+## Paket- und Reader-Korrektur vom 9. November 2026
+
+Ausgangsstand: `06a835d11e218b9304942b128ca636161f991eb3`, weiterhin ausschließlich PR #59.
+
+### Geräte-IPA und tatsächliche Laufzeitpfade
+
+Der frühere Gerätebau erzeugte eine Debug-IPA, scheiterte dann aber mit `Binary fehlt: Payload/BitChord.app/Frameworks/BitChord.debug.dylib`. Eine Mach-O-Fixture mit `LC_RPATH=@executable_path` und einer Debug-Bibliothek neben dem App-Programm reproduzierte genau diese Meldung. Zwei weitere Gegenproben zeigten, dass fehlende `@loader_path`-/`@executable_path`-Bibliotheken gar nicht geprüft wurden (12 Fälle, zwei Fehlschläge und ein Fehler vor Korrektur).
+
+`verify-ios-test-ipa.py` liest jetzt `LC_RPATH` und löst die paketbezogenen Ladepfade aus dem aktuellen Binary und seiner Ladekette auf. `@loader_path` wird dort ausgewertet, wo es deklariert wurde. Ein bloßes Suchen an zwei pauschalen Stellen ersetzt diese Zuordnung nicht. Verschachtelte Abhängigkeiten werden geprüft; Zyklen enden nach der ersten Prüfung desselben Binarys. Vorhandene System-/Swift-Laufzeit-Ausnahmen, Bundle-ID, Quellrevision, Gerätearchitektur, Verschlüsselungs- und Extension-Prüfungen bleiben erhalten. Das Kommandozeilenformat ändert sich nicht.
+
+21 Paket-/Konfigurationsfälle bestehen: Debug-Bibliothek im App-Verzeichnis, korrekte und fehlende Laufzeitpfade, vererbte und eigene Framework-Suchpfade, fehlende transitive Bibliothek, Simulator-/verschlüsselte Bibliothek, Zyklus, Systemlaufzeit, Paketgrenzen und defektes `LC_RPATH`. Die Fixture-Prüfung ist nun auch im normalen PR-Repository-Job eingebunden. Sie beweist weder eine gültige Signatur noch einen erfolgreichen App-Start.
+
+### Fehlgeschlagene progressive Downloads
+
+Der Downloader setzt `.failed` und anschließend `.complete`, um einen blockierten Leser freizugeben. Der Reader prüfte `.failed` bisher nicht. Im laufenden Read konnte das zu normalem EOF führen; ein erneutes Öffnen fiel wegen `.complete` auf eine gewöhnliche Datei zurück und umging den progressiven Reader vollständig.
+
+- Fehlgeschlagene/abgebrochene Transfers werden beim Öffnen sowie im Reader geprüft. Für normale lokale Dateien greift die zusätzliche Öffnungsprüfung nur bei vorhandenem `.grow`-Marker.
+- `.failed` liefert `ConnectionAborted`, statt einen regulären Titelabschluss zu signalisieren. Der vorhandene Decoder-/Recovery-Weg erhält den Fehler; Mixer, Queue, Ausgabe und FFI bleiben unverändert.
+- Ein leerer `Read::read`-Puffer liefert sofort `Ok(0)`. Die bisherige Implementierung konnte dabei auf Download-Bytes warten.
+- Eine regulär abgeschlossene Datei liefert weiterhin ihre vollständigen Bytes und normales EOF. Die vorhandene nicht blockierende Analyse und die Abbruchprüfung des progressiven Readers bestehen weiterhin.
+
+Vier neue Regressionen scheiterten vor der Korrektur: Fehler als EOF, verbliebene Teilbytes nach Fehler, erneutes Probe einer fehlgeschlagenen Datei und blockierende leere Leseanfrage. Danach bestehen alle 32 Decoderfälle. Dies erklärt eine konkrete fehlerhafte Behandlung von Download-Abbrüchen, belegt aber noch nicht die Ursache jeder gemeldeten WebM-/128-KiB-Störung.
+
+### Lokaler Prüfstand und offene Grenze
+
+Linux x86_64, Rust/Cargo 1.99.1, unverändertes `Cargo.lock`. CMake und ALSA-Entwicklungsdateien wurden ausschließlich in benutzereigenen Werkzeugverzeichnissen eingerichtet; die Projektabhängigkeiten bleiben unverändert.
+
+| Befehl / Bereich | Tatsächliches Ergebnis |
+| --- | --- |
+| `python3 scripts/ios-test-verify/check.py` | **BESTANDEN: 21 Tests**. Künstliche Mach-O-/IPA-Pakete, keine erzeugte App. |
+| `cargo test --locked --manifest-path native-core/Cargo.toml decode:: -- --test-threads=2` | **BESTANDEN: 32 Tests**, vorher 28 bestanden / 4 fehlgeschlagen. Echter Produktionsdecoder mit generierten Audiodaten. |
+| `cargo test --locked --manifest-path native-core/Cargo.toml` | Ausgeführt: **316 bestanden, 4 fehlgeschlagen, 1 ignoriert**. Drei Swap-Fehler waren `StorageFull`; nach Bereinigung temporärer eigener Werkzeugdateien alle drei gezielt erneut bestanden. Der verbleibende AAC-Regionenfehler steht unten. Die Gesamtreihe wird nicht als grün ausgegeben. |
+| AAC-Baseline | `mixer::tests::regions::aac_region_cuts_advance_without_reseeking_preroll` scheitert auch mit den unveränderten Decoder-Produktionsdateien aus `06a835d`: identisch `113624 frames`, anschließend `Disconnected`. Finale Decoderdateien danach wiederhergestellt. AAC-Test und Toleranz bleiben unverändert. |
+| Apple-Verknüpfung / Hardware | **NICHT GETESTET**: `check-engine.sh`, Xcode-/Simulator-Build, neue echte IPA, SideStore, hörbare Recovery, Hintergrund und Ausgabewechsel. Linux-Tests ersetzen diese Nachweise nicht. |
+
+Der erste Gesamtlauf scheiterte bereits beim Linken wegen lokalem Platzmangel. Nach Entfernen des selbst heruntergeladenen Compilerarchivs lief die Testreihe; weiteren Platzmangel in den drei Swap-Fixtures haben die gezielten Wiederholungen abgegrenzt. Der verbleibende AAC-Befund ist unabhängig vom neuen Reader auf dem Ausgangsstand belegt (P-021), seine Linux-/Apple-Ursache ist noch offen.
+
+Für BBT-023: Nach verfügbarer Apple-Kapazität dieselbe PR-Revision bauen, das echte Paket mit den neuen Laufzeitpfaden prüfen und Download-Abbruch, begrenzte Wiederherstellung, natürlichen Titelabschluss sowie Datenbestand am iPhone nachweisen. Keine privaten Anhänge übernommen und kein Merge nach `main`.

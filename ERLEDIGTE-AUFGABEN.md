@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-09 · PR #59: Paket-Laufzeitpfade und fehlgeschlagene progressive Dateien korrigiert
+
+Die IPA-Prüfung verwendet jetzt die Mach-O-Laufzeitpfade statt einer festen `Frameworks/`-Annahme. Sie erkennt außerdem fehlende loader-/executable-relative Bibliotheken. 21 künstliche Paketfälle bestehen. Der Rust-Reader unterscheidet `.failed` von normalem Dateiende, verwirft fehlgeschlagene Cachedateien vor dem Probe und wartet bei leerem Lesepuffer nicht auf Netzwerkbytes. Vier neue Regressionen scheiterten vorher; alle 32 Decoderprüfungen bestehen nach der Korrektur. Die vollständige Rust-Reihe wurde ausgeführt; ein AAC-Regionenfehler wurde auf dem bisherigen Decoderstand reproduziert. Drei durch lokalen Platzmangel fehlgeschlagene Swap-Tests bestehen nach Bereinigung. [Umfang und genaue Nachweise](docs/RED_BIT_INTEGRATION.md#paket--und-reader-korrektur-vom-9-november-2026). BBT-023 enthält die noch offene Apple-/Geräteabnahme.
+
 ## 2026-11-09 · PR #59: Livetest korrigiert, Range-Abbrüche begrenzt und Scrub-Fokus ergänzt
 
 Der Livetest v3 misst aktuellen Zeitfortschritt getrennt vom Gesamtnachweis und unterscheidet kategorisierte Playback-Fehler von allgemeinen App-Fehlern. Automix-Modus und Engine-Revision ergänzen den datensparsamen Export. Ein lokal abgebrochener Range-Request kann das bestehende Retrybudget nicht mehr als vermeintlicher Netzwechsel umgehen; echte Eltern-Cancellation bleibt erhalten. Der Bogenplayer hebt beim Ziehen die Zeitmarken um den Finger an, nach dem RED-Morph-Sound-Ribbon-Prinzip. Der Effekt ruht ohne Bedienung und bei Reduce Motion. Swift-Mess-/Exporttests, sieben Kotlin-JVM-Fälle, Geometrie-, Syntax-, Repo- und Quellprüfungen bestehen. Apple-Build und Geräteabnahme bleiben als BBT-022 offen. [Befehle, Umfang und Grenzen](docs/RED_BIT_INTEGRATION.md#korrekturen-vom-9-november-2026).

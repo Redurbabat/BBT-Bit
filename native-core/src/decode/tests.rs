@@ -286,6 +286,24 @@ fn growing_file_waits_only_with_grow_marker() {
     assert!(!GrowingFile::is_growing("/tmp/bitchord-no-such.mp4"));
 }
 
+#[test]
+fn failed_completed_download_is_rejected_before_container_probe() {
+    let path = write_generated_webm("failed-completed-transfer", Some(20.0), 1_000_000);
+    for suffix in ["grow", "failed", "complete"] {
+        std::fs::write(format!("{}.{suffix}", path.display()), []).unwrap();
+    }
+    let result = SymphoniaDecoder::open_available(
+        &SourceKind::Path(path.to_string_lossy().into()),
+        &Default::default(),
+    );
+    for suffix in ["grow", "failed", "complete"] {
+        std::fs::remove_file(format!("{}.{suffix}", path.display())).unwrap();
+    }
+    std::fs::remove_file(path).unwrap();
+    let error = result.err().expect("Fehlgeschlagener Download wurde als Audio geöffnet");
+    assert!(error.0.contains("download failed"), "Falsche Fehlerstufe: {error}");
+}
+
 /// A still-downloading file ends where the bytes end, for analysis. The
 /// playback opener would sit here for two minutes waiting on `.complete`.
 #[test]
