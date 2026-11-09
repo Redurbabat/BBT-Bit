@@ -160,3 +160,20 @@ Linux x86_64, Rust/Cargo 1.99.1, unverändertes `Cargo.lock`. CMake und ALSA-Ent
 Der erste Gesamtlauf scheiterte bereits beim Linken wegen lokalem Platzmangel. Nach Entfernen des selbst heruntergeladenen Compilerarchivs lief die Testreihe; weiteren Platzmangel in den drei Swap-Fixtures haben die gezielten Wiederholungen abgegrenzt. Der verbleibende AAC-Befund ist unabhängig vom neuen Reader auf dem Ausgangsstand belegt (P-021), seine Linux-/Apple-Ursache ist noch offen.
 
 Für BBT-023: Nach verfügbarer Apple-Kapazität dieselbe PR-Revision bauen, das echte Paket mit den neuen Laufzeitpfaden prüfen und Download-Abbruch, begrenzte Wiederherstellung, natürlichen Titelabschluss sowie Datenbestand am iPhone nachweisen. Keine privaten Anhänge übernommen und kein Merge nach `main`.
+
+## Home-Kopfzeile und gemischte Regale vom 9. November 2026
+
+Der Nutzer meldete anhand von drei Home-Fotos ein unruhiges Layout und benannte den Apple-Port [bagumamartin/BitChord](https://github.com/bagumamartin/BitChord) als Referenz. Die Fotos stammen laut Nutzer von einer älteren PR-59-IPA. Die angezeigte Version `1.0.4 (build 13)` identifiziert keinen bestimmten PR-Commit; die About-Aufnahme enthält keine Quellrevision. Die Fotos sind keine Abnahme des neuen Codes.
+
+Der Quellvergleich zeigt zwei konkrete Unterschiede: Der Apple-Port zeichnet keinen zusätzlichen Logo-Player über die Kopfzeile und verwendet quadratische Regalkarten. RED Bit öffnete seine zusätzliche Logo-Steuerung beim Wiedergabestart und beim Hochscrollen; gleichzeitig konnten innerhalb einer Reihe quadratische Cover neben 16:9-Videos stehen. Damit hatten Titel derselben Reihe unterschiedliche Höhen und die obere Steuerung konnte Seitentitel überdecken.
+
+Korrektur ausschließlich auf PR #59:
+
+- Logo-Steuerung öffnet nur durch bewussten Tipp/Halten am Logo. Titelwechsel halten eine bereits geöffnete Steuerung kurz offen; beide Scrollrichtungen schließen sie. Der Spark beginnt weiter am Logo, lesbare kompakte/erweiterte Zustände liegen unterhalb der Toolbar.
+- Ein Regal erhält eine gemeinsame Bildform: gemischte und reine Audio-Regale quadratisch, reine Video-Regale 16:9. Die Inhalte, Video-Wiedergabe und Trefferaktionen bleiben erhalten.
+- Home und Explore fordern den sichtbaren systemeigenen Navigationshintergrund an. Kein eigener Glaslayer wird hinzugefügt. Die native untere Tab-/Mini-Player-Minimierung und der Zoom bleiben erhalten.
+- About zeigt die eingebettete Build-Revision zusätzlich zur unveränderten Versionsnummer, damit verschiedene PR-Pakete unterscheidbar werden.
+
+`SWIFTC=…/swiftc bash scripts/check-phone-layout.sh` verwendet den tatsächlichen Präsentationskoordinator mit kontrollierten Animations-/UIKit-Adaptern. Vor der Änderung scheiterte er an der ungefragten Playeröffnung beim Wiedergabestart. Danach bestehen automatische Ruhe, bewusster Tipp/Halten, erweiterter Zustand bei Titelwechsel und Abbruch durch beide Scrollrichtungen. Swift-Syntax, Workflow-YAML und vorhandene RED-Morph-/Now-Playing-Quellprüfungen bestehen. Diese Nachweise prüfen keine Pixel, native Materialdarstellung oder Animation.
+
+**NICHT GETESTET:** Apple-SDK-Typprüfung, Simulator, neue IPA, tatsächliches iPhone-Layout, Dynamic Type/VoiceOver und hörbare Wiedergabe. BBT-025 verlangt Home/Explore bei Abwärts-/Aufwärtsscrollen, sofortiger Umkehr, Logo-Tipp, Titelwechsel, gemischten/reinen Videoregalen und geöffneter Tastatur. Neue Screenshots müssen die eingebettete Build-Revision nennen. Das Actions-Budget war zuletzt ausgeschöpft; kein manueller Neustart und keine Budgetänderung.

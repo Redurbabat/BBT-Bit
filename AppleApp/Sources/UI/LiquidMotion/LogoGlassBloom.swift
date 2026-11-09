@@ -31,9 +31,10 @@ final class LogoGlassBloomCoordinator {
     private init() {}
 
     func playbackStartedOrTrackChanged() {
-        // Ein Folgetitel darf geöffnete Bedienelemente nicht einklappen.
-        guard phase != .expanded else { keepOpenBriefly(); return }
-        present(expanded: false)
+        // Die normale Wiedergabe bleibt im nativen Mini-Player. Nur eine
+        // bewusst geöffnete Logo-Steuerung darf beim Titelwechsel offen bleiben.
+        guard isVisible else { return }
+        keepOpenBriefly()
     }
 
     func updateLogoFrame(_ frame: CGRect) {
@@ -47,14 +48,9 @@ final class LogoGlassBloomCoordinator {
     }
 
     func scrollChanged(_ direction: DockScrollDirection) {
-        if direction == .towardBottom {
-            // Auch eine manuell erweiterte Insel gibt beim Weiterlesen Platz frei.
-            dismiss()
-        } else if !isVisible {
-            // Scrollen öffnet direkt die kompakte Fläche. Der kurze Logo-Spark
-            // würde bei schnellen Umkehrungen nur aufblitzen und wieder abbrechen.
-            present(expanded: false, fromLogo: false)
-        }
+        // Beide Scrollrichtungen geben dem Inhalt Platz. Die gekoppelte native
+        // Tab-/Mini-Player-Animation bleibt allein für Scrollen zuständig.
+        if isVisible { dismiss() }
     }
 
     func logoTapped() {

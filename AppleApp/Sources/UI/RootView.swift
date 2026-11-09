@@ -85,8 +85,8 @@ struct RootView: View {
     }
 
     // iPhone: the floating music surface grows out of the native top-left
-    // BBT-Bit logo. It is absent by default; the logo or a playback event
-    // reveals it temporarily. iPad / macOS navigation remains independent.
+    // RED-Bit-Logo. Nur eine bewusste Logo-Interaktion öffnet diese Zusatzfläche;
+    // Wiedergabe und Scrollen bleiben beim nativen unteren Mini-Player.
     private var musicIslandShell: some View {
         #if os(iOS)
         logoBloomShell
@@ -120,9 +120,9 @@ struct RootView: View {
                         let expanded = logoGlassBloom.phase == .expanded
                         LogoGlassBloomIsland(maximumWidth: max(46, min(proxy.size.width - leading - 16,
                                                                        expanded ? 292 : compactWidth)))
-                            // Breite Transportsteuerung unterhalb der Toolbar;
-                            // die kompakte Insel endet vor deren ersten Aktion.
-                            .offset(x: leading, y: expanded ? top + 54 : top)
+                            // Nur der kurze Logo-Spark liegt am Ursprung.
+                            // Beide lesbaren Zustände bleiben unter dem Seitentitel.
+                            .offset(x: leading, y: logoGlassBloom.phase == .spark ? top : top + 54)
                     }
                     // Die Fläche selbst morpht; keine zweite Skalierung um
                     // einen geratenen Bildschirmpunkt darüberlegen.
@@ -151,9 +151,8 @@ struct RootView: View {
             .onChange(of: canRevealLogoBloom) { _, canShow in
                 if !canShow { logoGlassBloom.dismiss() }
             }
-            // Logo-origin playback controls can now wake when the user reverses
-            // an existing scroll gesture, without a separate tap on the logo.
-            // Never invent a track or overlay a modal view.
+            // Scrollen schließt die manuell geöffnete Zusatzsteuerung und
+            // öffnet sie auch beim Richtungswechsel nicht automatisch erneut.
             .onChange(of: dockScroll.directionRevision) { _, _ in
                 guard canRevealLogoBloom else { return }
                 logoGlassBloom.scrollChanged(dockScroll.direction)

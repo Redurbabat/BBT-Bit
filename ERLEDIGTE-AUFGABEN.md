@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-09 · Home-Layout nach Nutzerfotos korrigiert
+
+Die zusätzliche Logo-Steuerung öffnet nicht mehr beim Wiedergabestart oder Hochscrollen. Bewusste Logo-Bedienung bleibt möglich; lesbare Zustände liegen unter dem Titel. Gemischte Regale erhalten gemeinsame quadratische Karten, reine Videoregale bleiben breit. Home/Explore verwenden einen sichtbaren nativen Navigationshintergrund; About zeigt die Quellrevision. Der tatsächliche Präsentationskoordinator scheiterte vorher an der automatischen Playeröffnung und besteht danach mit kontrollierten Plattformadaptern. [Nachweise und BBT-025](docs/RED_BIT_INTEGRATION.md#home-kopfzeile-und-gemischte-regale-vom-9-november-2026); neue iPhone-Darstellung und Animation **NICHT GETESTET**.
+
 ## 2026-11-09 · Original-Verbesserungen auf PR #59 implementiert
 
 Addon-Titel können einen geprüften YouTube-Startpunkt für Autoplay erhalten. Automatische Mixe wechseln ihre Metadaten im Übergang; ausdrückliches Weiter und Source-Swaps behalten ihre eigenen Regeln. Die native Vorschau liest zwei gemessene Audioausschnitte. Der optionale Playlist-Abgleich respektiert vollständige Listen, Konto, WLAN und gelöschte Downloads; ein optionales Journal erweitert bestehende Indizes ohne Versionsbruch. Updateprüfung und Paketfilter verwenden RED Bit und benennen die private Release-Grenze. Sechs Kotlin-JVM-Fälle, Swift-Produktionsprüfungen mit Adaptern einschließlich neun asynchroner Playlist-Fälle sowie 323 Rust-Fälle bestehen. Ein bekannter Linux-AAC-Fehler bleibt; die Gesamtreihe ist nicht grün. [Details und Nachweisgrenzen](docs/ORIGINAL_PARITAET_PR59.md); BBT-024 hält die Apple-/Geräteabnahme offen.

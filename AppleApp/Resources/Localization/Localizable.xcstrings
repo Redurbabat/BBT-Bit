@@ -18653,6 +18653,16 @@
           }
         }
       }
+    },
+    "Build-Revision": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build-Revision"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

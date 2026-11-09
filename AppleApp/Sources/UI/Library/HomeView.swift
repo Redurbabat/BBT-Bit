@@ -27,6 +27,9 @@ struct HomeView: View {
         PageStack {
             content
                 .navigationTitle("Listen Now")
+                #if os(iOS)
+                .toolbarBackground(.visible, for: .navigationBar)
+                #endif
                 .toolbar {
                     #if os(iOS)
                     // Upstream FrostedTopBar's root-page leading BitChord logo.

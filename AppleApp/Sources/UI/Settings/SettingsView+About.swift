@@ -272,6 +272,9 @@ extension SettingsView {
         rows.row("Version", "version", "build", "release", "credits", "licence", "license",
                  "acknowledgements", "privacy policy") {
             LabeledContent("Version", value: update.currentVersion)
+            LabeledContent("Build-Revision", value: update.revision ?? "Nicht verfügbar")
+                .font(.caption.monospaced())
+                .textSelection(.enabled)
         }
         buildUpdateRows(&rows)
         rows.row("GitHub", "github", "source", "code", "repository") {

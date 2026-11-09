@@ -254,7 +254,9 @@ struct ShelfCarousel: View {
             ShelfScroller(inset: inset, onProgress: rail ? { updateDot($0) } : nil) {
                 LazyHStack(alignment: .top, spacing: 14) {
                     ForEach(items ?? shelf.items) { card in
-                        ShelfCardView(card: card, artworkSide: cardSide, preferTrack: preferTrack, horizon: rail)
+                        ShelfCardView(card: card, artworkSide: cardSide,
+                                      artworkAspectRatio: shelfArtworkAspectRatio,
+                                      preferTrack: preferTrack, horizon: rail)
                             .modifier(HorizonRailMotion(enabled: rail))
                     }
                 }
@@ -270,6 +272,14 @@ struct ShelfCarousel: View {
     }
 
     private var dotCount: Int { min((items ?? shelf.items).count, 5) }
+
+    // Eine gemeinsame Bildform hält Titel und Untertitel auf derselben Höhe.
+    // Gemischte Regale folgen den quadratischen Karten der Apple-Referenz;
+    // reine Videoregale behalten ihr breites Vorschaubild.
+    private var shelfArtworkAspectRatio: CGFloat {
+        let cards = items ?? shelf.items
+        return !cards.isEmpty && cards.allSatisfy(\.isVideo) ? 16.0 / 9.0 : 1
+    }
 
     private func updateDot(_ progress: Double) {
         let target = Int((progress * Double(max(dotCount - 1, 0))).rounded())
@@ -432,6 +442,7 @@ struct ShelfCardView: View {
     /// The sleeve's side, and with it the card's width. A carousel on a wide
     /// window passes a larger one; everywhere else this is the phone size.
     var artworkSide: CGFloat = Theme.Metrics.shelfCard
+    var artworkAspectRatio: CGFloat? = nil
     @Environment(PlaybackController.self) private var controller
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     /// Whether the pointer is over the card. A card is a target, not just a
@@ -471,10 +482,11 @@ struct ShelfCardView: View {
                     url: card.thumbnailUrl, data: nil, side: horizon ? artworkSide - 16 : artworkSide,
                     fill: card.isVideo
                 )
-                    // Wie im Original sind Home-Musikvideos 16:9 statt
-                    // quadratischer Albumcover; die Kartenbreite bleibt stabil.
+                    // Das Regal bestimmt die gemeinsame Form; einzeln verwendete
+                    // Videokarten behalten ihren bisherigen 16:9-Fallback.
                     .frame(width: horizon ? artworkSide - 16 : artworkSide,
-                           height: card.isVideo ? artworkSide * 9 / 16 : (horizon ? artworkSide - 16 : artworkSide))
+                           height: (horizon ? artworkSide - 16 : artworkSide)
+                            / (artworkAspectRatio ?? (card.isVideo ? 16.0 / 9.0 : 1)))
                     .clipShape(.rect(cornerRadius: 10, style: .continuous))
                     .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
                     .modifier(NowPlayingCardAccent(

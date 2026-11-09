@@ -17,6 +17,9 @@ struct ExploreView: View {
         PageStack {
             content
                 .navigationTitle("Explore")
+                #if os(iOS)
+                .toolbarBackground(.visible, for: .navigationBar)
+                #endif
                 .toolbar {
                     #if os(iOS)
                     TopBarLeadingItems()

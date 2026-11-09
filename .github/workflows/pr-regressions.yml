@@ -107,6 +107,8 @@ jobs:
         run: bash scripts/check-automix-live-test.sh
       - name: Original-Parität für Seeds, Playlist-Journal und Wellenformen prüfen
         run: bash scripts/check-original-parity.sh
+      - name: Ungefragten zweiten Player beim Scrollen ausschließen
+        run: bash scripts/check-phone-layout.sh
       - name: Sound-Ribbon-Fokus ohne Audio-Fixtures prüfen
         run: |
           swiftc -parse-as-library -swift-version 5 \
