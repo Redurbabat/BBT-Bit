@@ -360,7 +360,11 @@ extension View {
         liftPreview {
             ShelfCardActionButtons(card: card)
         } preview: {
-            ContextMenuPreview(card: card, roundArtwork: roundArtwork)
+            if card.supportsCollectionPeek, !roundArtwork {
+                AlbumPeekPreview(card: card)
+            } else {
+                ContextMenuPreview(card: card, roundArtwork: roundArtwork)
+            }
         }
     }
 }
@@ -429,6 +433,7 @@ struct BrowseActionButtons: View {
 
     @ViewBuilder
     private func browseRows(_ browseId: String) -> some View {
+        QueueCollectionNextButton(browseID: browseId, title: card.title)
         Button("Open") {
             appModel.pendingDetail = .detail(browseId: browseId, title: card.title)
         }

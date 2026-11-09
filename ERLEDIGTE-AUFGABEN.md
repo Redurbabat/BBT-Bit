@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-09 · Persönlichen Home-Bereich auf PR #59 implementiert
+
+Home erhält eine Fortsetzen-Karte, zwei vorhandene Pins oder echte Feed-Sammlungen, einen Tagesmix aus Hörverlauf und geladenem Feed sowie Alle-/Musik-/Video-Filter. Album-Vorschau zeigt drei echte Titel per Kontextmenü oder sichtbarem Aktionsmenü. Cover lassen sich auf die bestehende Playback-Pill ziehen; Sammlung und Folgeseiten werden vor dem gemeinsamen Einfügen vollständig geladen. Konto-, Playback-, Queue-, Party- und Abbruchprüfungen verhindern veraltete Aktionen. Die Bestätigung folgt erst auf das tatsächliche Einreihen. Keine neue Bibliothek, kein neues Audiosystem und kein externer Datendienst. [Umfang, Datenregeln und lokale Prüfungen](docs/RED_BIT_INTEGRATION.md#persönlicher-home-bereich-vom-9-november-2026); Apple-/Geräteabnahme bleibt BBT-026.
+
 ## 2026-11-09 · Home-Layout nach Nutzerfotos korrigiert
 
 Die zusätzliche Logo-Steuerung öffnet nicht mehr beim Wiedergabestart oder Hochscrollen. Bewusste Logo-Bedienung bleibt möglich; lesbare Zustände liegen unter dem Titel. Gemischte Regale erhalten gemeinsame quadratische Karten, reine Videoregale bleiben breit. Home/Explore verwenden einen sichtbaren nativen Navigationshintergrund; About zeigt die Quellrevision. Der tatsächliche Präsentationskoordinator scheiterte vorher an der automatischen Playeröffnung und besteht danach mit kontrollierten Plattformadaptern. [Nachweise und BBT-025](docs/RED_BIT_INTEGRATION.md#home-kopfzeile-und-gemischte-regale-vom-9-november-2026); neue iPhone-Darstellung und Animation **NICHT GETESTET**.

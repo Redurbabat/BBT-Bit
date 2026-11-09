@@ -177,3 +177,50 @@ Korrektur ausschließlich auf PR #59:
 `SWIFTC=…/swiftc bash scripts/check-phone-layout.sh` verwendet den tatsächlichen Präsentationskoordinator mit kontrollierten Animations-/UIKit-Adaptern. Vor der Änderung scheiterte er an der ungefragten Playeröffnung beim Wiedergabestart. Danach bestehen automatische Ruhe, bewusster Tipp/Halten, erweiterter Zustand bei Titelwechsel und Abbruch durch beide Scrollrichtungen. Swift-Syntax, Workflow-YAML und vorhandene RED-Morph-/Now-Playing-Quellprüfungen bestehen. Diese Nachweise prüfen keine Pixel, native Materialdarstellung oder Animation.
 
 **NICHT GETESTET:** Apple-SDK-Typprüfung, Simulator, neue IPA, tatsächliches iPhone-Layout, Dynamic Type/VoiceOver und hörbare Wiedergabe. BBT-025 verlangt Home/Explore bei Abwärts-/Aufwärtsscrollen, sofortiger Umkehr, Logo-Tipp, Titelwechsel, gemischten/reinen Videoregalen und geöffneter Tastatur. Neue Screenshots müssen die eingebettete Build-Revision nennen. Das Actions-Budget war zuletzt ausgeschöpft; kein manueller Neustart und keine Budgetänderung.
+
+## Persönlicher Home-Bereich vom 9. November 2026
+
+Auftrag „Bau alles“, Ausgangsstand `64dcf17cee48ae6301e99c8da1475a810b90f7f6`, ausschließlich PR #59. Die fünf zuvor recherchierten Ideen werden nativ auf die vorhandenen Daten und Aktionen gesetzt.
+
+| Funktion | Tatsächliches Verhalten |
+| --- | --- |
+| Persönliche Karten | Große Fortsetzen-Karte nutzt dieselbe Wiedergabesitzung. Bei laufendem Titel öffnet sie den Vollplayer; bei Pause setzt sie fort. Ohne Sitzung startet sie auf Wunsch den vorhandenen Mix oder führt zum Entdecken. Zwei kleine Karten zeigen höchstens zwei vorhandene Playlist-Pins, sonst echte Feed-Sammlungen oder ehrliche Bibliotheks-/Entdecken-Zugriffe. Bei großer Bedienungshilfen-Schrift stehen die Bereiche untereinander. |
+| Album-Vorschau | Langes Drücken zeigt die ersten drei tatsächlichen Titel, Titel-/Künstlerangaben und vorhandene Sammlungsaktionen. Ein sichtbares 44-Punkt-Aktionsmenü öffnet dieselbe Vorschau als Sheet. Laden, Fehler, Wiederholung und gespeicherte Offline-Sammlung sind berücksichtigt; die Vorschau startet keine Wiedergabe. |
+| Tagesmix | Morgen-, Tages-, Abend- oder Nachtmix aus dem echten lokalen Hörverlauf und bereits geladenen Feed-Titeln. „Vertraut“ bevorzugt bekannte Titel, „Gemischt“ verschränkt beide Quellen, „Neugierig“ zeigt neue Feed-Titel. Keine behauptete Audio-/Stimmungsanalyse. Auswahl innerhalb derselben Tagesphase stabil; IDs und normalisierte Titel-/Künstlerpaare werden dedupliziert, bekannte Videos ausgeschlossen. Die geöffnete Titelliste bleibt ein Snapshot. |
+| Cover zur Queue | Karten übertragen nur eine prozessinterne Einmal-Kennung mit zwei Minuten Lebensdauer. Drop auf die bestehende Playback-Pill fügt als Nächstes ein. Sammlungen werden einschließlich höchstens 20 Folgeseiten und insgesamt höchstens 500 Titeln vollständig geladen; Fehler, Schleifen und Überschreitung fügen keinen Teil ein. Ein explizites „Als Nächstes“ im Sammlungsmenü bietet dieselbe Aktion ohne Drag. |
+| Medienfilter | „Alle“, „Musik“, „Videos“ filtern die geladenen Home-Regale. Vorhandene Einstellungen zum Ausblenden von Videos/Recents bleiben vorrangig. Bei leerem Filter höchstens drei Seiten automatisch nachladen, dann bewusster Ladebutton. Ausgeblendete Videos lösen keine nutzlosen Ladeversuche aus. |
+
+### Queue, Daten und Navigation
+
+`QueueNextAction` verwendet die bestehende `PlaybackController.playNext`-Batch-Aktion. Die laufende Wiedergabe wird bei nicht leerer Queue nicht neu geladen. Vor und nach asynchronem Laden werden Kontogeneration, Wiedergabegeneration, aktueller Titel und Queue-Revision verglichen. Cancellation oder Beitritt zu „Gemeinsam hören“ verhindert die Mutation. Der Party-Modus nutzt weiterhin seinen vorhandenen gemeinsamen Steuerungsweg. Die Einreihbestätigung mit Cover erscheint erst nach der tatsächlichen Queue-Mutation, ohne Wiedergabe-/Decoder-Erfolg vorzutäuschen.
+
+Die nativen Tab-/Bottom-Accessory-Montagepunkte, Scroll-Minimierung, Vollplayer-Zoom und Suchnavigation werden weiter verwendet. Keine zusätzliche dauerhafte Glasfläche oder Animationsschleife; die kurze Drop-Bestätigung berücksichtigt reduzierte Bewegung. Große Schrift erhält einen vertikalen Kartenaufbau, Vorschau und Einreihen bleiben ohne langes Drücken erreichbar.
+
+Keine Änderung vorhandener Datenformate und keine Migration erforderlich. Zwei neue additive `UserDefaults`-Schlüssel merken Medienfilter und Mixmodus. Bestehende Pins bleiben bis zur bisherigen Grenze von fünf erhalten; Home zeigt nur die ersten zwei. Der neue UTType kennzeichnet ausschließlich kurzlebige lokale Tickets; keine lokalen Pfade, Stream-URLs, Kontodaten oder Mediendateien werden exportiert. Keine neue Netzwerkquelle, Laufzeitbibliothek oder Modellinferenz. [Herkunft](../FREMDCODE.md) dokumentiert die reinen Ideenreferenzen.
+
+### Lokaler Nachweis und Grenze
+
+Linux x86_64, Swift 6.2.1. `SWIFTC=/pfad/zu/swiftc bash scripts/check-home-discovery.sh` typprüft die tatsächlichen Foundation-Produktionsdateien sowie beide tatsächlichen Observation-Modelle mit kontrollierten Dienstadaptern. Der Laufzeittest nutzt dieselben Modelle ohne Observation-Anbindung und die unverändert extrahierte Produktionsmethode `playNext`. Er prüft deterministische Mixe, Filter, Deduplikation, drei Preview-Titel, Pin-Fehler, Einmaltickets, Kontowechsel, Abbruch, Party-Wechsel, Queue-/Playback-Änderung, Offline-Sammlung, vollständige Mehrseiten-Reihenfolge und atomare Fehlerfälle. Diese Prüfung ist im vorhandenen PR-Regressionsjob eingebunden.
+
+Swift-Syntaxprüfung der geänderten/neuen Swift-Dateien, Repository-/Release-/Deutsch-Prüfungen und die bestehenden RED-Morph-/Now-Playing-Quellinvarianten ergänzen den Nachweis. **Keine SwiftUI-/CoreTransferable-SDK-Typprüfung:** kontrollierte Adapter prüfen weder Apples Gestenerkennung noch das native Rendering.
+
+| Ausgeführt am Implementierungsstand | Ergebnis |
+| --- | --- |
+| `SWIFTC=…/swiftc bash scripts/check-home-discovery.sh` | **BESTANDEN:** tatsächliche Auswahl-/Queue-/Modelllogik mit kontrollierten Netzwerk-, Speicher- und Engineadaptern, einschließlich der oben genannten asynchronen Grenzen. |
+| `SWIFTC=…/swiftc bash scripts/check-phone-layout.sh` | **BESTANDEN:** Produktionskoordinator bleibt ohne ungefragten Zweitplayer; Logo-Bedienung und Scroll-Abbruch. |
+| `SWIFTC=…/swiftc bash scripts/check-original-parity.sh` | **BESTANDEN:** Seeds, Playlist-Journal, gemessene Bänder, Vorschau, Update-Identität und neun asynchrone Playlist-Fälle. |
+| Queue-Fixtures aus `scripts/queue-verify/main.swift` direkt mit `QueueEntry`, `PlaybackQueuePolicy`, `PlaybackQueueWindow` und `LastPlayed` kompiliert/ausgeführt | **BESTANDEN: 113 Fälle** für Queue, Empfehlungen, Reihenfolge und Wiederherstellung. Linux-Swift direkt statt des Apple-`xcrun`-Aufrufs. |
+| `swiftc -frontend -parse` für alle zwölf geänderten/neuen Swift-Produktionsdateien | **BESTANDEN:** Syntax; kein App-Build. |
+| `python3 scripts/check-repository.py --base b571aab`, `scripts/repository-verify/check.py`, `scripts/release-verify/check.py`, `scripts/verify-settings-german.py` | **BESTANDEN:** Repo-/Release-Grenzen, sieben Gegenproben und deutsche Einstellungen. 56 neue deutsche Katalogeinträge ergänzt; vorhandene Übersetzungen erhalten. |
+| `scripts/check-red-morph-source.py`, `scripts/check-native-island-source.py`, YAML-Parse und `git diff --check` | **BESTANDEN:** je acht Quellinvarianten, gültige Projekt-/Workflow-Dateien und sauberer Diff. |
+
+**NICHT GETESTET:** vollständiger Apple-/Kotlin-Native-Build, Simulator, neue signierte IPA, iPhone/iPad/Mac-Darstellung, echte Drag-/Kontextmenü-Gesten, VoiceOver, GPU-Leistung, native Dock-Animation und hörbare Wiedergabe. Keine manuelle CI-Neuausführung oder Budgetänderung.
+
+### Geräteabnahme BBT-026
+
+1. Dieselbe PR-Revision frisch bauen und unter About kontrollieren. Home mit laufender, pausierter und leerer Sitzung öffnen: richtige Fortsetzen-Aktion, kein zweiter automatisch geöffneter Logo-Player.
+2. Zwei Pins, ein Pin und keine Pins mit echten Kontodaten prüfen; offline/abgemeldet, Feedfehler und Kontowechsel dürfen keine fremden Titel oder erfundenen Sammlungen zeigen. Bestehende Pins und Downloads nach Update erhalten.
+3. Album lange drücken sowie sichtbares Aktionsmenü öffnen: drei Titel entsprechen der Detailseite, Fehler/Wiederholung funktionieren, reine Vorschau startet keinen Titel. Mit VoiceOver und auf Mac ohne langes Drücken bedienen.
+4. Tageszeit und alle drei Modi mit/ohne Verlauf prüfen. Geöffnete Mixliste bleibt beim Zeit-/Feedwechsel stabil; Start/Zeilen-Tipp ersetzen die Queue nur bewusst. Alle/Musik/Videos, ausgeblendete Videos und weitere Seiten kontrollieren.
+5. Titel und mehrseitige Sammlung auf die Playback-Pill ziehen: richtige Reihenfolge direkt nach dem aktuellen Titel, Bestätigung erst nach Einfügen, kein Neustart des laufenden Audios. Netzfehler, Drop-Abbruch, rascher zweiter Drop, Konto-/Titel-/Queue-Wechsel und Party-Beitritt während Laden prüfen. Doppelte Tickets und externe Drops bleiben wirkungslos.
+6. Kleine iPhone-Breite, große Schrift, hell/dunkel und reduzierte Bewegung prüfen. Abwärts-/Aufwärtsscrollen einschließlich sofortiger Umkehr, Such-Tastatur, Dock-Minimierung und Zoom zum Vollplayer müssen erhalten sein. Hörbares Audio getrennt bestätigen; Screenshots nennen die Build-Revision.

@@ -41,6 +41,8 @@ final class FeedLoader {
     /// page under whoever is reading it.
     private(set) var loadedDuringTrackId: String?
     private var continuation: String?
+    var canLoadMore: Bool { continuation?.isEmpty == false }
+    var sessionGeneration: Int64? { context?.generation }
     private var loadedEpoch: Int?
     private var context: PageContext?
     private var loadTask: Task<Void, Never>?
@@ -393,6 +395,8 @@ struct ShelfCardTap<Content: View>: View {
                 content
             }
         }
+        .modifier(QueueCardDragSource(card: card, preferTrack: preferTrack))
+        .modifier(CollectionPeekAccess(card: card))
     }
 
     private func trackButton(_ videoId: String) -> some View {

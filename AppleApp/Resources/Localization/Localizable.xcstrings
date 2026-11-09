@@ -18663,6 +18663,566 @@
           }
         }
       }
+    },
+    "Alle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle"
+          }
+        }
+      }
+    },
+    "Musik": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musik"
+          }
+        }
+      }
+    },
+    "Videos": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos"
+          }
+        }
+      }
+    },
+    "Gemischt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemischt"
+          }
+        }
+      }
+    },
+    "Vertraut": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertraut"
+          }
+        }
+      }
+    },
+    "Neugierig": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neugierig"
+          }
+        }
+      }
+    },
+    "Dein Morgenmix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Morgenmix"
+          }
+        }
+      }
+    },
+    "Dein Tagesmix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Tagesmix"
+          }
+        }
+      }
+    },
+    "Dein Abendmix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Abendmix"
+          }
+        }
+      }
+    },
+    "Dein Nachtmix": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Nachtmix"
+          }
+        }
+      }
+    },
+    "Für dich": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für dich"
+          }
+        }
+      }
+    },
+    "Deine Auswahl": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Auswahl"
+          }
+        }
+      }
+    },
+    "Weiterhören": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiterhören"
+          }
+        }
+      }
+    },
+    "Deine Musik": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Musik"
+          }
+        }
+      }
+    },
+    "Entdecke Musik für deinen Start": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entdecke Musik für deinen Start"
+          }
+        }
+      }
+    },
+    "%lld Titel aus deiner Musik": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Titel aus deiner Musik"
+          }
+        }
+      }
+    },
+    "Entdecken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entdecken"
+          }
+        }
+      }
+    },
+    "Mix starten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mix starten"
+          }
+        }
+      }
+    },
+    "Zum Player": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Player"
+          }
+        }
+      }
+    },
+    "Fortsetzen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortsetzen"
+          }
+        }
+      }
+    },
+    "Öffnet deine Musikauswahl": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet deine Musikauswahl"
+          }
+        }
+      }
+    },
+    "Öffnet den Vollplayer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet den Vollplayer"
+          }
+        }
+      }
+    },
+    "Setzt die vorhandene Wiedergabesitzung fort": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setzt die vorhandene Wiedergabesitzung fort"
+          }
+        }
+      }
+    },
+    "Angeheftet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angeheftet"
+          }
+        }
+      }
+    },
+    "Angeheftete Playlist": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angeheftete Playlist"
+          }
+        }
+      }
+    },
+    "Deine Bibliothek": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Bibliothek"
+          }
+        }
+      }
+    },
+    "Neu entdecken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu entdecken"
+          }
+        }
+      }
+    },
+    "Ansehen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ansehen"
+          }
+        }
+      }
+    },
+    "Mixauswahl": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mixauswahl"
+          }
+        }
+      }
+    },
+    "Hier erscheinen neue Titel aus deinem geladenen Feed.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier erscheinen neue Titel aus deinem geladenen Feed."
+          }
+        }
+      }
+    },
+    "Höre Musik oder lade deinen Feed, um deinen Mix zu füllen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höre Musik oder lade deinen Feed, um deinen Mix zu füllen."
+          }
+        }
+      }
+    },
+    "%lld Titel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Titel"
+          }
+        }
+      }
+    },
+    "Aus Hörverlauf und Feed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Hörverlauf und Feed"
+          }
+        }
+      }
+    },
+    "Tagesmix starten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesmix starten"
+          }
+        }
+      }
+    },
+    "Fertig": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        }
+      }
+    },
+    "Inhalt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inhalt"
+          }
+        }
+      }
+    },
+    "Dein Feed wird geladen …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Feed wird geladen …"
+          }
+        }
+      }
+    },
+    "Videos sind in deinen Einstellungen ausgeblendet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos sind in deinen Einstellungen ausgeblendet."
+          }
+        }
+      }
+    },
+    "Für diesen Filter sind noch keine Inhalte geladen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diesen Filter sind noch keine Inhalte geladen."
+          }
+        }
+      }
+    },
+    "Weitere Inhalte laden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Inhalte laden"
+          }
+        }
+      }
+    },
+    "Album-Vorschau": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album-Vorschau"
+          }
+        }
+      }
+    },
+    "Erste Titel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erste Titel"
+          }
+        }
+      }
+    },
+    "Titel werden geladen …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel werden geladen …"
+          }
+        }
+      }
+    },
+    "Die Vorschau ist gerade nicht verfügbar.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Vorschau ist gerade nicht verfügbar."
+          }
+        }
+      }
+    },
+    "Erneut laden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut laden"
+          }
+        }
+      }
+    },
+    "Aktionen für %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktionen für %@"
+          }
+        }
+      }
+    },
+    "Sammlung öffnen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sammlung öffnen"
+          }
+        }
+      }
+    },
+    "Sammlung wird geladen …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sammlung wird geladen …"
+          }
+        }
+      }
+    },
+    "Loslassen für Als Nächstes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loslassen für Als Nächstes"
+          }
+        }
+      }
+    },
+    "Als Nächstes eingereiht": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Nächstes eingereiht"
+          }
+        }
+      }
+    },
+    "Als Nächstes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Nächstes"
+          }
+        }
+      }
+    },
+    "Als Nächstes: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Nächstes: %@"
+          }
+        }
+      }
+    },
+    "Diese Sammlung enthält keine abspielbaren Titel.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Sammlung enthält keine abspielbaren Titel."
+          }
+        }
+      }
+    },
+    "Die Sammlung konnte nicht vollständig geladen werden. Bitte öffne sie und versuche es erneut.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sammlung konnte nicht vollständig geladen werden. Bitte öffne sie und versuche es erneut."
+          }
+        }
+      }
+    },
+    "Die Wiedergabe oder das Konto wurde geändert. Bitte erneut einreihen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiedergabe oder das Konto wurde geändert. Bitte erneut einreihen."
+          }
+        }
+      }
+    },
+    "Verwende während Gemeinsam hören bitte die gemeinsame Warteschlange.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwende während Gemeinsam hören bitte die gemeinsame Warteschlange."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

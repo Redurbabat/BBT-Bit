@@ -45,6 +45,7 @@ struct PlaybackPill: View {
                     .allowsHitTesting(false)
             }
         }
+        .modifier(QueueCoverDropDestination())
     }
 
     // ---- iOS: mini-player above the tab bar --------------------------------

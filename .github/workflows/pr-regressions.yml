@@ -109,6 +109,17 @@ jobs:
         run: bash scripts/check-original-parity.sh
       - name: Ungefragten zweiten Player beim Scrollen ausschließen
         run: bash scripts/check-phone-layout.sh
+      - name: Home-Mix, Vorschau und atomare Cover-Queue prüfen
+        run: |
+          bash scripts/check-home-discovery.sh
+          for file in AppleApp/Sources/UI/AlbumPeek.swift \
+                      AppleApp/Sources/UI/QueueCoverDrop.swift \
+                      AppleApp/Sources/UI/Library/HomeDiscoveryDashboard.swift \
+                      AppleApp/Sources/UI/Library/HomeDiscoveryModel.swift \
+                      AppleApp/Sources/UI/Library/HomeView.swift \
+                      AppleApp/Sources/UI/ActionMenus.swift; do
+            swiftc -frontend -parse "$file"
+          done
       - name: Sound-Ribbon-Fokus ohne Audio-Fixtures prüfen
         run: |
           swiftc -parse-as-library -swift-version 5 \

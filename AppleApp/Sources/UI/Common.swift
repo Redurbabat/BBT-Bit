@@ -1043,6 +1043,7 @@ private struct MixSheenBar: View {
 /// Transport haptics — upstream `Haptics.kt`, respecting system settings.
 enum PlaylistPinning {
     static let maxPins = 5
+    static let didChange = Notification.Name("redbit.pins.changed")
 
     static func pinnedIds() -> [String] {
         PlatformSettings.shared.getString(key: "pinned_playlists", default: "")
@@ -1054,7 +1055,9 @@ enum PlaylistPinning {
     static func toggle(browseId: String) -> Bool {
         let before = pinnedIds()
         if !before.contains(browseId), before.count >= maxPins { return false }
-        return AppSettings.shared.togglePinnedPlaylist(browseId: browseId) || before.contains(browseId)
+        let changed = AppSettings.shared.togglePinnedPlaylist(browseId: browseId) || before.contains(browseId)
+        if changed { NotificationCenter.default.post(name: didChange, object: nil) }
+        return changed
     }
 }
 
