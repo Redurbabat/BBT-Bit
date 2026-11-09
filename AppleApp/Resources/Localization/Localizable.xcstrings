@@ -18453,6 +18453,206 @@
           }
         }
       }
+    },
+    "Offline-Playlists aktuell halten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline-Playlists aktuell halten"
+          }
+        }
+      }
+    },
+    "Neue Titel bei aktiver App ergänzen; gelöschte Downloads bleiben gelöscht": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Titel bei aktiver App ergänzen; gelöschte Downloads bleiben gelöscht"
+          }
+        }
+      }
+    },
+    "Neue Playlist-Titel laden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Playlist-Titel laden"
+          }
+        }
+      }
+    },
+    "Mehr als 50 neue Titel gefunden. Ladeumfang vor dem Start bestätigen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehr als 50 neue Titel gefunden. Ladeumfang vor dem Start bestätigen."
+          }
+        }
+      }
+    },
+    "Bass · Mitten · Höhen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bass · Mitten · Höhen"
+          }
+        }
+      }
+    },
+    "Überblendung %.1f s · Tempo ×%.3f": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überblendung %.1f s · Tempo ×%.3f"
+          }
+        }
+      }
+    },
+    "Wellenformen werden geladen …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wellenformen werden geladen …"
+          }
+        }
+      }
+    },
+    "Audiodaten sind noch nicht vollständig verfügbar.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audiodaten sind noch nicht vollständig verfügbar."
+          }
+        }
+      }
+    },
+    "Wellenformen erneut laden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wellenformen erneut laden"
+          }
+        }
+      }
+    },
+    "Wellenform des ausgehenden Titels": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wellenform des ausgehenden Titels"
+          }
+        }
+      }
+    },
+    "Wellenform des nächsten Titels": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wellenform des nächsten Titels"
+          }
+        }
+      }
+    },
+    "Nicht verfügbar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verfügbar"
+          }
+        }
+      }
+    },
+    "Aus Audiodaten gemessen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Audiodaten gemessen"
+          }
+        }
+      }
+    },
+    "Die RED-Bit-Veröffentlichungen konnten nicht geprüft werden. Bitte später erneut versuchen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die RED-Bit-Veröffentlichungen konnten nicht geprüft werden. Bitte später erneut versuchen."
+          }
+        }
+      }
+    },
+    "Keine öffentlich erreichbare RED-Bit-App-Veröffentlichung vorhanden. Private GitHub-Releases benötigen eine Anmeldung im Browser.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine öffentlich erreichbare RED-Bit-App-Veröffentlichung vorhanden. Private GitHub-Releases benötigen eine Anmeldung im Browser."
+          }
+        }
+      }
+    },
+    "Der Mac-Updater prüft den signierten RED-Bit-Feed vor der Installation.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Mac-Updater prüft den signierten RED-Bit-Feed vor der Installation."
+          }
+        }
+      }
+    },
+    "Automatische Mac-Updates sind noch nicht eingerichtet. Verwende ein geprüftes RED-Bit-DMG für die manuelle Installation.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Mac-Updates sind noch nicht eingerichtet. Verwende ein geprüftes RED-Bit-DMG für die manuelle Installation."
+          }
+        }
+      }
+    },
+    "Automatische Mac-Updates sind noch nicht eingerichtet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Mac-Updates sind noch nicht eingerichtet."
+          }
+        }
+      }
+    },
+    "BitChord-Apple-Grundlage": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BitChord-Apple-Grundlage"
+          }
+        }
+      }
+    },
+    "Ausschnitt %.1f–%.1f s": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausschnitt %.1f–%.1f s"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

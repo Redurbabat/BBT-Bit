@@ -12,10 +12,16 @@ final class MacUpdateManager {
     static let shared = MacUpdateManager()
 
     let controller: SPUStandardUpdaterController
+    static var isConfigured: Bool {
+        guard let key = Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") as? String,
+              let decoded = Data(base64Encoded: key), decoded.count == 32,
+              let feed = Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") as? String else { return false }
+        return feed == "https://raw.githubusercontent.com/Redurbabat/RED-Bit/main/appcast.xml"
+    }
 
     private init() {
         controller = SPUStandardUpdaterController(
-            startingUpdater: false,
+            startingUpdater: Self.isConfigured,
             updaterDelegate: nil,
             userDriverDelegate: nil
         )
@@ -24,6 +30,7 @@ final class MacUpdateManager {
     var updater: SPUUpdater { controller.updater }
 
     func checkNow() {
+        guard Self.isConfigured else { return }
         controller.checkForUpdates(nil)
     }
 }
@@ -35,6 +42,10 @@ struct MacUpdateSettings: View {
 
     var body: some View {
         Group {
+            if !MacUpdateManager.isConfigured {
+                Text("Automatische Mac-Updates sind noch nicht eingerichtet.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
             Toggle("Check for updates automatically", isOn: $checksAutomatically)
             .onChange(of: checksAutomatically) { _, value in
                 manager.updater.automaticallyChecksForUpdates = value
@@ -45,6 +56,7 @@ struct MacUpdateSettings: View {
                 manager.updater.automaticallyDownloadsUpdates = value
             }
         }
+        .disabled(!MacUpdateManager.isConfigured)
         .task {
             checksAutomatically = manager.updater.automaticallyChecksForUpdates
             installsAutomatically = manager.updater.automaticallyDownloadsUpdates

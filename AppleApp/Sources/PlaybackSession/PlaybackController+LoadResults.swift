@@ -392,7 +392,8 @@ extension PlaybackController {
                     await MainActor.run { [weak self] in
                         guard let self, self.playGeneration == generation,
                               self.queueNextRevision == revision, self.current?.id == outgoingId else { return }
-                        self.adoptAutomixPlan(safetyPlan)
+                        self.adoptAutomixPlan(safetyPlan, outgoingSource: currentSource,
+                            incomingSource: resolved.source, incomingHeaders: resolved.headers)
                     }
                 }
                 if automix {
@@ -517,7 +518,8 @@ extension PlaybackController {
                         )
                         await MainActor.run { [weak self] in
                             guard let self, self.queueNextRevision == revision else { return }
-                            self.adoptAutomixPlan(plan)
+                            self.adoptAutomixPlan(plan, outgoingSource: currentSource,
+                                incomingSource: resolved.source, incomingHeaders: resolved.headers)
                         }
                     }
                     // Replan after delivery too: the incoming/outgoing windows

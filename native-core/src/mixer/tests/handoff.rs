@@ -3,6 +3,73 @@
 use super::*;
 
 #[test]
+fn metadata_handoff_waits_for_the_mix_midpoint_and_fires_once() {
+    let path = std::env::temp_dir().join(format!("red-bit-midpoint-{}.wav", std::process::id()));
+    test_wav(&path, 12.0, 440.0);
+    let mut state = armed_test_state(&path, &path, Phase::Arming);
+    let events = Arc::new(RecordedEvents::default());
+    state.events = events.clone();
+    state.start_fade();
+    assert!(events.handoffs.lock().unwrap().is_empty(), "Titelwechsel kam bereits am Mixanfang");
+    assert!(!state.transition.as_ref().unwrap().handed_off);
+    state.incoming.as_mut().unwrap().emitted_dev_frames = 44_100;
+    state.drive_fade();
+    assert!(events.handoffs.lock().unwrap().is_empty());
+    state.incoming.as_mut().unwrap().emitted_dev_frames = 2 * 44_100;
+    state.drive_fade();
+    state.drive_fade();
+    assert_eq!(*events.handoffs.lock().unwrap(), vec!["in"]);
+    assert!(state.transition.as_ref().unwrap().handed_off);
+    drop(state);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn seeking_before_midpoint_keeps_the_outgoing_track() {
+    let path = std::env::temp_dir().join(format!("red-bit-seek-before-{}.wav", std::process::id()));
+    test_wav(&path, 12.0, 440.0);
+    let mut state = armed_test_state(&path, &path, Phase::Arming);
+    state.start_fade();
+    let (mut ring, _) = rtrb::RingBuffer::new(4096);
+    super::super::commands::handle_command(&mut state, Command::Seek { seconds: 3.0 }, &mut ring);
+    assert_eq!(state.current.as_ref().unwrap().info.title, "out");
+    assert!((state.current.as_ref().unwrap().decoder.position_seconds() - 3.0).abs() < 0.05);
+    assert!(state.transition.is_none());
+    drop(state);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn metadata_handoff_uses_the_planned_bass_swap() {
+    let path = std::env::temp_dir().join(format!("red-bit-bass-handoff-{}.wav", std::process::id()));
+    test_wav(&path, 12.0, 440.0);
+    let mut state = armed_test_state(&path, &path, Phase::Arming);
+    state.transition.as_mut().unwrap().plan.bass_swap = true;
+    state.transition.as_mut().unwrap().plan.bass_swap_fraction = 0.7;
+    state.start_fade();
+    state.incoming.as_mut().unwrap().emitted_dev_frames = 2 * 44_100;
+    state.drive_fade();
+    assert!(!state.transition.as_ref().unwrap().handed_off);
+    state.incoming.as_mut().unwrap().emitted_dev_frames = 3 * 44_100;
+    state.drive_fade();
+    assert!(state.transition.as_ref().unwrap().handed_off);
+    drop(state);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn explicit_skip_mix_keeps_its_immediate_session_handoff() {
+    let path = std::env::temp_dir().join(format!("red-bit-explicit-skip-{}.wav", std::process::id()));
+    test_wav(&path, 12.0, 440.0);
+    let mut state = armed_test_state(&path, &path, Phase::Arming);
+    state.transition.as_mut().unwrap().plan.reason = "skip-mix:manual".into();
+    state.start_fade();
+    assert!(state.transition.as_ref().unwrap().handed_off);
+    drop(state);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
 fn disabling_automix_releases_its_processing_but_keeps_user_speed() {
     let path =
         std::env::temp_dir().join(format!("bitchord-automix-off-{}.wav", std::process::id()));

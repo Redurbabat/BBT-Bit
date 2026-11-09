@@ -69,6 +69,8 @@ extension PlaybackController {
         smartMixInProgress = false
         smartTransitionWindow = nil
         pendingAutomixPlan = nil
+        automixPreviewRequest = nil
+        queuedAutomixPreviewRequest = nil
         mixFadeUntil = nil
         analysisTier = nil
         analysisConfidence = nil

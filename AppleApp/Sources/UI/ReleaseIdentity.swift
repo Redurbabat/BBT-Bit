@@ -34,9 +34,7 @@ struct ReleaseAsset: Decodable {
     let browser_download_url: String
     let size: Int64
     var url: URL? {
-        guard let url = URL(string: browser_download_url), url.scheme == "https",
-              url.host == "github.com", url.user == nil, url.password == nil,
-              url.path.hasPrefix("/bagumamartin/BitChord/releases/download/"), !url.path.contains("..") else { return nil }
+        guard let url = URL(string: browser_download_url), ReleaseRepository.accepts(asset: url) else { return nil }
         return url
     }
 }

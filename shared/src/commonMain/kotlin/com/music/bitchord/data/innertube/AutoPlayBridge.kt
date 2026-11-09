@@ -1,6 +1,9 @@
 package com.music.bitchord.data.innertube
 
 import com.music.bitchord.data.model.Song
+import com.music.bitchord.data.model.SearchFilter
+import com.music.bitchord.data.model.SearchResult
+import com.music.bitchord.data.sources.TrackMatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,6 +23,31 @@ object AutoPlayBridge {
 
     fun interface AutoPlayCallback {
         fun onResult(json: String?, message: String?)
+    }
+
+    /** Ergebnis ist ausschließlich eine geprüfte YouTube-ID, kein Quellenwechsel. */
+    fun seed(songJson: String, callback: AutoPlayCallback) {
+        val generation = Innertube.sessionGeneration
+        bridgeScope.launch {
+            try {
+                Innertube.checkSession(generation)
+                val song = json.decodeFromString(Song.serializer(), songJson)
+                val id = findAutoplaySeed(TrackMatcher.targetOf(song)) { query ->
+                    val response = Innertube.search(query, InnertubeParser.paramsFor(SearchFilter.SONGS.name))
+                    InnertubeParser.parseSearchPage(response, includeVideos = false).mapNotNull {
+                        when (it) {
+                            is SearchResult.Track -> it.song
+                            is SearchResult.TopTrack -> it.song
+                            else -> null
+                        }
+                    }
+                }
+                Innertube.checkSession(generation)
+                callback.onResult(id, null)
+            } catch (_: Throwable) {
+                callback.onResult(null, "autoplay_seed_unavailable")
+            }
+        }
     }
 
     fun related(videoId: String, preferVideo: Boolean, callback: AutoPlayCallback) {

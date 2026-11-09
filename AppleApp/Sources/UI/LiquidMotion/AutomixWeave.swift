@@ -19,9 +19,22 @@ struct AutomixWeave: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var progress: Double {
-        guard end > start else { return 0 }
-        return min(1, max(0, (position - start) / (end - start)))
+        if let request = controller.automixPreviewRequest {
+            if controller.smartMixInProgress, controller.current?.id == request.incoming.id {
+                return min(1, max(0, (position - request.incomingWindow.blendStart) / (request.fade * request.rate)))
+            }
+            if controller.current?.id == request.outgoing.id {
+                return min(1, max(0, (position - request.outgoingWindow.blendStart) / request.fade))
+            }
+            if controller.current?.id == request.incoming.id {
+                return min(1, max(0, (position - request.incomingWindow.blendStart) / (request.fade * request.rate)))
+            }
+        }
+        guard end > start, controller.duration > 0 else { return 0 }
+        return min(1, max(0, (position / controller.duration - start) / (end - start)))
     }
+
+    private var mixing: Bool { isMixing || controller.hasActiveAutomixOverlap }
 
     var body: some View {
         Button {
@@ -36,15 +49,15 @@ struct AutomixWeave: View {
                 // eine kurze, aber weiterhin echte Fortschrittsangabe.
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 6) {
-                        Text(isMixing ? "Automix running" : "Automix")
+                        Text(mixing ? "Automix running" : "Automix")
                             .fixedSize(horizontal: true, vertical: false)
-                        if isMixing {
+                        if mixing {
                             Text("\(Int((progress * 100).rounded())) %")
                                 .monospacedDigit()
                                 .fixedSize(horizontal: true, vertical: false)
                         }
                     }
-                    Text(isMixing ? "\(Int((progress * 100).rounded())) %" : "Mix")
+                    Text(mixing ? "\(Int((progress * 100).rounded())) %" : "Mix")
                         .monospacedDigit()
                         .fixedSize(horizontal: true, vertical: false)
                 }
@@ -68,26 +81,35 @@ struct AutomixWeave: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isMixing ? Text("Automix transition running") : Text("Automix transition planned"))
-        .accessibilityValue(isMixing ? Text("\(Int((progress * 100).rounded())) %") : Text("Planned transition"))
+        .accessibilityLabel(mixing ? Text("Automix transition running") : Text("Automix transition planned"))
+        .accessibilityValue(mixing ? Text("\(Int((progress * 100).rounded())) %") : Text("Planned transition"))
         .accessibilityHint("Open real Automix transition details")
         .accessibilityIdentifier("bbt.automix.status")
         .sheet(isPresented: $showsDetails) {
             NavigationStack {
+                ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     Label(
-                        isMixing ? "Transition running" : "Next transition",
+                        mixing ? "Transition running" : "Next transition",
                         systemImage: "waveform.path"
                     )
                     .font(.headline)
 
-                    AutomixLightBridge(current: controller.current,
-                        next: controller.queue.indices.contains(controller.playingIndex + 1)
-                            ? controller.queue[controller.playingIndex + 1] : nil,
-                        progress: progress, isMixing: isMixing)
+                    if let request = controller.automixPreviewRequest,
+                       request.outgoing.id == controller.current?.id || request.incoming.id == controller.current?.id {
+                        AutomixWaveformPreview(request: request)
+                            .id(request.id)
+                    }
 
-                    LabeledContent("Time window", value: String(format: "%.1f–%.1f s", start, end))
-                    if isMixing {
+                    AutomixLightBridge(current: controller.automixPreviewRequest?.outgoing ?? controller.current,
+                        next: controller.automixPreviewRequest?.incoming ?? (controller.queue.indices.contains(controller.playingIndex + 1)
+                            ? controller.queue[controller.playingIndex + 1] : nil),
+                        progress: progress, isMixing: mixing)
+
+                    LabeledContent("Time window", value: String(format: "%.1f–%.1f s",
+                        controller.automixPreviewRequest?.outgoingWindow.blendStart ?? start * controller.duration,
+                        controller.automixPreviewRequest?.outgoingWindow.blendEnd ?? end * controller.duration))
+                    if mixing {
                         LabeledContent("Progress", value: "\(Int((progress * 100).rounded())) %")
                     }
                     if let tier, !tier.isEmpty {
@@ -98,9 +120,9 @@ struct AutomixWeave: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
-                    Spacer(minLength: 0)
                 }
                 .padding(24)
+                }
                 .navigationTitle("Automix")
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)

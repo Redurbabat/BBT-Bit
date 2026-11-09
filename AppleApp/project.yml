@@ -102,7 +102,7 @@ targets:
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         BitChordRevision: "$(BITCHORD_BUILD_REVISION)"
         LSApplicationCategoryType: public.app-category.music
-        SUFeedURL: https://raw.githubusercontent.com/Redurbabat/BBT-Bit/main/appcast.xml
+        SUFeedURL: https://raw.githubusercontent.com/Redurbabat/RED-Bit/main/appcast.xml
         SUEnableAutomaticChecks: false
         SUAutomaticallyUpdate: false
         SUVerifyUpdateBeforeExtraction: true

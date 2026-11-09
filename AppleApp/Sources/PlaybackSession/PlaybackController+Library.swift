@@ -118,7 +118,9 @@ extension PlaybackController {
 
     var recommendationContext: AutoplayRefreshState.Context? {
         guard effectiveAutoplayEnabled, repeatMode != .all, let current,
-              let id = youtubeVideoID(for: current), state != .stopped else { return nil }
+              let id = youtubeVideoID(for: current)
+                ?? autoplaySeeds.seed(for: current.id, sessionGeneration: PageSession.generation()),
+              state != .stopped else { return nil }
         return .init(
             source: "yt:\(id)", index: playingIndex, playbackGeneration: playGeneration,
             queueEditRevision: queueEditRevision, sessionGeneration: PageSession.generation()

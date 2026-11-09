@@ -51,18 +51,18 @@ def prepare(ipa, dmg, ios, mac, output):
         dict(platform='macos', name=dmg.name, sha256=digest(dmg), minimumOS='macOS ' + mac.get('LSMinimumSystemVersion', '15.0'), installation='sparkle-or-dmg'),
     ]
     manifest = dict(schema=1, version=version, build=build, revision=revision, artifacts=artifacts)
-    instructions = f'''# BitChord {version} (build {build})
+    instructions = f'''# RED Bit {version} (Build {build})
 
-This release contains one iOS IPA and one Apple Silicon Mac DMG, built from revision {revision}.
+Diese Veröffentlichung enthält eine iOS-IPA und ein Apple-Silicon-Mac-DMG aus Revision {revision}.
 
-- **iPhone/iPad:** download `{ipa.name}`, then sign and install it with the same signing app and identity used for the installed BitChord. Keep the existing bundle identity to retain local data.
-- **Mac update:** use Version & Updates in BitChord and open the Mac updater. The signed Sparkle feed must name this exact build and DMG.
-- **First Mac install/manual recovery:** open `{dmg.name}` and move BitChord to Applications, replacing the installed app. Do not uninstall the app or delete its data first.
+- **iPhone/iPad:** `{ipa.name}` herunterladen und mit derselben Signier-App und Identität wie die installierte RED-Bit-App signieren und installieren. Die bestehende Bundle-Identität bewahrt lokale Daten.
+- **Mac-Update:** Den Mac-Updater nur verwenden, wenn dieser RED-Bit-Build einen eigenen konfigurierten, signierten Sparkle-Feed besitzt. Andernfalls das geprüfte DMG manuell installieren. Ein ursprüngliches BitChord-Update gehört nicht über RED Bit.
+- **Erste Mac-Installation/manuelle Wiederherstellung:** `{dmg.name}` öffnen und RED Bit nach Programme verschieben; die vorhandene App ersetzen, ohne zuvor die App oder ihre Daten zu löschen.
 
-The latest release page is the permanent entry point: https://github.com/bagumamartin/BitChord/releases/latest
-The in-app build number distinguishes packages that share a marketing version. Downloading an installer does not itself install it.
+Aktuelle Veröffentlichungen: https://github.com/Redurbabat/RED-Bit/releases/latest
+Bei einem privaten Repository ist eine Anmeldung im Browser erforderlich. Die Buildnummer unterscheidet Pakete derselben App-Version. Ein heruntergeladenes Paket ist noch nicht installiert.
 
-SHA-256 checksums are listed in SHA256.txt and release.json. Keep these artifacts immutable once published.
+SHA-256-Prüfsummen stehen in SHA256.txt und release.json. Veröffentlichte Artefakte müssen unverändert bleiben.
 '''
     output.mkdir(parents=True, exist_ok=True)
     files = {'release.json': json.dumps(manifest, indent=2) + '\n',

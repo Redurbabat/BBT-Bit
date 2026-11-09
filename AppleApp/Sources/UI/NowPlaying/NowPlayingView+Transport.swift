@@ -36,7 +36,8 @@ extension NowPlayingView {
                 Text(Self.timestamp(controller.position))
                     .fixedSize(horizontal: true, vertical: false)
                 Spacer(minLength: 0)
-                if controller.automixEnabled, let window = controller.smartTransitionWindow {
+                if controller.automixEnabled, controller.smartTransitionWindow != nil || controller.smartMixInProgress {
+                    let window = controller.smartTransitionWindow ?? TransitionWindow(start: 0, end: 0)
                     AutomixWeave(
                         start: window.start, end: window.end,
                         position: controller.position,

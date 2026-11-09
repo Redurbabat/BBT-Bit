@@ -105,6 +105,8 @@ jobs:
           xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+AutomixState.swift
       - name: Livetest-Messung, Fehlerkategorien und privaten JSON-Export prüfen
         run: bash scripts/check-automix-live-test.sh
+      - name: Original-Parität für Seeds, Playlist-Journal und Wellenformen prüfen
+        run: bash scripts/check-original-parity.sh
       - name: Sound-Ribbon-Fokus ohne Audio-Fixtures prüfen
         run: |
           swiftc -parse-as-library -swift-version 5 \

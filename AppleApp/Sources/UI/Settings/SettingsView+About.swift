@@ -275,10 +275,13 @@ extension SettingsView {
         }
         buildUpdateRows(&rows)
         rows.row("GitHub", "github", "source", "code", "repository") {
-            Link("GitHub", destination: URL(string: "https://github.com/bagumamartin/BitChord")!)
+            Link("GitHub", destination: URL(string: "https://github.com/Redurbabat/RED-Bit")!)
         }
         rows.row("Developer", "developer", "author", "github") {
-            Link("Developer", destination: URL(string: "https://github.com/bagumamartin")!)
+            Link("Developer", destination: URL(string: "https://github.com/Redurbabat")!)
+        }
+        rows.row("BitChord-Apple-Grundlage", "bitchord", "upstream", "credits") {
+            Link("BitChord-Apple-Grundlage", destination: URL(string: "https://github.com/bagumamartin/BitChord")!)
         }
         rows.row("Open-source licenses", "open source", "licenses", "license", "acknowledgements", "third party") {
             PushLink {

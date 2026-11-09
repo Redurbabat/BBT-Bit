@@ -167,7 +167,7 @@ def check_version(project):
             "version.md and version.json statuses differ")
     if status == "published":
         url = record.get("release_url", "")
-        require(re.fullmatch(r"https://github\.com/Redurbabat/BBT-Bit/releases/tag/[^/\s]+", url)
+        require(re.fullmatch(r"https://github\.com/Redurbabat/(?:RED-Bit|BBT-Bit)/releases/tag/[^/\s]+", url)
                 and url in section[2], "published version needs its GitHub release URL in both files")
 
 

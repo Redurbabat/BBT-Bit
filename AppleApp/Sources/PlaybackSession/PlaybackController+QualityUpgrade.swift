@@ -347,7 +347,7 @@ extension PlaybackController {
         await StreamFileCache.shared.markRecordingVerified(mediaID: mediaId, cacheKey: "\(mediaId)#\(QualityUpgrade.upgraded)", sourcePath: path)
         await MainActor.run { [weak self] in
             guard let self, self.playGeneration == generation, self.nextEntry?.id == mediaId else { return }
-            self.adoptAutomixPlan(plan)
+            self.adoptAutomixPlan(plan, outgoingSource: outgoing, incomingSource: path)
             self.resolvedOrigin[mediaId] = .substitute
         }
         QualityUpgrade.unshelve(mediaId)
@@ -369,7 +369,7 @@ extension PlaybackController {
             // No plan yet still means a blend is coming. Eight seconds is the
             // plain-crossfade floor, and a swap inside that window is the cut.
             let fade = self.automixEnabled ? max(planned, 8) : planned
-            return (self.position, self.duration, self.smartMixInProgress, fade)
+            return (self.position, self.duration, self.hasActiveAutomixOverlap, fade)
         }
         guard let (pos, dur, mixing, fade) = snapshot else {
             QualityUpgrade.shelve(mediaId, stream: stream)
@@ -422,7 +422,7 @@ extension PlaybackController {
         }
         let again = await MainActor.run { () -> (Double, Bool, Double?, String?)? in
             guard self.playGeneration == generation, self.current?.id == mediaId else { return nil }
-            if self.smartMixInProgress { return nil }
+            if self.hasActiveAutomixOverlap { return nil }
             return (
                 self.position, self.isPlaying, self.currentLoudnessDb,
                 self.loadedSourcePath

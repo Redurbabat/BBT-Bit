@@ -50,6 +50,7 @@ extension PlaybackController {
         let due = force || (lowWaterRefill && autoplayRoom() > 0)
         guard due else { return }
         guard let context = recommendationContext else {
+            matchAutoplaySeedIfNeeded()
             if effectiveAutoplayEnabled {
                 PlaybackDebugLog.shared.record(
                     "autoplay: no context (repeatAll=\(repeatMode == .all) state=\(state) youtube=\(current.flatMap { youtubeVideoID(for: $0) } != nil))",
@@ -121,7 +122,9 @@ extension PlaybackController {
                     ? serverEntries.filter { $0.id != kept[self.playingIndex].id }
                     : kept.enumerated().filter { $0.offset != self.playingIndex }.map(\.element))
                     + [kept[self.playingIndex]]
-                let existing = (try? JSONEncoder().encode(filteringEntries.map { $0.asSongJSON(videoIDOverride: self.youtubeVideoID(for: $0)) }))
+                let existing = (try? JSONEncoder().encode(filteringEntries.map {
+                    $0.asSongJSON(videoIDOverride: $0.id == self.current?.id ? currentVideoId : self.youtubeVideoID(for: $0))
+                }))
                     .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
                 let extraJson = QueueBuilderBridge.shared.extendJson(
                     existingJson: existing, candidatesJson: json,
@@ -272,6 +275,23 @@ extension PlaybackController {
         if let recommendationFetchOverride { recommendationFetchOverride(videoId, response); return }
         #endif
         AutoPlayBridge.shared.related(videoId: videoId, preferVideo: preferVideo, callback: AutoPlayAdapter(response))
+    }
+
+    private func matchAutoplaySeedIfNeeded() {
+        guard effectiveAutoplayEnabled, repeatMode != .all, state != .stopped,
+              let entry = current, entry.source.hasPrefix("src:"),
+              let request = autoplaySeeds.begin(entryID: entry.id, playbackGeneration: playGeneration,
+                  sessionGeneration: PageSession.generation(), now: Date()),
+              let data = try? JSONEncoder().encode(entry.asSongJSON()),
+              let json = String(data: data, encoding: .utf8) else { return }
+        AutoPlayBridge.shared.seed(songJson: json, callback: AutoPlayAdapter { [weak self] seed, _ in
+            Task { @MainActor in
+                guard let self else { return }
+                let accepted = self.autoplaySeeds.finish(request, seed: seed, currentID: self.current?.id,
+                    playbackGeneration: self.playGeneration, sessionGeneration: PageSession.generation(), now: Date())
+                if accepted { self.maybeAutoplay(force: true) }
+            }
+        })
     }
 
     func tasteScores(_ entries: [QueueEntry], transitionFits: [Int: Double] = [:]) -> [Double] {

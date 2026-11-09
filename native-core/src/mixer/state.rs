@@ -541,8 +541,15 @@ impl MixerState {
             return;
         };
         if !t.handed_off {
-            // Nothing was ever audible; no ramp to run.
-            self.incoming = None;
+            // Vor der Metadatenübergabe bleibt Seek beim ausgehenden Titel.
+            // Ein bereits hörbares Incoming bekommt denselben Abbruch-Ramp.
+            if let Some(mut voice) = self.incoming.take() {
+                if t.phase == Phase::Fading {
+                    let from_gain = voice.gain;
+                    voice.filter.open();
+                    self.retiring.push(RetiringVoice { voice, from_gain, started_at: Instant::now() });
+                }
+            }
             self.transition = None;
             if let Some(current) = &mut self.current {
                 current.gain = 1.0;

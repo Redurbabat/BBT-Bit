@@ -93,7 +93,7 @@ extension PlaybackController {
         if let current { streamRecovery.select(current.id, resetAttempts: true) }
         historyVideoID = current.flatMap(youtubeVideoID)
         duration = info.durationSeconds
-        position = 0
+        position = max(0, engine.positionSeconds())
         if let entry = current {
             if !sameSong {
                 refreshArtwork(entry)

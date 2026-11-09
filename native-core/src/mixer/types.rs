@@ -16,8 +16,7 @@ pub trait EngineEvents: Send + Sync {
     fn source_error(&self, _source: String, message: String) {
         self.error(message);
     }
-    /// The incoming track became audible: current-track metadata flips now
-    /// (upstream fires `onHandoff` as the first note sounds, not at blend end).
+    /// Metadatenübergabe am stilabhängigen Punkt der bereits laufenden Mischung.
     fn handoff(&self, info: TrackInfo);
     fn duration_changed(&self, seconds: f64);
 }

@@ -4,6 +4,7 @@ Das bestehende Inventar für BitChord, InnerTubeX, die YouTube-Solver, Kotlin/Na
 
 | Quelle | Nutzung in BBT-Bit | Lizenzstatus |
 | --- | --- | --- |
+| [BitChord Android `acf219a`](https://github.com/kushagrasinghx/BitChord/tree/acf219a7e4a7f52f026d4336d5c7ac5cf7bfafcc) | Verhalten für Addon-Radio-Seed, Metadatenübergabe im Mix, gemessene Mix-Vorschau und ergänzenden Playlist-Abgleich nativ umgesetzt. [Zuordnung](docs/ORIGINAL_PARITAET_PR59.md). | GPLv3; bestehende BitChord-/Apple-Port-Zuschreibungen bleiben erhalten. Keine neue Bibliothek oder Modellgewichte eingebunden. |
 | [Redion](https://github.com/Redurbabat/Redion/tree/c81ff6af9ab65fed52e1962f9864add4385c13ef) | Trennung von Aufgaben, Chronik, Entscheidungen, Fehlern, Versionsstand und Prüfnachweisen. | Ausschließlich organisatorische Referenz. |
 | [UI-Kit](https://github.com/Redurbabat/UI-Kit/tree/5e47ef79093626e5da6b78713ab071250ae2a611) | Vier gleichnamige Skills als BBT-Bit-Fassungen. Die Vorlagen und das Motion Lab liefern Workflow und Designideen. | Am geprüften Stand wurde keine allgemeine UI-Kit-Lizenz gefunden. Die neuen Texte formulieren die Ideen für BBT-Bit eigenständig. |
 | [PyYAML 6.0.3](https://github.com/yaml/pyyaml/tree/6.0.3) | YAML-Leser für Repo-Prüfungen in CI. | MIT, Prüfwerkzeug. |

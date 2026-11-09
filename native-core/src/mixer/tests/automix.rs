@@ -225,6 +225,8 @@ fn a_seek_after_the_handoff_lands_on_the_incoming_track() {
 
     let mut state = armed_test_state(&outgoing, &incoming, Phase::Arming);
     state.start_fade();
+    state.incoming.as_mut().unwrap().emitted_dev_frames = 2 * 44_100;
+    state.drive_fade();
     assert!(state.transition.as_ref().unwrap().handed_off);
 
     let (mut producer, _consumer) = rtrb::RingBuffer::<f32>::new(4096);

@@ -45,7 +45,7 @@ object AppUpdateChecker {
     )
 
     private const val LATEST_RELEASE_URL =
-        "https://api.github.com/repos/Redurbabat/BBT-Bit/releases/latest"
+        "https://api.github.com/repos/Redurbabat/RED-Bit/releases/latest"
 
     private val json = Json { ignoreUnknownKeys = true }
 

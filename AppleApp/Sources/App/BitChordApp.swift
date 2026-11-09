@@ -196,6 +196,7 @@ struct BitChordApp: App {
                         }
                         LocalLibrary.shared.restore()
                         DownloadStore.shared.refresh()
+                        DownloadStore.shared.setAppActive(scenePhase == .active)
                         Task.detached(priority: .utility) {
                             let cache = StreamFileCache.shared
                             await cache.trim()
@@ -220,6 +221,7 @@ struct BitChordApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     appModel.scenePhase = phase
+                    DownloadStore.shared.setAppActive(phase == .active)
                     LoadingMonitor.shared.setActive(phase == .active)
                     if phase == .background {
                         // No GPU work back here: a Music Understanding inference

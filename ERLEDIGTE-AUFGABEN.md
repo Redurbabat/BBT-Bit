@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-09 · Original-Verbesserungen auf PR #59 implementiert
+
+Addon-Titel können einen geprüften YouTube-Startpunkt für Autoplay erhalten. Automatische Mixe wechseln ihre Metadaten im Übergang; ausdrückliches Weiter und Source-Swaps behalten ihre eigenen Regeln. Die native Vorschau liest zwei gemessene Audioausschnitte. Der optionale Playlist-Abgleich respektiert vollständige Listen, Konto, WLAN und gelöschte Downloads; ein optionales Journal erweitert bestehende Indizes ohne Versionsbruch. Updateprüfung und Paketfilter verwenden RED Bit und benennen die private Release-Grenze. Sechs Kotlin-JVM-Fälle, Swift-Produktionsprüfungen mit Adaptern einschließlich neun asynchroner Playlist-Fälle sowie 323 Rust-Fälle bestehen. Ein bekannter Linux-AAC-Fehler bleibt; die Gesamtreihe ist nicht grün. [Details und Nachweisgrenzen](docs/ORIGINAL_PARITAET_PR59.md); BBT-024 hält die Apple-/Geräteabnahme offen.
+
 ## 2026-11-09 · PR #59: Paket-Laufzeitpfade und fehlgeschlagene progressive Dateien korrigiert
 
 Die IPA-Prüfung verwendet jetzt die Mach-O-Laufzeitpfade statt einer festen `Frameworks/`-Annahme. Sie erkennt außerdem fehlende loader-/executable-relative Bibliotheken. 21 künstliche Paketfälle bestehen. Der Rust-Reader unterscheidet `.failed` von normalem Dateiende, verwirft fehlgeschlagene Cachedateien vor dem Probe und wartet bei leerem Lesepuffer nicht auf Netzwerkbytes. Vier neue Regressionen scheiterten vorher; alle 32 Decoderprüfungen bestehen nach der Korrektur. Die vollständige Rust-Reihe wurde ausgeführt; ein AAC-Regionenfehler wurde auf dem bisherigen Decoderstand reproduziert. Drei durch lokalen Platzmangel fehlgeschlagene Swap-Tests bestehen nach Bereinigung. [Umfang und genaue Nachweise](docs/RED_BIT_INTEGRATION.md#paket--und-reader-korrektur-vom-9-november-2026). BBT-023 enthält die noch offene Apple-/Geräteabnahme.

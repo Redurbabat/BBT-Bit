@@ -24,6 +24,7 @@ xcrun swiftc -module-cache-path "$WORK/modules" -parse-as-library -o "$WORK/veri
  -Xlinker -rpath -Xlinker "$SHARED/BitChordShared.framework/Versions/A" \
  "$ROOT/AppleApp/Generated/NativeCore.swift" "$WORK/QueueEntry.swift" \
  "$ROOT/AppleApp/Sources/PlaybackSession/DownloadStore.swift" \
+ "$ROOT/AppleApp/Sources/PlaybackSession/PlaylistSyncPolicy.swift" \
  "$ROOT/AppleApp/Sources/PlaybackSession/DownloadActivity.swift" \
  "$ROOT/AppleApp/Sources/PlaybackSession/AudioDownloadContainer.swift" \
  "$ROOT/AppleApp/Sources/PlaybackSession/StreamFileCache.swift" \

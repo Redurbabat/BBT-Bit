@@ -41,6 +41,7 @@ final class DownloadStore {
         var accountId: String
         var title: String
         var requests: [String]
+        var playlistSync: PlaylistSyncRecord? = nil
     }
     struct Asset: Codable {
         var id: String
@@ -69,6 +70,7 @@ final class DownloadStore {
         var jobs: [Job] = []
         var migrated = false
         var pendingDeletes: Set<String>? = nil
+        var playlistSyncCheckedAt: [String: Date]? = nil
     }
     private var index = Index()
     @ObservationIgnored private var historyOriginsByPath: [String: String]?
@@ -88,6 +90,17 @@ final class DownloadStore {
     private var leasePaths: Set<String> = []
     private var timer: Timer?
     private var syncs: Set<String> = []
+    private var playlistSyncTask: Task<Void, Never>?
+    private var appActive = false
+    private(set) var pendingPlaylistUpdates = 0
+    var keepsPlaylistsUpdated = false {
+        didSet {
+            guard oldValue != keepsPlaylistsUpdated else { return }
+            PlatformSettings.shared.putBoolean(key: "sync_downloaded_playlists", value: keepsPlaylistsUpdated)
+            if keepsPlaylistsUpdated { checkPlaylistUpdates(force: true) }
+            else { playlistSyncTask?.cancel(); pendingPlaylistUpdates = 0 }
+        }
+    }
     private var writable = true
     private let backend: any DownloadBackend
     private let workersEnabled: Bool
@@ -110,6 +123,7 @@ final class DownloadStore {
     init(directory: URL? = nil, startWorker: Bool = true, legacyDirectory: URL? = nil, backend: (any DownloadBackend)? = nil) {
         self.backend = backend ?? BridgeDownloadBackend()
         self.workersEnabled = startWorker
+        self.keepsPlaylistsUpdated = PlatformSettings.shared.getBoolean(key: "sync_downloaded_playlists", default: false)
         self.legacyDirectoryOverride = legacyDirectory
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("BitChord/Downloads", isDirectory: true)
@@ -139,7 +153,7 @@ final class DownloadStore {
                 actions.forEach { $0() }
                 self.refresh()
                 self.timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
-                    Task { @MainActor in self?.pump(); self?.prune() }
+                    Task { @MainActor in self?.pump(); self?.prune(); self?.checkPlaylistUpdates() }
                 }
                 self.pump()
             }
@@ -166,7 +180,7 @@ final class DownloadStore {
         if startWorker {
             refresh()
             timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
-                Task { @MainActor in self?.pump(); self?.prune() }
+                Task { @MainActor in self?.pump(); self?.prune(); self?.checkPlaylistUpdates() }
             }
             pump()
         }
@@ -456,7 +470,8 @@ final class DownloadStore {
                 let entry = song.asEntry(fallbackArt: page.thumbnailUrl), id = requestId(entry, quality: quality)
                 requests.append(id); _ = enqueue(entry, quality: quality)
             }
-            index.owners[ownerId] = Owner(id: ownerId, browseId: browseId, accountId: scope, title: page.title, requests: requests)
+            index.owners[ownerId] = Owner(id: ownerId, browseId: browseId, accountId: scope, title: page.title,
+                requests: requests, playlistSync: PlaylistSyncRecord(seenEntryIDs: Set(page.songs.map { $0.asEntry(fallbackArt: page.thumbnailUrl).id })))
             persist(); prune(); pump()
             return .started
         } catch { PlaybackDebugLog.shared.record("collection refresh failed; previous membership retained: \(error)"); return .ignoredLocalTrack }
@@ -515,7 +530,104 @@ final class DownloadStore {
         if removedAsset { refreshDownloadedEntryKeys() }
         if removedAsset || jobs.count != previousJobs || index.bindings.count != previousBindings { persist() }
     }
-    func networkPolicyChanged() { pump() }
+    func networkPolicyChanged() { pump(); checkPlaylistUpdates() }
+
+    func setAppActive(_ active: Bool) {
+        appActive = active
+        if active { checkPlaylistUpdates(foreground: true) }
+        else { playlistSyncTask?.cancel() }
+    }
+
+    /// iOS erlaubt keine verlässliche periodische Hintergrundausführung. Der
+    /// Abgleich läuft bei aktiver App und holt fällige Prüfungen beim Öffnen nach.
+    func checkPlaylistUpdates(force: Bool = false, foreground: Bool = false, allowLargeBatch: Bool = false) {
+        guard writable, !restoring, appActive, keepsPlaylistsUpdated, playlistSyncTask == nil,
+              force || Date() >= (playlistSyncRetryAfter[accountId] ?? .distantPast),
+              NetworkQuality.shared.connected,
+              !(NetworkQuality.shared.metered && PlatformSettings.shared.getBoolean(key: "wifi_only_downloads", default: true)),
+              !ProcessInfo.processInfo.isLowPowerModeEnabled,
+              (force || PlaylistSyncPolicy.due(lastComplete: index.playlistSyncCheckedAt?[accountId], now: Date(), foreground: foreground)),
+              (((try? FileManager.default.attributesOfFileSystem(forPath: directory.path)[.systemFreeSize]) as? NSNumber)?.int64Value ?? Int64.max) >= 128 * 1024 * 1024
+        else { return }
+        let account = accountId, generation = PageSession.generation()
+        playlistSyncTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { self.playlistSyncTask = nil }
+            var complete = true
+            self.pendingPlaylistUpdates = 0
+            let owners = self.collections
+            for saved in owners {
+                guard self.playlistSyncAllowed(account: account, generation: generation) else { return }
+                guard let originalID = saved.browseId, let browseID = PlaylistSyncPolicy.browseID(originalID),
+                      self.syncs.insert(saved.id).inserted else { continue }
+                defer { self.syncs.remove(saved.id) }
+                do {
+                    var page = try await InnertubeDetail.shared.browse(browseId: browseID, force: true)
+                    var tokens: Set<String> = []
+                    while let token = page.continuation, !token.isEmpty {
+                        guard self.playlistSyncAllowed(account: account, generation: generation) else { return }
+                        guard tokens.insert(token).inserted else { throw CocoaError(.fileReadCorruptFile) }
+                        let next = try await InnertubeDetail.shared.more(token: token)
+                        page.songs += next.songs; page.continuation = next.continuation
+                    }
+                    guard self.playlistSyncAllowed(account: account, generation: generation),
+                          var owner = self.index.owners[saved.id] else { return }
+                    let entries = page.songs.map { $0.asEntry(fallbackArt: page.thumbnailUrl) }
+                    // Alte Indizes kennen frühere Löschabsichten nicht. Die erste
+                    // vollständige Liste setzt deshalb nur die sichere Basis.
+                    guard var record = owner.playlistSync else {
+                        owner.playlistSync = PlaylistSyncRecord(seenEntryIDs: Set(entries.map(\.id)))
+                        self.index.owners[saved.id] = owner; self.persist()
+                        continue
+                    }
+                    let ids = record.additions(listing: entries.map(\.id))
+                    if ids.count > PlaylistSyncPolicy.largeBatch && !allowLargeBatch {
+                        self.pendingPlaylistUpdates += ids.count; complete = false
+                        continue
+                    }
+                    let wanted = Set(ids)
+                    let listed = Set(entries.map(\.id))
+                    for request in owner.requests {
+                        if let job = self.jobs.first(where: { $0.id == request }),
+                           job.status == .failed, !job.cancelled, listed.contains(job.entry.id) {
+                            _ = self.retry(request)
+                        }
+                    }
+                    let quality = PlatformSettings.shared.getString(key: "download_quality", default: "LOSSLESS")
+                    for entry in entries where wanted.contains(entry.id) && !record.seenEntryIDs.contains(entry.id) {
+                        guard self.playlistSyncAllowed(account: account, generation: generation) else { return }
+                        let result = self.enqueue(entry, quality: quality)
+                        if result == .ignoredLocalTrack { complete = false; continue }
+                        let request = self.requestId(entry, quality: quality)
+                        if !owner.requests.contains(request) { owner.requests.append(request) }
+                        record.handled(entry.id)
+                    }
+                    // Nur ergänzen: entfernte Online-Titel behalten ihre Datei.
+                    owner.playlistSync = record
+                    self.index.owners[saved.id] = owner
+                    self.persist(); self.pump()
+                } catch {
+                    complete = false
+                    PlaybackDebugLog.shared.record("Playlist-Abgleich unvollständig; bisherige Downloads bleiben erhalten")
+                }
+            }
+            if complete {
+                if self.index.playlistSyncCheckedAt == nil { self.index.playlistSyncCheckedAt = [:] }
+                self.index.playlistSyncCheckedAt?[account] = Date(); self.persist()
+            } else {
+                // Fehler ohne Fortschritt nicht alle zwei Sekunden wiederholen.
+                self.playlistSyncRetryAfter[account] = Date().addingTimeInterval(15 * 60)
+            }
+        }
+    }
+
+    private var playlistSyncRetryAfter: [String: Date] = [:]
+    func waitForPlaylistUpdates() async { await playlistSyncTask?.value }
+    private func playlistSyncAllowed(account: String, generation: Int64) -> Bool {
+        !Task.isCancelled && appActive && keepsPlaylistsUpdated && accountId == account
+            && PageSession.generation() == generation && NetworkQuality.shared.connected
+            && !(NetworkQuality.shared.metered && PlatformSettings.shared.getBoolean(key: "wifi_only_downloads", default: true))
+    }
     private func pump() {
         guard writable, workersEnabled else { return }
         guard jobs.contains(where: { $0.status == .queued || $0.status == .running }) else { return }

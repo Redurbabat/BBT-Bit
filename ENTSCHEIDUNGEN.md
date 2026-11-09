@@ -2,6 +2,7 @@
 
 | ID | Datum | Entscheidung und Begründung |
 | --- | --- | --- |
+| E-020 | 2026-11-09 | „Nehma alles“ beauftragt die im Originalvergleich genannten Verbesserungen auf PR #59. Addon-Autoplay, Wellenformvorschau, Mix-Metadaten und Playlist-Abgleich bleiben in den vorhandenen Swift-/Kotlin-/Rust-Pfaden. RED Morph bleibt die Gestaltung; eigene Update-Identität ohne fremde Signierschlüssel oder Veröffentlichung. [Umfang und Abnahme](docs/ORIGINAL_PARITAET_PR59.md). |
 | E-001 | 2026-11-04 | AGENTS.md enthält die gemeinsamen Regeln. CLAUDE.md importiert sie und verweist auf projektspezifische Skills. Damit gibt es einen Ort für verbindliche Änderungen. |
 | E-002 | 2026-11-04 | Vollständige Skills liegen unter `.agents/skills/`. Claude Code erhält kleine Markdown-Einstiege mit Verweisen. Reguläre Dateien funktionieren in Git-Checkouts unter Windows und macOS ohne Symlink-Unterstützung. |
 | E-003 | 2026-11-04 | XcodeGen bleibt die Versionsquelle. Das Metadatenpaar in der Wurzel spiegelt den Kandidaten. IPA und DMG werden anhand der tatsächlich eingebetteten Metadaten geprüft. |

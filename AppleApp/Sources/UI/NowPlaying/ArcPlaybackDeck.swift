@@ -91,7 +91,8 @@ struct ArcPlaybackDeck<More: View>: View {
                 }
                 .background(.thinMaterial, in: Circle())
                 .position(x: proxy.size.width * 0.73, y: geometry.center.y - 13)
-                if controller.automixEnabled, let window = controller.smartTransitionWindow {
+                if controller.automixEnabled, controller.smartTransitionWindow != nil || controller.smartMixInProgress {
+                    let window = controller.smartTransitionWindow ?? TransitionWindow(start: 0, end: 0)
                     AutomixWeave(start: window.start, end: window.end,
                         position: controller.position, tier: controller.analysisTier,
                         reason: controller.transitionReason, isMixing: controller.smartMixInProgress)

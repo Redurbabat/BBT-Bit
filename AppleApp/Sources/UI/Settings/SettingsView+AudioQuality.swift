@@ -71,6 +71,22 @@ extension SettingsView {
                 isOn: $exportDownloads
             )
         }
+        rows.row("Offline-Playlists aktuell halten", "playlist", "sync", "offline", "download") {
+            SettingsToggleLine(glyph: .download, title: "Offline-Playlists aktuell halten",
+                subtitle: "Neue Titel bei aktiver App ergänzen; gelöschte Downloads bleiben gelöscht",
+                isOn: Binding(get: { DownloadStore.shared.keepsPlaylistsUpdated },
+                    set: { DownloadStore.shared.keepsPlaylistsUpdated = $0 }))
+        }
+        if DownloadStore.shared.pendingPlaylistUpdates > 0 {
+            rows.row("Neue Playlist-Titel laden", "playlist", "sync", "download") {
+                Button("Neue Playlist-Titel laden") {
+                    DownloadStore.shared.checkPlaylistUpdates(force: true, allowLargeBatch: true)
+                }
+                .frame(minHeight: 44)
+                Text("Mehr als 50 neue Titel gefunden. Ladeumfang vor dem Start bestätigen.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+        }
     }
 
     // MARK: - Playback
