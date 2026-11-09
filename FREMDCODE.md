@@ -10,6 +10,8 @@ Das bestehende Inventar für BitChord, InnerTubeX, die YouTube-Solver, Kotlin/Na
 | [UI-Kit](https://github.com/Redurbabat/UI-Kit/tree/5e47ef79093626e5da6b78713ab071250ae2a611) | Vier gleichnamige Skills als BBT-Bit-Fassungen. Die Vorlagen und das Motion Lab liefern Workflow und Designideen. | Am geprüften Stand wurde keine allgemeine UI-Kit-Lizenz gefunden. Die neuen Texte formulieren die Ideen für BBT-Bit eigenständig. |
 | [PyYAML 6.0.3](https://github.com/yaml/pyyaml/tree/6.0.3) | YAML-Leser für Repo-Prüfungen in CI. | MIT, Prüfwerkzeug. |
 | [Gitleaks 8.30.1](https://github.com/gitleaks/gitleaks/tree/v8.30.1) | Geheimnisprüfung der neu hinzugekommenen Commits mit maskierten Funden. | MIT, Prüfwerkzeug. |
+| [Actionlint 1.7.12](https://github.com/rhysd/actionlint/releases/tag/v1.7.12) | Syntax, Ausdrücke und Actions-Struktur sämtlicher GitHub-Workflows. | MIT, ausschließlich Prüfwerkzeug. Linux-amd64-Archiv mit SHA-256 `8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8` fixiert; keine App-Abhängigkeit. |
+| [ShellCheck 0.11.0](https://github.com/koalaman/shellcheck/releases/tag/v0.11.0) | Bash-Blöcke der Workflows über Actionlint prüfen. | GPL-3.0, ausschließlich Prüfwerkzeug. Linux-x86_64-Archiv mit SHA-256 `8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198` fixiert; keine App-Abhängigkeit. |
 
 Vor jeder Übernahme Herkunft, exakte Version oder Revision, Lizenztext, Rechte Dritter, Einbauort, Zweck und Auswirkungen auf Datenflüsse erfassen. Bei Laufzeitabhängigkeiten auch App-Hinweise und die aufgelöste Abhängigkeitsliste aktualisieren. Bei unklarer Lizenz zuerst die Rechte klären.
 

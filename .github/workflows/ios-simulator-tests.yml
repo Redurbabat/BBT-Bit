@@ -283,6 +283,29 @@ jobs:
           echo "TEST_EXIT_CODE=$status" >> "$GITHUB_ENV"
           exit "$status"
 
+      - name: Gemeinsame SwiftUI-Oberfläche auch für macOS kompilieren
+        if: ${{ !cancelled() && steps.kotlin_framework.outcome == 'success' && steps.rust_framework.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          xcodebuild \
+            -project AppleApp/BitChord.xcodeproj \
+            -scheme BitChord \
+            -configuration Debug \
+            -sdk macosx \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/BBT-Bit-Mac-DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tee "$RESULT_DIR/macos-build.log"
+          status="${PIPESTATUS[0]}"
+          if [[ "$status" -eq 0 ]]; then
+            printf '\nmacOS-App-Kompilierung: **BESTANDEN**. Hardware und Audio: **NICHT GETESTET**.\n' >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf '\nmacOS-App-Kompilierung: **FEHLGESCHLAGEN**. Siehe macos-build.log im Prüfartefakt.\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
+
       - name: Export screenshots and machine-readable test report
         if: always()
         shell: bash

@@ -10,6 +10,10 @@ Die [RED-Bit-Integration vom 8. November](RED_BIT_INTEGRATION.md) ergänzt konkr
 
 ## Prüfmatrix
 
+Sämtliche `.github/workflows/*.yml` werden im PR-Regressionsjob zusätzlich mit Actionlint 1.7.12 und ShellCheck 0.11.0 geprüft. Die offiziellen Linux-Archive sind auf feste SHA-256-Prüfsummen gebunden. Das prüft Workflow-Ausdrücke, Runner-/Action-Konfiguration und eingebettete Bash-Blöcke; es ersetzt keine tatsächliche Jobausführung. Der native Logo-Koordinatortest importiert auf Apple zusätzlich CoreGraphics und prüft ungültige Logo-Maße sowie die Auswahl der nächsten Toolbar-Aktion derselben Zeile. Der ursprüngliche macOS-Fehler bleibt im [Laufprotokoll](https://github.com/Redurbabat/RED-Bit/actions/runs/42714848937) nachvollziehbar.
+
+Der Simulatorworkflow kompiliert zusätzlich die macOS-App mit Apple-SDK und den ohnehin erzeugten macOS-Kotlin-/Rust-Slices. Der Schritt läuft auch nach fehlgeschlagenen iPhone-UI-Tests, sofern beide Frameworks gebaut wurden und der Lauf nicht abgebrochen wurde. `macos-build.log` wird mit den Simulatornachweisen hochgeladen. Eine erfolgreiche macOS-Kompilierung belegt weder Mac-Hardwareverhalten noch Audioausgabe; die installierbare iPhone-IPA entsteht weiterhin ausschließlich im getrennten Gerätebau.
+
 | Bereich | Befehl oder Nachweis | Aussage |
 | --- | --- | --- |
 | Repo | `python -m pip install PyYAML==6.0.3`, dann `python scripts/check-repository.py`. Mit `--base <SHA>` zusätzlich Fremdcode-Diff prüfen. `python scripts/repository-verify/check.py` führt Gegenproben aus. | Struktur und interne Links der Einstiegsdokumente und Skills, XcodeGen-Identität, Build-Grenzen und Abhängigkeitsänderungen. |

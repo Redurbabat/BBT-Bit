@@ -50,6 +50,8 @@ Die Schritte folgen der aktuellen [SideStore-Installationsanleitung](https://doc
 
 ## Neue Testversion auf GitHub bauen
 
+Erfolgreiche neue Läufe verlinken das tatsächlich hochgeladene IPA-Paket zusätzlich direkt in ihrer Zusammenfassung unter **iPhone-Testpaket herunterladen**. Der Link zeigt auf das GitHub-Artefakt des jeweiligen Laufs; Anmeldung und die bestehende Aufbewahrung von drei Tagen gelten weiterhin. Das Paket enthält die unsignierte IPA samt `build.json`, Prüfsumme und Installationshinweis. Es wird kein öffentlicher Release und keine Apple-Signatur erzeugt.
+
 Automatisch: Nach der Freigabe des PRs und gesetzten Variablen genügt ein Push mit App- oder Buildänderungen auf den gewählten Branch. Agenten arbeiten weiter auf ihren eigenen Branches; der Maintainer übernimmt die gewünschte Änderung in den gewählten Testbranch.
 
 Manuell auf dem iPhone:
