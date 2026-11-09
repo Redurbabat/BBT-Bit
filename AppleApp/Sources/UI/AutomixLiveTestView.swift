@@ -1,6 +1,7 @@
 import SwiftUI
 import Observation
 import Foundation
+import BitChordShared
 
 /// One genuine player observation. Deliberately excludes titles, IDs,
 /// file paths, stream URLs, account metadata and private diagnostic logs.
@@ -12,12 +13,15 @@ struct AutomixLiveSample: Codable {
     let position: Double
     let duration: Double
     let automixEnabled: Bool
+    let automixPerformanceMode: String
     let planRevision: UInt64
     let transitionRevision: UInt64
     let engineTransitionActive: Bool
     let analysisSource: String
     let analysisStyle: String
     let playbackErrorPresent: Bool
+    let playbackErrorKind: PlaybackDiagnosticFailure?
+    let appErrorPresent: Bool
     let networkConnected: Bool
     let queueIndexValid: Bool
     let sourceLoaded: Bool
@@ -91,6 +95,8 @@ final class AutomixLiveTestMonitor {
     private(set) var networkObserved = false
     private(set) var sessionObserved = false
     private(set) var playbackErrorObserved = false
+    private(set) var appErrorObserved = false
+    private(set) var engineBuildRevision = "unknown"
     private(set) var manualVerdicts: [BBTManualTest: BBTManualVerdict] = [:]
     private(set) var plansObserved = 0
     private(set) var transitionsObserved = 0
@@ -108,8 +114,7 @@ final class AutomixLiveTestMonitor {
     @ObservationIgnored private var basePlan: UInt64 = 0
     @ObservationIgnored private var baseTransition: UInt64 = 0
     @ObservationIgnored private var observedPlanRevision: UInt64 = 0
-    @ObservationIgnored private var lastTrackID: String?
-    @ObservationIgnored private var lastPosition: Double?
+    @ObservationIgnored private var progressTracker = PlaybackProgressTracker()
 
     private init() {}
 
@@ -124,6 +129,8 @@ final class AutomixLiveTestMonitor {
         networkObserved = false
         sessionObserved = false
         playbackErrorObserved = false
+        appErrorObserved = false
+        engineBuildRevision = "unknown"
         manualVerdicts = [:]
         plansObserved = 0
         transitionsObserved = 0
@@ -132,8 +139,7 @@ final class AutomixLiveTestMonitor {
         vocalsObserved = false
         lastPlanSource = nil
         message = nil
-        lastTrackID = nil
-        lastPosition = nil
+        progressTracker = PlaybackProgressTracker()
         basePlan = controller.automixPlanRevision
         baseTransition = controller.automixTransitionRevision
         observedPlanRevision = basePlan
@@ -169,14 +175,13 @@ final class AutomixLiveTestMonitor {
     private func record(controller: PlaybackController) {
         guard let startedAt else { return }
         let currentID = controller.current?.id
-        let position = max(0, controller.position)
-        if currentID == lastTrackID, let prior = lastPosition,
-           controller.isPlaying, !controller.isBuffering,
-           position.isFinite, position > prior + 0.25 {
-            progressObserved = true
-        }
-        lastTrackID = currentID
-        lastPosition = position
+        let position = controller.position
+        let progressed = progressTracker.observe(
+            trackID: currentID, position: position,
+            at: ProcessInfo.processInfo.systemUptime,
+            playing: controller.isPlaying, buffering: controller.isBuffering
+        )
+        progressObserved = progressObserved || progressed
 
         if controller.automixPlanRevision > observedPlanRevision {
             observedPlanRevision = controller.automixPlanRevision
@@ -196,6 +201,7 @@ final class AutomixLiveTestMonitor {
             : controller.queue.indices.contains(controller.playingIndex)
         let outputStarted = controller.outputDevice.started
         let decoderReported = controller.nerd?.codec.isEmpty == false
+        if let revision = controller.nerd?.buildRevision { engineBuildRevision = revision }
         let sourceLoaded = controller.settingsAudioReadout.loaded
         let networkConnected = NetworkQuality.shared.connected
         #if os(iOS)
@@ -208,21 +214,28 @@ final class AutomixLiveTestMonitor {
         validQueueObserved = validQueueObserved || (controller.current != nil && queueValid)
         networkObserved = networkObserved || networkConnected
         sessionObserved = sessionObserved || (audioSessionActive == true)
-        playbackErrorObserved = playbackErrorObserved || controller.lastError != nil
+        playbackErrorObserved = playbackErrorObserved || controller.lastPlaybackFailure != nil
+        appErrorObserved = appErrorObserved || controller.lastError != nil
+        let configuredMode = PlatformSettings.shared.getString(key: "automix_performance", default: "BALANCED")
+        let performanceMode = ["EFFICIENT", "BALANCED", "PERFORMANCE"].contains(configuredMode)
+            ? configuredMode : "BALANCED"
         let item = AutomixLiveSample(
             second: Int(Date().timeIntervalSince(startedAt)),
             playing: controller.isPlaying,
             buffering: controller.isBuffering,
-            progressed: progressObserved,
-            position: position.isFinite ? position : 0,
+            progressed: progressed,
+            position: position.isFinite ? max(0, position) : 0,
             duration: controller.duration.isFinite ? max(0, controller.duration) : 0,
             automixEnabled: controller.automixEnabled,
+            automixPerformanceMode: performanceMode,
             planRevision: controller.automixPlanRevision,
             transitionRevision: controller.automixTransitionRevision,
             engineTransitionActive: controller.smartMixInProgress,
             analysisSource: lastPlanSource ?? "",
             analysisStyle: controller.analysisTier ?? "",
-            playbackErrorPresent: controller.lastError != nil,
+            playbackErrorPresent: controller.lastPlaybackFailure != nil,
+            playbackErrorKind: controller.lastPlaybackFailure,
+            appErrorPresent: controller.lastError != nil,
             networkConnected: networkConnected,
             queueIndexValid: queueValid,
             sourceLoaded: sourceLoaded,
@@ -246,6 +259,7 @@ final class AutomixLiveTestMonitor {
             let appVersion: String
             let buildNumber: String
             let buildRevision: String
+            let engineBuildRevision: String
             let operatingSystem: String
             let startedAt: Date?
             let endedAt: Date
@@ -257,6 +271,7 @@ final class AutomixLiveTestMonitor {
             let internetStatusObserved: Bool
             let audioSessionObserved: Bool
             let playbackErrorObserved: Bool
+            let appErrorObserved: Bool
             let beatRuntimeReady: Bool
             let vocalRuntimeRequested: Bool
             let coreMLRuntimeLoaded: Bool
@@ -271,10 +286,11 @@ final class AutomixLiveTestMonitor {
         }
         let store = AutomixModelStore.shared
         let payload = Report(
-            version: 2,
+            version: 3,
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
             buildNumber: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown",
             buildRevision: Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String ?? "unknown",
+            engineBuildRevision: engineBuildRevision,
             operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString,
             startedAt: startedAt, endedAt: Date(),
             modelState: AutomixModelStore.ModelID.allCases.map { id in
@@ -290,6 +306,7 @@ final class AutomixLiveTestMonitor {
             internetStatusObserved: networkObserved,
             audioSessionObserved: sessionObserved,
             playbackErrorObserved: playbackErrorObserved,
+            appErrorObserved: appErrorObserved,
             beatRuntimeReady: runtime.beatReady,
             vocalRuntimeRequested: runtime.vocalsRequested,
             coreMLRuntimeLoaded: runtime.coreMLLoaded,
@@ -407,8 +424,10 @@ struct AutomixLiveTestView: View {
                                ? (controller.analysisTier ?? "—") : "Noch keine neue Planung seit Testbeginn")
                 LabeledContent("Start des Übergangs", value: monitor.transitionsObserved > 0
                                ? "\(monitor.transitionsObserved) Engine-Meldung(en)" : "Noch nicht gemeldet")
-                LabeledContent("Wiedergabezeit läuft", value: monitor.progressObserved
-                               ? "Ja, Fortschritt beobachtet" : "Noch nicht nachgewiesen")
+                LabeledContent("Wiedergabezeit läuft", value: monitor.samples.last?.progressed == true
+                               ? "Fortschritt im letzten Messintervall" : "Kein Fortschritt im letzten Messintervall")
+                LabeledContent("Fortschritt seit Testbeginn", value: monitor.progressObserved
+                               ? "Mindestens einmal beobachtet" : "Noch nicht nachgewiesen")
                 if let reason = controller.transitionReason, !reason.isEmpty {
                     Text("Planer: \(reason)").font(.footnote).foregroundStyle(.secondary)
                 }
@@ -440,6 +459,8 @@ struct AutomixLiveTestView: View {
                 #endif
                 LabeledContent("Playback-Fehler während Test", value:
                     monitor.playbackErrorObserved ? "Mindestens einer registriert" : "Keiner beobachtet")
+                LabeledContent("App-Fehler während Test", value:
+                    monitor.appErrorObserved ? "Mindestens einer registriert" : "Keiner beobachtet")
                 NavigationLink("Audio-Pipeline und DSP ansehen") {
                     AudioPipelineSheet()
                 }

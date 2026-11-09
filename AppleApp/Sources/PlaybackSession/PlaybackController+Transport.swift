@@ -161,7 +161,7 @@ extension PlaybackController {
                         self.nowPlaying.updateRate(0, position: self.position)
                         self.state = .paused
                         VideoPlayback.shared.transportClockChanged()
-                        self.lastError = "Audio output could not resume: \(error)"
+                        self.reportPlaybackFailure(.output, message: "Audio output could not resume: \(error)")
                     }
                 }
             }

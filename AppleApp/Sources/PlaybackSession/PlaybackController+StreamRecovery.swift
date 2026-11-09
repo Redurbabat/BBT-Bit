@@ -57,7 +57,8 @@ extension PlaybackController {
         engineLoadedId = nil
         restoredStart = (entry.id, at)
         recoveryNeedsFreshResolution = true
-        lastError = "Playback interrupted at \(Int(at))s; automatic stream recovery failed. Press Play to retry."
+        reportPlaybackFailure(.streamRecovery,
+            message: "Playback interrupted at \(Int(at))s; automatic stream recovery failed. Press Play to retry.")
         sourceDecisionNotes[entry.id] = lastError
     }
 
@@ -105,7 +106,7 @@ extension PlaybackController {
         if !NetworkQuality.shared.connected {
             deferredNetworkRecovery = (entry.id, at, playGeneration)
             state = .buffering
-            lastError = "Waiting for the network to return."
+            reportPlaybackFailure(.networkWait, message: "Waiting for the network to return.")
             return true
         }
         guard streamRecovery.claimRetry(position: at, duration: duration) else { return false }

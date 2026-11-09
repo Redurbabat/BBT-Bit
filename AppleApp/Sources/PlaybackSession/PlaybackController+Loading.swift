@@ -265,7 +265,7 @@ extension PlaybackController {
             renderer.onFailure = { [weak self, weak renderer] in
                 guard let self, self.playGeneration == generation, self.dolbyRenderer === renderer else { return }
                 self.pausePlayback()
-                self.lastError = "The Dolby source stopped serving playable audio."
+                self.reportPlaybackFailure(.engine, message: "The Dolby source stopped serving playable audio.")
             }
             prepareNowPlayingForPlayback(entry: entry, duration: info.durationSeconds, position: start)
             let hold = holdAfterLoad

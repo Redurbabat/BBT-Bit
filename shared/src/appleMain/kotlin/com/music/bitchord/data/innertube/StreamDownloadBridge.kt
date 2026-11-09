@@ -16,8 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -187,42 +185,14 @@ object StreamDownloadBridge {
      * Returns null when it was abandoned for that reason.
      */
     private suspend fun fetchRange(url: String, headers: Map<String, String>, maxBytes: Int): RawHttpBytes? {
-        val startGeneration = networkGeneration.value
-        return coroutineScope {
-            val fetch = async { Http.getBytesRaw(url, headers, maxBytes, CHUNK_TIMEOUT_MS) }
-            val watcher = launch {
-                networkGeneration.first { it != startGeneration }
-                fetch.cancel(CancellationException("network changed"))
-            }
-            try {
-                fetch.await()
-            } catch (e: CancellationException) {
-                currentCoroutineContext().ensureActive()
-                null
-            } finally {
-                watcher.cancel()
-            }
+        return fetchNetworkRange(networkGeneration) {
+            Http.getBytesRaw(url, headers, maxBytes, CHUNK_TIMEOUT_MS)
         }
     }
 
     /** One bounded opening request; its response is the validation and audio read. */
     private suspend fun fetchFirstRange(url: String, headers: Map<String, String>): RawHttpBytes? {
-        val startGeneration = networkGeneration.value
-        return coroutineScope {
-            val fetch = async { Http.getBytesRaw(url, headers, FIRST_RANGE_BYTES.toInt(), CHUNK_TIMEOUT_MS) }
-            val watcher = launch {
-                networkGeneration.first { it != startGeneration }
-                fetch.cancel(CancellationException("network changed"))
-            }
-            try {
-                fetch.await()
-            } catch (e: CancellationException) {
-                currentCoroutineContext().ensureActive()
-                null
-            } finally {
-                watcher.cancel()
-            }
-        }
+        return fetchRange(url, headers, FIRST_RANGE_BYTES.toInt())
     }
 
     /** Sleep [millis], or less if the network path changes first. */

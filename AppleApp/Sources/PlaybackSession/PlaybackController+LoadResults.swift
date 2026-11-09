@@ -191,7 +191,7 @@ extension PlaybackController {
                 about: entry.id
             )
             let format = AppLanguage.localized("Couldn't play “%@” — %@")
-            lastError = String(format: format, entry.title, error.localizedDescription)
+            reportPlaybackFailure(.load, message: String(format: format, entry.title, error.localizedDescription))
         }
         // Somebody (pause, another load, sleep, interruption) owns the
         // transport now; their state stands and only the message is new.

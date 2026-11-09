@@ -102,6 +102,15 @@ jobs:
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixModelsSheet.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/AutomixModelLoader.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+AutomixState.swift
+      - name: Livetest-Messung, Fehlerkategorien und privaten JSON-Export prüfen
+        run: bash scripts/check-automix-live-test.sh
+      - name: Sound-Ribbon-Fokus ohne Audio-Fixtures prüfen
+        run: |
+          swiftc -parse-as-library -swift-version 5 \
+            AppleApp/Sources/UI/NowPlaying/ScrubFocusGeometry.swift \
+            scripts/test-scrub-focus.swift -o "$RUNNER_TEMP/red-bit-scrub-focus"
+          "$RUNNER_TEMP/red-bit-scrub-focus"
+          swiftc -frontend -parse AppleApp/Sources/UI/NowPlaying/ArcPlaybackDeck.swift
       - name: Verify Google sign-in browser device identity
         run: bash scripts/check-signin-device.sh
       - name: Validate release shell scripts

@@ -271,7 +271,7 @@ extension PlaybackController {
     }
 
     func handleError(_ message: String) {
-        lastError = message
+        reportPlaybackFailure(.engine, message: message)
         if let id = current?.id, QualityUpgrade.forcedStream(id) != nil {
             QualityUpgrade.refuseUpgrades(id)
             debugLog.record("broke on its upgrade; no more swaps", about: id)

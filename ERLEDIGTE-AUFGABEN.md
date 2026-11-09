@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-09 · PR #59: Livetest korrigiert, Range-Abbrüche begrenzt und Scrub-Fokus ergänzt
+
+Der Livetest v3 misst aktuellen Zeitfortschritt getrennt vom Gesamtnachweis und unterscheidet kategorisierte Playback-Fehler von allgemeinen App-Fehlern. Automix-Modus und Engine-Revision ergänzen den datensparsamen Export. Ein lokal abgebrochener Range-Request kann das bestehende Retrybudget nicht mehr als vermeintlicher Netzwechsel umgehen; echte Eltern-Cancellation bleibt erhalten. Der Bogenplayer hebt beim Ziehen die Zeitmarken um den Finger an, nach dem RED-Morph-Sound-Ribbon-Prinzip. Der Effekt ruht ohne Bedienung und bei Reduce Motion. Swift-Mess-/Exporttests, sieben Kotlin-JVM-Fälle, Geometrie-, Syntax-, Repo- und Quellprüfungen bestehen. Apple-Build und Geräteabnahme bleiben als BBT-022 offen. [Befehle, Umfang und Grenzen](docs/RED_BIT_INTEGRATION.md#korrekturen-vom-9-november-2026).
+
 ## 2026-11-08 · Kreative Musikinteraktionen und Sternkarten-Schlusszoom implementiert
 
 PR #59 ergänzt zwölf eigene native Interaktionen mit vorhandenen Musik-, Queue-, Download-, Favoriten-, Party- und Timerdaten. Das Lyrics-Sternbild nutzt die gesamte Zeitroute, zeigt nach Links-Wischen den Verlauf und zoomt zehn Sekunden vor Songende automatisch auf die ganze Karte. Der Lichtweg endet mit der echten Wiedergabeposition; Beat-Marker werden ausschließlich aus vorhandenem Cache gelesen. Die gespeicherte Listenwahl bleibt bestehen. Lokale Struktur-, Release-, Übersetzungs-, Workflow- und Quellprüfungen bestehen. GitHub Actions verweigert neue Runner wegen Budgetgrenze; neuer Swift/Kotlin/Rust-Build, Geometrie-Ausführung, Simulator, Hardware und Audio sind **NICHT GETESTET**. Die Abnahme bleibt als BBT-021 offen. [Umfang, Befehle und genaue Grenze](docs/RED_BIT_KREATIVE_INTERAKTIONEN.md). **Kein Merge nach main.**

@@ -8,6 +8,7 @@ struct ArcPlaybackDeck<More: View>: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(PartyStore.self) private var party
     @Environment(AuthController.self) private var auth
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @GestureState private var dragProgress: Double? = nil
 
     private var progress: Double {
@@ -28,7 +29,8 @@ struct ArcPlaybackDeck<More: View>: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .updating($dragProgress) { value, state, _ in
-                                guard !party.state.controlsLocked, controller.duration > 0 else { return }
+                                guard !party.state.controlsLocked, controller.duration.isFinite,
+                                      controller.duration > 0 else { return }
                                 state = geometry.progress(at: value.location)
                             }
                             .onEnded { value in seek(geometry.progress(at: value.location)) }
@@ -151,10 +153,15 @@ struct ArcPlaybackDeck<More: View>: View {
         }
         for index in 0...70 {
             let value = Double(index) / 70
+            // RED-Morph-Sound-Ribbon: nur während des Ziehens am echten Zeitwert.
+            let focus = ScrubFocusGeometry.emphasis(at: value, focus: progress,
+                scrubbing: dragProgress != nil, reducedMotion: reduceMotion)
+            let length = (index.isMultiple(of: 5) ? 10.0 : 4.0) + 12 * focus
             var tick = Path()
             tick.move(to: geometry.point(progress: value, radius: geometry.radius))
-            tick.addLine(to: geometry.point(progress: value, radius: geometry.radius - (index.isMultiple(of: 5) ? 10 : 4)))
-            context.stroke(tick, with: .color(.white.opacity(value <= progress ? 0.65 : 0.22)), lineWidth: 1)
+            tick.addLine(to: geometry.point(progress: value, radius: geometry.radius - CGFloat(length)))
+            context.stroke(tick, with: .color(.white.opacity(max(value <= progress ? 0.65 : 0.22, focus * 0.9))),
+                           lineWidth: CGFloat(1 + focus))
         }
         var needle = Path()
         needle.move(to: geometry.point(progress: progress, radius: geometry.radius - 25))

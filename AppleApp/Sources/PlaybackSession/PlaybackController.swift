@@ -145,7 +145,15 @@ final class PlaybackController {
     }
     var position: Double = 0
     var duration: Double = 0
-    var lastError: String?
+    var lastError: String? {
+        didSet { lastPlaybackFailure = nil }
+    }
+    var lastPlaybackFailure: PlaybackDiagnosticFailure?
+
+    func reportPlaybackFailure(_ kind: PlaybackDiagnosticFailure, message: String) {
+        lastError = message
+        lastPlaybackFailure = kind
+    }
     var recoveringEntryID: String?
     var recoveryNeedsFreshResolution = false
     var sourceDecisionNotes: [String: String] = [:]
@@ -770,7 +778,7 @@ final class PlaybackController {
                     self.started = false
                     self.positionTimer?.invalidate()
                     self.positionTimer = nil
-                    self.lastError = "Audio engine failed to start: \(error)"
+                    self.reportPlaybackFailure(.engine, message: "Audio engine failed to start: \(error)")
                 }
                 throw error
             }
@@ -854,7 +862,7 @@ final class PlaybackController {
     func audioActivationFailed(_ error: Error) {
         nowPlaying.audioSessionUnavailable()
         if isPlaying || isBuffering { pausePlayback(releaseAudioSession: true) }
-        lastError = "Audio session could not activate: \(error)"
+        reportPlaybackFailure(.audioSession, message: "Audio session could not activate: \(error)")
     }
 
     /// The output route moved under us — AirPods put down, a device connected,

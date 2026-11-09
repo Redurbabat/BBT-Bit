@@ -18403,6 +18403,56 @@
           }
         }
       }
+    },
+    "Fortschritt im letzten Messintervall": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt im letzten Messintervall"
+          }
+        }
+      }
+    },
+    "Kein Fortschritt im letzten Messintervall": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Fortschritt im letzten Messintervall"
+          }
+        }
+      }
+    },
+    "Fortschritt seit Testbeginn": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt seit Testbeginn"
+          }
+        }
+      }
+    },
+    "Mindestens einmal beobachtet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindestens einmal beobachtet"
+          }
+        }
+      }
+    },
+    "App-Fehler während Test": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Fehler während Test"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
