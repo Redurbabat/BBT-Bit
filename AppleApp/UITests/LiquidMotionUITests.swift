@@ -19,10 +19,9 @@ final class LiquidMotionUITests: XCTestCase {
                                 "-automix_models_prompt_dismissed_v2", "YES"]
         app.launch()
 
-        // The iOS 26 simulator exposes the localized Search tab as a Button
-        // with identifier "magnifyingglass" and label "Suchen" (not "Search").
-        // Prefer the SF Symbol identifier; the label can change with locale.
-        let searchTab = app.tabBars.buttons["magnifyingglass"]
+        // Die Kennung gehört zum Bild im nativen Button, nicht zum Button
+        // selbst. Der echte Accessibility-Baum trennt diese beiden Elemente.
+        let searchTab = app.tabBars.buttons.containing(.image, identifier: "magnifyingglass").firstMatch
         if !searchTab.waitForExistence(timeout: 20) {
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "BBT-Bit-Search-Tab-Missing"
@@ -283,15 +282,15 @@ final class LiquidMotionUITests: XCTestCase {
                 let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: done)
                 wait(for: [dismissed], timeout: 5)
             case 2:
-                let flip = app.buttons["Translated lyric"]
+                let flip = app.buttons["red.lyrics.mirror.toggle"]
                 XCTAssertTrue(flip.exists, "Lyrics switch is missing")
                 flip.tap()
-                XCTAssertTrue(app.buttons["Original lyric"].exists)
+                XCTAssertTrue(app.staticTexts["Wir hören den Rhythmus"].exists)
             case 3:
-                let prism = app.buttons["Audio signal prism"]
+                let prism = app.buttons["red.signal.prism.toggle"]
                 XCTAssertTrue(prism.exists, "Audio pipeline preview control is missing")
                 prism.tap()
-                XCTAssertTrue(app.staticTexts["Source"].exists)
+                XCTAssertTrue(app.staticTexts["red.signal.stage.0.label"].exists)
             default:
                 break
             }

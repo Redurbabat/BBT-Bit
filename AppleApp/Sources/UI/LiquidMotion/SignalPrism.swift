@@ -45,14 +45,16 @@ struct SignalPrism: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Audio signal prism")
+            .accessibilityLabel(Text("Audio signal prism"))
+            .accessibilityIdentifier("red.signal.prism.toggle")
             .accessibilityHint("Show actual source, decoder, processing and output details")
             if expanded {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(0..<stages.count, id: \.self) { index in
                         HStack(alignment: .firstTextBaseline) {
-                            Text(stages[index].0)
+                            Text(LocalizedStringKey(stages[index].0))
                                 .foregroundStyle(.white.opacity(0.6))
+                                .accessibilityIdentifier("red.signal.stage.\(index).label")
                             Spacer(minLength: 12)
                             Text(stages[index].2)
                                 .foregroundStyle(.white)

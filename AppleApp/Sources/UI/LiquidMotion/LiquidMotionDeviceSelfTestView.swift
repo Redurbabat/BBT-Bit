@@ -6,6 +6,8 @@ import UIKit
 /// previews render to a valid PNG on this iPhone? No playback, account,
 /// network, party, Handoff or download workflows are claimed to be tested.
 struct LiquidMotionDeviceSelfTestView: View {
+    @Environment(PlaybackController.self) private var controller
+    @Environment(\.locale) private var locale
     @State private var running = false
     @State private var completed = 0
     @State private var results: [DesignCheckResult] = []
@@ -134,7 +136,10 @@ struct LiquidMotionDeviceSelfTestView: View {
 
         var measured: [DesignCheckResult] = []
         for feature in LiquidPhotoFeature.allCases {
-            let renderer = ImageRenderer(content: LiquidPhotoCard(feature: feature))
+            // ImageRenderer beginnt eine eigene View-Hierarchie. Er übernimmt
+            // die Wiedergabesitzung der aufrufenden Ansicht nicht automatisch.
+            let renderer = ImageRenderer(content: LiquidPhotoCard(feature: feature)
+                .environment(controller).environment(\.locale, locale))
             renderer.scale = 1
             let image = renderer.uiImage
             let png = image?.pngData()

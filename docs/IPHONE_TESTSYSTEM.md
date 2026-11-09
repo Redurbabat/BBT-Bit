@@ -1,6 +1,6 @@
 # BBT-Bit auf dem iPhone testen
 
-Stand: 7. November 2026. Zielgerät: iPhone 13 Pro Max mit iOS 26 oder neuer.
+Stand: 10. November 2026. Zielgerät: iPhone 13 Pro Max mit iOS 26 oder neuer.
 
 ## Was vorbereitet ist
 
@@ -8,7 +8,7 @@ Der Ablauf lautet **GitHub-Branch → macOS-Runner → unsignierte Geräte-IPA �
 
 Eine unsignierte IPA ist noch nicht installierbar. SideStore muss mit deinem Apple-Konto ein gültiges Geräteprofil und eine Signatur erzeugen. Die Paketprüfung erkennt die Gerätearchitektur, eingebettete Revision, fehlende Frameworks, Simulator-Binaries und verschlüsselte App-Store-Binaries. Sie beweist keine erfolgreiche Signierung oder Installation.
 
-**Aktuelle Blockade:** Das Repository ist privat. [GitHub-Lauf 42364574967](https://github.com/Redurbabat/BBT-Bit/actions/runs/42364574967) meldet ausdrücklich ein blockierendes Actions-Budget. In den abrufbaren GitHub-Artefakten liegen Simulatorberichte, keine IPA. Für Codemagic liegt in diesem Auftrag kein zugänglicher erfolgreicher IPA-Bau vor. Deshalb gibt es hier noch keinen echten Download-Link für eine neue IPA.
+**Prüfstand vom 10. November:** Der Gerätebau für PR #59 wurde [hier gestartet](https://github.com/Redurbabat/RED-Bit/actions/runs/42715735687) und führt tatsächlich native Buildschritte aus. Frühere Läufe wurden vom Actions-Budget blockiert; diese älteren Sperren sind kein Ergebnis des neuen Baus. Ein IPA-Link gilt erst nach tatsächlich erfolgreichem Paketbau und Upload. Signierung, Installation, Datenerhalt und hörbares Audio bleiben getrennte Abnahmen.
 
 ## Kosten und automatische Branch-Auswahl
 
@@ -23,7 +23,7 @@ Unter **Repository → Settings → Secrets and variables → Actions → Variab
 
 Der neueste Push ersetzt einen noch laufenden Bau desselben Branches. Andere Agentenbranches werden dadurch nicht automatisch teuer gebaut. Die Dateien stehen nur drei Tage als Artefakt bereit. Lade eine benötigte IPA rechtzeitig herunter. Vorhandene zusätzliche PR- und Codemagic-Prüfungen können weiterhin ihr eigenes Kontingent verbrauchen.
 
-Für diesen Auftrag wurden `BBT_IOS_TEST_BRANCH=main` und `BBT_IOS_TEST_AUTO_BUILD=true` vorbereitet. Wirksam wird der neue Workflow auf `main` erst nach deiner PR-Übernahme; die bestehende Budgetsperre bleibt davon unberührt.
+Für die Arbeit an PR #59 wurde der vorhandene Automatismus am 10. November auf `BBT_IOS_TEST_BRANCH=codex/red-bit-integration-motion-20261108` und `BBT_IOS_TEST_AUTO_BUILD=true` ausgerichtet. Relevante Pushes dieses Branches starten damit den Gerätebau zusätzlich zu den PR-Prüfungen. Andere Agentenbranches bleiben unberührt. Nach einem später ausdrücklich freigegebenen Merge kann der Maintainer den ausgewählten Testbranch wieder auf `main` setzen. Ausgabenlimits und die normalen Release-/Codemagic-Abläufe werden dabei nicht verändert.
 
 Der GitHub-Button für `workflow_dispatch` erscheint regulär, sobald der Workflow im Standardbranch liegt. Bis dahin bleibt der neue PR zur Prüfung offen. Ein Merge ist eine Entscheidung des Maintainers.
 
@@ -51,6 +51,8 @@ Die Schritte folgen der aktuellen [SideStore-Installationsanleitung](https://doc
 ## Neue Testversion auf GitHub bauen
 
 Erfolgreiche neue Läufe verlinken das tatsächlich hochgeladene IPA-Paket zusätzlich direkt in ihrer Zusammenfassung unter **iPhone-Testpaket herunterladen**. Der Link zeigt auf das GitHub-Artefakt des jeweiligen Laufs; Anmeldung und die bestehende Aufbewahrung von drei Tagen gelten weiterhin. Das Paket enthält die unsignierte IPA samt `build.json`, Prüfsumme und Installationshinweis. Es wird kein öffentlicher Release und keine Apple-Signatur erzeugt.
+
+Der Geräteworkflow sichert native Zwischenergebnisse auch nach einem späteren App- oder Paketfehler. Ein eigener Cache-Schlüssel pro Lauf ermöglicht das Speichern aktualisierter Framework-Archive; das bestehende Cache-Skript prüft vor jeder Nutzung weiterhin Quellen, Toolchain-Fingerabdruck und Prüfsummen. Ein Cache-Treffer ersetzt keinen App-Build und keinen Paketnachweis. Abgebrochene Läufe speichern keine neuen Caches.
 
 Automatisch: Nach der Freigabe des PRs und gesetzten Variablen genügt ein Push mit App- oder Buildänderungen auf den gewählten Branch. Agenten arbeiten weiter auf ihren eigenen Branches; der Maintainer übernimmt die gewünschte Änderung in den gewählten Testbranch.
 

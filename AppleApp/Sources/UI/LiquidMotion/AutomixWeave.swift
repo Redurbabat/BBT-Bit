@@ -8,6 +8,7 @@ import SwiftUI
 /// Diese View liest ausschließlich Engine-Werte und verändert keine Mischung.
 struct AutomixWeave: View {
     @Environment(PlaybackController.self) private var controller
+    @Environment(\.liquidDesignSample) private var isDesignSample
     let start: Double
     let end: Double
     let position: Double
@@ -19,6 +20,10 @@ struct AutomixWeave: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var progress: Double {
+        if isDesignSample {
+            guard end > start else { return 0 }
+            return min(1, max(0, (position - start) / (end - start)))
+        }
         if let request = controller.automixPreviewRequest {
             if controller.smartMixInProgress, controller.current?.id == request.incoming.id {
                 return min(1, max(0, (position - request.incomingWindow.blendStart) / (request.fade * request.rate)))
@@ -34,7 +39,7 @@ struct AutomixWeave: View {
         return min(1, max(0, (position / controller.duration - start) / (end - start)))
     }
 
-    private var mixing: Bool { isMixing || controller.hasActiveAutomixOverlap }
+    private var mixing: Bool { isMixing || (!isDesignSample && controller.hasActiveAutomixOverlap) }
 
     var body: some View {
         Button {

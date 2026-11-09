@@ -17,7 +17,7 @@ struct LyricsMirror: View {
                     .tracking(1.3)
                     .foregroundStyle(.white.opacity(0.65))
                 Spacer()
-                Text(showOriginal ? "Original" : "Translation")
+                Text(showOriginal ? LocalizedStringKey("Original") : LocalizedStringKey("Translation"))
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.75))
                 Image(systemName: "arrow.left.arrow.right")
@@ -36,7 +36,8 @@ struct LyricsMirror: View {
                     .id(showOriginal)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(showOriginal ? "Original lyric" : "Translated lyric")
+            .accessibilityLabel(Text(showOriginal ? LocalizedStringKey("Original lyric") : LocalizedStringKey("Translated lyric")))
+            .accessibilityIdentifier("red.lyrics.mirror.toggle")
             .accessibilityHint("Switch between original and translation")
             .gesture(DragGesture(minimumDistance: 25).onEnded { value in
                 if abs(value.translation.width) > abs(value.translation.height) + 15 {

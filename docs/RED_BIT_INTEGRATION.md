@@ -1,5 +1,19 @@
 # RED Bit · Integration und Motion-Prüfung vom 8. November 2026
 
+## GitHub-Prüfungen und IPA vom 10. November 2026
+
+Fortsetzung auf dem aktuellen PR #59, Ausgangsrevision `5bd8eb3`. Alle sechs neueren Commits wurden ohne Überschreiben übernommen. Keine offenen Review-Kommentare. `main` bleibt unverändert.
+
+Der [Gerätebau 42715735687](https://github.com/Redurbabat/RED-Bit/actions/runs/42715735687) ist tatsächlich erfolgreich: Swift-, Kotlin-/Rust-Frameworks, arm64-iPhoneOS-Paket und Verifikation. [Erstes IPA-Paket herunterladen](https://github.com/Redurbabat/RED-Bit/actions/runs/42715735687/artifacts/13719452748). Enthaltene Revision: `5bd8eb3f3fe41b30c046ee8a8ea85146631ecac3`, Version 1.0.4 / Build 13, Bundle-ID `com.babat.bbtbit`. Die heruntergeladene echte IPA wurde unter Windows nochmals mit `verify-ios-test-ipa.py` geprüft; SHA-256 `3b210473f9f74cd7c48046806eaf1eaa26056551074fe8de3bd021ca9d484dac` stimmt mit `build.json` überein. **Unsigniert:** SideStore-Signierung, Installation, Update/Datenerhalt und hörbares Audio sind weiterhin **NICHT GETESTET**.
+
+Der [Simulatorlauf 42714848615, zweiter Versuch](https://github.com/Redurbabat/RED-Bit/actions/runs/42714848615) kompiliert ebenfalls die vollständige iOS-App. Von fünf UI-Tests bestehen Sternkarten-Finale mit 0/50/100 Prozent und Zurückspulen, Video-/Listen-Rückweg sowie begrenztes Top-Ergebnis mit nativem minimiertem Dock. Zwei Fehler bleiben in diesem Ausgangsstand: PNG-Selbsttest schließt die App wegen fehlender Umgebung, Suchtest findet den Tab über die falsche Kennung nicht. Screenshots, Video und Accessibility-Baum belegen die Fälle. Die nachfolgenden Kotlin-Prüfungen bestehen; Rust auf macOS: **324 bestanden, 0 fehlgeschlagen, 1 ignoriert**. Das macht den fehlgeschlagenen UI-Lauf nicht grün.
+
+Die Korrektur reicht die vorhandene PlaybackSession und die gewählte Sprache in beide separaten `ImageRenderer`-Hierarchien weiter. Es entsteht kein zweiter Player. Gekennzeichnete Automix-Prüfdaten verwenden ihre eigenen Zeitwerte. Vorschau- und Debug-Nutzerwege erhalten dieselbe Spracheinstellung wie RootView; sprachunabhängige Kennungen prüfen den tatsächlichen Textwechsel und die aufgeklappten Signalstufen. Der Suchtest fragt den nativen Tab-Button über sein Symbol-Kindelement ab. Die Schallplatte hält bei Pause ihre echte Position und übernimmt keinen Fortschritt eines anderen Albums.
+
+Zusätzliche CI-Prüfungen: alle Workflows über fixiertes Actionlint/ShellCheck; macOS-App-Build mit vorhandenen nativen Slices und gesichertem Protokoll. Der macOS-Koordinator-Test erhält den notwendigen CoreGraphics-Import und konkrete Geometriefälle. Vor dieser Änderung scheiterte er auf dem echten Apple-Runner an fehlenden CGRect-Eigenschaften, obwohl sein Linux-Adapter bestand. Keine gelockerten Prüfbedingungen.
+
+Der Geräteworkflow verlinkt den tatsächlichen Upload direkt in der Laufübersicht und sichert native Caches auch nach späteren Buildfehlern. Der ausgewählte automatische Testbranch lautet jetzt `codex/red-bit-integration-motion-20261108`; Ausgabenlimits und Release-Prozesse wurden nicht verändert. Lokales Actionlint/ShellCheck, YAML/Python-Syntax, 21 IPA-Gegenproben, sieben Repository-Gegenproben, Release-, deutsche Einstellungs- und bestehende Quellprüfungen bestehen. Die erneute native Prüfung der Korrekturen und der neuen macOS-Stufe steht bis zum nächsten PR-Lauf aus.
+
 Arbeitsbranch: `codex/red-bit-integration-motion-20261108`. Ausgangspunkt: `main` bei `b571aab`. Der Merge nach `main` benötigt die ausdrückliche Freigabe des Maintainers.
 
 ## Übernommene PRs

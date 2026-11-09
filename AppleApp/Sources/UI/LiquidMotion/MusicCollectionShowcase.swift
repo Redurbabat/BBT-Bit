@@ -143,7 +143,7 @@ struct MusicCollectionShowcase: View {
         ShelfCardTap(card: card, preferTrack: preferTrack) {
             ZStack {
                 if vinyl {
-                    VinylRecord(artworkURL: card.thumbnailUrl, side: side * 0.93, isPlaying: recordIsPlaying(card))
+                    VinylRecord(artworkURL: card.thumbnailUrl, side: side * 0.93, isCurrent: recordIsCurrent(card))
                         .offset(x: side * 0.25)
                 }
                 ArtworkView(url: card.thumbnailUrl, data: nil, side: side)
@@ -156,8 +156,8 @@ struct MusicCollectionShowcase: View {
         .contextMenu { ShelfCardActionButtons(card: card) }
     }
 
-    private func recordIsPlaying(_ card: ShelfCard) -> Bool {
-        guard controller.isPlaying, let current = controller.current else { return false }
+    private func recordIsCurrent(_ card: ShelfCard) -> Bool {
+        guard let current = controller.current else { return false }
         if let videoID = card.videoId, videoID == current.videoId { return true }
         return current.albumName == card.title && !current.artist.isEmpty
             && (card.subtitle?.localizedCaseInsensitiveContains(current.artist) ?? false)
@@ -167,12 +167,12 @@ struct MusicCollectionShowcase: View {
 private struct VinylRecord: View {
     let artworkURL: String?
     let side: CGFloat
-    let isPlaying: Bool
+    let isCurrent: Bool
     @Environment(PlaybackController.self) private var controller
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 24, paused: !isPlaying || reduceMotion)) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / 24, paused: !isCurrent || !controller.isPlaying || reduceMotion)) { timeline in
             ZStack {
                 Circle().fill(.black)
                 ForEach(1..<7) { groove in
@@ -181,7 +181,9 @@ private struct VinylRecord: View {
                 ArtworkView(url: artworkURL, data: nil, side: side * 0.32).clipShape(Circle())
                 Circle().fill(.white.opacity(0.7)).frame(width: 4, height: 4)
             }
-            .rotationEffect(.degrees(isPlaying && !reduceMotion ? controller.livePosition(at: timeline.date) * 198 : 0))
+            // Pause hält die echte Position; andere Platten übernehmen keinen
+            // Fortschritt eines fremden Titels.
+            .rotationEffect(.degrees(isCurrent && !reduceMotion ? controller.livePosition(at: timeline.date) * 198 : 0))
         }
         .frame(width: side, height: side).accessibilityHidden(true).allowsHitTesting(false)
     }

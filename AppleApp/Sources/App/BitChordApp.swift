@@ -82,6 +82,7 @@ struct BitChordApp: App {
                 .environment(auth)
                 .environment(toast)
                 .environment(party)
+                .environment(\.locale, AppLanguage.locale(for: appModel.appLanguage))
                 .task {
                     #if DEBUG && os(iOS)
                     if ProcessInfo.processInfo.arguments.contains("--bbt-ui-test-designs")

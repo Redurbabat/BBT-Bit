@@ -194,6 +194,8 @@ private enum LiquidPhotoError: LocalizedError {
 }
 
 struct LiquidMotionDesignPhotosView: View {
+    @Environment(PlaybackController.self) private var controller
+    @Environment(\.locale) private var locale
     @State private var exporting = false
     @State private var progress = 0
     @State private var message: String?
@@ -285,7 +287,8 @@ struct LiquidMotionDesignPhotosView: View {
             var newFiles: [URL] = []
             var images: [UIImage] = []
             for feature in LiquidPhotoFeature.allCases {
-                let renderer = ImageRenderer(content: LiquidPhotoCard(feature: feature))
+                let renderer = ImageRenderer(content: LiquidPhotoCard(feature: feature)
+                    .environment(controller).environment(\.locale, locale))
                 renderer.scale = 2
                 guard let image = renderer.uiImage, let png = image.pngData() else {
                     throw LiquidPhotoError.render(feature.title)

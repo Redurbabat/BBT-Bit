@@ -8318,7 +8318,16 @@
       }
     },
     "Opens the lyrics": {},
-    "Output": {},
+    "Output": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgabe"
+          }
+        }
+      }
+    },
     "Output Precision": {
       "localizations": {
         "de": {
@@ -12419,6 +12428,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kaynak"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelle"
           }
         }
       }
@@ -19220,6 +19235,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verwende während Gemeinsam hören bitte die gemeinsame Warteschlange."
+          }
+        }
+      }
+    },
+    "Original lyric": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Originaltext"
+          }
+        }
+      }
+    },
+    "Translated lyric": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzter Songtext"
+          }
+        }
+      }
+    },
+    "Audio signal prism": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audiosignalweg"
+          }
+        }
+      }
+    },
+    "Decoder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decoder"
+          }
+        }
+      }
+    },
+    "Processing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verarbeitung"
+          }
+        }
+      }
+    },
+    "Original": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original"
+          }
+        }
+      }
+    },
+    "Translation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzung"
+          }
+        }
+      }
+    },
+    "Expand or collapse signal stages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signalstufen auf- oder zuklappen"
+          }
+        }
+      }
+    },
+    "Switch between original and translation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwischen Original und Übersetzung wechseln"
           }
         }
       }
