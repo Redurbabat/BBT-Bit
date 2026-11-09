@@ -41,12 +41,13 @@ final class FeedLoader {
     /// page under whoever is reading it.
     private(set) var loadedDuringTrackId: String?
     private var continuation: String?
-    var canLoadMore: Bool { continuation?.isEmpty == false }
+    var canLoadMore: Bool { loadTask == nil && continuation?.isEmpty == false }
     var sessionGeneration: Int64? { context?.generation }
     private var loadedEpoch: Int?
     private var context: PageContext?
     private var loadTask: Task<Void, Never>?
     private var requestID = UUID()
+    private var pagingRequestID: UUID?
     private let source: Source
     private var pageName: String { source == .home ? "home" : "explore" }
 
@@ -68,6 +69,7 @@ final class FeedLoader {
         }
         context = current
         let id = UUID(); requestID = id
+        pagingRequestID = nil; loadingMore = false
         let task = Task { await self.fetch(epoch: epoch, context: current, id: id) }
         loadTask = task
         await task.value
@@ -94,6 +96,9 @@ final class FeedLoader {
                 loadedEpoch = epoch
 
             }
+            guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
+            loadedEpoch = epoch
+            if first { phase = .loaded([]) }
         } catch {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             continuation = nil
@@ -106,19 +111,21 @@ final class FeedLoader {
     }
 
     func loadMore() async {
-        guard let context, PageSession.generation() == context.generation,
+        guard loadTask == nil, let context, PageSession.generation() == context.generation,
               let token = continuation, !token.isEmpty, !loadingMore else { return }
         let id = requestID
-        loadingMore = true
-        defer { loadingMore = false }
+        let pageID = UUID(); pagingRequestID = pageID
+        loadingMore = true; refreshError = nil
+        defer {
+            if pagingRequestID == pageID { pagingRequestID = nil; loadingMore = false }
+        }
         do {
             let result = source == .home ? try await InnertubeFeed.shared.moreHome(token: token)
                 : try await InnertubeFeed.shared.moreExplore(token: token)
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             continuation = result.continuation
             if case .loaded(let existing) = phase {
-                let seen = Set(existing.map(\.title))
-                phase = .loaded(existing + result.shelves.filter { !seen.contains($0.title) })
+                phase = .loaded(FeedShelfMerge.append(result.shelves, to: existing))
             }
         } catch {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }

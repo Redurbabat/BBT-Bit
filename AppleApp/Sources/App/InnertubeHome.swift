@@ -64,6 +64,29 @@ struct ShelfCard: Codable, Identifiable, Hashable {
     }
 }
 
+/// Folgeseiten erweitern vorhandene Zeilen, ohne deren Position zu verändern.
+enum FeedShelfMerge {
+    static func append(_ incoming: [FeedShelf], to existing: [FeedShelf]) -> [FeedShelf] {
+        var result: [FeedShelf] = []
+        var positions: [String: Int] = [:]
+        for shelf in existing + incoming {
+            if let index = positions[shelf.id] {
+                let current = result[index]
+                var seen = Set(current.items.map(\.id))
+                let additions = shelf.items.filter { seen.insert($0.id).inserted }
+                result[index] = FeedShelf(title: current.title, items: current.items + additions,
+                    subtitle: current.subtitle ?? shelf.subtitle)
+            } else {
+                var seen: Set<String> = []
+                positions[shelf.id] = result.count
+                result.append(FeedShelf(title: shelf.title,
+                    items: shelf.items.filter { seen.insert($0.id).inserted }, subtitle: shelf.subtitle))
+            }
+        }
+        return result
+    }
+}
+
 private struct FeedPage: Codable {
     let shelves: [FeedShelf]
     let continuation: String?

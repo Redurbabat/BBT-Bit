@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-09 · Fehlende Feed-Inhalte und blockiertes Nachladen korrigiert
+
+Home ergänzt zusätzliche Titel innerhalb gleichnamiger Regale, statt ganze Folgeseiten zu verwerfen. Erstladen und Paging konkurrieren nicht mehr; alte Konto-/Refresh-Anfragen verändern weder Inhalte noch Spinner einer neueren Anfrage. Erfolgreiche leere Feeds enden ohne Dauerspinner, Wiederholungen löschen alte Fehlermeldungen. Home bietet auch bei vorhandenem Inhalt einen sichtbaren Ladebutton und startet den begrenzten leeren Filter erst bei verfügbarer Folgeseite. Vorher acht fehlgeschlagene Gegenproben; nach Korrektur 17 Produktionsprüfungen bestanden. [Nachweise und BBT-027](docs/RED_BIT_INTEGRATION.md#zuverlässiges-nachladen-vom-9-november-2026); Apple-/Geräteabnahme bleibt offen.
+
 ## 2026-11-09 · Persönlichen Home-Bereich auf PR #59 implementiert
 
 Home erhält eine Fortsetzen-Karte, zwei vorhandene Pins oder echte Feed-Sammlungen, einen Tagesmix aus Hörverlauf und geladenem Feed sowie Alle-/Musik-/Video-Filter. Album-Vorschau zeigt drei echte Titel per Kontextmenü oder sichtbarem Aktionsmenü. Cover lassen sich auf die bestehende Playback-Pill ziehen; Sammlung und Folgeseiten werden vor dem gemeinsamen Einfügen vollständig geladen. Konto-, Playback-, Queue-, Party- und Abbruchprüfungen verhindern veraltete Aktionen. Die Bestätigung folgt erst auf das tatsächliche Einreihen. Keine neue Bibliothek, kein neues Audiosystem und kein externer Datendienst. [Umfang, Datenregeln und lokale Prüfungen](docs/RED_BIT_INTEGRATION.md#persönlicher-home-bereich-vom-9-november-2026); Apple-/Geräteabnahme bleibt BBT-026.

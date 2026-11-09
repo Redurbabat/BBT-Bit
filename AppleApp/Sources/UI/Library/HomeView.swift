@@ -168,6 +168,10 @@ struct HomeView: View {
                     }
                 }
                 if feed.loadingMore { ProgressView().frame(maxWidth: .infinity, minHeight: 44) }
+                if !visible.isEmpty, feed.canLoadMore {
+                    Button("Weitere Inhalte laden") { Task { await feed.loadMore() } }
+                        .frame(maxWidth: .infinity, minHeight: 44).disabled(feed.loadingMore)
+                }
             }
             .padding(.horizontal, 24).padding(.vertical, 20)
         }
@@ -175,7 +179,7 @@ struct HomeView: View {
         #if os(iOS)
         .modifier(DockScrollDirectionObserver())
         #endif
-        .task(id: "\(mediaFilterRaw)-\(hideHomeVideos)") {
+        .task(id: "\(mediaFilterRaw)-\(hideHomeVideos)-\(hideRecents)-\(feed.canLoadMore)") {
             // Bei einem leeren Filter begrenzt vorblättern; weitere Seiten
             // bleiben bewusst über den sichtbaren Ladebutton erreichbar.
             for _ in 0..<3 {

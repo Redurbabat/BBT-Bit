@@ -112,6 +112,7 @@ jobs:
       - name: Home-Mix, Vorschau und atomare Cover-Queue prüfen
         run: |
           bash scripts/check-home-discovery.sh
+          bash scripts/check-feed-loading.sh
           for file in AppleApp/Sources/UI/AlbumPeek.swift \
                       AppleApp/Sources/UI/QueueCoverDrop.swift \
                       AppleApp/Sources/UI/Library/HomeDiscoveryDashboard.swift \
