@@ -606,7 +606,8 @@ struct AutomixLiveTestView: View {
                 .disabled(monitor.startedAt == nil)
                 .accessibilityIdentifier("bbt.automixLive.saveReport")
                 if let exportData {
-                    AppTestReportExportButton(data: exportData, name: "RED-Bit-Test-\(monitor.sessionID.uuidString)")
+                    AppTestReportExportButton(data: exportData, name: "RED-Bit-Test-\(monitor.sessionID.uuidString)",
+                        latestData: { try monitor.reportData() })
                 }
                 if let reportURL {
                     ShareLink("Testbericht teilen", item: reportURL)

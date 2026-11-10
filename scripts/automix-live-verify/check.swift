@@ -115,6 +115,9 @@ extension AutomixLiveTestMonitor {
         let completed = try archive.read(savedID)
         let report = try JSONSerialization.jsonObject(with: completed) as! [String: Any]
         precondition((report["modelIntegrityChecks"] as? [String: Any])?["beat"] != nil)
+        let latestExport = try JSONSerialization.jsonObject(with: monitor.reportData()) as! [String: Any]
+        let latestChecks = latestExport["manualChecks"] as! [String: String]
+        precondition(latestChecks["audibleAudio"] == "Bestanden" && latestChecks["coverQueueDrop"] == "Fehler")
         precondition(archive.reports.first?.manualPassed == 1 && archive.reports.first?.manualFailed == 1)
         precondition(archive.reports.first?.manualTotal == 22)
         let restartedArchive = AppTestReportStore(directory: directory)

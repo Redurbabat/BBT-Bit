@@ -44,6 +44,8 @@ die vorhandene Streamdiagnose und auf iOS den separaten Design-Selbsttest.
 5. **Beenden und speichern.** Der abgeschlossene Bericht bleibt dauerhaft im
    App-Speicher. **In Dateien sichern** öffnet den System-Dateiexport;
    **Testbericht teilen** öffnet ausschließlich auf Wunsch die Freigabe.
+   Nachträgliche Handbewertungen werden ebenfalls gesichert. Der Dateiexport
+   erfasst ihren aktuellen Stand beim Tippen und hält ihn während des Dialogs fest.
 6. Später **Einstellungen → Tests & Diagnose → Gespeicherte Testberichte**
    öffnen. Datum, Status, Messpunkte, manuelle Ergebnisse und Build-Revision
    helfen beim Zuordnen. Jeder Lauf hat eine eigene Datei.

@@ -85,13 +85,21 @@ private struct AppTestSavedReportView: View {
 struct AppTestReportExportButton: View {
     let data: Data
     let name: String
+    var latestData: (@MainActor () throws -> Data)? = nil
     @State private var presented = false
     @State private var failed = false
+    @State private var document = SettingsBackupFile(text: "")
     var body: some View {
-        Button("In Dateien sichern", systemImage: "square.and.arrow.down") { presented = true }
+        Button("In Dateien sichern", systemImage: "square.and.arrow.down") {
+            do {
+                let current = try latestData?() ?? data
+                document = SettingsBackupFile(text: String(decoding: current, as: UTF8.self))
+                presented = true
+            } catch { failed = true }
+        }
             .accessibilityIdentifier("red.tests.exportFile")
             .fileExporter(isPresented: $presented,
-                document: SettingsBackupFile(text: String(decoding: data, as: UTF8.self)),
+                document: document,
                 contentType: .json, defaultFilename: name) { result in
                 if case .failure(let error) = result {
                     let cause = error as NSError
