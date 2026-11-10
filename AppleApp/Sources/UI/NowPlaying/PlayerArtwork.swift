@@ -19,6 +19,7 @@ struct SleeveArt: View {
     var canvasURL: URL?
     var fallbackURL: URL? = nil
     var isPlaying: Bool
+    var isBuffering = false
     var canvasActive = true
     var side: CGFloat
 
@@ -33,8 +34,10 @@ struct SleeveArt: View {
         .frame(width: side, height: side)
         .clipShape(.rect(cornerRadius: 12, style: .continuous))
         .shadow(color: .black.opacity(0.45), radius: 24, y: 10)
-        .scaleEffect(isPlaying ? 1 : 0.86)
-        .animation(.spring(response: 0.85, dampingFraction: 0.75), value: isPlaying)
+        // Beim Titelwechsel bleibt der Cover-Rahmen während des Ladens stabil.
+        // Nur bewusstes Pausieren verkleinert ihn leicht, ohne Spring-/Boom-Zoom.
+        .scaleEffect(isPlaying || isBuffering ? 1 : 0.86)
+        .animation(.easeOut(duration: 0.18), value: isPlaying || isBuffering)
         .frame(width: side, height: side)
     }
 }
