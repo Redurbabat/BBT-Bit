@@ -18,8 +18,10 @@ struct AppTestReportsView: View {
                             Text(summary.startedAt, format: .dateTime.day().month().year().hour().minute())
                                 .font(.headline)
                             Text(LocalizedStringKey(summary.state.title)).font(.subheadline)
-                            Text("\(summary.sampleCount) Messpunkte · \(summary.manualPassed)/\(summary.manualTotal) manuell bestanden · \(summary.manualFailed) Fehler")
-                                .font(.caption).foregroundStyle(.secondary)
+                            if let total = summary.automaticTotal {
+                                Text("\(summary.sampleCount) Messpunkte · \(summary.automaticPassed ?? 0)/\(total) automatisch geprüft · \(summary.automaticFailed ?? 0) Fehler")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            } else { Text("Älterer Bericht").font(.caption).foregroundStyle(.secondary) }
                         }.padding(.vertical, 4)
                     }
                 }
@@ -41,7 +43,7 @@ private struct AppTestSavedReportView: View {
     let summary: AppTestSessionSummary
     private let archive = AppTestReportStore.shared
     @State private var data: Data?
-    @State private var manualChecks: [String: String] = [:]
+    @State private var automaticChecks: [AppTestCheckResult] = []
     @State private var readError = false
     @State private var buildRevision = "—"
 
@@ -59,10 +61,13 @@ private struct AppTestSavedReportView: View {
                     AppTestReportExportButton(data: data, name: "RED-Bit-Test-\(summary.id.uuidString)")
                     ShareLink("Testbericht teilen", item: archive.fileURL(summary.id))
                 }
-                Section("Manuelle Ergebnisse") {
-                    ForEach(BBTManualTest.allCases) { test in
-                        LabeledContent(LocalizedStringKey(test.name),
-                            value: manualChecks[test.rawValue] ?? "Nicht getestet")
+                Section("Automatische Ergebnisse") {
+                    ForEach(automaticChecks) { check in
+                        LabeledContent(LocalizedStringKey(check.id.title),
+                            value: AppLanguage.localized(check.status.title))
+                    }
+                    if automaticChecks.isEmpty {
+                        Text("Ergebnisse dieses älteren Berichts bleiben in der Originaldatei erhalten.")
                     }
                 }
             }
@@ -74,7 +79,9 @@ private struct AppTestSavedReportView: View {
             do {
                 let content = try archive.read(summary.id)
                 let object = try JSONSerialization.jsonObject(with: content) as? [String: Any]
-                manualChecks = object?["manualChecks"] as? [String: String] ?? [:]
+                struct Payload: Decodable { let automaticChecks: [AppTestCheckResult]? }
+                let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
+                automaticChecks = (try? decoder.decode(Payload.self, from: content).automaticChecks) ?? []
                 buildRevision = object?["buildRevision"] as? String ?? "—"
                 data = content
             } catch { readError = true }

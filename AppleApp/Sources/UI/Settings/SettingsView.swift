@@ -165,6 +165,7 @@ struct SettingsView: View {
             }
         }
         .onAppear {
+            AppTestEvents.emit(.settings, .success, .screenDisplayed)
             // The tuner holds a display link while high performance is on, so it
             // has to be (re)applied every time this screen appears — and a value
             // written by another build that is not a rate offered here snaps to
@@ -479,7 +480,7 @@ struct SettingsView: View {
         case .advanced:
             Text("Analysis and display performance options can increase CPU use and battery consumption. Version alignment controls how a source switch resumes the recording.")
         case .tests:
-            Text("Starte einen Test, nutze die App weiter und sichere am Ende deinen Bericht. Nicht geprüfte Funktionen bleiben offen.")
+            Text("Starte den automatischen Test, nutze die App weiter und sichere am Ende deinen Bericht. Ergebnisse werden ohne Bewertung durch dich erfasst.")
         case .about:
             Text("RED Bit \(update.currentVersion)")
                 .frame(maxWidth: .infinity)
@@ -578,7 +579,7 @@ struct SettingsView: View {
         case .playback: return "Queue, transitions, speed and background playback"
         case .tests: return AutomixLiveTestMonitor.shared.running
             ? "Aufzeichnung läuft – App weiter nutzen oder Test abschließen"
-            : "App-Test, Checkliste und gespeicherte Berichte"
+            : "Automatische App-Prüfung und gespeicherte Berichte"
         case .downloads: return "Offline quality, local folders and temporary storage"
         case .appearance: return "Player, lyrics, language and visual preferences"
         case .account: return "Sign-in, sharing and connected services"

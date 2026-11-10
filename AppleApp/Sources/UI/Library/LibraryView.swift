@@ -123,6 +123,7 @@ struct LibraryView: View {
         }
         .onAppear {
             local.restoreViewPreferences()
+            AppTestEvents.emit(.library, .success, .screenDisplayed)
         }
         .fileImporter(isPresented: $pickingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result {

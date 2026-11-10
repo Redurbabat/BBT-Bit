@@ -9,6 +9,25 @@ import Foundation
     }
 
     static func insert(_ target: QueueDragTarget, into controller: PlaybackController) async throws -> Receipt {
+        let probe = AppTestEvents.begin(.queueNext)
+        do {
+            let receipt = try await performInsert(target, into: controller)
+            AppTestEvents.finish(probe, .success, .queueUpdated)
+            return receipt
+        } catch is CancellationError { throw CancellationError() }
+        catch QueueCollectionError.changed {
+            AppTestEvents.finish(probe, .observation, .validState)
+            throw QueueCollectionError.changed
+        } catch QueueCollectionError.party {
+            AppTestEvents.finish(probe, .unavailable, .validState)
+            throw QueueCollectionError.party
+        } catch {
+            AppTestEvents.finish(probe, .failure, .requestFailed)
+            throw error
+        }
+    }
+
+    private static func performInsert(_ target: QueueDragTarget, into controller: PlaybackController) async throws -> Receipt {
         guard !PartyStore.shared.inParty else { throw QueueCollectionError.party }
         let request = stamp(controller)
         let entries: [QueueEntry], title: String

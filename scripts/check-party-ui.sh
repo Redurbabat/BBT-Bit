@@ -46,6 +46,7 @@ SOURCES=(
   "$APP/Sources/UI/SignInUserAgent.swift"
   "$APP/Sources/App/GuardedHTTP.swift"
   "$APP/Sources/PlaybackSession/PartySync.swift"
+  "$APP/Sources/App/AppTestEvidence.swift"
   "$APP/Sources/PlaybackSession/PartySocket.swift"
   "$APP/Sources/UI/Toast.swift"
   "$APP/Sources/App/AuthController.swift"
@@ -127,6 +128,7 @@ final class AppModel {
 /// portable Kotlin with tests, and this check is about the screens.
 @MainActor
 final class PlaybackController {
+    var current: QueueEntry?
     var isPlaying = false
     var position: Double = 0
     var onLocalIntent: (() -> Void)?

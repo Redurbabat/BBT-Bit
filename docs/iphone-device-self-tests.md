@@ -20,75 +20,79 @@ Ein PNG-Render-Erfolg ist kein vollständiger Funktionstest.
 
 ## 1b. RED Bit Testzentrale – produktive App im Alltag prüfen
 
-Auf PR #59 gibt es einen eigenen Bereich **Einstellungen → Tests & Diagnose**.
-Die bisherigen Zugänge über Wiedergabe, Erweiterte Optionen und die Modellseite
-bleiben nutzbar. Der Bereich enthält die Testzentrale, gespeicherte Berichte,
-die vorhandene Streamdiagnose und auf iOS den separaten Design-Selbsttest.
+PR #59: **Einstellungen → Tests & Diagnose → RED Bit Testzentrale**.
+Es gibt keine manuellen Bewertungsfelder. Der Nutzer startet den Lauf, nutzt die
+App normal und wählt anschließend **Beenden und speichern**. **In Dateien sichern**
+und Teilen exportieren den aktuellen Bericht; gespeicherte Läufe bleiben im Archiv.
 
-1. **RED Bit Testzentrale → App-Test starten.** Der vorhandene Monitor zeichnet
-   echte Zustände derselben PlaybackSession auf. Er startet keine Musik und
-   verändert weder Queue noch Lautstärke. Ein erneuter Start während desselben
-   Laufs verwirft keine Ergebnisse.
-2. Einstellungen schließen und die App normal verwenden: Musik hören, suchen,
-   Home-Filter/Mixe und Vorschauen bedienen, Cover einreihen, Bibliothek und
-   Downloads öffnen. Bei Hintergrund/Sperre darf iOS die Ausführung pausieren;
-   ein laufender Hintergrund-Timer wird nicht zugesichert.
-3. Zur Testzentrale zurückkehren. Die **22 manuellen Bereiche** mit Offen,
-   Bestanden oder Fehler bewerten. Dazu gehören nun auch Home-Karten,
-   Album-Vorschau, Tagesmix, Cover-Drop, Feed-Paging, native Suche/Dock/Zoom,
-   Lyrics-Sternbild und Einstellungen/Updates. Nur selbst ausgeführte Prüfungen
-   markieren; hörbarer Ton bleibt eine manuelle Bestätigung.
-4. Optional die drei Modell-Dateien erneut auf Bytezahl/SHA-256 prüfen. Ergebnis
-   und Prüfzeit stehen im Bericht; installierte Datei, geladene Runtime und
-   nachgewiesene Inferenz bleiben getrennte Angaben.
-5. **Beenden und speichern.** Der abgeschlossene Bericht bleibt dauerhaft im
-   App-Speicher. **In Dateien sichern** öffnet den System-Dateiexport;
-   **Testbericht teilen** öffnet ausschließlich auf Wunsch die Freigabe.
-   Nachträgliche Handbewertungen werden ebenfalls gesichert. Der Dateiexport
-   erfasst ihren aktuellen Stand beim Tippen und hält ihn während des Dialogs fest.
-6. Später **Einstellungen → Tests & Diagnose → Gespeicherte Testberichte**
-   öffnen. Datum, Status, Messpunkte, manuelle Ergebnisse und Build-Revision
-   helfen beim Zuordnen. Jeder Lauf hat eine eigene Datei.
+### Automatische Prüfungen
 
-Zwischenstände werden alle 30 Messpunkte, bei manuellen Ergebnissen,
-Modellprüfungen sowie beim Hintergrundwechsel eines laufenden Tests atomar
-gesichert. Die Aufzeichnung ist auf 1800 Messpunkte begrenzt und beendet sich
-beim ausgeführten Monitor nach 30 Minuten. Wird die App vorher beendet, erscheint
-nach Neustart der letzte Stand als **Unterbrochen**, mit unverändertem
-Speicherzeitpunkt und ohne erfundenes Abschlussdatum. Neue Tests ersetzen nur
-ihren eigenen Zwischenstand. Schreibfehler bleiben sichtbar; ein ungesicherter
-vorheriger Lauf wird beim Start eines neuen Tests nicht verworfen.
+Der vorhandene Monitor bewertet 33 klar benannte Softwareprüfungen anhand echter
+Zustände und Ereignisse. Fortschritt, Queue, Decoder, Ausgabestream, aktive
+Audiositzung, Fehler und Netzwerkstatus werden aus derselben PlaybackSession
+gelesen. Pause/Fortsetzen, Titelwechsel, lokale Wiedergabe, abgeschlossene neue
+Downloads, Lyricsdaten, Hintergrundfortschritt und Fortschritt nach einem
+Routenwechsel werden erkannt, sobald sie auftreten.
 
-Neue JSON-Berichte verwenden **Version 4**: bisherige Messfelder plus
-Sitzungszusammenfassung, tatsächliches optionales Abschlussdatum und
-Modell-Prüfsummenresultate. Bereits exportierte v3-Dateien bleiben erhalten;
-das neue interne Archiv beginnt mit v4. Es liegt unter Application Support
-in `RED-Bit/Testberichte`. Es enthält keine Songtitel, YouTube-IDs, Pfade,
-Stream-URLs oder Zugangsdaten. Defekte/unerwartete Dateien bleiben erhalten
-und werden in der Archivansicht als nicht lesbar gezählt. Keine Übertragung
-oder automatische Löschung; keine neue Bibliothek und keine Migration von
-Anmeldung, Musik, Downloads oder Einstellungen.
+Home-/Paging-Antworten, Suchantworten, Album-Vorschau, Übernahme des Tagesmixes,
+Einreihen und erfolgreicher Cover-Drop liefern Nachweise an ihren tatsächlichen
+Erfolgs-/Fehlerpfaden. Bibliothek, Einstellungen und Vollplayer bestätigen ihre
+Anzeige über den View-Lebenszyklus. Die Inline-Prüfung verlangt die tatsächliche
+native Bottom-Accessory-Pill, nicht die separate Tastaturdarstellung. Der
+Party-Nachweis prüft lokalen Track-/Transport-/Zeitabgleich zum Serverzustand;
+er behauptet keine physisch synchrone Wiedergabe mehrerer Geräte.
 
-**Lokaler Nachweis, Linux/Swift 6.2.1:**
-`SWIFTC=…/swiftc bash scripts/check-automix-live-test.sh` typprüft den tatsächlichen
-Monitor und Archivspeicher einschließlich Observation mit kontrollierten
-Player-/Modelladaptern. Laufzeittests ohne Linux-Observation-Anbindung prüfen
-Messung/Fehlertrennung, JSON v4, Datenschutz, 22 Bereiche, Modellprüfungen,
-persistente Wiederöffnung, mehrere Sitzungen, Doppeltstart, Wiederherstellung
-unterbrochener Läufe, defekte Dateien, Schreibfehler und das 1800-Punkte-Limit.
-Vorhandene Fortschrittstests prüfen Pause, Seek, Stillstand und Titelwechsel.
+Vorhandene Modell-Dateien werden beim Start automatisch mit der bestehenden
+SHA-256-Prüfung geprüft. Optionale fehlende Modelle erhalten „Nicht verfügbar“;
+es werden keine Modelle heruntergeladen. Bei laufenden Downloads oder später
+verfügbaren Dateien wird nach 30 Messpunkten erneut geprüft. Auf iOS rendert der
+vorhandene Vorschauweg zusätzlich alle 15 gekennzeichneten Beispielkarten. Nur
+wenn alle PNGs die Größen-/Byteprüfung bestehen, ist diese Prüfung erfolgreich.
+Der Renderer wartet im Hintergrund auf die Rückkehr in den Vordergrund und
+beendet sich bei Testabbruch. Die PNGs werden nicht als private App-Screenshots
+exportiert. macOS/ältere Systeme kennzeichnen nicht verfügbare iPhone-Prüfungen.
 
-**NICHT GETESTET:** Apple-SDK-Typprüfung der neuen UI, Datei-Dialog/Teilen,
-VoiceOver/große Schrift, native Gesten, echte Hintergrundausführung,
-physischer Ton, signierte IPA und Gerät. Die Abnahme bleibt BBT-028.
+**Nicht beobachtet**, **Beobachtet – Prüfung offen**, **Automatisch geprüft**,
+**Fehler beobachtet** und **Nicht verfügbar** sind getrennte Zustände. Nicht
+verwendete Funktionen werden nicht pauschal grün. Ein Fehler bleibt im Bericht,
+auch wenn später eine Wiederholung gelingt. Neue Ereignisse alter asynchroner
+Anfragen dürfen keinen neuen Testlauf bewerten. Der Export enthält nur feste
+Prüf-/Ergebniscodes, Zähler und Zeitpunkte; keine Song-IDs, Suchtexte, Pfade,
+Zugangsdaten oder privaten Fehlertexte.
 
-Die vorhandene Design-Prüfung auf `afef572` scheiterte im
-[Simulator-/Mac-Lauf](https://github.com/Redurbabat/RED-Bit/actions/runs/42721105354):
-Lyrics-Textknoten nach Umschalten nicht gefunden; die gemeinsam verwendete
-Beispiel-Markierung war nur für iOS definiert. P-027 verschiebt die Markierung
-in den gemeinsamen SwiftUI-Bereich und prüft die tatsächlich aktuelle Lyrics-Zeile
-über ihren Accessibility-Wert mit Wartebedingung. Diese Korrekturen erhalten die
-bestehende Design-Prüfung; ihr erneuter nativer Nachweis bleibt separat offen.
+### Speichern und Kompatibilität
+
+Automatische Ergebnisse ersetzen die früheren Handbewertungen. Neue Berichte
+verwenden **JSON v5**, mit `automaticChecks` und automatischen Summen; sie enthalten
+keine `manualChecks` oder manuell gesetzten Urteile. Vorhandene v4-Dateien werden
+weiter unverändert gelesen und als ältere Berichte angezeigt. Ihre ursprünglichen
+Bewertungen bleiben in der exportierbaren Originaldatei; sie werden niemals als
+automatische Nachweise umgedeutet.
+
+Zwischenstände und Abschluss bleiben atomar je UUID unter Application Support in
+`RED-Bit/Testberichte`. Ein neuer Lauf verwirft bei Schreibfehlern keinen alten.
+30-Messpunkt-/Hintergrundspeicherung, maximal 1800 Messpunkte, Unterbrechungsstatus
+nach Neustart und eindeutiger Dateiexport bleiben bestehen. Der Monitor verändert
+keine Queue, Lautstärke, Konten oder Downloads. Fehler-/Statusübergänge werden
+zusätzlich gesichert. Hintergrundausführung bleibt vom OS abhängig.
+
+Automatische Softwarewerte bestätigen keine physische Hörbarkeit oder vollständige
+Bildschirmqualität. Die PNG-Prüfung bestätigt Renderbarkeit, kein Durchklicken
+sämtlicher Oberflächen. Dafür gibt es im App-Bericht keine manuelle Bewertung.
+
+### Tatsächliche Nachweise
+
+Linux / Swift 6.2.1: `SWIFTC=…/swiftc bash scripts/check-automix-live-test.sh`
+verwendet Produktionsmonitor, Ereignisregister und Archiv einschließlich
+Observation-Typprüfung. Kontrollierte Laufzeittests prüfen automatische Bewertung,
+fehlende Nachweise, bleibende Fehler, alte Ereignisse nach Neustart, automatischen
+Modellstart, fehlende optionale Dateien ohne Download, JSON v5, Datenschutz,
+Erhalt von v4, Archiv-/Schreibfehler und die 1800-Punkte-Grenze. Home-/Queue- und
+17 Feed-Regressionsfälle verwenden dieselben instrumentierten Produktionspfade.
+
+Apple-SDK-/Simulator-/iPhone-Ergebnisse werden für die neue Revision separat
+festgehalten. BBT-028 hält die Abnahme von automatischen Modell-/PNG-Prüfungen,
+Dateiexport, Lifecycle und tatsächlicher Nutzung auf Apple offen.
 
 ## 2. Echte automatische Fingertipps auf deinem iPhone
 

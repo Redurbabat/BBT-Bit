@@ -107,6 +107,7 @@ struct QueueCoverDropDestination: ViewModifier {
                       let target = QueueDragSessions.registry.claim(tickets[0], session: PageSession.generation(),
                           now: ProcessInfo.processInfo.systemUptime) else { return false }
                 loading = true
+                let probe = AppTestEvents.begin(.coverDrop)
                 let request = UUID(); requestID = request
                 requestTask = Task { @MainActor in
                     defer { if requestID == request { loading = false } }
@@ -114,6 +115,7 @@ struct QueueCoverDropDestination: ViewModifier {
                         let result = try await QueueNextAction.insert(target, into: controller)
                         guard !Task.isCancelled, requestID == request else { return }
                         receipt = result; receiptID = UUID()
+                        AppTestEvents.finish(probe, .success, .queueUpdated)
                         toast.queueNotice("Als Nächstes: \(result.title)")
                     } catch is CancellationError { }
                     catch { toast.show(error.localizedDescription) }

@@ -77,6 +77,7 @@ final class FeedLoader {
     }
 
     private func fetch(epoch: Int?, context: PageContext, id: UUID) async {
+        let probe = AppTestEvents.begin(.homeFeed)
         refreshError = nil
         continuation = nil
         do {
@@ -99,9 +100,11 @@ final class FeedLoader {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             loadedEpoch = epoch
             if first { phase = .loaded([]) }
+            AppTestEvents.finish(probe, .success, first ? .emptyResponse : .responseReceived)
         } catch {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             continuation = nil
+            AppTestEvents.finish(probe, .failure, .requestFailed)
             // A refused session is not a load failure the reader can retry: say
             // so once, and let the auth state (and every screen) follow.
             AuthController.reportIfSessionExpired(error)
@@ -115,6 +118,7 @@ final class FeedLoader {
               let token = continuation, !token.isEmpty, !loadingMore else { return }
         let id = requestID
         let pageID = UUID(); pagingRequestID = pageID
+        let probe = AppTestEvents.begin(.feedPaging)
         loadingMore = true; refreshError = nil
         defer {
             if pagingRequestID == pageID { pagingRequestID = nil; loadingMore = false }
@@ -126,11 +130,13 @@ final class FeedLoader {
             continuation = result.continuation
             if case .loaded(let existing) = phase {
                 phase = .loaded(FeedShelfMerge.append(result.shelves, to: existing))
+                AppTestEvents.finish(probe, .success, .responseReceived)
             }
         } catch {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             AuthController.reportIfSessionExpired(error)
             refreshError = UserFacingRequestError.message(error)
+            AppTestEvents.finish(probe, .failure, .requestFailed)
         }
     }
 }

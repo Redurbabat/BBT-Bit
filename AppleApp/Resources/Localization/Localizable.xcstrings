@@ -19854,6 +19854,476 @@
           }
         }
       }
+    },
+    "%lld Messpunkte · %lld/%lld automatisch geprüft · %lld Fehler": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Messpunkte · %lld/%lld automatisch geprüft · %lld Fehler"
+          }
+        }
+      }
+    },
+    "15 Vorschauen als PNG gerendert": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 Vorschauen als PNG gerendert"
+          }
+        }
+      }
+    },
+    "Album-Vorschau geladen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album-Vorschau geladen"
+          }
+        }
+      }
+    },
+    "App-Fehlerüberwachung": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Fehlerüberwachung"
+          }
+        }
+      }
+    },
+    "Automatisch geprüft": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch geprüft"
+          }
+        }
+      }
+    },
+    "Automatische App-Prüfung und gespeicherte Berichte": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische App-Prüfung und gespeicherte Berichte"
+          }
+        }
+      }
+    },
+    "Automatische Ergebnisse": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Ergebnisse"
+          }
+        }
+      }
+    },
+    "Automatische Ergebnisse belegen die jeweils beobachteten Softwareprüfungen. Nicht verwendete Funktionen bleiben nicht beobachtet. Physische Hörbarkeit, vollständige Bildschirmqualität und externe Builds werden damit nicht bestätigt.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Ergebnisse belegen die jeweils beobachteten Softwareprüfungen. Nicht verwendete Funktionen bleiben nicht beobachtet. Physische Hörbarkeit, vollständige Bildschirmqualität und externe Builds werden damit nicht bestätigt."
+          }
+        }
+      }
+    },
+    "Beat-Datei und SHA-256": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat-Datei und SHA-256"
+          }
+        }
+      }
+    },
+    "Beobachtet – Prüfung offen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beobachtet – Prüfung offen"
+          }
+        }
+      }
+    },
+    "Bibliotheksansicht angezeigt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bibliotheksansicht angezeigt"
+          }
+        }
+      }
+    },
+    "Core-ML-Datei und SHA-256": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Core-ML-Datei und SHA-256"
+          }
+        }
+      }
+    },
+    "Cover-Drop eingereiht": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cover-Drop eingereiht"
+          }
+        }
+      }
+    },
+    "Decoder gemeldet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decoder gemeldet"
+          }
+        }
+      }
+    },
+    "Der Bericht enthält automatische Prüfergebnisse und technische Statuswerte, aber keine Songtitel, Suchtexte, Dateipfade oder Zugangsdaten. Er bleibt lokal, bis du ihn ausdrücklich teilst.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Bericht enthält automatische Prüfergebnisse und technische Statuswerte, aber keine Songtitel, Suchtexte, Dateipfade oder Zugangsdaten. Er bleibt lokal, bis du ihn ausdrücklich teilst."
+          }
+        }
+      }
+    },
+    "Die Prüfung bestätigt Engine-Ereignisse und Zeitfortschritt. Physische Hörbarkeit ist damit nicht messbar.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Prüfung bestätigt Engine-Ereignisse und Zeitfortschritt. Physische Hörbarkeit ist damit nicht messbar."
+          }
+        }
+      }
+    },
+    "Einstellungen angezeigt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen angezeigt"
+          }
+        }
+      }
+    },
+    "Engine-Übergang gemeldet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Engine-Übergang gemeldet"
+          }
+        }
+      }
+    },
+    "Ergebnisse dieses älteren Berichts bleiben in der Originaldatei erhalten.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ergebnisse dieses älteren Berichts bleiben in der Originaldatei erhalten."
+          }
+        }
+      }
+    },
+    "Ergebnisse stammen aus echten Ereignissen und Prüfungen. Unbenutzte Funktionen bleiben nicht beobachtet. Ein gemeldeter Ausgabestream bestätigt nicht die physische Hörbarkeit; Vorschau-PNGs bestätigen nur das Rendern.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ergebnisse stammen aus echten Ereignissen und Prüfungen. Unbenutzte Funktionen bleiben nicht beobachtet. Ein gemeldeter Ausgabestream bestätigt nicht die physische Hörbarkeit; Vorschau-PNGs bestätigen nur das Rendern."
+          }
+        }
+      }
+    },
+    "Fehler beobachtet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehler beobachtet"
+          }
+        }
+      }
+    },
+    "Fortschritt im Hintergrund": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt im Hintergrund"
+          }
+        }
+      }
+    },
+    "Fortschritt nach Audio-Routenwechsel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt nach Audio-Routenwechsel"
+          }
+        }
+      }
+    },
+    "Home-Feed geladen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home-Feed geladen"
+          }
+        }
+      }
+    },
+    "Lokale Wiedergabe mit Fortschritt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Wiedergabe mit Fortschritt"
+          }
+        }
+      }
+    },
+    "Lokaler Party-Zustand abgeglichen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokaler Party-Zustand abgeglichen"
+          }
+        }
+      }
+    },
+    "Lyricsdaten geladen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lyricsdaten geladen"
+          }
+        }
+      }
+    },
+    "Native Inline-Pill angezeigt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native Inline-Pill angezeigt"
+          }
+        }
+      }
+    },
+    "Nativer Ausgabestream": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nativer Ausgabestream"
+          }
+        }
+      }
+    },
+    "Netzwerkstatus gelesen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netzwerkstatus gelesen"
+          }
+        }
+      }
+    },
+    "Neue Engine-Mixplanung": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Engine-Mixplanung"
+          }
+        }
+      }
+    },
+    "Neuer Download abgeschlossen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Download abgeschlossen"
+          }
+        }
+      }
+    },
+    "Nicht beobachtet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht beobachtet"
+          }
+        }
+      }
+    },
+    "Pause und Fortsetzen beobachtet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause und Fortsetzen beobachtet"
+          }
+        }
+      }
+    },
+    "Playback-Fehlerüberwachung": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playback-Fehlerüberwachung"
+          }
+        }
+      }
+    },
+    "Queue-Index und aktuelle Auswahl": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queue-Index und aktuelle Auswahl"
+          }
+        }
+      }
+    },
+    "Starte den automatischen App-Test und nutze RED Bit wie gewohnt. Modell-Dateien und Vorschauen werden automatisch geprüft; während deiner Nutzung kommen Ergebnisse der ausgeführten Funktionen dazu. Es gibt keine manuelle Bewertung. Beende und speichere den Lauf, wenn du fertig bist.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte den automatischen App-Test und nutze RED Bit wie gewohnt. Modell-Dateien und Vorschauen werden automatisch geprüft; während deiner Nutzung kommen Ergebnisse der ausgeführten Funktionen dazu. Es gibt keine manuelle Bewertung. Beende und speichere den Lauf, wenn du fertig bist."
+          }
+        }
+      }
+    },
+    "Starte den automatischen Test, nutze die App weiter und sichere am Ende deinen Bericht. Ergebnisse werden ohne Bewertung durch dich erfasst.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte den automatischen Test, nutze die App weiter und sichere am Ende deinen Bericht. Ergebnisse werden ohne Bewertung durch dich erfasst."
+          }
+        }
+      }
+    },
+    "Suchanfrage beantwortet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchanfrage beantwortet"
+          }
+        }
+      }
+    },
+    "Tagesmix in Queue übernommen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesmix in Queue übernommen"
+          }
+        }
+      }
+    },
+    "Titelwechsel mit Fortschritt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titelwechsel mit Fortschritt"
+          }
+        }
+      }
+    },
+    "Vocal-Datei und SHA-256": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vocal-Datei und SHA-256"
+          }
+        }
+      }
+    },
+    "Vollplayer angezeigt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollplayer angezeigt"
+          }
+        }
+      }
+    },
+    "Vorhandene Modell-Dateien werden automatisch geprüft. Optionale fehlende Modelle erscheinen als nicht verfügbar.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorhandene Modell-Dateien werden automatisch geprüft. Optionale fehlende Modelle erscheinen als nicht verfügbar."
+          }
+        }
+      }
+    },
+    "Weitere Feed-Seite geladen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Feed-Seite geladen"
+          }
+        }
+      }
+    },
+    "Älterer Bericht": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Älterer Bericht"
+          }
+        }
+      }
+    },
+    "Fortschritt bei gemeldetem Offline-Status": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt bei gemeldetem Offline-Status"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

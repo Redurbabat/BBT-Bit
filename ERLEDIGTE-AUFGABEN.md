@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-10 · App-Test auf automatische Nachweise umgestellt
+
+Manuelle Bewertungsfelder und Urteile aus dem laufenden Test entfernt. 33 benannte Softwareprüfungen sammeln echte Player-, Request-, Queue- und View-Ereignisse. Modell-Prüfsummen und 15 iOS-PNG-Vorschauen starten automatisch. Unbenutzte Funktionen bleiben nicht beobachtet, Fehler bleiben nach Wiederholung sichtbar und alte asynchrone Ereignisse dürfen neue Läufe nicht bewerten. JSON v5 enthält automatische Resultate; v4-Dateien bleiben erhalten. Produktions-/Archiv-/Nachweis-/Modelltests sowie instrumentierte Home-/Feed-Prüfungen lokal bestanden. [Anleitung und offene Apple-Abnahme](docs/iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
+
 ## 2026-11-10 · App-Testbereich und dauerhaft gespeicherte Berichte auf PR #59
 
 Einstellungen erhalten „Tests & Diagnose“ mit der vorhandenen Testzentrale, Berichtsverlauf und bestehenden Diagnosewegen. Derselbe Monitor läuft beim Seitenwechsel weiter; atomare Zwischenstände und Abschlussberichte bleiben nach App-Neustart erhalten. Unterbrochene Läufe werden kenntlich gemacht. JSON v4 enthält 22 manuelle Bereiche und echte Modell-Prüfergebnisse; der System-Dateiexport ergänzt die Freigabe. Neue Tests erhalten eigene Dateien und verwerfen bei Schreibfehlern keinen alten Lauf. Produktionsmonitor/-speicher mit Observation und kontrollierten Diensten, Datenschutz, Fehlerfälle und 1800-Punkte-Grenze lokal geprüft. [Anleitung und Abnahme BBT-028](docs/iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen); Apple-/Geräteprüfung bleibt offen.

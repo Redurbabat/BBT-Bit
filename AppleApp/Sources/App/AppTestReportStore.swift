@@ -12,9 +12,13 @@ struct AppTestSessionSummary: Codable, Identifiable {
     let finishedAt: Date?
     let state: AppTestSessionState
     let sampleCount: Int
-    let manualPassed: Int
-    let manualFailed: Int
-    let manualTotal: Int
+    let automaticPassed: Int?
+    let automaticFailed: Int?
+    let automaticTotal: Int?
+    let automaticObserved: Int?
+    let manualPassed: Int?
+    let manualFailed: Int?
+    let manualTotal: Int?
 }
 
 enum AppTestReportError: LocalizedError {
@@ -102,9 +106,17 @@ enum AppTestReportError: LocalizedError {
         let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
         let header = try decoder.decode(Header.self, from: data)
         let s = header.summary
-        guard header.version == 4, (0...1800).contains(s.sampleCount), s.manualTotal >= 0,
-              s.manualPassed >= 0, s.manualFailed >= 0, s.manualPassed <= s.manualTotal,
-              s.manualFailed <= s.manualTotal - s.manualPassed else {
+        func valid(_ passed: Int?, _ failed: Int?, _ total: Int?) -> Bool {
+            guard let passed, let failed, let total, total >= 0, passed >= 0, failed >= 0,
+                  passed <= total, failed <= total - passed else { return false }
+            return true
+        }
+        let validEvaluation: Bool
+        if header.version == 4 { validEvaluation = valid(s.manualPassed, s.manualFailed, s.manualTotal) }
+        else if header.version == 5, let observed = s.automaticObserved, let total = s.automaticTotal {
+            validEvaluation = valid(s.automaticPassed, s.automaticFailed, total) && observed >= 0 && observed <= total
+        } else { validEvaluation = false }
+        guard validEvaluation, (0...1800).contains(s.sampleCount) else {
             throw AppTestReportError.invalidReport
         }
         return s

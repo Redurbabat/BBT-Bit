@@ -884,6 +884,7 @@ final class PlaybackController {
     ///    even if CoreAudio's own rebuild beat us to it.
     private var routeRecoveryGeneration: UInt64 = 0
     private func outputRouteChanged() {
+        AppTestEvents.emit(.audioRoute, .observation, .routeChanged)
         let route = AudioRouteState.shared
         let returnedFromBluetooth = route.previousKind.lowercased().contains("bluetooth") && route.carriesLossless
         routeRecoveryGeneration &+= 1

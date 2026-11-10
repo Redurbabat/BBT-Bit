@@ -31,6 +31,7 @@ struct HomeDiscoveryDashboard: View {
                 else { controller.togglePlayPause() }
             } else if !mix.isEmpty {
                 controller.play(mix, context: mixTitle, shuffleRequested: false)
+                AppTestEvents.verify(.dayMix, controller.current?.id == mix.first?.id, .queueUpdated)
             } else { appModel.requestedTab = .explore }
         } label: {
             VStack(alignment: .leading, spacing: 12) {
@@ -152,6 +153,7 @@ struct HomeDayMixSection: View {
                     Spacer(minLength: 4)
                     Button {
                         controller.play(entries, context: title, shuffleRequested: false)
+                        AppTestEvents.verify(.dayMix, controller.current?.id == entries.first?.id, .queueUpdated)
                     } label: {
                         Image(systemName: "play.fill").frame(width: 44, height: 44)
                     }
@@ -201,5 +203,6 @@ struct HomeDayMixSection: View {
         guard presentedSession == PageSession.generation(), !PartyStore.shared.inParty,
               presentedEntries.indices.contains(index) else { presented = false; return }
         controller.play(presentedEntries, at: index, context: presentedTitle, shuffleRequested: false)
+        AppTestEvents.verify(.dayMix, controller.current?.id == presentedEntries[index].id, .queueUpdated)
     }
 }

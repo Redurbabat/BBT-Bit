@@ -8,6 +8,7 @@ import Observation
 
     func load(_ card: ShelfCard) async {
         guard let id = card.browseId else { phase = .failed; return }
+        let probe = AppTestEvents.begin(.albumPreview)
         let request = UUID(), generation = PageSession.generation()
         requestID = request; phase = .loading
         do {
@@ -19,9 +20,11 @@ import Observation
             guard !Task.isCancelled, requestID == request, generation == PageSession.generation() else { return }
             let entries = page.songs.prefix(3).map { $0.asEntry(fallbackArt: page.thumbnailUrl) }
             phase = entries.isEmpty ? .failed : .loaded(entries)
+            AppTestEvents.finish(probe, entries.isEmpty ? .failure : .success, entries.isEmpty ? .emptyResponse : .responseReceived)
         } catch {
             guard !Task.isCancelled, requestID == request, generation == PageSession.generation() else { return }
             phase = .failed
+            AppTestEvents.finish(probe, .failure, .requestFailed)
         }
     }
 }

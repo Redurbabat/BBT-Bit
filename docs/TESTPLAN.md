@@ -1,23 +1,23 @@
 # Testplan
 
-## App-Testbereich auf PR #59
+## Automatischer App-Testbereich auf PR #59
 
-[Nutzerweg und Speicherformat](iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
-`SWIFTC=…/swiftc bash scripts/check-automix-live-test.sh` prüft den tatsächlichen
-Monitor/Archivspeicher mit kontrollierten Diensten einschließlich Observation-Typprüfung.
-JSON-v4-/Datenschutz-/Wiederöffnungs-/Fehler-/Grenzfälle lokal bestanden;
-SwiftUI- und Gerätetest bleiben davon getrennt. Abnahme BBT-028:
+[Funktionsweise, JSON v5 und v4-Erhalt](iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
+`SWIFTC=…/swiftc bash scripts/check-automix-live-test.sh` prüft Produktionsmonitor,
+Nachweisregister und Archiv mit kontrollierten Diensten einschließlich Observation.
+Die App enthält keine Bewertungs-Picker. Abnahme BBT-028:
 
-1. Frischen PR-Build und Revision nennen. Einstellungen → Tests & Diagnose auf iPhone/iPad/Mac finden; Suche nach „Test“ und „Bericht“, bisherige Zugänge und gespeicherte Sprachwahl prüfen.
-2. App-Test starten, Einstellungen schließen und echte Musik nutzen. Nach Rückkehr derselbe Lauf mit mehr Messpunkten, unveränderter Queue/Transport und erhaltenen manuellen Bewertungen. Doppeltippen darf nichts zurücksetzen.
-3. Offene, bestandene und fehlerhafte Handprüfungen setzen. 22 Bereiche einschließlich Home, Filter/Paging, Cover-Drop, Such-Tastatur/Dock/Zoom und Lyrics prüfen; ungetestete Funktionen bleiben offen.
-4. Modellprüfsummen ausdrücklich anfordern. Datei-/Runtime-/Inferenzstatus getrennt anzeigen; nur tatsächliche Prüfergebnisse und Zeiten exportieren. Keine Modelle allein für den Passivtest herunterladen.
-5. Beenden und speichern, neuen Lauf beginnen und beide im Verlauf öffnen. Datum, Abschlussstatus, Build-Revision und Ergebnisse müssen zum richtigen Lauf gehören.
-6. In Dateien sichern und Teilen prüfen, jeweils auch Abbruch. JSON muss vollständig sein und darf keine Songtitel, IDs, lokalen Pfade oder Zugangsdaten enthalten. Exportabbruch erhält den internen Bericht.
-7. App während eines Laufs verlassen/beenden und erneut öffnen. Letzten tatsächlichen Zwischenstand als unterbrochen anzeigen, ohne nachträgliche Messung oder erfundenes Abschlussdatum. Schreibfehler in kontrollierter Prüffassung sichtbar melden und bisherigen Bericht erhalten.
-8. VoiceOver, große Schrift, kleine Breite, hell/dunkel und Mac-Dateidialog prüfen. Hintergrund/Sperrbildschirm, native Dock-Animation und tatsächlich hörbaren Ton separat auf echter Hardware nachweisen.
+1. Test starten und Einstellungen verlassen: derselbe Lauf sammelt echte Messpunkte ohne Änderung der Wiedergabe. Doppeltstart verwirft nichts.
+2. Vorhandene Modelle werden automatisch geprüft; fehlende optionale Dateien bleiben nicht verfügbar. Bei laufendem Modell-Download muss die automatische Wiederholung greifen.
+3. Alle 15 iOS-Vorschauen automatisch rendern. App-Hintergrund/Abbruch darf keinen GPU-Auftrag fortsetzen und keinen vollständigen Erfolg vorwegnehmen.
+4. Suche, Feed/Paging, Album-Vorschau, Tagesmix und Cover-Drop normal nutzen. Ergebnis nur bei tatsächlich abgeschlossenem Vorgang; keine privaten Werte im Ereignisprotokoll.
+5. Nicht verwendete Funktionen bleiben nicht beobachtet. Fehler mit erfolgreicher Wiederholung bleibt als beobachteter Fehler gespeichert; verspätete Antworten eines alten Laufs werden verworfen.
+6. Pause/Fortsetzen, Skip, lokalen Song, Download, Lyrics, Party und Routenwechsel verwenden. Die automatisch bestätigten Kriterien müssen den Beschriftungen entsprechen, ohne physische Hörbarkeit zu behaupten.
+7. Abschluss/Dateiexport/Neustart prüfen. Neue v5-Berichte ohne Handurteile; alte v4-Dateien unverändert lesbar und exportierbar. Schreibfehler erhalten vorhandene Daten.
+8. Auf iPhone/Mac große Schrift/VoiceOver, Sprachwahl, Vordergrund/Hintergrund und native Inline-Pill prüfen. Tastatur-Pill ist kein Nachweis für native Scroll-Minimierung.
 
-**Apple-SDK-Build, UI/Dateidialog, Hintergrund und hörbare Wiedergabe NICHT GETESTET**, bis ein entsprechender neuer Nachweis vorliegt. Keine manuelle CI-Neuausführung oder Budgetänderung.
+Native Geräte-/UI- und Audionachweise bleiben getrennt von isolierten Tests.
+Keine manuelle CI-Neuausführung oder Budgetänderung.
 
 Die Paket-/Reader-Korrektur in PR #59 ergänzt `python3 scripts/ios-test-verify/check.py` auf 21 Paket- und Konfigurationsfälle und `cargo test --locked --manifest-path native-core/Cargo.toml decode::` um Fehler-/Abbruchmarker sowie leere Leseanfragen. Die vollständige Rust-Reihe bleibt zusätzlich erforderlich; der lokale Linux-Lauf enthält einen auf dem bisherigen Decoder reproduzierten AAC-Regionenfehler. [Tatsächliche Ergebnisse, Ressourcenfehler und Geräteabnahme](RED_BIT_INTEGRATION.md#paket--und-reader-korrektur-vom-9-november-2026).
 

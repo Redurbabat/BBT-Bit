@@ -23,6 +23,7 @@ adapters = Path('scripts/home-discovery-verify/Adapters.swift').read_text().repl
 (work/'Adapters.swift').write_text(adapters)
 PY
 sources=(
+  AppleApp/Sources/App/AppTestEvidence.swift
   AppleApp/Sources/PlaybackSession/QueueEntry.swift
   AppleApp/Sources/PlaybackSession/HomeDiscoveryPolicy.swift
   AppleApp/Sources/PlaybackSession/QueueDragRegistry.swift

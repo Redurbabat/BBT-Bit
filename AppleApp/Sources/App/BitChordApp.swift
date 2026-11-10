@@ -222,6 +222,7 @@ struct BitChordApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     appModel.scenePhase = phase
+                    AutomixLiveTestMonitor.shared.applicationBackgroundChanged(phase == .background)
                     DownloadStore.shared.setAppActive(phase == .active)
                     LoadingMonitor.shared.setActive(phase == .active)
                     if phase == .background {

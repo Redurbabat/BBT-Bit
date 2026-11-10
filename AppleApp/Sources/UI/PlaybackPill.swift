@@ -46,6 +46,9 @@ struct PlaybackPill: View {
             }
         }
         .modifier(QueueCoverDropDestination())
+        .onChange(of: inline, initial: true) { _, value in
+            if value, usesSystemChrome { AppTestEvents.emit(.dockInline, .success, .screenDisplayed) }
+        }
     }
 
     // ---- iOS: mini-player above the tab bar --------------------------------

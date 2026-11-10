@@ -14,7 +14,7 @@ loader = 'import Foundation\nimport Observation\n@MainActor @Observable\nfinal c
 (work/'LoaderObserved.swift').write_text(loader)
 (work/'Loader.swift').write_text(loader.replace('import Observation\n', '').replace('@Observable\n', ''))
 PY
-sources=("$check_dir/Models.swift" scripts/feed-loading-verify/Adapters.swift scripts/feed-loading-verify/check.swift)
+sources=(AppleApp/Sources/App/AppTestEvidence.swift "$check_dir/Models.swift" scripts/feed-loading-verify/Adapters.swift scripts/feed-loading-verify/check.swift)
 "${SWIFTC:-swiftc}" -parse-as-library -swift-version 5 -typecheck "${sources[@]}" "$check_dir/LoaderObserved.swift"
 "${SWIFTC:-swiftc}" -parse-as-library -swift-version 5 "${sources[@]}" "$check_dir/Loader.swift" -o "$check_dir/check"
 "$check_dir/check"

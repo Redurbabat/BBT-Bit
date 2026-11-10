@@ -1928,6 +1928,7 @@ struct SearchView: View {
         requestToken &+= 1
         searchedTerm = term
         let wanted = scope
+        let probe = AppTestEvents.begin(.search)
         let task = Task { @MainActor in
             do {
                 let page = try await InnertubeSearch.shared.searchPage(term, scope: wanted.rawValue)
@@ -1941,11 +1942,13 @@ struct SearchView: View {
                 // checked before the request.
                 guard !Task.isCancelled else { return }
                 hits = found
+                AppTestEvents.finish(probe, .success, .responseReceived)
                 searchContinuationToken = page.continuation
             } catch {
                 guard !Task.isCancelled else { return }
                 AuthController.reportIfSessionExpired(error)
                 searchError = "Couldn't reach the music service. Check your connection and try again."
+                AppTestEvents.finish(probe, .failure, .requestFailed)
                 hits = []
                 searchContinuationToken = nil
             }
@@ -1973,14 +1976,17 @@ struct SearchView: View {
         searchedTerm = term
         AddonSearchHistory.record(term)
         addonHistory = AddonSearchHistory.load()
+        let probe = AppTestEvents.begin(.search)
         let task = Task { @MainActor in
             do {
                 let found = try await SourceSearch.shared.addons(term)
                 guard !Task.isCancelled else { return }
                 addonHits = found
+                AppTestEvents.finish(probe, .success, .responseReceived)
             } catch {
                 guard !Task.isCancelled else { return }
                 addonError = "Couldn't reach your sources. \(error.localizedDescription)"
+                AppTestEvents.finish(probe, .failure, .requestFailed)
                 addonHits = []
             }
             searchingAddons = false

@@ -105,6 +105,7 @@ struct NowPlayingView: View {
         .onReceive(NotificationCenter.default.publisher(for: .lyricsOffsetChanged)) { _ in
             lyricsOffsetMs = LyricsOffsetBridge.offsetMs()
         }
+        .onAppear { AppTestEvents.emit(.playerNavigation, .success, .screenDisplayed) }
         .onChange(of: appModel.queueRevealRequested) { _, requested in
             if requested {
                 withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { pane = .queue }

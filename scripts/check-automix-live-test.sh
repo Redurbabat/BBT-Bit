@@ -33,11 +33,13 @@ PY
 "${SWIFTC:-swiftc}" -parse-as-library -swift-version 5 -typecheck \
   AppleApp/Sources/PlaybackSession/PlaybackProgressTracker.swift \
   AppleApp/Sources/PlaybackSession/PlaybackDiagnosticFailure.swift \
+  AppleApp/Sources/App/AppTestEvidence.swift \
   AppleApp/Sources/App/AppTestReportStore.swift \
   "$check_dir/monitor.observed.swift"
 "${SWIFTC:-swiftc}" -parse-as-library -swift-version 5 \
   AppleApp/Sources/PlaybackSession/PlaybackProgressTracker.swift \
   AppleApp/Sources/PlaybackSession/PlaybackDiagnosticFailure.swift \
+  AppleApp/Sources/App/AppTestEvidence.swift \
   "$check_dir/monitor.archive.swift" \
   "$check_dir/monitor.swift" -o "$check_dir/check"
 "$check_dir/check"
