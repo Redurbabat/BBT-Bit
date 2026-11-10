@@ -200,19 +200,22 @@ extension SettingsView {
         }
     }
 
-    private func appendTestCenterRow(_ rows: inout SettingsRows) {
-        rows.row("RED Bit Testzentrale", "Automix", "KI", "Test", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
+    func appendTestCenterRow(_ rows: inout SettingsRows) {
+        rows.row("RED Bit Testzentrale", "Automix", "KI", "Test", "testen", "speichern", "Bericht", "Analyse", "Core ML", "Modell", "Übergang", "Musik", "Audio", "Wiedergabe", "Netzwerk", "Queue") {
             PushLink {
                 AutomixLiveTestView()
             } label: {
                 SettingsLine(
                     glyph: .automix,
                     title: "RED Bit Testzentrale",
-                    subtitle: "Musik, Audio, KI, Netzwerk, Queue und App-Funktionen prüfen"
+                    subtitle: AutomixLiveTestMonitor.shared.running
+                        ? "Aufzeichnung läuft – App weiter nutzen oder Test abschließen"
+                        : "Musik, Audio, KI, Netzwerk, Queue und App-Funktionen prüfen"
                 ) {
                     EmptyView()
                 }
             }
+            .accessibilityIdentifier("red.tests.openLive")
         }
     }
 

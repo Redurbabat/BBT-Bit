@@ -35,6 +35,8 @@ enum BBTManualTest: String, CaseIterable, Identifiable {
     case automixSound, searchAndDiscover, homeAndLibrary, playlistsAndFavorites
     case downloadsAndOffline, musicVideosAndLyrics, backgroundAndLockScreen
     case bluetoothAndAudioRoute, accessibilityAndGlass, partyAndSync
+    case homeDiscovery, albumPeek, dailyMix, coverQueueDrop
+    case feedFiltersAndPaging, nativeDockAndSearch, creativeInteractions, settingsAndUpdates
 
     var id: String { rawValue }
     var name: String {
@@ -53,6 +55,14 @@ enum BBTManualTest: String, CaseIterable, Identifiable {
         case .bluetoothAndAudioRoute: return "Bluetooth, Kopfhörer, Audio-Routen"
         case .accessibilityAndGlass: return "Liquid Glass, VoiceOver, große Schrift"
         case .partyAndSync: return "Listen Together und Synchronisation"
+        case .homeDiscovery: return "Fortsetzen und persönliche Home-Karten"
+        case .albumPeek: return "Album-Vorschau und Sammlungsaktionen"
+        case .dailyMix: return "Tagesmix und Mixauswahl"
+        case .coverQueueDrop: return "Cover zur Warteschlange ziehen"
+        case .feedFiltersAndPaging: return "Medienfilter und Feed nachladen"
+        case .nativeDockAndSearch: return "Native Suche, Mini-Player und Zoom"
+        case .creativeInteractions: return "Lyrics-Sternbild und Musikinteraktionen"
+        case .settingsAndUpdates: return "Einstellungen, Sprache und Updates"
         }
     }
     var instruction: String {
@@ -71,6 +81,14 @@ enum BBTManualTest: String, CaseIterable, Identifiable {
         case .bluetoothAndAudioRoute: return "Wechsle zu AirPods/Bluetooth oder USB und höre weiter."
         case .accessibilityAndGlass: return "Prüfe Dark Mode, Kontrast, VoiceOver und größere Schrift."
         case .partyAndSync: return "Teste Listen Together nur mit einem zweiten Gerät."
+        case .homeDiscovery: return "Setze eine pausierte Sitzung fort und öffne deine echten Pins oder Feed-Sammlungen."
+        case .albumPeek: return "Prüfe drei Titel über langes Drücken und das sichtbare Menü. Eine reine Vorschau darf nichts starten."
+        case .dailyMix: return "Teste Gemischt, Vertraut und Neugierig; öffne und starte die Liste bewusst."
+        case .coverQueueDrop: return "Ziehe Titel und Album auf den Mini-Player. Prüfe Reihenfolge und Bestätigung ohne Neustart des laufenden Songs."
+        case .feedFiltersAndPaging: return "Wechsle Alle, Musik und Videos. Lade weitere Inhalte, auch bei langsamem Netz und nach Kontowechsel."
+        case .nativeDockAndSearch: return "Scrolle in beide Richtungen, öffne die Such-Tastatur und den Vollplayer. Prüfe einen einzigen Player und den Rückzoom."
+        case .creativeInteractions: return "Prüfe Lyrics-Liste/Sternbild, Verlauf und Schlusszoom mit echten Textzeiten. Fehlende Daten bleiben offen."
+        case .settingsAndUpdates: return "Prüfe Sprachwahl, gespeicherte Einstellungen, Build-Revision und Updateanzeige ohne eine Installation auszulösen."
         }
     }
 }
@@ -81,12 +99,22 @@ enum BBTManualVerdict: String, CaseIterable {
     case fail = "Fehler"
 }
 
+struct AppTestModelCheck: Codable {
+    let passed: Bool
+    let checkedAt: Date
+}
+
 @MainActor
 @Observable
 final class AutomixLiveTestMonitor {
     static let shared = AutomixLiveTestMonitor()
     private(set) var running = false
     private(set) var startedAt: Date?
+    private(set) var endedAt: Date?
+    private(set) var sessionID = UUID()
+    private(set) var lastSavedAt: Date?
+    private(set) var storageError: String?
+    private(set) var modelChecks: [String: AppTestModelCheck] = [:]
     private(set) var samples: [AutomixLiveSample] = []
     private(set) var progressObserved = false
     private(set) var outputObserved = false
@@ -115,11 +143,17 @@ final class AutomixLiveTestMonitor {
     @ObservationIgnored private var baseTransition: UInt64 = 0
     @ObservationIgnored private var observedPlanRevision: UInt64 = 0
     @ObservationIgnored private var progressTracker = PlaybackProgressTracker()
+    @ObservationIgnored private let archive: AppTestReportStore
 
-    private init() {}
+    init(archive: AppTestReportStore) { self.archive = archive }
+    convenience init() { self.init(archive: .shared) }
 
     func start(controller: PlaybackController) {
-        stop()
+        guard !running else { return }
+        if startedAt != nil {
+            do { _ = try saveReport() } catch { return }
+        }
+        sessionID = UUID(); endedAt = nil; lastSavedAt = nil; storageError = nil
         startedAt = Date()
         samples = []
         progressObserved = false
@@ -132,6 +166,7 @@ final class AutomixLiveTestMonitor {
         appErrorObserved = false
         engineBuildRevision = "unknown"
         manualVerdicts = [:]
+        modelChecks = [:]
         plansObserved = 0
         transitionsObserved = 0
         onnxObserved = false
@@ -139,41 +174,62 @@ final class AutomixLiveTestMonitor {
         vocalsObserved = false
         lastPlanSource = nil
         message = nil
+        runtime = AutomixRuntimeSnapshot(beatReady: false, vocalsRequested: false, coreMLLoaded: false, configuredAt: nil)
         progressTracker = PlaybackProgressTracker()
         basePlan = controller.automixPlanRevision
         baseTransition = controller.automixTransitionRevision
         observedPlanRevision = basePlan
         running = true
-        // This monitor observes the real user queue without starting, stopping,
-        // muting, seeking or replacing any audio.
+        record(controller: controller)
+        checkpoint()
+        let run = sessionID
+        // Nur beobachten: Queue, Lautstärke und Wiedergabe bleiben beim Player.
         sampleTask = Task { @MainActor [weak self, weak controller] in
             while !Task.isCancelled {
-                guard let self, self.running, let controller else { return }
-                self.record(controller: controller)
-                self.runtime = await AutomixModelLoader.shared.snapshot()
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                guard let self, self.running, self.sessionID == run, let controller else { return }
                 if Date().timeIntervalSince(self.startedAt ?? Date()) >= 30 * 60 {
-                    self.message = "30 Minuten aufgezeichnet. Der Test wurde automatisch beendet."
+                    self.message = "Zeitlimit erreicht. Der Test wurde automatisch beendet."
                     self.stop()
                     return
                 }
-                do { try await Task.sleep(for: .seconds(1)) }
-                catch { return }
+                self.record(controller: controller)
+                let snapshot = await AutomixModelLoader.shared.snapshot()
+                guard !Task.isCancelled, self.running, self.sessionID == run else { return }
+                self.runtime = snapshot
+                if self.samples.count % 30 == 0 { self.checkpoint() }
             }
         }
     }
 
     func stop() {
+        guard running else { return }
         running = false
+        endedAt = Date()
         sampleTask?.cancel()
         sampleTask = nil
+        checkpoint()
     }
 
     func setManual(_ test: BBTManualTest, verdict: BBTManualVerdict) {
+        guard startedAt != nil else { return }
         manualVerdicts[test] = verdict
+        checkpoint()
+    }
+
+    func setModelCheck(_ id: String, passed: Bool) {
+        guard AutomixModelStore.ModelID.allCases.contains(where: { $0.rawValue == id }) else { return }
+        modelChecks[id] = AppTestModelCheck(passed: passed, checkedAt: Date())
+        checkpoint()
+    }
+
+    func checkpoint() {
+        guard startedAt != nil else { return }
+        do { _ = try saveReport() } catch { }
     }
 
     private func record(controller: PlaybackController) {
-        guard let startedAt else { return }
+        guard running, let startedAt, samples.count < 1800 else { return }
         let currentID = controller.current?.id
         let position = controller.position
         let progressed = progressTracker.observe(
@@ -246,9 +302,9 @@ final class AutomixLiveTestMonitor {
         samples.append(item)
     }
 
-    /// A privacy-minimal on-device report. Saving never sends anything;
-    /// the user decides whether to share the resulting file.
-    func saveReport() throws -> URL {
+    /// Gemeinsame Berichtsdaten für Zwischenstand, Abschluss und Datei-Export.
+    func reportData() throws -> Data {
+        guard let startedAt else { throw AppTestReportError.noSession }
         struct Model: Codable {
             let name: String
             let installedPinned: Bool
@@ -256,13 +312,15 @@ final class AutomixLiveTestMonitor {
         }
         struct Report: Codable {
             let version: Int
+            let summary: AppTestSessionSummary
             let appVersion: String
             let buildNumber: String
             let buildRevision: String
             let engineBuildRevision: String
             let operatingSystem: String
             let startedAt: Date?
-            let endedAt: Date
+            let endedAt: Date?
+            let modelIntegrityChecks: [String: AppTestModelCheck]
             let modelState: [Model]
             let manualChecks: [String: String]
             let nativeAudioOutputObserved: Bool
@@ -286,13 +344,19 @@ final class AutomixLiveTestMonitor {
         }
         let store = AutomixModelStore.shared
         let payload = Report(
-            version: 3,
+            version: 4,
+            summary: AppTestSessionSummary(id: sessionID, startedAt: startedAt, updatedAt: Date(),
+                finishedAt: endedAt, state: running ? .running : .completed, sampleCount: samples.count,
+                manualPassed: manualVerdicts.values.filter { $0 == .pass }.count,
+                manualFailed: manualVerdicts.values.filter { $0 == .fail }.count,
+                manualTotal: BBTManualTest.allCases.count),
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
             buildNumber: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown",
             buildRevision: Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String ?? "unknown",
             engineBuildRevision: engineBuildRevision,
             operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString,
-            startedAt: startedAt, endedAt: Date(),
+            startedAt: startedAt, endedAt: endedAt,
+            modelIntegrityChecks: modelChecks,
             modelState: AutomixModelStore.ModelID.allCases.map { id in
                 Model(name: id.rawValue, installedPinned: store.status(of: id).isInstalled,
                       usablePreviousVersion: store.isUsingPreviousGraph(id))
@@ -322,10 +386,18 @@ final class AutomixLiveTestMonitor {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("BBT-Bit-Automix-Livetest.json")
-        try encoder.encode(payload).write(to: url, options: .atomic)
-        return url
+        return try encoder.encode(payload)
+    }
+
+    func saveReport() throws -> URL {
+        do {
+            let url = try archive.save(reportData())
+            lastSavedAt = Date(); storageError = nil
+            return url
+        } catch {
+            storageError = "Der Testbericht konnte nicht lokal gespeichert werden. Bitte erneut versuchen."
+            throw error
+        }
     }
 }
 
@@ -337,26 +409,28 @@ struct AutomixLiveTestView: View {
     private let monitor = AutomixLiveTestMonitor.shared
 
     @State private var checkingHashes = false
-    @State private var hashResults: [AutomixModelStore.ModelID: String] = [:]
     @State private var reportURL: URL?
+    @State private var exportData: Data?
     @State private var exportError: String?
 
     var body: some View {
         Form {
             Section {
-                Text("Prüfe RED Bit während der normalen Nutzung: KI-Modelle, Audiopfad, Queue, Streaming, Übergänge und App-Funktionen. Verlasse die Seite und nutze die App weiter. Die Aufzeichnung endet nach spätestens 30 Minuten. Deine Queue und Wiedergabe werden durch den Monitor nicht verändert.")
+                Text("Starte den App-Test, schließe die Einstellungen und nutze RED Bit wie gewohnt. Kehre hierher zurück, bewerte die tatsächlich geprüften Funktionen und beende den Test. Zwischenstände werden alle 30 Messpunkte sowie beim Wechsel in den Hintergrund gespeichert. Die Aufzeichnung endet nach 30 Minuten, sobald die App ausgeführt wird. Deine Wiedergabe bleibt unverändert.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Button {
                     if monitor.running {
                         monitor.stop()
+                        prepareExport()
                     } else {
                         reportURL = nil
+                        exportData = nil
                         exportError = nil
                         monitor.start(controller: controller)
                     }
                 } label: {
-                    Label(monitor.running ? "Livetest stoppen" : "Livetest starten",
+                    Label(monitor.running ? "Beenden und speichern" : "App-Test starten",
                           systemImage: monitor.running ? "stop.circle" : "record.circle")
                 }
                 .accessibilityIdentifier("bbt.automixLive.toggle")
@@ -373,6 +447,14 @@ struct AutomixLiveTestView: View {
                 }
                 LabeledContent("Messpunkte", value: "\(monitor.samples.count)")
                 LabeledContent("Maximale Laufzeit", value: "30 Minuten")
+                if let saved = monitor.lastSavedAt {
+                    LabeledContent("Letzter Speicherstand") { Text(saved, style: .time) }
+                }
+                if let error = monitor.storageError {
+                    Text(LocalizedStringKey(error)).foregroundStyle(.red)
+                }
+                NavigationLink("Gespeicherte Testberichte") { AppTestReportsView() }
+                    .accessibilityIdentifier("red.tests.openHistory")
                 Text("Im Hintergrund kann iOS die App pausieren. Aufzeichnung läuft nur, solange die App tatsächlich ausgeführt wird.")
                     .font(.caption).foregroundStyle(.secondary)
             } header: {
@@ -385,8 +467,10 @@ struct AutomixLiveTestView: View {
                         Text(modelName(id)).font(.subheadline.weight(.semibold))
                         LabeledContent("Datei", value: installedText(id))
                         LabeledContent("Echte Analyse", value: inferredText(id))
-                        if let result = hashResults[id] {
-                            Text(result).font(.footnote).foregroundStyle(.secondary)
+                        if let result = monitor.modelChecks[id.rawValue] {
+                            Text(result.passed ? "SHA-256 und Dateigröße der aktuellen Version bestätigt"
+                                : "Aktuelle SHA-256-Datei nicht bestätigt")
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                     .padding(.vertical, 4)
@@ -479,6 +563,7 @@ struct AutomixLiveTestView: View {
             }
 
             Section {
+                LabeledContent("Manuell geprüft", value: "\(monitor.manualVerdicts.values.filter { $0 != .open }.count)/\(BBTManualTest.allCases.count)")
                 ForEach(BBTManualTest.allCases) { test in
                     VStack(alignment: .leading, spacing: 5) {
                         Text(test.name).font(.subheadline.weight(.medium))
@@ -494,6 +579,7 @@ struct AutomixLiveTestView: View {
                         .pickerStyle(.segmented)
                         .labelsHidden()
                         .accessibilityIdentifier("bbt.fullTest.\(test.rawValue)")
+                        .disabled(monitor.startedAt == nil)
                     }
                     .padding(.vertical, 4)
                 }
@@ -516,16 +602,12 @@ struct AutomixLiveTestView: View {
             }
 
             Section {
-                Button("Lokalen Testbericht speichern") {
-                    do {
-                        reportURL = try monitor.saveReport()
-                        exportError = nil
-                    } catch {
-                        exportError = "Bericht konnte nicht gespeichert werden: \(error.localizedDescription)"
-                    }
-                }
-                .disabled(monitor.samples.isEmpty)
+                Button("Lokalen Testbericht speichern") { prepareExport() }
+                .disabled(monitor.startedAt == nil)
                 .accessibilityIdentifier("bbt.automixLive.saveReport")
+                if let exportData {
+                    AppTestReportExportButton(data: exportData, name: "RED-Bit-Test-\(monitor.sessionID.uuidString)")
+                }
                 if let reportURL {
                     ShareLink("Testbericht teilen", item: reportURL)
                         .accessibilityIdentifier("bbt.automixLive.shareReport")
@@ -541,6 +623,18 @@ struct AutomixLiveTestView: View {
         }
         .formStyle(.grouped)
         .navigationTitle("RED Bit Testzentrale")
+    }
+
+    private func prepareExport() {
+        reportURL = nil; exportData = nil
+        do {
+            let url = try monitor.saveReport()
+            exportData = try Data(contentsOf: url)
+            reportURL = url
+            exportError = nil
+        } catch {
+            exportError = "Der Testbericht konnte nicht lokal gespeichert werden. Bitte erneut versuchen."
+        }
     }
 
     private func modelName(_ id: AutomixModelStore.ModelID) -> String {
@@ -584,13 +678,13 @@ struct AutomixLiveTestView: View {
         guard !checkingHashes else { return }
         checkingHashes = true
         defer { checkingHashes = false }
+        let run = monitor.sessionID
         for id in AutomixModelStore.ModelID.allCases {
             // verify() can report an old fallback as usable: only .installed
             // proves the checksum of the *current* pinned artifact.
             _ = await store.verify(id)
-            hashResults[id] = store.status(of: id).isInstalled
-                ? "SHA-256 und Dateigröße der aktuellen Version bestätigt"
-                : "Aktuelle SHA-256-Datei nicht bestätigt"
+            guard !Task.isCancelled, monitor.sessionID == run else { return }
+            monitor.setModelCheck(id.rawValue, passed: store.status(of: id).isInstalled)
         }
     }
 }

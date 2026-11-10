@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-10 · App-Testbereich und dauerhaft gespeicherte Berichte auf PR #59
+
+Einstellungen erhalten „Tests & Diagnose“ mit der vorhandenen Testzentrale, Berichtsverlauf und bestehenden Diagnosewegen. Derselbe Monitor läuft beim Seitenwechsel weiter; atomare Zwischenstände und Abschlussberichte bleiben nach App-Neustart erhalten. Unterbrochene Läufe werden kenntlich gemacht. JSON v4 enthält 22 manuelle Bereiche und echte Modell-Prüfergebnisse; der System-Dateiexport ergänzt die Freigabe. Neue Tests erhalten eigene Dateien und verwerfen bei Schreibfehlern keinen alten Lauf. Produktionsmonitor/-speicher mit Observation und kontrollierten Diensten, Datenschutz, Fehlerfälle und 1800-Punkte-Grenze lokal geprüft. [Anleitung und Abnahme BBT-028](docs/iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen); Apple-/Geräteprüfung bleibt offen.
+
 ## 2026-11-09 · Fehlende Feed-Inhalte und blockiertes Nachladen korrigiert
 
 Home ergänzt zusätzliche Titel innerhalb gleichnamiger Regale, statt ganze Folgeseiten zu verwerfen. Erstladen und Paging konkurrieren nicht mehr; alte Konto-/Refresh-Anfragen verändern weder Inhalte noch Spinner einer neueren Anfrage. Erfolgreiche leere Feeds enden ohne Dauerspinner, Wiederholungen löschen alte Fehlermeldungen. Home bietet auch bei vorhandenem Inhalt einen sichtbaren Ladebutton und startet den begrenzten leeren Filter erst bei verfügbarer Folgeseite. Vorher acht fehlgeschlagene Gegenproben; nach Korrektur 17 Produktionsprüfungen bestanden. [Nachweise und BBT-027](docs/RED_BIT_INTEGRATION.md#zuverlässiges-nachladen-vom-9-november-2026); Apple-/Geräteabnahme bleibt offen.

@@ -285,7 +285,8 @@ final class LiquidMotionUITests: XCTestCase {
                 let flip = app.buttons["red.lyrics.mirror.toggle"]
                 XCTAssertTrue(flip.exists, "Lyrics switch is missing")
                 flip.tap()
-                XCTAssertTrue(app.staticTexts["Wir hören den Rhythmus"].exists)
+                let original = expectation(for: NSPredicate(format: "value == %@", "Wir hören den Rhythmus"), evaluatedWith: flip)
+                wait(for: [original], timeout: 5)
             case 3:
                 let prism = app.buttons["red.signal.prism.toggle"]
                 XCTAssertTrue(prism.exists, "Audio pipeline preview control is missing")

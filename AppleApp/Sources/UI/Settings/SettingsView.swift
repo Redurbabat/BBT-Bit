@@ -301,7 +301,7 @@ struct SettingsView: View {
     /// beside the section could only describe the section as a whole, which is how
     /// typing "flac" came to mean "show every row in Audio Quality".
     enum SettingsSection: String, CaseIterable, Identifiable {
-        case sources, audioQuality, playback, downloads, appearance, account, advanced, yourData, about
+        case sources, audioQuality, playback, tests, downloads, appearance, account, advanced, yourData, about
 
         var id: String { rawValue }
 
@@ -312,6 +312,7 @@ struct SettingsView: View {
             case .audioQuality: return "Sound & Quality"
             case .downloads: return "Downloads & Storage"
             case .playback: return "Playback"
+            case .tests: return "Tests & Diagnose"
             case .appearance: return "Appearance"
             case .yourData: return "Your Data & Backup"
             case .advanced: return "Advanced Options"
@@ -326,6 +327,7 @@ struct SettingsView: View {
             case .audioQuality: return "waveform"
             case .downloads: return "arrow.down.circle"
             case .playback: return "play.circle"
+            case .tests: return "checklist"
             case .appearance: return "paintbrush"
             case .yourData: return "externaldrive"
             case .advanced: return "gearshape.2"
@@ -434,6 +436,7 @@ struct SettingsView: View {
             buildAccountRows(&rows)
             appendMiscRows(&rows, titles: ["Listen together", "Spotify Canvas"])
         case .audioQuality: buildAudioQualityRows(&rows)
+        case .tests: buildTestRows(&rows)
         case .downloads:
             buildDownloadRows(&rows)
             buildLocalMusicRows(&rows)
@@ -475,6 +478,8 @@ struct SettingsView: View {
             Text("Gapless stays on at 0s. Automix picks timing per track; crossfade sets the manual blend length.")
         case .advanced:
             Text("Analysis and display performance options can increase CPU use and battery consumption. Version alignment controls how a source switch resumes the recording.")
+        case .tests:
+            Text("Starte einen Test, nutze die App weiter und sichere am Ende deinen Bericht. Nicht geprüfte Funktionen bleiben offen.")
         case .about:
             Text("RED Bit \(update.currentVersion)")
                 .frame(maxWidth: .infinity)
@@ -571,6 +576,9 @@ struct SettingsView: View {
             return label + (attention ? AppLanguage.localized(" · needs attention") : "")
         case .audioQuality: return "Requested quality, decoded format, effects and device output"
         case .playback: return "Queue, transitions, speed and background playback"
+        case .tests: return AutomixLiveTestMonitor.shared.running
+            ? "Aufzeichnung läuft – App weiter nutzen oder Test abschließen"
+            : "App-Test, Checkliste und gespeicherte Berichte"
         case .downloads: return "Offline quality, local folders and temporary storage"
         case .appearance: return "Player, lyrics, language and visual preferences"
         case .account: return "Sign-in, sharing and connected services"

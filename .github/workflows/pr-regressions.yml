@@ -117,6 +117,9 @@ jobs:
       - name: Parse App-wide Testzentrale and model loader Swift syntax
         run: |
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixLiveTestView.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/AppTestReportsView.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Tests.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Playback.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixModelsSheet.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/AutomixModelLoader.swift

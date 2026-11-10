@@ -1,4 +1,17 @@
 import SwiftUI
+
+/// Nur die gekennzeichnete Beispielgalerie aktiviert diesen gemeinsamen Wert.
+private struct LiquidDesignSampleKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var liquidDesignSample: Bool {
+        get { self[LiquidDesignSampleKey.self] }
+        set { self[LiquidDesignSampleKey.self] = newValue }
+    }
+}
+
 #if os(iOS)
 import UIKit
 import Observation
@@ -205,18 +218,6 @@ private struct LiquidWindowCaptureReport: Codable {
     let appVersion: String
     let buildRevision: String
     let captured: [LiquidWindowCapture]
-}
-
-/// Only the synthetic sample gallery sets this to true.
-private struct LiquidDesignSampleKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
-extension EnvironmentValues {
-    var liquidDesignSample: Bool {
-        get { self[LiquidDesignSampleKey.self] }
-        set { self[LiquidDesignSampleKey.self] = newValue }
-    }
 }
 
 /// Invisible hook which never alters the live feature's layout.

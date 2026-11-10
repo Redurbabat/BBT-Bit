@@ -22,6 +22,10 @@ errors = controller.split('    var lastError: String?', 1)[1].split('    var rec
 adapters = Path('scripts/automix-live-verify/check.swift').read_text()
 adapters = adapters.replace('    // PRODUCTION_ERROR_STATE', '    var lastError: String?' + errors)
 Path(sys.argv[1]).write_text(monitor + '\n' + adapters)
+archive = Path('AppleApp/Sources/App/AppTestReportStore.swift').read_text()
+if sys.platform == 'linux':
+    archive = archive.replace('import Observation\n', '').replace('@Observable ', '')
+Path(sys.argv[1]).with_suffix('.archive.swift').write_text(archive)
 observedAdapters = adapters.replace('@MainActor final class PlaybackController',
                                     '@MainActor @Observable final class PlaybackController')
 Path(sys.argv[1]).with_suffix('.observed.swift').write_text(observed + '\n' + observedAdapters)
@@ -29,10 +33,12 @@ PY
 "${SWIFTC:-swiftc}" -parse-as-library -swift-version 5 -typecheck \
   AppleApp/Sources/PlaybackSession/PlaybackProgressTracker.swift \
   AppleApp/Sources/PlaybackSession/PlaybackDiagnosticFailure.swift \
+  AppleApp/Sources/App/AppTestReportStore.swift \
   "$check_dir/monitor.observed.swift"
 "${SWIFTC:-swiftc}" -parse-as-library -swift-version 5 \
   AppleApp/Sources/PlaybackSession/PlaybackProgressTracker.swift \
   AppleApp/Sources/PlaybackSession/PlaybackDiagnosticFailure.swift \
+  "$check_dir/monitor.archive.swift" \
   "$check_dir/monitor.swift" -o "$check_dir/check"
 "$check_dir/check"
 "${SWIFTC:-swiftc}" -parse-as-library -swift-version 5 \

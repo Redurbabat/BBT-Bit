@@ -1,5 +1,24 @@
 # Testplan
 
+## App-Testbereich auf PR #59
+
+[Nutzerweg und Speicherformat](iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
+`SWIFTC=…/swiftc bash scripts/check-automix-live-test.sh` prüft den tatsächlichen
+Monitor/Archivspeicher mit kontrollierten Diensten einschließlich Observation-Typprüfung.
+JSON-v4-/Datenschutz-/Wiederöffnungs-/Fehler-/Grenzfälle lokal bestanden;
+SwiftUI- und Gerätetest bleiben davon getrennt. Abnahme BBT-028:
+
+1. Frischen PR-Build und Revision nennen. Einstellungen → Tests & Diagnose auf iPhone/iPad/Mac finden; Suche nach „Test“ und „Bericht“, bisherige Zugänge und gespeicherte Sprachwahl prüfen.
+2. App-Test starten, Einstellungen schließen und echte Musik nutzen. Nach Rückkehr derselbe Lauf mit mehr Messpunkten, unveränderter Queue/Transport und erhaltenen manuellen Bewertungen. Doppeltippen darf nichts zurücksetzen.
+3. Offene, bestandene und fehlerhafte Handprüfungen setzen. 22 Bereiche einschließlich Home, Filter/Paging, Cover-Drop, Such-Tastatur/Dock/Zoom und Lyrics prüfen; ungetestete Funktionen bleiben offen.
+4. Modellprüfsummen ausdrücklich anfordern. Datei-/Runtime-/Inferenzstatus getrennt anzeigen; nur tatsächliche Prüfergebnisse und Zeiten exportieren. Keine Modelle allein für den Passivtest herunterladen.
+5. Beenden und speichern, neuen Lauf beginnen und beide im Verlauf öffnen. Datum, Abschlussstatus, Build-Revision und Ergebnisse müssen zum richtigen Lauf gehören.
+6. In Dateien sichern und Teilen prüfen, jeweils auch Abbruch. JSON muss vollständig sein und darf keine Songtitel, IDs, lokalen Pfade oder Zugangsdaten enthalten. Exportabbruch erhält den internen Bericht.
+7. App während eines Laufs verlassen/beenden und erneut öffnen. Letzten tatsächlichen Zwischenstand als unterbrochen anzeigen, ohne nachträgliche Messung oder erfundenes Abschlussdatum. Schreibfehler in kontrollierter Prüffassung sichtbar melden und bisherigen Bericht erhalten.
+8. VoiceOver, große Schrift, kleine Breite, hell/dunkel und Mac-Dateidialog prüfen. Hintergrund/Sperrbildschirm, native Dock-Animation und tatsächlich hörbaren Ton separat auf echter Hardware nachweisen.
+
+**Apple-SDK-Build, UI/Dateidialog, Hintergrund und hörbare Wiedergabe NICHT GETESTET**, bis ein entsprechender neuer Nachweis vorliegt. Keine manuelle CI-Neuausführung oder Budgetänderung.
+
 Die Paket-/Reader-Korrektur in PR #59 ergänzt `python3 scripts/ios-test-verify/check.py` auf 21 Paket- und Konfigurationsfälle und `cargo test --locked --manifest-path native-core/Cargo.toml decode::` um Fehler-/Abbruchmarker sowie leere Leseanfragen. Die vollständige Rust-Reihe bleibt zusätzlich erforderlich; der lokale Linux-Lauf enthält einen auf dem bisherigen Decoder reproduzierten AAC-Regionenfehler. [Tatsächliche Ergebnisse, Ressourcenfehler und Geräteabnahme](RED_BIT_INTEGRATION.md#paket--und-reader-korrektur-vom-9-november-2026).
 
 Für die Livetest-v3-Korrektur in PR #59: `bash scripts/check-automix-live-test.sh` prüft den echten Monitor isoliert mit kontrollierten Player-/Modelladaptern, Fehlertrennung, aktuellen Fortschritt, Neustart und JSON-Datenschutz. Der Monitor einschließlich Observation-Makros wird typgeprüft; unter Linux läuft der Verhaltenstest ohne Observation-Anbindung. Der neue `NetworkRangeRequestTest` wird über `./gradlew :shared:macosArm64Test --tests '*NetworkRangeRequestTest'` auf Apple ausgeführt. Für den RED-Morph-Scrub-Fokus: `swiftc -parse-as-library -swift-version 5 AppleApp/Sources/UI/NowPlaying/ScrubFocusGeometry.swift scripts/test-scrub-focus.swift -o /tmp/red-bit-scrub-focus && /tmp/red-bit-scrub-focus`. [Befehle und tatsächlich ausgeführte Nachweise](RED_BIT_INTEGRATION.md#korrekturen-vom-9-november-2026).

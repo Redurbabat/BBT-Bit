@@ -38,6 +38,7 @@ struct LyricsMirror: View {
             .buttonStyle(.plain)
             .accessibilityLabel(Text(showOriginal ? LocalizedStringKey("Original lyric") : LocalizedStringKey("Translated lyric")))
             .accessibilityIdentifier("red.lyrics.mirror.toggle")
+            .accessibilityValue(Text(showOriginal ? original : translation))
             .accessibilityHint("Switch between original and translation")
             .gesture(DragGesture(minimumDistance: 25).onEnded { value in
                 if abs(value.translation.width) > abs(value.translation.height) + 15 {

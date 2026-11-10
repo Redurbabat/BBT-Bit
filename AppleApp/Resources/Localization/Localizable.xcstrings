@@ -12862,6 +12862,12 @@
             "state": "translated",
             "value": "狀態"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
         }
       }
     },
@@ -19325,6 +19331,526 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zwischen Original und Übersetzung wechseln"
+          }
+        }
+      }
+    },
+    "%lld Messpunkte · %lld/%lld manuell bestanden · %lld Fehler": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Messpunkte · %lld/%lld manuell bestanden · %lld Fehler"
+          }
+        }
+      }
+    },
+    "15 Liquid-Motion-Designs automatisch prüfen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 Liquid-Motion-Designs automatisch prüfen"
+          }
+        }
+      }
+    },
+    "Abgeschlossene Tests und letzte Speicherstände öffnen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgeschlossene Tests und letzte Speicherstände öffnen"
+          }
+        }
+      }
+    },
+    "Album-Vorschau und Sammlungsaktionen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album-Vorschau und Sammlungsaktionen"
+          }
+        }
+      }
+    },
+    "App-Test starten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Test starten"
+          }
+        }
+      }
+    },
+    "App-Test, Checkliste und gespeicherte Berichte": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Test, Checkliste und gespeicherte Berichte"
+          }
+        }
+      }
+    },
+    "Aufzeichnung läuft": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufzeichnung läuft"
+          }
+        }
+      }
+    },
+    "Aufzeichnung läuft – App weiter nutzen oder Test abschließen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufzeichnung läuft – App weiter nutzen oder Test abschließen"
+          }
+        }
+      }
+    },
+    "Beenden und speichern": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beenden und speichern"
+          }
+        }
+      }
+    },
+    "Berichte bleiben auf diesem Gerät. Eine unterbrochene Aufzeichnung enthält den letzten gespeicherten Stand und gilt nicht als abgeschlossen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berichte bleiben auf diesem Gerät. Eine unterbrochene Aufzeichnung enthält den letzten gespeicherten Stand und gilt nicht als abgeschlossen."
+          }
+        }
+      }
+    },
+    "Cover zur Warteschlange ziehen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cover zur Warteschlange ziehen"
+          }
+        }
+      }
+    },
+    "Datei konnte nicht gespeichert werden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datei konnte nicht gespeichert werden"
+          }
+        }
+      }
+    },
+    "Datei speichern oder teilen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datei speichern oder teilen"
+          }
+        }
+      }
+    },
+    "Der Bericht bleibt in der App gespeichert. Bitte erneut versuchen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Bericht bleibt in der App gespeichert. Bitte erneut versuchen."
+          }
+        }
+      }
+    },
+    "Der Bericht konnte nicht geöffnet werden. Die Datei bleibt erhalten.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Bericht konnte nicht geöffnet werden. Die Datei bleibt erhalten."
+          }
+        }
+      }
+    },
+    "Der Testbericht konnte nicht lokal gespeichert werden. Bitte erneut versuchen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Testbericht konnte nicht lokal gespeichert werden. Bitte erneut versuchen."
+          }
+        }
+      }
+    },
+    "Dieser Testbericht konnte nicht gelesen werden. Die Datei bleibt erhalten.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Testbericht konnte nicht gelesen werden. Die Datei bleibt erhalten."
+          }
+        }
+      }
+    },
+    "Einige Berichte konnten nicht gelesen werden. Ihre Dateien wurden nicht gelöscht.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einige Berichte konnten nicht gelesen werden. Ihre Dateien wurden nicht gelöscht."
+          }
+        }
+      }
+    },
+    "Einstellungen, Sprache und Updates": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen, Sprache und Updates"
+          }
+        }
+      }
+    },
+    "Fortsetzen und persönliche Home-Karten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortsetzen und persönliche Home-Karten"
+          }
+        }
+      }
+    },
+    "Gespeicherte Testberichte": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Testberichte"
+          }
+        }
+      }
+    },
+    "In Dateien sichern": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Dateien sichern"
+          }
+        }
+      }
+    },
+    "Letzter Speicherstand": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Speicherstand"
+          }
+        }
+      }
+    },
+    "Lyrics-Sternbild und Musikinteraktionen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lyrics-Sternbild und Musikinteraktionen"
+          }
+        }
+      }
+    },
+    "Manuell geprüft": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuell geprüft"
+          }
+        }
+      }
+    },
+    "Manuelle Ergebnisse": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuelle Ergebnisse"
+          }
+        }
+      }
+    },
+    "Medienfilter und Feed nachladen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medienfilter und Feed nachladen"
+          }
+        }
+      }
+    },
+    "Musik- und Streamdiagnose ansehen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musik- und Streamdiagnose ansehen"
+          }
+        }
+      }
+    },
+    "Native Suche, Mini-Player und Zoom": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native Suche, Mini-Player und Zoom"
+          }
+        }
+      }
+    },
+    "Nicht getestet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht getestet"
+          }
+        }
+      }
+    },
+    "Noch keine Testberichte gespeichert.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Testberichte gespeichert."
+          }
+        }
+      }
+    },
+    "Prüfe Lyrics-Liste/Sternbild, Verlauf und Schlusszoom mit echten Textzeiten. Fehlende Daten bleiben offen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe Lyrics-Liste/Sternbild, Verlauf und Schlusszoom mit echten Textzeiten. Fehlende Daten bleiben offen."
+          }
+        }
+      }
+    },
+    "Prüfe Sprachwahl, gespeicherte Einstellungen, Build-Revision und Updateanzeige ohne eine Installation auszulösen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe Sprachwahl, gespeicherte Einstellungen, Build-Revision und Updateanzeige ohne eine Installation auszulösen."
+          }
+        }
+      }
+    },
+    "Prüfe drei Titel über langes Drücken und das sichtbare Menü. Eine reine Vorschau darf nichts starten.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe drei Titel über langes Drücken und das sichtbare Menü. Eine reine Vorschau darf nichts starten."
+          }
+        }
+      }
+    },
+    "Scrolle in beide Richtungen, öffne die Such-Tastatur und den Vollplayer. Prüfe einen einzigen Player und den Rückzoom.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrolle in beide Richtungen, öffne die Such-Tastatur und den Vollplayer. Prüfe einen einzigen Player und den Rückzoom."
+          }
+        }
+      }
+    },
+    "Separate Designprüfung mit gekennzeichneten Beispieldaten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate Designprüfung mit gekennzeichneten Beispieldaten"
+          }
+        }
+      }
+    },
+    "Setze eine pausierte Sitzung fort und öffne deine echten Pins oder Feed-Sammlungen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setze eine pausierte Sitzung fort und öffne deine echten Pins oder Feed-Sammlungen."
+          }
+        }
+      }
+    },
+    "Starte den App-Test, schließe die Einstellungen und nutze RED Bit wie gewohnt. Kehre hierher zurück, bewerte die tatsächlich geprüften Funktionen und beende den Test. Zwischenstände werden alle 30 Messpunkte sowie beim Wechsel in den Hintergrund gespeichert. Die Aufzeichnung endet nach 30 Minuten, sobald die App ausgeführt wird. Deine Wiedergabe bleibt unverändert.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte den App-Test, schließe die Einstellungen und nutze RED Bit wie gewohnt. Kehre hierher zurück, bewerte die tatsächlich geprüften Funktionen und beende den Test. Zwischenstände werden alle 30 Messpunkte sowie beim Wechsel in den Hintergrund gespeichert. Die Aufzeichnung endet nach 30 Minuten, sobald die App ausgeführt wird. Deine Wiedergabe bleibt unverändert."
+          }
+        }
+      }
+    },
+    "Starte einen Test, nutze die App weiter und sichere am Ende deinen Bericht. Nicht geprüfte Funktionen bleiben offen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte einen Test, nutze die App weiter und sichere am Ende deinen Bericht. Nicht geprüfte Funktionen bleiben offen."
+          }
+        }
+      }
+    },
+    "Starte zuerst einen App-Test.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte zuerst einen App-Test."
+          }
+        }
+      }
+    },
+    "Tagesmix und Mixauswahl": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesmix und Mixauswahl"
+          }
+        }
+      }
+    },
+    "Testbericht teilen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testbericht teilen"
+          }
+        }
+      }
+    },
+    "Teste Gemischt, Vertraut und Neugierig; öffne und starte die Liste bewusst.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teste Gemischt, Vertraut und Neugierig; öffne und starte die Liste bewusst."
+          }
+        }
+      }
+    },
+    "Tests & Diagnose": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tests & Diagnose"
+          }
+        }
+      }
+    },
+    "Unterbrochen – letzter Speicherstand": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unterbrochen – letzter Speicherstand"
+          }
+        }
+      }
+    },
+    "Wechsle Alle, Musik und Videos. Lade weitere Inhalte, auch bei langsamem Netz und nach Kontowechsel.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechsle Alle, Musik und Videos. Lade weitere Inhalte, auch bei langsamem Netz und nach Kontowechsel."
+          }
+        }
+      }
+    },
+    "Zeitlimit erreicht. Der Test wurde automatisch beendet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitlimit erreicht. Der Test wurde automatisch beendet."
+          }
+        }
+      }
+    },
+    "Ziehe Titel und Album auf den Mini-Player. Prüfe Reihenfolge und Bestätigung ohne Neustart des laufenden Songs.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ziehe Titel und Album auf den Mini-Player. Prüfe Reihenfolge und Bestätigung ohne Neustart des laufenden Songs."
+          }
+        }
+      }
+    },
+    "Testlauf": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testlauf"
+          }
+        }
+      }
+    },
+    "Beginn": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginn"
+          }
+        }
+      }
+    },
+    "Abgeschlossen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgeschlossen"
+          }
+        }
+      }
+    },
+    "Testbericht": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testbericht"
           }
         }
       }

@@ -225,6 +225,8 @@ struct BitChordApp: App {
                     DownloadStore.shared.setAppActive(phase == .active)
                     LoadingMonitor.shared.setActive(phase == .active)
                     if phase == .background {
+                        let testMonitor = AutomixLiveTestMonitor.shared
+                        if testMonitor.running { testMonitor.checkpoint() }
                         // No GPU work back here: a Music Understanding inference
                         // caught mid-flight aborts with
                         // BackgroundExecutionNotPermitted and sprays Metal/E5RT
