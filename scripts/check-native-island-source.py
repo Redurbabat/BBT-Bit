@@ -21,6 +21,12 @@ app = read("AppleApp/project.yml")
 root = read("AppleApp/Sources/UI/RootView.swift")
 pill = read("AppleApp/Sources/UI/PlaybackPill.swift")
 stage = read("AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift")
+sessionAudio = read("AppleApp/Sources/PlaybackSession/AudioSessionManager.swift")
+playerSession = read("AppleApp/Sources/PlaybackSession/PlaybackController.swift")
+coverTransition = read("AppleApp/Sources/UI/LiquidMotion/GlassArtworkTransition.swift")
+sleeve = read("AppleApp/Sources/UI/NowPlaying/PlayerArtwork.swift")
+artworkStage = read("AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift")
+artworkLyrics = read("AppleApp/Sources/UI/NowPlaying/NowPlayingView+Lyrics.swift")
 
 sources = (
     "AppleApp/Sources/PlaybackSession/PlaybackController+EngineEvents.swift",
@@ -79,6 +85,23 @@ checks = {
     "Logo-Bloom ist App-Animation und nicht Hardware-Island": (
         "struct LogoGlassBloomIsland: View" in stage
         and "private var logoBloomShell" in root
+    ),
+    "Standard-Musikmodus erhält primäre iOS-Audiopriorität": (
+        'key: "mix_with_other_audio", default: false' in sessionAudio
+        and 'key: "mix_with_other_audio", default: false' in playerSession
+        and "mixing ? [.mixWithOthers] : []" in sessionAudio
+        and "mixing ? .default : .longFormAudio" in sessionAudio
+        and 'putBoolean(key: "mix_with_other_audio", value: enabled)' in playerSession
+    ),
+    "Titelwechsel ohne kreisförmigen Boom-Zoom; Puffern hält Covergröße": (
+        "coverLensRefraction" not in coverTransition
+        and ".distortionEffect(" not in coverTransition
+        and ".opacity(incomingOpacity)" in coverTransition
+        and "withAnimation(.easeOut(duration: 0.18))" in coverTransition
+        and ".scaleEffect(isPlaying || isBuffering ? 1 : 0.86)" in sleeve
+        and ".animation(.easeOut(duration: 0.18), value: isPlaying || isBuffering)" in sleeve
+        and artworkStage.count("isBuffering: controller.isBuffering") == 2
+        and artworkLyrics.count("isBuffering: controller.isBuffering") == 1
     ),
     "Hintergrundaudio erlaubt": (
         "UIBackgroundModes:" in app and "- audio" in app

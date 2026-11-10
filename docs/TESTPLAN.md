@@ -1,5 +1,19 @@
 # Testplan
 
+## PR #59: Sperrbildschirm und ruhiger Coverwechsel · 10. November 2026
+
+**Quellregression:** `python3 scripts/check-native-island-source.py` prüft zusätzlich gleiche nicht mischbare iOS-Standardwerte in Player und AudioSession, Erhalt der expliziten Mixing-Option und die Abwesenheit der Cover-Verzerrung. Dieser statische Test beweist keine iOS-Medienauswahl und keinen SwiftUI-Render.
+
+**Echtes iPhone (iOS 26, inklusive iPhone 13 Pro Max ohne Dynamic Island):**
+1. Bei neuer Testinstallation ohne gespeicherte Mischpräferenz Song tatsächlich hörbar abspielen. Mit gesperrtem Bildschirm müssen Song, Cover, Laufzeit und Play/Pause/Skip sichtbar und bedienbar sein; den gleichen Fall im Kontrollzentrum prüfen.
+2. Zwei Titel normal wechseln und per Skip sowie Automix übergeben: Sperrbildschirm muss auf den hörbaren Titel wechseln. Hintergrund 5–10 Minuten, Headset/Bluetooth sowie Wiedereinstieg und Seek separat prüfen. Aktiver Systemstatus, Audio-Log und tatsächliche Hörbarkeit dokumentieren.
+3. Option **„Gleichzeitige Audioausgabe anderer Apps“** aktivieren: paralleles Audio bleibt möglich; die primäre Systemmedienkarte ist dann nicht garantiert. Wieder ausschalten und erneut testen. Eine bereits ausdrücklich gespeicherte Wahl darf nach dem Update nicht verändert werden.
+4. Im Vollplayer drei schnelle Songwechsel, Wechsel bei langer Lade-/Buffering-Phase, Lyrics-/Hero-Modus und Cover-Rückkehr filmen: **keine kreisförmige Expansion, keine Shader-Verzerrung und kein federndes Schrumpfen während Buffering**. Bei bewusster Pause ist eine leichte, ruhige Verkleinerung erlaubt; mit Reduce Motion bleibt die Anzeige stabil.
+5. Den Mini-Player antippen, Vollplayer öffnen/schliessen, Tab-Leiste beim Scrollen verkleinern/erweitern: **nativer Zoom und Dock-Verhalten müssen unverändert bleiben**. Audio darf dabei nicht pausieren.
+
+**Status:** GitHub-Quelländerungen vorhanden; Quellinvariantentest bei jeder Regression erneut ausführen. Apple-SDK-Typecheck, Simulator, echter iPhone-Test, signierte/aktualisierte IPA, Datenerhalt, Sperrbildschirm-Screenshot, visuelle Motion-Prüfung und hörbare Wiedergabe: **NICHT GETESTET**. Die Einstellungsänderung betrifft nur bisher nicht gespeicherte Werte; es wird keine Nutzerpräferenz überschrieben.
+
+
 ## Automatischer App-Testbereich auf PR #59
 
 [Funktionsweise, JSON v5 und v4-Erhalt](iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
