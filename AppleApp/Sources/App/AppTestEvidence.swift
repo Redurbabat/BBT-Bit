@@ -51,7 +51,7 @@ enum AppTestOutcome: String, Codable { case observation, success, failure, unava
 enum AppTestEvidenceCode: String, Codable {
     case pending, validState, invalidState, positionAdvanced, failureReported
     case responseReceived, requestFailed, emptyResponse, queueUpdated, screenDisplayed
-    case fileVerified, fileMissing, integrityFailed, modelBusy, platformUnsupported
+    case fileVerified, fileMissing, fileUnavailable, integrityFailed, modelBusy, platformUnsupported
     case backgroundEntered, routeChanged, previewRendered, previewFailed
 }
 enum AppTestCheckStatus: String, Codable {

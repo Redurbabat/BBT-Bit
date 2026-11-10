@@ -55,7 +55,11 @@ actor AutomixModelLoader {
     var verified: [ModelID] = []
     var anyBusy = false
     func status(of id: ModelID) -> Status { Status(isInstalled: installed.contains(id)) }
-    func verify(_ id: ModelID) async -> Bool { verified.append(id); await Task.yield(); return installed.contains(id) }
+    func inspectIntegrity(_ id: ModelID) async -> Bool? {
+        await Task.yield()
+        guard installed.contains(id) else { return nil }
+        verified.append(id); return true
+    }
     func isUsingPreviousGraph(_ id: ModelID) -> Bool { false }
 }
 

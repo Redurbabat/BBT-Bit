@@ -2,7 +2,7 @@
 
 ## 2026-11-10 · App-Test auf automatische Nachweise umgestellt
 
-Manuelle Bewertungsfelder und Urteile aus dem laufenden Test entfernt. 33 benannte Softwareprüfungen sammeln echte Player-, Request-, Queue- und View-Ereignisse. Modell-Prüfsummen und 15 iOS-PNG-Vorschauen starten automatisch. Unbenutzte Funktionen bleiben nicht beobachtet, Fehler bleiben nach Wiederholung sichtbar und alte asynchrone Ereignisse dürfen neue Läufe nicht bewerten. JSON v5 enthält automatische Resultate; v4-Dateien bleiben erhalten. Produktions-/Archiv-/Nachweis-/Modelltests sowie instrumentierte Home-/Feed-Prüfungen lokal bestanden. [Anleitung und offene Apple-Abnahme](docs/iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
+Manuelle Bewertungsfelder und Urteile aus dem laufenden Test entfernt. 33 benannte Softwareprüfungen sammeln echte Player-, Request-, Queue- und View-Ereignisse. Rein lesende Modell-Prüfsummen und 15 iOS-PNG-Vorschauen starten automatisch. Unbenutzte Funktionen bleiben nicht beobachtet, Fehler bleiben nach Wiederholung sichtbar und alte asynchrone Ereignisse dürfen neue Läufe nicht bewerten. JSON v5 enthält automatische Resultate; v4-Dateien bleiben erhalten. Produktions-/Archiv-/Nachweis-/Modelltests sowie instrumentierte Home-/Feed-Prüfungen lokal bestanden. [Anleitung und offene Apple-Abnahme](docs/iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
 
 ## 2026-11-10 · App-Testbereich und dauerhaft gespeicherte Berichte auf PR #59
 

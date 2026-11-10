@@ -42,8 +42,11 @@ native Bottom-Accessory-Pill, nicht die separate Tastaturdarstellung. Der
 Party-Nachweis prüft lokalen Track-/Transport-/Zeitabgleich zum Serverzustand;
 er behauptet keine physisch synchrone Wiedergabe mehrerer Geräte.
 
-Vorhandene Modell-Dateien werden beim Start automatisch mit der bestehenden
-SHA-256-Prüfung geprüft. Optionale fehlende Modelle erhalten „Nicht verfügbar“;
+Vorhandene Modell-Dateien werden beim Start automatisch mit einer rein lesenden
+Größen-/SHA-256-Prüfung geprüft. Sie kompiliert, repariert oder entfernt keine Datei;
+anders als die bisherige Installer-Prüfung ändert sie auch keine Modell-Einträge.
+Die Berechnung läuft außerhalb des Main Actors und lässt sich abbrechen.
+Optionale fehlende oder vorübergehend nicht lesbare Modelle erhalten „Nicht verfügbar“;
 es werden keine Modelle heruntergeladen. Bei laufenden Downloads oder später
 verfügbaren Dateien wird nach 30 Messpunkten erneut geprüft. Auf iOS rendert der
 vorhandene Vorschauweg zusätzlich alle 15 gekennzeichneten Beispielkarten. Nur
@@ -89,6 +92,10 @@ fehlende Nachweise, bleibende Fehler, alte Ereignisse nach Neustart, automatisch
 Modellstart, fehlende optionale Dateien ohne Download, JSON v5, Datenschutz,
 Erhalt von v4, Archiv-/Schreibfehler und die 1800-Punkte-Grenze. Home-/Queue- und
 17 Feed-Regressionsfälle verwenden dieselben instrumentierten Produktionspfade.
+`bash scripts/check-test-model-integrity.sh` prüft auf Apple mit echtem CryptoKit
+die Produktionsfunktion an korrektem Inhalt, falscher Größe, falschem Hash und
+fehlender Datei. Dabei dürfen weder Dateien gelöscht noch Zusatzdateien erzeugt
+werden. Dieser zusätzliche native Nachweis wird im PR-Job ausgeführt.
 
 Apple-SDK-/Simulator-/iPhone-Ergebnisse werden für die neue Revision separat
 festgehalten. BBT-028 hält die Abnahme von automatischen Modell-/PNG-Prüfungen,

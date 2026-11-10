@@ -218,17 +218,12 @@ final class AutomixLiveTestMonitor {
             switch id { case .beat: check = .beatFile; case .beatCoreML: check = .coreMLFile; case .vocals: check = .vocalFile }
             if result(check).status == .passed || result(check).status == .failed { continue }
             if store.anyBusy { note(check, .observation, .modelBusy); continue }
-            let installed = store.status(of: id).isInstalled
-            guard installed || store.isUsingPreviousGraph(id) else {
-                note(check, .unavailable, .fileMissing); continue
-            }
             note(check, .observation, .pending)
-            _ = await store.verify(id)
+            let verified = await store.inspectIntegrity(id)
             guard !Task.isCancelled, running, sessionID == run else { return }
-            let verified = store.status(of: id).isInstalled
+            guard let verified else { note(check, .unavailable, .fileUnavailable); continue }
             setModelCheck(id.rawValue, passed: verified)
-            note(check, verified ? .success : (installed ? .failure : .unavailable),
-                verified ? .fileVerified : (installed ? .integrityFailed : .fileMissing))
+            note(check, verified ? .success : .failure, verified ? .fileVerified : .integrityFailed)
         }
     }
 
