@@ -1,5 +1,7 @@
 # Erledigte Aufgaben
 
+- **10.11.2026 · Eigenständigen macOS-App-Check ergänzt.** Die iPhone-Teststufe auf `de2c3a3` besteht, der Mac-Compiler findet danach eine iOS-exklusive Listenoption in der gemeinsamen Suche. Der Plattformguard ist ergänzt. Der neue manuelle/PR-Workflow prüft das originale macOS-Projekt mit validierten Framework-Archiven und eigenem Compilerprotokoll; die bestehende volle Matrix bleibt aktiv. Lokales Actionlint/ShellCheck, YAML und Repository-/Navigationsinvarianten bestanden; neue Cloud-Kompilierung bleibt bis zum Laufabschluss offen. [Beleg und IPA](docs/RED_BIT_INTEGRATION.md#weitere-plattformprüfung--de2c3a3).
+
 - **10.11.2026 · PR #59: echte native Prüfungen nachgezogen.** Der Lauf `42788297930` bestätigt alle fünf iPhone-UI-Tests, 15 PNG-Vorschauen, Kotlin-/Downloadprüfungen und 324 Rust-Tests; ein privater Korpustest bleibt ignoriert. Der zusätzliche macOS-App-Build deckt einen fehlenden Environmentzugriff in `MacNowPlayingSlot` auf; dieser ist ergänzt. Ein schneller macOS-Typecheck der echten gemeinsamen Vorschau-Definition kommt vor den vollständigen App-Build. Fremde App-Test-/Lyrics-Korrekturen aus vier neueren Commits bleiben erhalten. Neue macOS-Ausführung sowie Signing, Geräteinstallation, Update/Datenerhalt und hörbares Audio bleiben bis zur jeweiligen Durchführung offen. [Details und Laufbelege](docs/RED_BIT_INTEGRATION.md#github-prüfungen-und-ipa-vom-10-november-2026).
 
 ## 2026-11-10 · App-Test auf automatische Nachweise umgestellt

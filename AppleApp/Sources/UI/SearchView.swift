@@ -927,9 +927,11 @@ struct SearchView: View {
                     }
                 }
                 .listStyle(.plain)
+                #if os(iOS)
                 // Top-Ergebnis und Songliste gehören zu einem zusammenhängenden
                 // Ergebnisstrom: keine große Systemlücke zwischen den Sections.
                 .listSectionSpacing(.compact)
+                #endif
                 .listSectionSeparator(.hidden)
                 .scrollContentBackground(.hidden)
                 // Upstream's `scrollResetTrigger`: one list whose contents change,

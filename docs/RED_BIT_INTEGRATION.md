@@ -2,6 +2,16 @@
 
 ## GitHub-Prüfungen und IPA vom 10. November 2026
 
+### Weitere Plattformprüfung · de2c3a3
+
+Die [neue IPA](https://github.com/Redurbabat/RED-Bit/actions/runs/42864234153/artifacts/13787855757) wurde erfolgreich gebaut, geprüft und hochgeladen. Die tatsächlich heruntergeladene Datei besteht den Produktionsprüfer auch unter Windows: arm64/iPhoneOS, Bundle-ID `com.babat.bbtbit`, Version 1.0.4 / Build 13 und Revision `de2c3a3703b2ffa7c09c4d0b3f6ed10a2e303f9a`. SHA-256 `5e537fc202b51b8e2ec2de15eda623aea042811d3eb6a23d29cfe09b6a4b7c31` stimmt gegen beide Metadatendateien überein. SideStore-Signierung und Geräteabnahme bleiben **NICHT GETESTET**.
+
+[PR-Regressionen](https://github.com/Redurbabat/RED-Bit/actions/runs/42864246095) und [Codemagic-Konfiguration](https://github.com/Redurbabat/RED-Bit/actions/runs/42864246311) bestehen vollständig. Der neue macOS-Typecheck bestätigt die gemeinsame Vorschau-Umgebung. Monitor-/Archiv-/Datenschutz-, CryptoKit-, Home-/Queue- und 17 Feed-Fälle sowie Schlusszoom-Geometrie bestehen ebenfalls.
+
+Der [vollständige native Lauf](https://github.com/Redurbabat/RED-Bit/actions/runs/42864246029) besteht erneut bei iPhone-Bau und UI-Tests; [23 Screenshot-Dateien und Compilerprotokolle](https://github.com/Redurbabat/RED-Bit/actions/runs/42864246029/artifacts/13788797659) liegen vor. Der macOS-Compiler passiert die korrigierte Player-Stelle, findet anschließend aber `SearchView.listSectionSpacing(.compact)` als auf macOS nicht verfügbare API. Die iPhone-Listenanpassung steht deshalb jetzt unter `#if os(iOS)`.
+
+Der zusätzliche Workflow `macos-app-check.yml` baut das **originale macOS-Projekt** unabhängig vom langen Simulatorlauf und ist auch manuell startbar. Er verwendet vorhandene Framework-Archive nur nach der bestehenden Prüfung von Quellen, Werkzeugversionen und Archiv-SHA; unpassende Archive werden neu gebaut. Er verändert weder den Cache-Helfer noch die SideStore-/Release-Konfiguration. Compilerprotokoll und Quellrevision werden gesichert; Fehler bleiben rot. Die macOS-Stufe im vollständigen Simulatorworkflow bleibt zusätzlich aktiv. Neue native Ausführung dieser Plattformkorrektur und des neuen Workflows bis zum Ergebnis **NICHT GETESTET**.
+
 ### Aktueller Prüfstand · 64960ab und macOS-Korrektur
 
 Die vier zwischenzeitlichen PR-Commits einschließlich des automatischen App-Tests wurden per Fast-forward übernommen. Deren gemeinsame Vorschau-Umgebung und Lyrics-Accessibility-Korrektur bleiben erhalten; überschneidende lokale Zwischenänderungen wurden nicht darübergelegt.
