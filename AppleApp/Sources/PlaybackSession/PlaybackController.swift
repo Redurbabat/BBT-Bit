@@ -260,7 +260,7 @@ final class PlaybackController {
     var isBuffering: Bool { state == .buffering }
 #if os(iOS)
     private(set) var mixWithOtherAudio = PlatformSettings.shared.getBoolean(
-        key: "mix_with_other_audio", default: true
+        key: "mix_with_other_audio", default: false
     )
     private var mixingPreferenceGeneration: UInt64 = 0
 
