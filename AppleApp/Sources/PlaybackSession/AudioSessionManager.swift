@@ -101,7 +101,7 @@ enum AudioSessionManager {
                 // Playback already supports AirPlay and Bluetooth A2DP without
                 // the category options intended for play-and-record sessions.
                 let mixing = PlatformSettings.shared.getBoolean(
-                    key: "mix_with_other_audio", default: true
+                    key: "mix_with_other_audio", default: false
                 )
                 let options: AVAudioSession.CategoryOptions = mixing ? [.mixWithOthers] : []
                 // Long-form routing rejects mixWithOthers with OSStatus -50.
