@@ -168,6 +168,7 @@ extension NowPlayingView {
                     canvasURL: controller.canvasURL,
                     fallbackURL: controller.canvasFallbackURL,
                     isPlaying: controller.isPlaying,
+                    isBuffering: controller.isBuffering,
                     side: side
                 )
                 .id(controller.current?.id)
@@ -205,6 +206,7 @@ extension NowPlayingView {
                     canvasURL: controller.canvasURL,
                     fallbackURL: controller.canvasFallbackURL,
                     isPlaying: controller.isPlaying,
+                    isBuffering: controller.isBuffering,
                     canvasActive: !VideoPlayback.shared.showsVideo,
                     side: side
                 )
