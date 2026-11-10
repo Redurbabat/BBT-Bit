@@ -132,6 +132,11 @@ jobs:
         run: bash scripts/check-original-parity.sh
       - name: Ungefragten zweiten Player beim Scrollen ausschließen
         run: bash scripts/check-phone-layout.sh
+      - name: Gemeinsamen Vorschau-Schlüssel mit macOS-SwiftUI typprüfen
+        run: |
+          xcrun swiftc -swift-version 5 -typecheck \
+            AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift \
+            scripts/test-liquid-sample-environment.swift
       - name: Home-Mix, Vorschau und atomare Cover-Queue prüfen
         run: |
           bash scripts/check-home-discovery.sh

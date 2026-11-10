@@ -772,6 +772,7 @@ struct PlaybackPill: View {
 private struct MacNowPlayingSlot<Artwork: View, Info: View>: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ViewBuilder var artwork: Artwork
     @ViewBuilder var info: Info
 

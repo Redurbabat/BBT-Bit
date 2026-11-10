@@ -1,5 +1,7 @@
 # Erledigte Aufgaben
 
+- **10.11.2026 · PR #59: echte native Prüfungen nachgezogen.** Der Lauf `42788297930` bestätigt alle fünf iPhone-UI-Tests, 15 PNG-Vorschauen, Kotlin-/Downloadprüfungen und 324 Rust-Tests; ein privater Korpustest bleibt ignoriert. Der zusätzliche macOS-App-Build deckt einen fehlenden Environmentzugriff in `MacNowPlayingSlot` auf; dieser ist ergänzt. Ein schneller macOS-Typecheck der echten gemeinsamen Vorschau-Definition kommt vor den vollständigen App-Build. Fremde App-Test-/Lyrics-Korrekturen aus vier neueren Commits bleiben erhalten. Neue macOS-Ausführung sowie Signing, Geräteinstallation, Update/Datenerhalt und hörbares Audio bleiben bis zur jeweiligen Durchführung offen. [Details und Laufbelege](docs/RED_BIT_INTEGRATION.md#github-prüfungen-und-ipa-vom-10-november-2026).
+
 ## 2026-11-10 · App-Test auf automatische Nachweise umgestellt
 
 Manuelle Bewertungsfelder und Urteile aus dem laufenden Test entfernt. 33 benannte Softwareprüfungen sammeln echte Player-, Request-, Queue- und View-Ereignisse. Rein lesende Modell-Prüfsummen und 15 iOS-PNG-Vorschauen starten automatisch. Unbenutzte Funktionen bleiben nicht beobachtet, Fehler bleiben nach Wiederholung sichtbar und alte asynchrone Ereignisse dürfen neue Läufe nicht bewerten. JSON v5 enthält automatische Resultate; v4-Dateien bleiben erhalten. Produktions-/Archiv-/Nachweis-/Modelltests sowie instrumentierte Home-/Feed-Prüfungen lokal bestanden. [Anleitung und offene Apple-Abnahme](docs/iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).

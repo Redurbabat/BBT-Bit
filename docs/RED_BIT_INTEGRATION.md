@@ -2,6 +2,24 @@
 
 ## GitHub-Prüfungen und IPA vom 10. November 2026
 
+### Aktueller Prüfstand · 64960ab und macOS-Korrektur
+
+Die vier zwischenzeitlichen PR-Commits einschließlich des automatischen App-Tests wurden per Fast-forward übernommen. Deren gemeinsame Vorschau-Umgebung und Lyrics-Accessibility-Korrektur bleiben erhalten; überschneidende lokale Zwischenänderungen wurden nicht darübergelegt.
+
+Der [native Lauf für 64960ab](https://github.com/Redurbabat/RED-Bit/actions/runs/42788297930) besteht bei **allen fünf iPhone-UI-Tests** einschließlich aller 15 Vorschauen, Lyrics-Umschaltung, Suche/Tastatur, Top-Ergebnis/Dock, Sternkarten-Finale und Video-/Listenwechsel. Kotlin-/Downloadprüfungen bestehen; Rust: **324 bestanden, 0 fehlgeschlagen, 1 ignoriert** (privater Audiokorpus). Der gesamte Lauf bleibt wegen des zusätzlichen macOS-App-Builds fehlgeschlagen: `MacNowPlayingSlot` verwendete `reduceMotion`, las den Environmentwert aber nur in der übergeordneten View ein.
+
+Die Korrektur liest `accessibilityReduceMotion` direkt in der betroffenen macOS-View. Der schnelle Vorschau-Typecheck und der vollständige native App-Build bleiben aktiv; es wird keine Prüfung übersprungen oder gelockert. Die erneute Ausführung dieser Änderung steht bis zum nächsten PR-Lauf aus.
+
+Die [IPA für 64960ab](https://github.com/Redurbabat/RED-Bit/actions/runs/42788288574/artifacts/13750101914) wurde bereits erfolgreich erzeugt und hochgeladen. Sie enthält den Stand vor der macOS-Korrektur. Nach dem Push folgt automatisch ein neues Paket desselben Arbeitsbranches. Signing, Installation, Update/Datenerhalt, physische Animationen und hörbare Audiowiedergabe bleiben **NICHT GETESTET**.
+
+### Zweiter nativer Prüfstand · afef572
+
+[Aktuelle IPA für afef572](https://github.com/Redurbabat/RED-Bit/actions/runs/42721097788/artifacts/13719559698): Gerätebuild, Inhaltsprüfung und Upload erfolgreich. Lokale Gegenprüfung derselben echten Datei: SHA-256 `4d6c01aff64793644f6d1e30e22eb92dde53a5b5e28a6942469a5a87f093dfd8`, arm64/iPhoneOS und eingebettete Revision stimmen mit `build.json` überein. [PR-Regressionen](https://github.com/Redurbabat/RED-Bit/actions/runs/42721105026) samt neuen Workflow-/Shellprüfungen und [Build-Konfiguration](https://github.com/Redurbabat/RED-Bit/actions/runs/42721105524) bestehen.
+
+Der [zweite Simulatorlauf](https://github.com/Redurbabat/RED-Bit/actions/runs/42721105354) besteht bei Suche/Tastatur/Mini-Player, Sternkarten-Finale, Dock/Top-Ergebnis und Video-/Listenwechsel. Alle 15 PNG-Vorschauen werden erfolgreich gerendert; der Absturz ist behoben. Ein Interaktionstest fragte jedoch einen separaten StaticText ab, obwohl der Lyrics-Button seinen Text durch eine eigene VoiceOver-Beschriftung zusammenfasst. Die nachfolgende Korrektur veröffentlicht die tatsächliche Zeile als Accessibility-Wert; der Test wartet nach dem Umschalten auf diesen Wert.
+
+Die erstmals zusätzliche macOS-Kompilierung fand außerdem, dass `liquidDesignSample` innerhalb der iOS-Aufnahmefunktion definiert war. Der Schlüssel liegt inzwischen außerhalb der Plattformbedingung; sein Standard bleibt auf beiden Plattformen `false`, ohne macOS-Aufnahmedienst oder neuen Player. Ein gezielter schneller macOS-SwiftUI-Typecheck verwendet die tatsächliche Definition für Lesen und Setzen des Schlüssels und ergänzt den vollständigen App-Build. Der neuere native Prüfstand steht oben. Signing, Installation, Datenerhalt und Audio auf dem echten iPhone bleiben **NICHT GETESTET**.
+
 Fortsetzung auf dem aktuellen PR #59, Ausgangsrevision `5bd8eb3`. Alle sechs neueren Commits wurden ohne Überschreiben übernommen. Keine offenen Review-Kommentare. `main` bleibt unverändert.
 
 Der [Gerätebau 42715735687](https://github.com/Redurbabat/RED-Bit/actions/runs/42715735687) ist tatsächlich erfolgreich: Swift-, Kotlin-/Rust-Frameworks, arm64-iPhoneOS-Paket und Verifikation. [Erstes IPA-Paket herunterladen](https://github.com/Redurbabat/RED-Bit/actions/runs/42715735687/artifacts/13719452748). Enthaltene Revision: `5bd8eb3f3fe41b30c046ee8a8ea85146631ecac3`, Version 1.0.4 / Build 13, Bundle-ID `com.babat.bbtbit`. Die heruntergeladene echte IPA wurde unter Windows nochmals mit `verify-ios-test-ipa.py` geprüft; SHA-256 `3b210473f9f74cd7c48046806eaf1eaa26056551074fe8de3bd021ca9d484dac` stimmt mit `build.json` überein. **Unsigniert:** SideStore-Signierung, Installation, Update/Datenerhalt und hörbares Audio sind weiterhin **NICHT GETESTET**.
