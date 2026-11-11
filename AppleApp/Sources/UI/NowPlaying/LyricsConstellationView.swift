@@ -173,10 +173,10 @@ struct ConstellationStage: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("bbt.lyrics.constellation.line")
                 Text(beatTimes.isEmpty ? LocalizedStringKey("Light follows lyric timestamps") : LocalizedStringKey("Light follows detected beats"))
-                    .font(.caption2).foregroundStyle(.white.opacity(0.55))
+                    .font(.caption2).foregroundStyle(.white.opacity(0.35))
                 if layout.signature.voiced {
                     Text("Shape follows the singing voice")
-                        .font(.caption2).foregroundStyle(.white.opacity(0.45))
+                        .font(.caption2).foregroundStyle(.white.opacity(0.3))
                 }
                 if let sourceLabel, !sourceLabel.isEmpty {
                     Text("Lyrics source: \(sourceLabel)")
@@ -254,32 +254,39 @@ struct ConstellationStage: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Back to player")
             .accessibilityIdentifier("bbt.lyrics.constellation.close")
-            HStack {
+            // Wie im Original: Titel mittig in Versalien, Bedienung zurückhaltend.
+            ZStack {
                 Text(trackTitle.uppercased())
                     .font(.system(size: 10, weight: .semibold))
-                    .tracking(1.8)
-                    .foregroundStyle(.white.opacity(0.45))
+                    .tracking(2.2)
+                    .foregroundStyle(.white.opacity(0.55))
                     .lineLimit(1)
-                Spacer(minLength: 8)
-                Button(action: onShowList ?? onClose) {
-                    Label("List", systemImage: "text.alignleft")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
+                    .padding(.horizontal, 72)
+                HStack {
+                    Spacer(minLength: 0)
+                    Button(action: onShowList ?? onClose) {
+                        Label("List", systemImage: "text.alignleft")
+                            .labelStyle(.iconOnly)
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.6))
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Show lyrics list")
+                    .accessibilityIdentifier("bbt.lyrics.constellation.list")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Show lyrics list")
-                .accessibilityIdentifier("bbt.lyrics.constellation.list")
             }
-            .padding(.horizontal, 22)
-            HStack(spacing: 8) {
+            .padding(.horizontal, 12)
+            HStack(spacing: 6) {
                 Button { withAnimation(motion) { review(-8) } } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
                     .accessibilityLabel("Earlier lyrics").disabled(words.isEmpty)
-                Button("Current line") {
-                    withAnimation(motion) { historyIndex = nil; manualMap = false; finaleDismissed = true }
-                }
+                if historyIndex != nil || showsMap {
+                    Button("Current line") {
+                        withAnimation(motion) { historyIndex = nil; manualMap = false; finaleDismissed = true }
+                    }
                     .frame(minHeight: 44).accessibilityIdentifier("red.lyrics.current")
+                }
                 Spacer(minLength: 0)
                 Button(showsMap ? LocalizedStringKey("Close song map") : LocalizedStringKey("Song map")) {
                     withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.6)) {
@@ -287,9 +294,11 @@ struct ConstellationStage: View {
                         else { manualMap = true; historyIndex = nil }
                     }
                 }.frame(minHeight: 44).accessibilityIdentifier("red.lyrics.map")
-                Button { withAnimation(motion) { review(8) } } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
-                    .accessibilityLabel("Later lyrics").disabled(historyIndex == nil)
-            }.font(.caption).buttonStyle(.plain).foregroundStyle(.white.opacity(0.85)).padding(.horizontal, 16)
+                if historyIndex != nil {
+                    Button { withAnimation(motion) { review(8) } } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
+                        .accessibilityLabel("Later lyrics")
+                }
+            }.font(.caption2).buttonStyle(.plain).foregroundStyle(.white.opacity(0.5)).padding(.horizontal, 16)
         }
         .padding(.top, immersive ? 44 : 0)
     }

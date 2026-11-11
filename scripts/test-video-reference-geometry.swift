@@ -86,11 +86,13 @@ struct VideoReferenceGeometryTests {
         precondition(MusicMotionGeometry.progress(-1) == 0)
         precondition(MusicMotionGeometry.progress(2) == 1)
         // Sternbild nach Rhythmus, Stimme und Klang
-        let sung = (0..<48).map { index in
-            ConstellationWord(text: "Wort\(index)", start: Int64(index) * 500 + (index % 3 == 0 ? 30 : -20),
-                              end: Int64(index) * 500 + 420, line: index / 6)
+        var sung: [ConstellationWord] = []
+        for index in 0..<48 {
+            let jitter: Int64 = index % 3 == 0 ? 30 : -20
+            let onset: Int64 = Int64(index) * 500 + jitter
+            sung.append(ConstellationWord(text: "Wort\(index)", start: onset, end: Int64(index) * 500 + 420, line: index / 6))
         }
-        let grid = (0..<48).map { Double($0) * 0.5 }
+        let grid: [Double] = (0..<48).map { (beat: Int) -> Double in Double(beat) * 0.5 }
         let quiet = ConstellationVoiceLayout.layout(words: sung, voices: [], beats: [], seed: 7)
         precondition(quiet.stars.count == sung.count && !quiet.signature.voiced)
         for index in 1..<quiet.stars.count {
@@ -99,12 +101,21 @@ struct VideoReferenceGeometryTests {
         precondition(quiet == ConstellationVoiceLayout.layout(words: sung, voices: [], beats: [], seed: 7),
                      "Seek muss dieselbe Form wiederherstellen")
         let gridded = ConstellationVoiceLayout.layout(words: sung, voices: [], beats: grid, seed: 7)
-        let steps = (1..<gridded.stars.count).map { gridded.stars[$0].point.x - gridded.stars[$0 - 1].point.x }
-        precondition(Set(steps.map { Int(($0 * 100).rounded()) }).count <= 2,
+        var widths = Set<Int>()
+        for index in 1..<gridded.stars.count {
+            let step: CGFloat = gridded.stars[index].point.x - gridded.stars[index - 1].point.x
+            widths.insert(Int((step * 100).rounded()))
+        }
+        precondition(widths.count <= 2,
                      "Erkannte Beats rasten kleine Einsatzschwankungen auf den Rhythmus")
-        precondition(gridded.stars.filter(\.onBeat).count > sung.count / 2)
-        let low = sung.indices.map { ConstellationVoice(energyDb: -20, brightnessHz: 900, pitchHz: 110 * pow(2, Double($0 % 6) / 12), pitchConfidence: 0.9) }
-        let high = sung.indices.map { ConstellationVoice(energyDb: -20, brightnessHz: 2400, pitchHz: 392 * pow(2, Double($0 % 6) / 12), pitchConfidence: 0.9) }
+        precondition(gridded.stars.filter { (star: ConstellationStar) -> Bool in star.onBeat }.count > sung.count / 2)
+        var low: [ConstellationVoice] = []
+        var high: [ConstellationVoice] = []
+        for index in sung.indices {
+            let interval: Double = pow(2.0, Double(index % 6) / 12.0)
+            low.append(ConstellationVoice(energyDb: -20, brightnessHz: 900, pitchHz: 110 * interval, pitchConfidence: 0.9))
+            high.append(ConstellationVoice(energyDb: -20, brightnessHz: 2400, pitchHz: 392 * interval, pitchConfidence: 0.9))
+        }
         let deep = ConstellationVoiceLayout.layout(words: sung, voices: low, beats: grid, seed: 7)
         let bright = ConstellationVoiceLayout.layout(words: sung, voices: high, beats: grid, seed: 7)
         precondition(deep.signature.voiced && bright.signature.voiced)
@@ -120,23 +131,42 @@ struct VideoReferenceGeometryTests {
                      "Unvollständige Messung darf keine Stimmform vortäuschen")
         precondition(ConstellationVoiceLayout.layout(words: sung, voices: [], beats: [], seed: 8) != quiet,
                      "Jeder Song bekommt ohne Messung einen eigenen Zeilenbogen")
-        for index in 1..<sung.count {
-            let onset = sung[index].start
-            let arriving = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset)
-            precondition(arriving.point == melody.stars[index].point, "Der Kopf erreicht den Stern genau zum Einsatz")
-            let before = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset - 1)
-            precondition(hypot(before.point.x - arriving.point.x, before.point.y - arriving.point.y) < 1,
-                         "Die Reisekamera darf beim Wortwechsel nicht springen")
+        for width: CGFloat in [320, 390, 768] {
+            for index in 1..<sung.count {
+                let onset = sung[index].start
+                let arriving = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset, width: width)
+                precondition(arriving.index == index && arriving.draw == 0 && arriving.appear == 0)
+                precondition(arriving.camera == ConstellationVoiceLayout.cameraTarget(layout: melody, index: index - 1, width: width),
+                             "Die Kamera gleitet erst nach dem Einsatz weiter")
+                let before = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset - 1, width: width)
+                precondition(hypot(before.camera.x - arriving.camera.x, before.camera.y - arriving.camera.y) < 1,
+                             "Die Kamera darf beim Wortwechsel nicht springen")
+                let settled = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset + 450, width: width)
+                let target = ConstellationVoiceLayout.cameraTarget(layout: melody, index: index, width: width)
+                precondition(hypot(settled.camera.x - target.x, settled.camera.y - target.y) < 0.001 && settled.appear == 1)
+            }
         }
-        precondition(ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: -5).point == melody.stars[0].point)
+        precondition(ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: -5, width: 390).camera
+                     == ConstellationVoiceLayout.cameraTarget(layout: melody, index: 0, width: 390))
+        for index in sung.indices where index > 0 && sung[index].line != sung[index - 1].line {
+            precondition(melody.stars[index].point.x - melody.stars[index - 1].point.x > ConstellationVoiceLayout.spacing * 1.5,
+                         "Eine neue Zeile beginnt als eigenes Sternbild")
+            precondition(melody.stars[index].lineStartX == melody.stars[index].point.x && melody.stars[index].lineStart)
+        }
         precondition(ConstellationVoiceLayout.settledHistory(layout: melody, from: 30, drag: 0, current: 30) == 30)
         precondition(ConstellationVoiceLayout.settledHistory(layout: melody, from: 30, drag: 100_000, current: 30) == 0)
         precondition(ConstellationVoiceLayout.settledHistory(layout: melody, from: 30, drag: -400, current: 30) == nil,
                      "Über das aktuelle Wort hinaus wischen kehrt zum Live-Bild zurück")
         let back = ConstellationVoiceLayout.settledHistory(layout: melody, from: 30, drag: 120, current: 30) ?? 99
         precondition(back < 30 && back > 20, "Nach rechts ziehen zeigt frühere Wörter")
-        let long = (0..<600).map { ConstellationWord(text: "x", start: Int64($0) * 420, end: Int64($0) * 420 + 300, line: $0 / 7) }
-        let longVoices = long.indices.map { ConstellationVoice(energyDb: -30, brightnessHz: 1800, pitchHz: 180 * pow(2, Double($0 % 13) / 12), pitchConfidence: 0.8) }
+        var long: [ConstellationWord] = []
+        var longVoices: [ConstellationVoice] = []
+        for index in 0..<600 {
+            let onset: Int64 = Int64(index) * 420
+            long.append(ConstellationWord(text: "x", start: onset, end: onset + 300, line: index / 7))
+            let interval: Double = pow(2.0, Double(index % 13) / 12.0)
+            longVoices.append(ConstellationVoice(energyDb: -30, brightnessHz: 1800, pitchHz: 180 * interval, pitchConfidence: 0.8))
+        }
         for layout in [melody, quiet, ConstellationVoiceLayout.layout(words: long, voices: longVoices, beats: [], seed: 3),
                        ConstellationVoiceLayout.layout(words: Array(long.prefix(1)), voices: [], beats: [], seed: 3)] {
             for viewport in [CGSize(width: 320, height: 568), CGSize(width: 390, height: 844), CGSize(width: 1024, height: 700)] {

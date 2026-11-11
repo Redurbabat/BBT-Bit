@@ -28,10 +28,14 @@ struct ConstellationSignature: Equatable {
 }
 
 struct ConstellationStar: Equatable {
-    /// Weltkoordinate: x folgt dem Rhythmus, y der Stimmhöhe.
+    /// Weltkoordinate: x folgt dem Rhythmus, y der Stimmhöhe plus Zeilenstufe.
     var point: CGPoint
-    /// Geglättete Höhe, damit die Kamera ruhig mitfährt.
+    /// Mittlere Höhe der eigenen Zeile: Die Kamera bleibt pro Zeile ruhig.
     var cameraY: CGFloat
+    /// Reine Melodiehöhe ohne Zeilenstufe; die Schlusskarte faltet damit enger.
+    var melodyY: CGFloat
+    /// x des ersten Wortes derselben Zeile.
+    var lineStartX: CGFloat
     /// Lautstärke des Wortes relativ zum Song, 0…1.
     var energy: Double
     var onBeat: Bool
@@ -47,21 +51,25 @@ struct ConstellationLayout: Equatable {
                                            signature: ConstellationVoiceLayout.neutralSignature(seed: 0))
 }
 
-/// Lage des Leuchtkopfs zwischen zwei Sternen.
+/// Live-Zustand: aktuelles Wort, Kamerapunkt und Einblendfortschritt.
 struct ConstellationHead: Equatable {
-    var point: CGPoint
-    var cameraY: CGFloat
     var index: Int
+    /// Weltpunkt, der in der Bildmitte stehen soll.
+    var camera: CGPoint
+    /// 0…1: Die Linie zum neuen Stern wird gezogen.
+    var draw: Double
+    /// 0…1: Das große Wort blendet ein, das vorige schrumpft zur Beschriftung.
+    var appear: Double
 }
 
 /// Zustandsfreie Sternbildgeometrie: gleiche Eingaben ergeben nach Seek oder
 /// Wiederaufnahme dieselbe Form. Jeder Song bekommt seine Form aus Rhythmus,
 /// Stimmhöhe, Klangfarbe und Pegel.
 enum ConstellationVoiceLayout {
-    /// Abstand zweier Wörter im Abstand eines Beats.
-    static let spacing: CGFloat = 62
+    /// Abstand zweier Wörter im Abstand eines Beats (wie im Original etwa sieben Wörter je Bildbreite).
+    static let spacing: CGFloat = 46
     /// Höhe eines Halbtons in der Weltkoordinate.
-    static let semitone: CGFloat = 6.5
+    static let semitone: CGFloat = 7
     /// Maßstab der Verlaufsansicht nach dem Wischen nach links.
     static let historyScale: CGFloat = 0.5
     /// Schlussphase: Falten zur Karte, dann ein schneller Blitz durch alle Sterne.
@@ -139,7 +147,8 @@ enum ConstellationVoiceLayout {
             var steps = max(0, starts[index] - starts[index - 1]) / period
             if detected != nil { steps = max(0.5, (steps * 2).rounded() / 2) }
             var dx = spacing * CGFloat(min(2.8, max(0.55, pow(steps, 0.62))))
-            if words[index].line != words[index - 1].line { dx += spacing * 0.35 }
+            // Neue Zeile beginnt rechts außerhalb der alten, wie im Original.
+            if words[index].line != words[index - 1].line { dx += spacing * 0.9 }
             xs.append(xs[index - 1] + dx)
         }
 
@@ -199,20 +208,37 @@ enum ConstellationVoiceLayout {
             }
             ys.append(CGFloat(-level) * semitone)
         }
-        var cameraYs: [CGFloat] = []
+        // Zeilenstufe nach Rhythmus: Jede neue Zeile setzt tiefer an, die alte
+        // wandert nach links oben. Eine lange Pause (ab vier Beats) beginnt einen
+        // neuen Abschnitt wieder oben; nach vier Stufen ebenfalls.
+        var baselines: [CGFloat] = []
+        var step = 0
         for index in words.indices {
-            let window = max(0, index - 3)...min(words.count - 1, index + 3)
-            cameraYs.append(window.reduce(CGFloat(0)) { $0 + ys[$1] } / CGFloat(window.count))
+            if index > 0, words[index].line != words[index - 1].line {
+                let pause = starts[index] - Double(words[index - 1].end) / 1000
+                step = pause >= period * 4 || step >= 3 ? 0 : step + 1
+            }
+            baselines.append(CGFloat(step) * 52)
+        }
+        var lineSum: [Int: CGFloat] = [:]
+        var lineFirstX: [Int: CGFloat] = [:]
+        for index in words.indices {
+            lineSum[words[index].line, default: 0] += ys[index] + baselines[index]
+            if lineFirstX[words[index].line] == nil { lineFirstX[words[index].line] = xs[index] }
         }
 
         var stars: [ConstellationStar] = []
         stars.reserveCapacity(words.count)
         var bounds = CGRect.null
         for index in words.indices {
-            let point = CGPoint(x: xs[index], y: ys[index])
+            let line = words[index].line
+            let point = CGPoint(x: xs[index], y: ys[index] + baselines[index])
             bounds = bounds.union(CGRect(origin: point, size: .zero))
             stars.append(ConstellationStar(
-                point: point, cameraY: cameraYs[index], energy: energies[index],
+                point: point,
+                cameraY: (lineSum[line] ?? 0) / CGFloat(max(1, lineCount[line] ?? 1)),
+                melodyY: ys[index], lineStartX: lineFirstX[line] ?? xs[index],
+                energy: energies[index],
                 onBeat: nearBeat(starts[index], beats: beats, period: period),
                 lineStart: index == 0 || words[index].line != words[index - 1].line))
         }
@@ -230,36 +256,50 @@ enum ConstellationVoiceLayout {
         return ConstellationLayout(stars: stars, bounds: bounds.insetBy(dx: -24, dy: -24), signature: signature)
     }
 
-    /// Leuchtkopf: ruht auf dem gesungenen Wort und gleitet kurz vor dem nächsten
-    /// Einsatz hinüber, sodass er den nächsten Stern genau auf dessen Zeitmarke erreicht.
-    static func head(layout: ConstellationLayout, words: [ConstellationWord], milliseconds: Int64) -> ConstellationHead {
-        guard !layout.stars.isEmpty, layout.stars.count == words.count else {
-            return ConstellationHead(point: .zero, cameraY: 0, index: 0)
-        }
-        guard let index = ConstellationTimeline.activeIndex(words: words, milliseconds: milliseconds) else {
-            let first = layout.stars[0]
-            return ConstellationHead(point: first.point, cameraY: first.cameraY, index: 0)
-        }
+    /// Kameraziel für ein Wort: Eine kurze Zeile steht mittig, eine lange hält
+    /// das neueste Wort im rechten Drittel – wie im Original.
+    static func cameraTarget(layout: ConstellationLayout, index: Int, width: CGFloat) -> CGPoint {
+        guard layout.stars.indices.contains(index) else { return .zero }
         let star = layout.stars[index]
-        guard index + 1 < words.count else {
-            return ConstellationHead(point: star.point, cameraY: star.cameraY, index: index)
-        }
-        let next = layout.stars[index + 1]
-        let span = max(1, words[index + 1].start - words[index].start)
-        let glide = Double(min(280, max(1, span * 6 / 10)))
-        let t = clamp((Double(milliseconds - words[index + 1].start) + glide) / glide)
-        let eased = CGFloat(t * t * (3 - 2 * t))
-        return ConstellationHead(
-            point: CGPoint(x: star.point.x + (next.point.x - star.point.x) * eased,
-                           y: star.point.y + (next.point.y - star.point.y) * eased),
-            cameraY: star.cameraY + (next.cameraY - star.cameraY) * eased,
-            index: index)
+        let span = star.point.x - star.lineStartX
+        let x = span < width * 0.6 ? (star.lineStartX + star.point.x) / 2 : star.point.x - width * 0.3
+        return CGPoint(x: x, y: star.cameraY)
     }
 
-    /// Reisekamera: der Kopf steht etwas rechts der Mitte, der Verlauf liegt links.
+    /// Live-Zustand: Beim Einsatz erscheint der neue Stern, die Linie wird
+    /// gezogen und die Kamera gleitet nach. Jede Bewegung endet vor dem nächsten
+    /// Einsatz, damit nichts springt.
+    static func head(layout: ConstellationLayout, words: [ConstellationWord], milliseconds: Int64,
+                     width: CGFloat) -> ConstellationHead {
+        guard !layout.stars.isEmpty, layout.stars.count == words.count else {
+            return ConstellationHead(index: 0, camera: .zero, draw: 1, appear: 1)
+        }
+        guard let index = ConstellationTimeline.activeIndex(words: words, milliseconds: milliseconds) else {
+            return ConstellationHead(index: 0, camera: cameraTarget(layout: layout, index: 0, width: width),
+                                     draw: 0, appear: 0)
+        }
+        let target = cameraTarget(layout: layout, index: index, width: width)
+        let following = index + 1 < words.count ? max(1, words[index + 1].start - words[index].start) : 450
+        let elapsed = Double(milliseconds - words[index].start)
+        let appear = clamp(elapsed / Double(min(260, following)))
+        let draw = clamp(elapsed / Double(min(220, following)))
+        guard index > 0 else {
+            return ConstellationHead(index: 0, camera: target, draw: draw, appear: appear)
+        }
+        let previous = cameraTarget(layout: layout, index: index - 1, width: width)
+        let t = clamp(elapsed / Double(min(450, following)))
+        let eased = CGFloat(t * t * (3 - 2 * t))
+        return ConstellationHead(
+            index: index,
+            camera: CGPoint(x: previous.x + (target.x - previous.x) * eased,
+                            y: previous.y + (target.y - previous.y) * eased),
+            draw: draw, appear: appear)
+    }
+
+    /// Reisekamera: Der Kamerapunkt steht in der Bildmitte, leicht über der Mitte.
     static func journeyOffset(head: ConstellationHead, size: CGSize, scale: CGFloat = 1) -> CGSize {
-        CGSize(width: size.width * 0.6 - head.point.x * scale,
-               height: size.height * 0.44 - head.cameraY * scale)
+        CGSize(width: size.width * 0.5 - head.camera.x * scale,
+               height: size.height * 0.42 - head.camera.y * scale)
     }
 
     /// Verlaufskamera: zentriert den gewählten Stern; `drag` folgt dem Finger.
@@ -299,8 +339,8 @@ enum ConstellationVoiceLayout {
             return stars.map { _ in centre }
         }
         let length = max(1, last.point.x - first.point.x)
-        let minY = stars.reduce(first.point.y) { min($0, $1.point.y) }
-        let maxY = stars.reduce(first.point.y) { max($0, $1.point.y) }
+        let minY = stars.reduce(first.melodyY) { min($0, $1.melodyY) }
+        let maxY = stars.reduce(first.melodyY) { max($0, $1.melodyY) }
         let range = max(12, maxY - minY)
         let band = range + 30
         var rows = 1
@@ -322,7 +362,7 @@ enum ConstellationVoiceLayout {
             let row = min(rows - 1, max(0, Int(distance / rowLength)))
             let local = min(rowLength, max(0, distance - CGFloat(row) * rowLength))
             let x = row % 2 == 0 ? local : rowLength - local
-            let y = CGFloat(row) * band + (star.point.y - middleY) + range / 2
+            let y = CGFloat(row) * band + (star.melodyY - middleY) + range / 2
             return CGPoint(x: left + x * scale, y: top + min(contentHeight / scale, max(0, y)) * scale)
         }
     }

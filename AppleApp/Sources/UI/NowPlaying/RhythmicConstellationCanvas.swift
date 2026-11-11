@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// Sternbild als Reise: Jedes gesungene Wort wird ein Stern. Der Abstand folgt
-/// dem Rhythmus, die Höhe der Stimme, Größe und Glanz dem Pegel. Links liegt
-/// der Verlauf; in den letzten zehn Sekunden faltet sich die Route zur Karte und
-/// ein Blitz läuft in gut einer Sekunde durch alle Sterne.
+/// Sternbild wie in der Nutzerreferenz: Schwarz, jede Liedzeile ein eigenes
+/// Sternbild aus geraden Linien, kleine Beschriftung unter jedem Stern, das
+/// gesungene Wort groß in Serifenschrift mit weichem Leuchten über einem
+/// Funkelstern. Abstand nach Rhythmus, Höhe nach Stimme. Nach links wischen
+/// zeigt den Verlauf; in den letzten zehn Sekunden faltet sich alles zur Karte
+/// und ein Blitz läuft in gut einer Sekunde durch alle Sterne.
 struct RhythmicConstellationCanvas: View {
     let words: [ConstellationWord]
     let layout: ConstellationLayout
@@ -29,7 +31,7 @@ struct RhythmicConstellationCanvas: View {
     }
 
     private func scene(size: CGSize, now: Date) -> ConstellationScene {
-        let head = ConstellationVoiceLayout.head(layout: layout, words: words, milliseconds: positionMs)
+        let head = ConstellationVoiceLayout.head(layout: layout, words: words, milliseconds: positionMs, width: size.width)
         var scale: CGFloat = 1
         var offset = ConstellationVoiceLayout.journeyOffset(head: head, size: size)
         if let historyIndex {
@@ -47,7 +49,7 @@ struct RhythmicConstellationCanvas: View {
         let pulse = beats.isEmpty
             ? ConstellationTimeline.pulse(position: Double(positionMs) / 1000, markers: words.map { Double($0.start) / 1000 })
             : ConstellationTimeline.pulse(position: audioPosition, markers: beats)
-        return ConstellationScene(words: words, layout: layout, head: head, positionMs: positionMs,
+        return ConstellationScene(words: words, layout: layout, head: head,
             historyIndex: historyIndex, elapsed: elapsed, pulse: pulse, reduced: reduced,
             scale: scale, offset: offset, mapBlend: overview || reduced ? 1 : 0)
     }
@@ -59,7 +61,6 @@ private struct ConstellationScene: View, Animatable {
     let words: [ConstellationWord]
     let layout: ConstellationLayout
     let head: ConstellationHead
-    let positionMs: Int64
     let historyIndex: Int?
     let elapsed: Double?
     let pulse: Double
@@ -67,6 +68,9 @@ private struct ConstellationScene: View, Animatable {
     var scale: CGFloat
     var offset: CGSize
     var mapBlend: CGFloat
+
+    private static let bigSize: CGFloat = 32
+    private static let labelSize: CGFloat = 9.5
 
     var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>> {
         get { AnimatablePair(AnimatablePair(scale, mapBlend), AnimatablePair(offset.width, offset.height)) }
@@ -87,11 +91,11 @@ private struct ConstellationScene: View, Animatable {
 
     private func draw(in context: inout GraphicsContext, size: CGSize) {
         let stars = layout.stars
+        drawDust(in: &context, size: size)
         guard !stars.isEmpty, stars.count == words.count else { return }
-        let signature = layout.signature
-        let tint = Color(hue: signature.hue, saturation: 0.6, brightness: 1)
-        let soft = Color(hue: signature.hue, saturation: 0.22, brightness: 1)
-        let accent = Color(hue: signature.accentHue, saturation: 0.7, brightness: 1)
+        // Nur ein Hauch Songfarbe im Leuchten; Sterne und Linien bleiben weiß.
+        let glow = Color(hue: layout.signature.hue, saturation: 0.12, brightness: 1)
+        let accent = Color(hue: layout.signature.accentHue, saturation: 0.35, brightness: 1)
         let fold = CGFloat(elapsed.map { ConstellationVoiceLayout.foldProgress(elapsed: $0) } ?? 0)
         let blend = min(1, max(mapBlend, fold))
         let map = blend > 0.001 ? ConstellationVoiceLayout.mapPoints(layout: layout, size: size) : []
@@ -103,136 +107,236 @@ private struct ConstellationScene: View, Animatable {
                            y: journey.y + (map[index].y - journey.y) * blend)
         }
         let current = min(head.index, stars.count - 1)
-        var headPoint = CGPoint(x: head.point.x * scale + offset.width, y: head.point.y * scale + offset.height)
-        if map.count == stars.count {
-            headPoint = CGPoint(x: headPoint.x + (map[current].x - headPoint.x) * blend,
-                                y: headPoint.y + (map[current].y - headPoint.y) * blend)
-        }
         let bolt = elapsed.map { ConstellationVoiceLayout.boltProgress(elapsed: $0) }
-        // Bis wohin die Route leuchtet: live bis zum Kopf, im Schluss bis zum Blitz.
-        let travel = bolt.map { $0 * Double(stars.count - 1) } ?? Double(current)
-        let showsAll = elapsed != nil || blend > 0.5
-        let lastShown = showsAll ? stars.count - 1 : current
-
-        drawSky(in: &context, size: size, tint: tint, centre: showsAll ? CGPoint(x: size.width / 2, y: size.height / 2) : headPoint)
-        drawRoute(in: &context, points: points, lastShown: lastShown, travel: travel,
-                  head: elapsed == nil && blend < 0.5 ? headPoint : nil, tint: tint, soft: soft,
-                  flow: signature.flow, live: elapsed == nil)
-        drawStars(in: &context, size: size, points: points, lastShown: lastShown, travel: travel,
-                  current: current, tint: tint, soft: soft, signature: signature)
-        if let elapsed, let bolt, !reduced {
-            drawBolt(in: &context, points: points, progress: bolt, elapsed: elapsed, accent: accent)
-            let flash = ConstellationVoiceLayout.flash(elapsed: elapsed) * 0.22 + (bolt > 0 && bolt < 1 ? 0.05 : 0)
-            if flash > 0 {
-                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.white.opacity(flash)))
+        let mapMode = elapsed != nil || blend > 0.5
+        if mapMode {
+            let travel = bolt.map { $0 * Double(stars.count - 1) } ?? Double(current)
+            drawMap(in: &context, size: size, points: points, current: current, travel: travel)
+            if let elapsed, let bolt, !reduced {
+                drawBolt(in: &context, points: points, progress: bolt, elapsed: elapsed, accent: accent)
+                let flash = ConstellationVoiceLayout.flash(elapsed: elapsed) * 0.2 + (bolt > 0 && bolt < 1 ? 0.04 : 0)
+                if flash > 0 {
+                    context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.white.opacity(flash)))
+                }
             }
-        }
-        if blend > 0.5 || elapsed != nil {
-            drawMapLabels(in: &context, points: points, current: current, travel: travel)
-        } else if let historyIndex {
-            drawHistoryLabels(in: &context, size: size, points: points, current: current, selected: historyIndex)
         } else {
-            drawLiveLabels(in: &context, size: size, points: points, current: current, headPoint: headPoint, tint: tint)
+            drawJourney(in: &context, size: size, points: points, current: current, glow: glow)
         }
     }
 
-    /// Nebel in Songfarbe und ein Sternfeld, das sich langsamer als die Route bewegt.
-    private func drawSky(in context: inout GraphicsContext, size: CGSize, tint: Color, centre: CGPoint) {
-        context.fill(Path(CGRect(origin: .zero, size: size)), with: .radialGradient(
-            Gradient(colors: [tint.opacity(0.16 + pulse * 0.08), tint.opacity(0.04), .clear]),
-            center: centre, startRadius: 0, endRadius: max(size.width, size.height) * 0.75))
+    /// Kaum sichtbarer Sternstaub wie im Original; bewegt sich langsamer als die Route.
+    private func drawDust(in context: inout GraphicsContext, size: CGSize) {
         guard size.width > 0, size.height > 0 else { return }
-        let seed = UInt64(layout.signature.hue * 10_000)
-        for index in 0..<70 {
-            let key = seed &+ UInt64(index) &* 0x9E37_79B9
-            var x: CGFloat = CGFloat(ConstellationGeometry.unit(key)) * size.width + offset.width * 0.12
+        for index in 0..<80 {
+            let key = UInt64(index) &* 0x9E37_79B9 &+ 17
+            var x: CGFloat = CGFloat(ConstellationGeometry.unit(key)) * size.width + offset.width * 0.1
             x = x.truncatingRemainder(dividingBy: size.width)
             if x < 0 { x += size.width }
-            var y: CGFloat = CGFloat(ConstellationGeometry.unit(key &+ 1)) * size.height + offset.height * 0.08
+            var y: CGFloat = CGFloat(ConstellationGeometry.unit(key &+ 1)) * size.height + offset.height * 0.1
             y = y.truncatingRemainder(dividingBy: size.height)
             if y < 0 { y += size.height }
-            let glow: Double = 0.06 + ConstellationGeometry.unit(key &+ 2) * 0.22
-            let radius: CGFloat = 0.4 + CGFloat(ConstellationGeometry.unit(key &+ 3)) * 0.8
+            let alpha: Double = 0.03 + ConstellationGeometry.unit(key &+ 2) * 0.09
+            let radius: CGFloat = 0.3 + CGFloat(ConstellationGeometry.unit(key &+ 3)) * 0.5
             context.fill(Path(ellipseIn: CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)),
-                         with: .color(.white.opacity(glow)))
+                         with: .color(.white.opacity(alpha)))
         }
     }
 
-    private func drawRoute(in context: inout GraphicsContext, points: [CGPoint], lastShown: Int, travel: Double,
-                           head: CGPoint?, tint: Color, soft: Color, flow: Double, live: Bool) {
-        let tension = CGFloat(0.08 + 0.12 * flow)
-        if lastShown > 0 {
-            context.stroke(smoothPath(Array(points[0...lastShown]), tension: tension),
-                           with: .color(soft.opacity(live ? 0.10 : 0.16)), lineWidth: 0.7)
-        }
-        let end = min(lastShown, max(0, Int(travel)))
-        var lit = Array(points[0...end])
-        if let head {
-            lit.append(head)
-        } else if end + 1 < points.count, travel > Double(end) {
-            let fraction = CGFloat(travel - Double(end))
-            lit.append(CGPoint(x: points[end].x + (points[end + 1].x - points[end].x) * fraction,
-                               y: points[end].y + (points[end + 1].y - points[end].y) * fraction))
-        }
-        guard lit.count > 1 else { return }
-        let route = smoothPath(lit, tension: tension)
-        context.stroke(route, with: .color(tint.opacity(0.14 + pulse * 0.10)), lineWidth: 5)
-        context.stroke(route, with: .color(tint.opacity(0.55 + pulse * 0.25)), lineWidth: 1.1)
-        // Die jüngsten Schritte leuchten heller: der Verlauf klingt nach links aus.
-        if live, lit.count > 2 {
-            let recent = Array(lit.suffix(7))
-            context.stroke(smoothPath(recent, tension: tension), with: .color(.white.opacity(0.65)), lineWidth: 1.3)
-        }
-    }
+    // MARK: Live und Verlauf
 
-    private func drawStars(in context: inout GraphicsContext, size: CGSize, points: [CGPoint], lastShown: Int,
-                           travel: Double, current: Int, tint: Color, soft: Color, signature: ConstellationSignature) {
-        let viewport = CGRect(origin: .zero, size: size).insetBy(dx: -40, dy: -40)
-        let afterglow = elapsed.map { $0 > ConstellationVoiceLayout.boltDelay + ConstellationVoiceLayout.boltDuration } ?? false
-        for index in 0...lastShown where viewport.contains(points[index]) {
-            let star = layout.stars[index]
+    private func drawJourney(in context: inout GraphicsContext, size: CGSize, points: [CGPoint],
+                             current: Int, glow: Color) {
+        let viewport = CGRect(origin: .zero, size: size).insetBy(dx: -60, dy: -60)
+        let currentLine = words[current].line
+        let selectedLine = historyIndex.flatMap { words.indices.contains($0) ? words[$0].line : nil }
+        let live = historyIndex == nil
+        // Linien nur innerhalb einer Zeile, wie im Original.
+        for index in 1...max(1, current) where index <= current && words[index].line == words[index - 1].line {
+            let from = points[index - 1]
+            var to = points[index]
+            guard viewport.contains(from) || viewport.contains(to) else { continue }
+            let alpha = lineAlpha(words[index].line, current: currentLine, selected: selectedLine, live: live)
+            if live, index == current {
+                let progress = CGFloat(head.draw)
+                to = CGPoint(x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress)
+            }
+            var segment = Path()
+            segment.move(to: from)
+            segment.addLine(to: to)
+            context.stroke(segment, with: .color(.white.opacity(alpha * 0.85)), lineWidth: 0.7)
+        }
+        for index in 0...current where viewport.contains(points[index]) {
             let point = points[index]
-            let lit = Double(index) <= travel
-            var radius = CGFloat(1.2 + star.energy * (1.4 + 2.6 * signature.dynamics))
-            var alpha: Double
-            if elapsed != nil {
-                alpha = lit ? 0.85 : 0.18
-                if afterglow, !reduced, let elapsed {
-                    alpha = 0.7 + 0.3 * sin(elapsed * 2.4 + Double(index) * 1.3)
-                }
-            } else if lit {
-                alpha = historyIndex == nil ? max(0.3, 1 - Double(current - index) / 40) : 0.85
+            let alpha = lineAlpha(words[index].line, current: currentLine, selected: selectedLine, live: live)
+            let star = layout.stars[index]
+            if live, index == current { continue }
+            if star.onBeat, words[index].line == currentLine || !live {
+                // Wörter auf dem Beat funkeln leicht: Der Rhythmus wird sichtbar.
+                sparkle(in: &context, at: point, size: 4 + CGFloat(star.energy) * 2, alpha: alpha)
             } else {
-                alpha = 0.18
+                let radius = 1.3 + CGFloat(star.energy) * 1.1
+                context.fill(Path(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)),
+                             with: .color(.white.opacity(alpha)))
             }
-            if index == current, elapsed == nil { radius += CGFloat(pulse) * 2 }
-            if lit, star.onBeat {
-                let ring = radius + 3 + CGFloat(pulse) * 2
-                context.stroke(Path(ellipseIn: CGRect(x: point.x - ring, y: point.y - ring, width: ring * 2, height: ring * 2)),
-                               with: .color(tint.opacity(0.28 * alpha)), lineWidth: 0.6)
+        }
+        // Kleine Beschriftungen unter den Sternen.
+        var previous = CGRect.null
+        for index in 0...current where viewport.contains(points[index]) {
+            if live, index == current { continue }
+            if live, index == current - 1, head.appear < 1 { continue }
+            let chosen = selectedLine == words[index].line
+            let alpha = lineAlpha(words[index].line, current: currentLine, selected: selectedLine, live: live)
+            let label = context.resolve(Text(words[index].text)
+                .font(.system(size: chosen ? 11 : Self.labelSize, weight: chosen ? .semibold : .medium))
+                .foregroundStyle(.white.opacity(min(0.95, alpha * (chosen ? 1 : 0.7)))))
+            let measured = label.measure(in: CGSize(width: 160, height: 30))
+            let rect = CGRect(x: points[index].x + 3, y: points[index].y + 5, width: measured.width, height: measured.height)
+            guard chosen || words[index].line == currentLine || !rect.intersects(previous) else { continue }
+            context.draw(label, in: rect)
+            previous = rect
+        }
+        if let historyIndex, points.indices.contains(historyIndex) {
+            let point = points[historyIndex]
+            context.stroke(Path(ellipseIn: CGRect(x: point.x - 9, y: point.y - 9, width: 18, height: 18)),
+                           with: .color(.white.opacity(0.8)), lineWidth: 0.8)
+        }
+        guard live else { return }
+        drawCurrentWord(in: &context, size: size, points: points, current: current, glow: glow)
+    }
+
+    private func lineAlpha(_ line: Int, current: Int, selected: Int?, live: Bool) -> Double {
+        if let selected { return line == selected ? 0.95 : 0.4 }
+        if line == current || !live { return 0.85 }
+        return max(0.08, 0.3 - Double(max(0, current - line - 1)) * 0.08)
+    }
+
+    /// Das gesungene Wort groß mit weichem Leuchten über einem Funkelstern; das
+    /// vorige Wort schrumpft gleichzeitig in seine kleine Beschriftung.
+    private func drawCurrentWord(in context: inout GraphicsContext, size: CGSize, points: [CGPoint],
+                                 current: Int, glow: Color) {
+        let appear = head.appear * head.appear * (3 - 2 * head.appear)
+        let point = points[current]
+        let word = words[current]
+        let fontSize: CGFloat = word.text.count > 18 ? 24 : Self.bigSize
+        let big = context.resolve(Text(word.text).font(.system(size: fontSize, design: .serif)).foregroundStyle(.white))
+        let measured = big.measure(in: CGSize(width: size.width - 40, height: 90))
+        let centreX = min(size.width - 20 - measured.width / 2, max(20 + measured.width / 2, point.x - measured.width * 0.12))
+        let rise = CGFloat(8 * (1 - appear))
+        let textRect = CGRect(x: centreX - measured.width / 2, y: point.y - 10 - measured.height + rise,
+                              width: measured.width, height: measured.height)
+        let halo = CGPoint(x: (textRect.midX + point.x) / 2, y: (textRect.midY + point.y) / 2)
+        let haloRadius = max(70, measured.width * 0.75) + CGFloat(pulse) * 10
+        context.fill(Path(ellipseIn: CGRect(x: halo.x - haloRadius, y: halo.y - haloRadius,
+                                            width: haloRadius * 2, height: haloRadius * 2)),
+                     with: .radialGradient(Gradient(colors: [glow.opacity((0.13 + pulse * 0.06) * appear), .clear]),
+                                           center: halo, startRadius: 0, endRadius: haloRadius))
+        if current > 0, appear < 1 {
+            drawShrinkingWord(in: &context, points: points, index: current - 1, progress: appear,
+                              currentLine: word.line)
+        }
+        let energy = CGFloat(layout.stars[current].energy)
+        sparkle(in: &context, at: point, size: (9 + 6 * energy + CGFloat(pulse) * 5) * CGFloat(appear), alpha: 1)
+        context.drawLayer { layer in
+            layer.opacity = appear
+            layer.addFilter(.shadow(color: .white.opacity(0.45), radius: 9))
+            layer.draw(big, in: textRect)
+        }
+    }
+
+    private func drawShrinkingWord(in context: inout GraphicsContext, points: [CGPoint], index: Int,
+                                   progress: Double, currentLine: Int) {
+        let point = points[index]
+        let word = words[index]
+        let fromSize: CGFloat = word.text.count > 18 ? 24 : Self.bigSize
+        let fontSize = fromSize + (Self.labelSize - fromSize) * CGFloat(progress)
+        let restAlpha = word.line == currentLine ? 0.6 : 0.25
+        let text = context.resolve(Text(word.text).font(.system(size: fontSize, design: .serif))
+            .foregroundStyle(.white.opacity(1 + (restAlpha - 1) * progress)))
+        let measured = text.measure(in: CGSize(width: 360, height: 90))
+        let bigOrigin = CGPoint(x: point.x - measured.width * 0.62, y: point.y - 10 - measured.height)
+        let labelOrigin = CGPoint(x: point.x + 3, y: point.y + 5)
+        let t = CGFloat(progress)
+        context.draw(text, in: CGRect(x: bigOrigin.x + (labelOrigin.x - bigOrigin.x) * t,
+                                      y: bigOrigin.y + (labelOrigin.y - bigOrigin.y) * t,
+                                      width: measured.width, height: measured.height))
+    }
+
+    /// Vierstrahliger Funkelstern; der senkrechte Strahl ist länger.
+    private func sparkle(in context: inout GraphicsContext, at point: CGPoint, size: CGFloat, alpha: Double) {
+        guard size > 0.5 else { return }
+        let long = size
+        let short = size * 0.68
+        let width = max(0.5, size * 0.07)
+        var rays = Path()
+        rays.move(to: CGPoint(x: point.x, y: point.y - long))
+        rays.addLine(to: CGPoint(x: point.x + width, y: point.y))
+        rays.addLine(to: CGPoint(x: point.x, y: point.y + long))
+        rays.addLine(to: CGPoint(x: point.x - width, y: point.y))
+        rays.closeSubpath()
+        rays.move(to: CGPoint(x: point.x - short, y: point.y))
+        rays.addLine(to: CGPoint(x: point.x, y: point.y - width))
+        rays.addLine(to: CGPoint(x: point.x + short, y: point.y))
+        rays.addLine(to: CGPoint(x: point.x, y: point.y + width))
+        rays.closeSubpath()
+        context.fill(rays, with: .color(.white.opacity(alpha)))
+        let core = max(1.2, size * 0.16)
+        context.fill(Path(ellipseIn: CGRect(x: point.x - core, y: point.y - core, width: core * 2, height: core * 2)),
+                     with: .color(.white.opacity(alpha)))
+        if size > 6 {
+            let bloom = size * 1.1
+            context.fill(Path(ellipseIn: CGRect(x: point.x - bloom, y: point.y - bloom, width: bloom * 2, height: bloom * 2)),
+                         with: .radialGradient(Gradient(colors: [.white.opacity(0.35 * alpha), .clear]),
+                                               center: point, startRadius: 0, endRadius: bloom))
+        }
+    }
+
+    // MARK: Karte und Schlussblitz
+
+    private func drawMap(in context: inout GraphicsContext, size: CGSize, points: [CGPoint], current: Int, travel: Double) {
+        let afterglow = elapsed.map { $0 > ConstellationVoiceLayout.boltDelay + ConstellationVoiceLayout.boltDuration } ?? false
+        var segments = Path()
+        var lit = Path()
+        for index in 1..<max(1, points.count) where words[index].line == words[index - 1].line {
+            if Double(index) <= travel {
+                lit.move(to: points[index - 1])
+                lit.addLine(to: points[index])
+            } else {
+                segments.move(to: points[index - 1])
+                segments.addLine(to: points[index])
             }
-            if let elapsed, lit, !reduced, elapsed <= ConstellationVoiceLayout.boltDelay + ConstellationVoiceLayout.boltDuration + 0.4 {
-                // Blitz streift den Stern: kurzes, abklingendes Aufleuchten.
-                let flare = CGFloat(exp(-(travel - Double(index)) / 5))
-                let glow = 6 + 14 * flare
-                context.fill(Path(ellipseIn: CGRect(x: point.x - glow, y: point.y - glow, width: glow * 2, height: glow * 2)),
-                             with: .radialGradient(Gradient(colors: [.white.opacity(0.7 * Double(flare)), .clear]),
-                                                   center: point, startRadius: 0, endRadius: glow))
+        }
+        context.stroke(segments, with: .color(.white.opacity(0.12)), lineWidth: 0.6)
+        context.stroke(lit, with: .color(.white.opacity(0.5 + pulse * 0.25)), lineWidth: 0.7)
+        for index in points.indices {
+            let point = points[index]
+            let star = layout.stars[index]
+            let isLit = Double(index) <= travel
+            var alpha = isLit ? 0.85 : 0.2
+            if afterglow, !reduced, let elapsed {
+                alpha = 0.65 + 0.35 * sin(elapsed * 2.4 + Double(index) * 1.3)
             }
+            if let elapsed, isLit, !reduced, !afterglow, elapsed > ConstellationVoiceLayout.boltDelay {
+                // Der Blitz streift den Stern: kurzes, abklingendes Aufleuchten.
+                let flare = exp(-(travel - Double(index)) / 5)
+                sparkle(in: &context, at: point, size: CGFloat(3 + 8 * flare), alpha: min(1, alpha + flare * 0.3))
+                continue
+            }
+            let radius = 0.9 + CGFloat(star.energy) * 0.9
             context.fill(Path(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)),
-                         with: .color((lit ? soft : Color.white).opacity(alpha)))
+                         with: .color(.white.opacity(alpha)))
         }
-        if elapsed == nil, historyIndex == nil, points.indices.contains(current) {
-            let point = points[current]
-            let glow = CGFloat(18 + pulse * 16 + layout.stars[current].energy * 10)
-            context.fill(Path(ellipseIn: CGRect(x: point.x - glow, y: point.y - glow, width: glow * 2, height: glow * 2)),
-                         with: .radialGradient(Gradient(colors: [tint.opacity(0.35 + pulse * 0.3), .clear]),
-                                               center: point, startRadius: 0, endRadius: glow))
+        var drawn: [CGRect] = []
+        for index in points.indices where layout.stars[index].lineStart {
+            let label = context.resolve(Text(words[index].text).font(.system(size: 9, weight: .medium))
+                .foregroundStyle(.white.opacity(Double(index) <= travel ? 0.5 : 0.22)))
+            let measured = label.measure(in: CGSize(width: 90, height: 20))
+            let rect = CGRect(x: points[index].x + 3, y: points[index].y + 4, width: measured.width, height: measured.height)
+            guard !drawn.suffix(6).contains(where: { $0.intersects(rect) }) else { continue }
+            context.draw(label, in: rect)
+            drawn.append(rect)
         }
-        if afterglow, points.indices.contains(current) {
-            let point = points[current]
-            context.stroke(Path(ellipseIn: CGRect(x: point.x - 6, y: point.y - 6, width: 12, height: 12)),
-                           with: .color(.white.opacity(0.8)), lineWidth: 1)
+        if afterglow || elapsed == nil, points.indices.contains(current) {
+            sparkle(in: &context, at: points[current], size: 9 + CGFloat(pulse) * 4, alpha: 1)
         }
     }
 
@@ -279,112 +383,13 @@ private struct ConstellationScene: View, Animatable {
         }
         context.drawLayer { layer in
             layer.addFilter(.blur(radius: 6))
-            layer.stroke(bolt, with: .color(accent.opacity(0.75)), lineWidth: 8)
+            layer.stroke(bolt, with: .color(accent.opacity(0.7)), lineWidth: 8)
         }
         context.stroke(branches, with: .color(.white.opacity(0.55)), lineWidth: 0.8)
-        context.stroke(bolt, with: .color(accent.opacity(0.9)), lineWidth: 3)
-        context.stroke(bolt, with: .color(.white), lineWidth: 1.4)
+        context.stroke(bolt, with: .color(accent.opacity(0.85)), lineWidth: 2.6)
+        context.stroke(bolt, with: .color(.white), lineWidth: 1.2)
         context.fill(Path(ellipseIn: CGRect(x: tip.x - 26, y: tip.y - 26, width: 52, height: 52)),
-                     with: .radialGradient(Gradient(colors: [.white.opacity(0.9), accent.opacity(0.35), .clear]),
+                     with: .radialGradient(Gradient(colors: [.white.opacity(0.9), accent.opacity(0.3), .clear]),
                                            center: tip, startRadius: 0, endRadius: 26))
-    }
-
-    // MARK: Beschriftung
-
-    /// Live: das aktuelle Wort groß, die letzten Wörter als ausklingender Verlauf.
-    private func drawLiveLabels(in context: inout GraphicsContext, size: CGSize, points: [CGPoint],
-                                current: Int, headPoint: CGPoint, tint: Color) {
-        var previous = CGRect.null
-        for index in max(0, current - 10)..<current {
-            let age = Double(current - index)
-            let point = points[index]
-            let above = index > 0 && point.y < points[index - 1].y
-            let label = context.resolve(Text(words[index].text).font(.system(size: 11, design: .serif))
-                .foregroundStyle(.white.opacity(0.55 * (1 - age / 11))))
-            let measured = label.measure(in: CGSize(width: 160, height: 30))
-            let anchor = CGPoint(x: point.x, y: above ? point.y - 9 : point.y + 9)
-            let rect = CGRect(x: anchor.x - measured.width / 2, y: above ? anchor.y - measured.height : anchor.y,
-                              width: measured.width, height: measured.height)
-            guard !rect.intersects(previous) else { continue }
-            context.draw(label, in: rect)
-            previous = rect
-        }
-        guard words.indices.contains(current) else { return }
-        let word = words[current]
-        let appear = ConstellationVoiceLayout.clamp(Double(positionMs - word.start) / 180)
-        let eased = appear * appear * (3 - 2 * appear)
-        let fontSize: CGFloat = word.text.count > 22 ? 22 : 30
-        var label = context.resolve(Text(word.text).font(.system(size: fontSize, design: .serif)).foregroundStyle(.white))
-        let measured = label.measure(in: CGSize(width: size.width - 40, height: 80))
-        let point = points[current]
-        let x = min(size.width - 20 - measured.width / 2, max(20 + measured.width / 2, point.x))
-        let lift = CGFloat(10 * (1 - eased))
-        label.shading = .color(.white.opacity(0.35 + 0.65 * eased))
-        context.drawLayer { layer in
-            layer.addFilter(.shadow(color: tint.opacity(0.9), radius: 12))
-            layer.draw(label, in: CGRect(x: x - measured.width / 2, y: point.y - 26 - measured.height + lift,
-                                        width: measured.width, height: measured.height))
-        }
-        context.fill(Path(ellipseIn: CGRect(x: headPoint.x - 2.5, y: headPoint.y - 2.5, width: 5, height: 5)),
-                     with: .color(.white))
-    }
-
-    /// Verlauf: alle bisher gesungenen Wörter; die gewählte Zeile tritt hervor.
-    private func drawHistoryLabels(in context: inout GraphicsContext, size: CGSize, points: [CGPoint],
-                                   current: Int, selected: Int) {
-        let line = words.indices.contains(selected) ? words[selected].line : -1
-        let viewport = CGRect(origin: .zero, size: size).insetBy(dx: -30, dy: 0)
-        var previous = CGRect.null
-        for index in 0...current where viewport.contains(points[index]) {
-            let chosen = words[index].line == line
-            let label = context.resolve(Text(words[index].text)
-                .font(.system(size: chosen ? 13 : 10, weight: chosen ? .semibold : .regular, design: .serif))
-                .foregroundStyle(.white.opacity(chosen ? 0.95 : 0.42)))
-            let measured = label.measure(in: CGSize(width: 160, height: 30))
-            let rect = CGRect(x: points[index].x - measured.width / 2, y: points[index].y + 7,
-                              width: measured.width, height: measured.height)
-            guard chosen || !rect.intersects(previous) else { continue }
-            context.draw(label, in: rect)
-            previous = rect
-        }
-        if points.indices.contains(selected) {
-            let point = points[selected]
-            context.stroke(Path(ellipseIn: CGRect(x: point.x - 9, y: point.y - 9, width: 18, height: 18)),
-                           with: .color(.white.opacity(0.8)), lineWidth: 1)
-        }
-    }
-
-    /// Karte: Zeilenanfänge als ruhige Beschriftung ohne Überlappung.
-    private func drawMapLabels(in context: inout GraphicsContext, points: [CGPoint], current: Int, travel: Double) {
-        var drawn: [CGRect] = []
-        for index in points.indices where layout.stars[index].lineStart {
-            let lit = Double(index) <= travel
-            let label = context.resolve(Text(words[index].text).font(.system(size: 10, design: .serif))
-                .foregroundStyle(.white.opacity(lit ? 0.5 : 0.25)))
-            let measured = label.measure(in: CGSize(width: 90, height: 20))
-            let rect = CGRect(x: points[index].x - measured.width / 2, y: points[index].y + 5,
-                              width: measured.width, height: measured.height)
-            guard !drawn.suffix(6).contains(where: { $0.intersects(rect) }) else { continue }
-            context.draw(label, in: rect)
-            drawn.append(rect)
-        }
-    }
-
-    /// Weiche Catmull-Rom-Kurve; ruhige Songs bekommen weitere Bögen.
-    private func smoothPath(_ points: [CGPoint], tension: CGFloat) -> Path {
-        var path = Path()
-        guard let first = points.first else { return path }
-        path.move(to: first)
-        guard points.count > 1 else { return path }
-        for index in 0..<(points.count - 1) {
-            let p0 = points[max(0, index - 1)]
-            let p1 = points[index]
-            let p2 = points[index + 1]
-            let p3 = points[min(points.count - 1, index + 2)]
-            path.addCurve(to: p2,
-                          control1: CGPoint(x: p1.x + (p2.x - p0.x) * tension, y: p1.y + (p2.y - p0.y) * tension),
-                          control2: CGPoint(x: p2.x - (p3.x - p1.x) * tension, y: p2.y - (p3.y - p1.y) * tension))
-        }
-        return path
     }
 }
