@@ -9,10 +9,10 @@ Die öffentlichen React-Bits-Pro-Vorschauen dienen als visuelle Referenz. Es wer
 | Bibliothek / Entdecken | Zweiarmige Spiralgalaxie; Cover wandern auf einer geneigten Bahn (vorn größer, hinten blasser), die Scheibe dreht mit Auswahl und Finger. Auswahl unter Glaslinse; Pfeile in Glas-Kapsel wie im Dock. Entdecken: frei drehbar mit Einrasten | Leere Daten, ein Element, Datenwechsel, VoiceOver, Reduce Transparency |
 | Start / Künstler | Albumregal auf Liquid-Glass-Bühne wie im Dock: Beim Wechsel gleitet die Platte in die Hülle, Hüllen drehen stufenlos weiter (auch über den Rand), die Glasbühne dehnt sich in Laufrichtung, dann rollt die neue Platte heraus. Platte dreht nur bei tatsächlicher Wiedergabe dieses Albums | Auswahl, Öffnen, Kontextmenü, schnelles Wischen, reduzierte Bewegung und Transparenz |
 | Vollplayer | Eigene gläserne Übergangslinse beim bestätigten Titelwechsel | Schneller Skip, fehlendes Cover, Video bleibt bedienbar |
-| Automix | Lichtfäden zwischen echten Queue-Covern im vorhandenen Detailsheet; Fortschritt aus Engine-Zeitfenster | Geplant / aktiv / beendet, kein erfundener Fortschritt |
+| Automix | Lichtfäden zwischen echten Queue-Covern im vorhandenen Detailsheet; Fortschritt aus Engine-Zeitfenster. Beim Mischen tritt das alte Cover zurück, das neue nach vorn, Fäden schwellen in der Mitte an und Lichtpunkte laufen exakt auf den Bézierfäden | Geplant / aktiv / beendet, kein erfundener Fortschritt |
 | Warteschlange | Coverbogen aus der vorhandenen Queue mit unverändertem Index-Callback und erhaltener Listenbearbeitung | Doppelte Titel, Queue-Änderung, Auswahl, Party-Sperre |
 | Suche | Native Zoom-Navigation vom Sammlungsergebnis zur Detailseite | Öffnen, Zurück, Suchfeld bleibt frei |
-| Playlist | Auffächerbare Cover aus tatsächlichen Playlist-Songs mit vorhandenem Queue-Start | Auf-/Zuklappen, Auswahl, leere Playlist |
+| Playlist | Auffächerbare Cover aus tatsächlichen Playlist-Songs mit vorhandenem Queue-Start; Stapel und Reihe teilen die Cover-Identität (`matchedGeometryEffect`), jedes Cover fliegt aus dem Stapel an seinen Platz | Auf-/Zuklappen, Auswahl, leere Playlist |
 | Favoriten | Kurzer Sternimpuls erst nach bestätigtem Speichern | Fehler, Entfernen, Wiederholung, reduzierte Bewegung |
 | Downloads | Coverbewegung beim Übergang eines tatsächlichen Jobs in den fertigen Zustand | Fehler und laufende Jobs erzeugen keinen Erfolg |
 | Gemeinsam hören | Teilnehmer um das aktuelle Cover; Rollen und Verbindung aus PartyStore | Beitritt, Austritt, Auswahl, kleine Breite |

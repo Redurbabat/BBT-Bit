@@ -66,22 +66,26 @@ struct NativeCardZoomLink<Destination: View, Label: View>: View {
     }
 }
 
+/// Die Cover fächern sich aus dem Stapel auf: Stapel und Reihe teilen dieselbe
+/// Identität je Cover, daher fliegt jedes Cover an seinen Platz, statt umzuspringen.
 struct PlaylistCoverFan: View {
     let entries: [QueueEntry]
     let onSelect: (Int) -> Void
     @State private var expanded = false
+    @Namespace private var fan
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(PartyStore.self) private var party
 
     var body: some View {
         VStack(spacing: 10) {
             Button {
-                withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.85)) { expanded.toggle() }
+                withAnimation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.82)) { expanded.toggle() }
             } label: {
                 HStack {
                     Text(expanded ? "Close cover fan" : "Explore playlist covers")
                     Spacer()
                     Image(systemName: expanded ? "chevron.up" : "rectangle.stack")
+                        .contentTransition(.symbolEffect(.replace))
                 }.frame(minHeight: 44)
             }.buttonStyle(.plain).accessibilityIdentifier("red.playlist.fan.toggle")
             if expanded {
@@ -91,28 +95,39 @@ struct PlaylistCoverFan: View {
                             Button { onSelect(index) } label: {
                                 VStack(spacing: 8) {
                                     ArtworkView(entry: entry, side: 100).clipShape(.rect(cornerRadius: 12))
-                                        .rotationEffect(reduceMotion ? .zero : .degrees(Double(index % 3 - 1) * 5))
+                                        .matchedGeometryEffect(id: index, in: fan)
+                                        .rotationEffect(reduceMotion ? .zero : .degrees(fanTilt(index)))
+                                        .shadow(color: .black.opacity(0.18), radius: 8, y: 5)
                                     Text(entry.title).font(.caption).lineLimit(2).frame(width: 100)
                                 }.padding(.vertical, 8)
                             }.buttonStyle(.plain).disabled(party.state.controlsLocked)
                                 .accessibilityLabel("Play track: \(entry.title)")
+                                .transition(.scale(scale: 0.6).combined(with: .opacity))
                         }
                     }.padding(.horizontal, 8)
                 }
             } else if !entries.isEmpty {
-                ZStack {
-                    ForEach(Array(entries.prefix(4).enumerated()).reversed(), id: \.offset) { index, entry in
+                // Echte Layoutabstände statt Versatz, damit der Flug am richtigen Ort beginnt.
+                HStack(spacing: -62) {
+                    ForEach(Array(entries.prefix(4).enumerated()), id: \.offset) { index, entry in
                         ArtworkView(entry: entry, side: 82).clipShape(.rect(cornerRadius: 10))
-                            .rotationEffect(reduceMotion ? .zero : .degrees(Double(index - 1) * 10))
-                            .offset(x: CGFloat(index - 1) * 20)
+                            .matchedGeometryEffect(id: index, in: fan)
+                            .rotationEffect(reduceMotion ? .zero : .degrees(stackTilt(index)))
+                            .shadow(color: .black.opacity(0.15), radius: 6, y: 4)
+                            .zIndex(Double(-index))
                     }
                 }.frame(height: 105).accessibilityHidden(true).allowsHitTesting(false)
             }
         }.padding(.horizontal, 24)
     }
+
+    private func stackTilt(_ index: Int) -> Double { Double(index - 1) * 10 }
+    private func fanTilt(_ index: Int) -> Double { Double(index % 3 - 1) * 5 }
 }
 
 /// Das Licht folgt dem gemeldeten Mix-Fenster. Geplante Übergänge bleiben statisch.
+/// Während des Mischens tritt das alte Cover zurück, das neue nach vorn, und die
+/// Lichtpunkte laufen auf den tatsächlichen Fäden hinüber.
 struct AutomixLightBridge: View {
     let current: QueueEntry?
     let next: QueueEntry?
@@ -120,34 +135,22 @@ struct AutomixLightBridge: View {
     let isMixing: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var phase: Double { isMixing ? MusicMotionGeometry.progress(progress) : 0 }
+
     var body: some View {
         GeometryReader { proxy in
             ZStack {
                 Canvas { context, size in
-                    let phase = isMixing ? MusicMotionGeometry.progress(progress) : 0
-                    for index in 0..<18 {
-                        let spread = Double(index - 9) * 5
-                        let a = CGPoint(x: 42, y: size.height / 2)
-                        let b = CGPoint(x: size.width - 42, y: size.height / 2)
-                        var path = Path()
-                        path.move(to: a)
-                        path.addCurve(to: b,
-                            control1: CGPoint(x: size.width * 0.35, y: size.height / 2 + spread),
-                            control2: CGPoint(x: size.width * 0.65, y: size.height / 2 - spread))
-                        context.stroke(path, with: .linearGradient(
-                            Gradient(colors: [Theme.accent.opacity(0.6), .orange.opacity(0.6)]),
-                            startPoint: a, endPoint: b), lineWidth: index.isMultiple(of: 3) ? 1.5 : 0.6)
-                        if isMixing, !reduceMotion {
-                            let x = 42 + (size.width - 84) * phase
-                            context.fill(Path(ellipseIn: CGRect(x: x - 2, y: size.height / 2 + spread * sin(phase * .pi) - 2,
-                                                               width: 4, height: 4)), with: .color(.primary.opacity(0.7)))
-                        }
-                    }
+                    drawThreads(in: &context, size: size)
                 }.accessibilityHidden(true)
                 HStack {
                     ArtworkView(entry: current, side: 64).clipShape(.rect(cornerRadius: 12))
+                        .scaleEffect(CGFloat(1 - 0.12 * phase))
+                        .opacity(1 - 0.45 * phase)
                     Spacer()
                     ArtworkView(entry: next, side: 64).clipShape(.rect(cornerRadius: 12))
+                        .scaleEffect(CGFloat(0.88 + 0.12 * phase))
+                        .opacity(isMixing ? 0.55 + 0.45 * phase : 1)
                 }
                 VStack {
                     Spacer()
@@ -157,6 +160,42 @@ struct AutomixLightBridge: View {
             }.frame(width: proxy.size.width, height: proxy.size.height)
         }
         .frame(height: 156).accessibilityElement(children: .combine)
+    }
+
+    private func drawThreads(in context: inout GraphicsContext, size: CGSize) {
+        let a = CGPoint(x: 42, y: size.height / 2)
+        let b = CGPoint(x: size.width - 42, y: size.height / 2)
+        let swell: Double = 1 + 0.35 * sin(phase * .pi)
+        let outgoing: Double = 0.15 + 0.45 * (1 - phase)
+        let incoming: Double = 0.25 + 0.5 * phase
+        let gradient = Gradient(colors: [Theme.accent.opacity(outgoing), .orange.opacity(incoming)])
+        for index in 0..<18 {
+            let spread: Double = Double(index - 9) * 5 * swell
+            let c1 = CGPoint(x: size.width * 0.35, y: size.height / 2 + spread)
+            let c2 = CGPoint(x: size.width * 0.65, y: size.height / 2 - spread)
+            var path = Path()
+            path.move(to: a)
+            path.addCurve(to: b, control1: c1, control2: c2)
+            let width: CGFloat = index.isMultiple(of: 3) ? 1.5 : 0.6
+            context.stroke(path, with: .linearGradient(gradient, startPoint: a, endPoint: b), lineWidth: width)
+            guard isMixing, !reduceMotion else { continue }
+            let point = bezier(a, c1, c2, b, t: CGFloat(phase))
+            let glow: Double = 0.45 + 0.4 * sin(phase * .pi)
+            context.fill(Path(ellipseIn: CGRect(x: point.x - 2, y: point.y - 2, width: 4, height: 4)),
+                         with: .color(.primary.opacity(glow)))
+        }
+    }
+
+    /// Punkt auf einer kubischen Bézierkurve; die Lichtpunkte folgen damit exakt dem Faden.
+    private func bezier(_ p0: CGPoint, _ p1: CGPoint, _ p2: CGPoint, _ p3: CGPoint, t: CGFloat) -> CGPoint {
+        let u: CGFloat = 1 - t
+        let w0: CGFloat = u * u * u
+        let w1: CGFloat = 3 * u * u * t
+        let w2: CGFloat = 3 * u * t * t
+        let w3: CGFloat = t * t * t
+        let x: CGFloat = w0 * p0.x + w1 * p1.x + w2 * p2.x + w3 * p3.x
+        let y: CGFloat = w0 * p0.y + w1 * p1.y + w2 * p2.y + w3 * p3.y
+        return CGPoint(x: x, y: y)
     }
 }
 
