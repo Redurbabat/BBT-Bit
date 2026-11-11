@@ -642,13 +642,15 @@ fn drain_until_handoff(
     events: &RecordedEvents,
     seconds: u64,
 ) -> Option<f64> {
-    // Budget in abgespielter Ausgabe (Stereo, 44,1 kHz), nicht in Wanduhrzeit:
-    // Auf einem ausgelasteten CI-Rechner läuft der Mixer langsamer als Echtzeit,
-    // und ein Wanduhr-Budget wurde dort zu einem falschen „no handoff fired“
-    // (macOS-Runner, 11.11.2026). Die Wanduhr bleibt nur als Schutz gegen Hänger.
-    let budget_samples = seconds * 44_100 * 2;
+    // Budget in Wiedergabeposition des laufenden Titels, nicht in Wanduhrzeit
+    // und nicht in ausgegebenen Samples: Auf einem ausgelasteten CI-Rechner
+    // (Simulator und Gradle laufen nebenher) läuft der Mixer langsamer als
+    // Echtzeit, und ein Decoder-Stau füllt die Ausgabe mit Stille. Beides wurde
+    // dort zu einem falschen „no handoff fired“ (macOS-Runner, 11.11.2026).
+    // Die Wanduhr bleibt nur als großzügiger Schutz gegen echte Hänger.
+    let started = std::time::Instant::now();
     let mut drained: u64 = 0;
-    let hang_guard = std::time::Instant::now() + std::time::Duration::from_secs(seconds.max(30) * 6);
+    let hang_guard = started + std::time::Duration::from_secs(seconds.max(30) * 9);
     loop {
         while consumer.pop().is_ok() {
             drained += 1;
@@ -673,7 +675,15 @@ fn drain_until_handoff(
             // is close enough for a margin measured in seconds.
             return Some(position.load(Ordering::Relaxed) as f64 / 1000.0);
         }
-        if drained >= budget_samples || std::time::Instant::now() > hang_guard {
+        let played = position.load(Ordering::Relaxed) as f64 / 1000.0;
+        if played >= seconds as f64 || std::time::Instant::now() > hang_guard {
+            eprintln!(
+                "drain_until_handoff: no handoff at {played:.2}s playhead after {:.1}s wall, {drained} samples drained, states={:?} ended={:?} errors={:?}",
+                started.elapsed().as_secs_f64(),
+                events.states.lock().unwrap(),
+                events.ended.lock().unwrap(),
+                events.errors.lock().unwrap(),
+            );
             return None;
         }
         std::thread::sleep(std::time::Duration::from_millis(5));
