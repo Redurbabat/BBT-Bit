@@ -18355,6 +18355,16 @@
         }
       }
     },
+    "Word timing estimated from line timestamps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wortzeiten aus den Zeilenzeiten geschätzt"
+          }
+        }
+      }
+    },
     "Earlier lyrics": {
       "localizations": {
         "de": {

@@ -232,7 +232,7 @@ private struct ConstellationScene: View, Animatable {
         let textRect = CGRect(x: centreX - measured.width / 2, y: point.y - 10 - measured.height + rise,
                               width: measured.width, height: measured.height)
         let halo = CGPoint(x: (textRect.midX + point.x) / 2, y: (textRect.midY + point.y) / 2)
-        let haloRadius = max(70, measured.width * 0.75) + CGFloat(pulse) * 10
+        let haloRadius = min(120, max(70, measured.width * 0.75)) + CGFloat(pulse) * 10
         context.fill(Path(ellipseIn: CGRect(x: halo.x - haloRadius, y: halo.y - haloRadius,
                                             width: haloRadius * 2, height: haloRadius * 2)),
                      with: .radialGradient(Gradient(colors: [glow.opacity((0.13 + pulse * 0.06) * appear), .clear]),

@@ -6,6 +6,34 @@ struct ConstellationWord: Equatable {
     let start: Int64
     let end: Int64
     var line: Int = 0
+    /// true, wenn die Wortzeit aus der Zeilenzeit geschätzt wurde (keine Wortmarker).
+    var estimated = false
+}
+
+/// Verteilt eine Zeile ohne Wortmarker auf ihre Wörter. Gesungen wird meist
+/// schneller, als die Zeile bis zur nächsten dauert: höchstens etwa 0,45 s je
+/// Wort plus Atem, gewichtet nach Wortlänge. Die Zeiten sind als geschätzt markiert.
+enum ConstellationWordSplitter {
+    static func split(text: String, line: Int, start: Int64, nextStart: Int64?) -> [ConstellationWord] {
+        let tokens = text.split(whereSeparator: { $0.isWhitespace }).map(String.init).filter { !$0.isEmpty }
+        guard !tokens.isEmpty else { return [] }
+        let count = Int64(tokens.count)
+        let begin = max(0, start)
+        let window: Int64 = max(count * 120, (nextStart ?? begin + count * 420) - begin)
+        let sung: Int64 = min(window, count * 450 + 300)
+        let weights: [Double] = tokens.map { Double(max(2, $0.count)) + 1.5 }
+        let total: Double = weights.reduce(0, +)
+        var cursor = Double(begin)
+        var result: [ConstellationWord] = []
+        for (index, token) in tokens.enumerated() {
+            let length: Double = Double(sung) * weights[index] / total
+            let wordStart = Int64(cursor.rounded())
+            let wordEnd = max(wordStart + 1, Int64((cursor + length).rounded()))
+            result.append(ConstellationWord(text: token, start: wordStart, end: wordEnd, line: line, estimated: true))
+            cursor += length
+        }
+        return result
+    }
 }
 
 /// Die gesamte Route entsteht aus echten Zeitmarken, nicht aus Zufallsbewegungen.

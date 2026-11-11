@@ -75,8 +75,9 @@ struct LyricsConstellationView: View {
         }
     }
 
-    /// Ohne Wortmarker bildet die ganze Zeile einen Knoten. Kein künstliches
-    /// Verteilen von Wörtern und keine aus BPM erzeugten Schein-Beats.
+    /// Ohne Wortmarker wird die Zeile auf ihre Wörter verteilt (als geschätzt
+    /// markiert und so beschriftet). Eine ganze Zeile als ein Stern ergab kein
+    /// Sternbild, sondern nur großen Text. Keine aus BPM erzeugten Schein-Beats.
     private func starWords(for index: Int) -> [ConstellationWord] {
         let line = lines[index]
         let timed = line.words.filter {
@@ -87,8 +88,8 @@ struct LyricsConstellationView: View {
                 end: max(0, $0.endMs), line: index) }
         }
         guard !line.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return [] }
-        let next = index + 1 < lines.count ? lines[index + 1].timeMs : line.timeMs
-        return [ConstellationWord(text: line.text, start: max(0, line.timeMs), end: max(0, next), line: index)]
+        let next: Swift.Int64? = index + 1 < lines.count ? lines[index + 1].timeMs : nil
+        return ConstellationWordSplitter.split(text: line.text, line: index, start: line.timeMs, nextStart: next)
     }
 }
 
@@ -181,6 +182,10 @@ struct ConstellationStage: View {
                     .font(.caption2).foregroundStyle(.white.opacity(0.35))
                 if layout.signature.voiced {
                     Text("Shape follows the singing voice")
+                        .font(.caption2).foregroundStyle(.white.opacity(0.3))
+                }
+                if words.contains(where: { $0.estimated }) {
+                    Text("Word timing estimated from line timestamps")
                         .font(.caption2).foregroundStyle(.white.opacity(0.3))
                 }
                 if let sourceLabel, !sourceLabel.isEmpty {

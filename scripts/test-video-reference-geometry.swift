@@ -202,6 +202,19 @@ struct VideoReferenceGeometryTests {
         precondition(MusicMotionGeometry.tiltedOrbit(angle: .pi / 2, size: CGSize(width: 300, height: 300)).depth == 1)
         precondition(MusicMotionGeometry.tiltedOrbit(angle: .nan, size: CGSize(width: 300, height: 300)).point == CGPoint(x: 150, y: 150))
         precondition(MusicMotionGeometry.unit(42) == ConstellationGeometry.unit(42))
+        // Zeilen ohne Wortmarker werden zu Wortsternen mit geschätzten Zeiten
+        let splitWords = ConstellationWordSplitter.split(text: "Look at me I'm a boss", line: 3, start: 10_000, nextStart: 30_000)
+        precondition(splitWords.count == 6 && splitWords.allSatisfy { $0.estimated && $0.line == 3 })
+        precondition(splitWords.first?.start == 10_000, "Das erste Wort beginnt mit der Zeile")
+        for index in 1..<splitWords.count {
+            precondition(splitWords[index].start >= splitWords[index - 1].end - 1 && splitWords[index].start > splitWords[index - 1].start)
+        }
+        precondition((splitWords.last?.end ?? 0) <= 10_000 + 6 * 450 + 300,
+                     "Eine lange Pause nach der Zeile streckt die Wörter nicht über die ganze Lücke")
+        let tight = ConstellationWordSplitter.split(text: "eins zwei drei", line: 0, start: 0, nextStart: 600)
+        precondition((tight.last?.end ?? 0) <= 600 && tight.count == 3, "Kurze Zeilen bleiben in ihrem Zeitfenster")
+        precondition(ConstellationWordSplitter.split(text: "   ", line: 0, start: 0, nextStart: 1000).isEmpty)
+        precondition(ConstellationWordSplitter.split(text: "Ende", line: 9, start: 5000, nextStart: nil).count == 1)
         print("Geometrie: Bogen-Seek, Zeitgrenzen, Sternroute, echte Lichtmarker, Schlusszoom, Stimmform, Verlauf, Blitzkarte, Galaxie und Sammlungsauswahl BESTANDEN")
     }
 }
