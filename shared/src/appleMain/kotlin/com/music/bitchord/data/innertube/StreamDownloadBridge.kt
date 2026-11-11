@@ -258,6 +258,7 @@ object StreamDownloadBridge {
                 var consecutiveEmpty = 0
                 var readyFired = false
                 var failures = 0
+                var invalidRanges = 0
                 var remints = 0
 
                 while (true) {
@@ -299,6 +300,32 @@ object StreamDownloadBridge {
                             throw e
                         }
                         if (e is InvalidFirstMediaRangeException) throw e
+                        if (e is InvalidMediaRangeException && offset > 0L) {
+                            // Mitten im Titel ist eine ungültige Antwort (200 statt 206,
+                            // falscher Content-Range, Fehlerseite) meist ein einzelner
+                            // Aussetzer von Server oder Zwischenstation. Nichts davon wurde
+                            // geschrieben. Bisher endete der Song hier nach dem ersten
+                            // Block (128 KiB, wenige Sekunden). Jetzt wird derselbe Bereich
+                            // erneut angefragt und danach eine frische URL derselben Fassung.
+                            invalidRanges++
+                            if (invalidRanges <= MAX_INVALID_RANGE_RETRIES) {
+                                val wait = BACKOFF_MS[minOf(invalidRanges - 1, BACKOFF_MS.lastIndex)]
+                                DebugLog.w("invalid audio range at offset $offset (${e.message}); asking again in ${wait}ms")
+                                backoff(wait)
+                                continue
+                            }
+                            val fresh = if (readyFired && videoId != null && remints < MAX_REMINTS) {
+                                remints++
+                                runCatching { StreamResolver.resolve(videoId, maxKbps) }.getOrNull()
+                                    ?.takeIf { sameRendition(currentUrl, it.url) }
+                            } else null
+                            if (fresh == null) throw e
+                            DebugLog.d("stream re-minted at offset $offset after invalid ranges; resuming on a fresh URL")
+                            currentUrl = fresh.url
+                            currentHeaders = fresh.headers
+                            invalidRanges = 0
+                            continue
+                        }
                         if (e is InvalidMediaRangeException) throw e
                         if (!networkAvailable.value || e is NetworkChanged) continue
                         if (code != null && code in REFUSAL_CODES) {
@@ -332,6 +359,7 @@ object StreamDownloadBridge {
                     }
                     currentCoroutineContext().ensureActive()
                     failures = 0
+                    invalidRanges = 0
 
                     if (data.isEmpty()) {
                         consecutiveEmpty++
@@ -491,6 +519,9 @@ object StreamDownloadBridge {
     /** Roughly 45 s of trying, inside the reader's two-minute patience. */
     private const val MAX_TRANSPORT_RETRIES = 8
     private val BACKOFF_MS = longArrayOf(250, 500, 1_000, 2_000, 4_000, 8_000, 8_000, 8_000)
+
+    /** Wiederholungen eines ungültigen Bereichs mitten im Titel, bevor eine frische URL kommt. */
+    private const val MAX_INVALID_RANGE_RETRIES = 3
 
     /** Fresh URLs one track may ask for mid-stream before giving up. */
     private const val MAX_REMINTS = 2

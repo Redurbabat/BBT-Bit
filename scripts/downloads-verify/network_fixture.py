@@ -70,6 +70,31 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Content-Length', '0')
             self.end_headers()
             return
+        if path == '/ranges-ignored-once' and count == 2:
+            # Der zweite Bereich ab 128 KiB: Server ignoriert Range und schickt die
+            # ganze Datei mit 200. Ein einzelner Aussetzer darf den Song nicht beenden.
+            self.send_response(200)
+            self.send_header('Content-Type', 'audio/wav')
+            self.send_header('Content-Length', str(len(data)))
+            self.end_headers()
+            try:
+                self.wfile.write(data)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
+        if path == '/ranges-wrong-start-once' and count == 2:
+            # 206 mit falschem Anfang: Die Bytes passen nicht an die Stelle der Datei.
+            body = data[0:end - start + 1]
+            self.send_response(206)
+            self.send_header('Content-Type', 'audio/wav')
+            self.send_header('Content-Range', f'bytes 0-{len(body) - 1}/{len(data)}')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            try:
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
         self.send_response(206 if byte_range else 200)
         self.send_header('Content-Type', 'application/vnd.apple.mpegurl' if path == '/playlist' else 'audio/wav')
         self.send_header('ETag', '"fixture-v1"')

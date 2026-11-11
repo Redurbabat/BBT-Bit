@@ -107,6 +107,18 @@ enum NetworkChecks {
                 })
         }
         check(try Data(contentsOf: URL(fileURLWithPath: ranged)) == expected && rangedProgress.last?.0 == Int64(expected.count), "ranged audio survives an outage and a 503 without restarting or changing bytes")
+        for endpoint in ["ranges-ignored-once", "ranges-wrong-start-once"] {
+            let invalidURL = base.appendingPathComponent(endpoint).absoluteString + "?clen=\(expected.count)"
+            let recovered: String = try await withCheckedThrowingContinuation { continuation in
+                StreamDownloadBridge.shared.download(downloadId: endpoint, url: invalidURL, headers: [:], callback: StreamDone { path, message in
+                    if let path { continuation.resume(returning: path) }
+                    else { continuation.resume(throwing: NSError(domain: "Range fixture", code: 2, userInfo: [NSLocalizedDescriptionKey: message ?? "Failed"])) }
+                })
+            }
+            check(try Data(contentsOf: URL(fileURLWithPath: recovered)) == expected,
+                  "a single invalid audio range after the first 128 KiB is asked again instead of ending the song (\(endpoint))")
+            for suffix in ["", ".len", ".grow", ".complete", ".failed"] { try? FileManager.default.removeItem(atPath: recovered + suffix) }
+        }
         for temporary in [streamed, resumed, emptyFirst, ranged] { for suffix in ["", ".len", ".grow", ".complete", ".failed"] { try? FileManager.default.removeItem(atPath: temporary + suffix) } }
 
         let cache = StreamFileCache(directory: root.appendingPathComponent("audio-cache"))
