@@ -1,6 +1,20 @@
 # RED Bit – Logo
 
-## Neuer Signalband-Entwurf vom 8. November 2026
+## Aktuell: Wellen-Logo des Nutzers (11. November 2026)
+
+Vom Nutzer gelieferter Entwurf: cremefarbene, plastisch gedrehte Klangwelle zwischen zwei Punkten auf Bordeaux. [Vorschau](wave-brand-preview.png). App-Icon, Icon-Composer-Ebene (iOS/macOS 26) und In-App-Marker (Toolbar, Onboarding, Konto, Glass Bloom) verwenden dieselbe Quelle. Asset-Namen, Bundle-IDs und Datenpfade bleiben unverändert.
+
+| Datei | Zweck |
+| --- | --- |
+| [wave-source.webp](wave-source.webp) | Originaldatei des Nutzers |
+| [wave-icon-1024.png](wave-icon-1024.png) | Randloses Legacy-Icon 1024 × 1024 RGB ohne Alpha; Ecken außerhalb des Quadrats glatt aufgefüllt, iOS maskiert selbst |
+| [wave-glyph.png](wave-glyph.png) | Freigestellte, schattierte Welle; Ebene `wave.png` im Icon-Composer-Paket über einem Bordeaux-Verlauf |
+| [wave-mark.png](wave-mark.png) | Template-Marker: Deckkraft folgt der Helligkeit, damit die Drehung auch klein lesbar bleibt |
+| [wave-brand-preview.png](wave-brand-preview.png) | Sichtprüfung: Icon mit iOS-Maske, Marker in 92, 29 und 200 pt auf Dunkel/Hell |
+
+Reproduzierbar erzeugen (Pillow und NumPy, nur lokal): `python scripts/render-red-bit-wave-logo.py`. Das ältere `scripts/render-red-bit-brand.py` würde wieder den Signalband-Entwurf schreiben und ist nur noch historisch. Icon Composer in Xcode, Hell/Dunkel/Getönt auf echtem iPhone und Mac: **NICHT GETESTET**.
+
+## Historisch: Signalband-Entwurf vom 8. November 2026
 
 Der aktuelle Integrationsbranch verwendet ein eigenes geöffnetes R als Signalband. Der seitliche Einschnitt verbindet die Wortmarke mit einem unterbrochenen digitalen Signal; die breite, ruhige Form bleibt als Toolbar-Marker lesbar. Warmes Rot (`#FF5A42`, `#D62236`, `#7C1028`) und gebrochenes Weiß (`#FFF9F0`) prägen das App-Icon. Der Template-Marker folgt der Systemfarbe. Der frühere REC-Entwurf bleibt unten als historische Quelle erhalten.
 
