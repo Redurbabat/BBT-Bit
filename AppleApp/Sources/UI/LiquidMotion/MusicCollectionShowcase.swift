@@ -10,16 +10,19 @@ struct MusicCollectionShowcase: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
+    /// Fortlaufende Position ohne Umbruch: Platten und Galaxie drehen beim
+    /// Wechsel über den Rand weiter, statt quer zurückzuspringen.
     @State private var selectedIndex = 0
+    /// 1 = Platte ragt aus der Hülle, 0 = eingeschoben (während des Wechsels).
+    @State private var vinylOut: CGFloat = 1
+    /// Kurzes Dehnen der Glasbühne in Bewegungsrichtung, wie beim Dock.
+    @State private var glassStretch: CGFloat = 0
+    /// Finger-Drehung der Galaxie oder Fingerweg im Plattenregal.
+    @State private var dragShift: CGFloat = 0
 
     private var index: Int { MusicMotionGeometry.wrapped(selectedIndex, count: items.count) }
     private var selection: ShelfCard? { items.indices.contains(index) ? items[index] : nil }
-    private var recordOffsets: [Int] {
-        var seen: Set<Int> = [index]
-        return [-1, 1, -2, 2].filter {
-            seen.insert(MusicMotionGeometry.wrapped(index + $0, count: items.count)).inserted
-        }.sorted()
-    }
+    private var spring: Animation? { reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.84) }
 
     var body: some View {
         if !items.isEmpty {
@@ -41,25 +44,47 @@ struct MusicCollectionShowcase: View {
                         }
                         .frame(width: proxy.size.width, height: proxy.size.height)
                         .contentShape(Rectangle())
-                        .simultaneousGesture(DragGesture(minimumDistance: 24).onEnded { value in
-                            guard abs(value.translation.width) > abs(value.translation.height) * 1.3 else { return }
-                            move(value.translation.width < 0 ? 1 : -1)
-                        })
+                        .simultaneousGesture(DragGesture(minimumDistance: 16)
+                            .onChanged { value in
+                                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                                dragShift = value.translation.width
+                            }
+                            .onEnded { value in
+                                let horizontal = abs(value.translation.width) > abs(value.translation.height) * 1.3
+                                let travel = value.translation.width + (value.predictedEndTranslation.width - value.translation.width) * 0.3
+                                let unit: CGFloat = style == .galaxy ? 90 : 110
+                                var steps = Int((-travel / unit).rounded())
+                                if horizontal, steps == 0, abs(value.translation.width) > 30 {
+                                    steps = value.translation.width < 0 ? 1 : -1
+                                }
+                                if horizontal, steps != 0 {
+                                    move(max(-3, min(3, steps)))
+                                } else {
+                                    withAnimation(spring) { dragShift = 0 }
+                                }
+                            })
                     }
-                    .frame(height: style == .galaxy ? 300 : 235)
+                    .frame(height: style == .galaxy ? 300 : 250)
                     if let selection {
-                        Text(selection.title).font(.headline).lineLimit(2).multilineTextAlignment(.center)
-                        if let subtitle = selection.subtitle {
-                            Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        VStack(spacing: 4) {
+                            Text(selection.title).font(.headline).lineLimit(2).multilineTextAlignment(.center)
+                            if let subtitle = selection.subtitle {
+                                Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
                         }
+                        .id(selection.id)
+                        .transition(.opacity.combined(with: .offset(y: 6)))
                     }
-                    HStack(spacing: 20) {
+                    HStack(spacing: 14) {
                         navigationButton("Previous collection", symbol: "chevron.left", step: -1)
                         Text("\(index + 1) / \(items.count)")
                             .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                            .contentTransition(.numericText())
                             .accessibilityLabel("Collection \(index + 1) of \(items.count)")
                         navigationButton("Next collection", symbol: "chevron.right", step: 1)
                     }
+                    .padding(.horizontal, 6)
+                    .modifier(ShowcaseGlass(shape: Capsule()))
                 }
             }
             .onChange(of: items.map(\.id)) { _, _ in selectedIndex = min(index, max(0, items.count - 1)) }
@@ -75,65 +100,115 @@ struct MusicCollectionShowcase: View {
         .accessibilityIdentifier(step < 0 ? "red.collection.previous" : "red.collection.next")
     }
 
+    /// Wechsel in drei Takten: Platte gleitet in die Hülle, Hüllen und Glasbühne
+    /// ziehen weiter, dann rollt die neue Platte wieder heraus.
     private func move(_ step: Int) {
-        guard items.count > 1 else { return }
-        withAnimation(reduceMotion ? nil : .spring(response: 0.48, dampingFraction: 0.86)) {
-            selectedIndex = MusicMotionGeometry.wrapped(index + step, count: items.count)
+        guard items.count > 1, step != 0 else {
+            withAnimation(spring) { dragShift = 0 }
+            return
+        }
+        guard !reduceMotion else {
+            selectedIndex += step
+            dragShift = 0
+            return
+        }
+        withAnimation(.easeIn(duration: 0.12)) {
+            vinylOut = 0
+            glassStretch = step > 0 ? 1 : -1
+        } completion: {
+            withAnimation(.spring(response: 0.62, dampingFraction: 0.76)) {
+                vinylOut = 1
+                glassStretch = 0
+            }
+        }
+        withAnimation(.spring(response: 0.52, dampingFraction: 0.82)) {
+            selectedIndex += step
+            dragShift = 0
         }
     }
 
+    /// Sichtbare Nachbarn ohne doppelte Cover bei kleinen Sammlungen.
+    private var recordDeltas: [Int] {
+        var seen: Set<Int> = [index]
+        return [0] + [1, -1, 2, -2].filter {
+            seen.insert(MusicMotionGeometry.wrapped(index + $0, count: items.count)).inserted
+        }
+    }
+
+    // MARK: Musikgalaxie
+
     private func galaxy(size: CGSize) -> some View {
-        ZStack {
-            Canvas { context, canvasSize in
-                for star in 0..<54 {
-                    let x = ConstellationGeometry.unit(UInt64(star * 2 + 1)) * canvasSize.width
-                    let y = ConstellationGeometry.unit(UInt64(star * 2 + 2)) * canvasSize.height
-                    context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: 1.5, height: 1.5)),
-                                 with: .color(.primary.opacity(0.16)))
-                }
-                context.stroke(Path(ellipseIn: CGRect(x: 30, y: 28, width: max(0, canvasSize.width - 60),
-                                                     height: max(0, canvasSize.height - 56))),
-                               with: .color(.primary.opacity(0.10)), lineWidth: 0.5)
-            }.accessibilityHidden(true).allowsHitTesting(false)
-            let neighbours = MusicMotionGeometry.neighbours(selected: index, count: items.count)
+        let neighbours = MusicMotionGeometry.neighbours(selected: index, count: items.count)
+        let step = 2 * Double.pi / Double(max(1, neighbours.count))
+        // Die Scheibe dreht mit der Auswahl und folgt live dem Finger.
+        let turn = -Double(selectedIndex) * step + Double(dragShift) / 90 * step
+        return ZStack {
+            GalaxyBackdrop(rotation: turn * 0.6, tint: Theme.accent)
+                .accessibilityHidden(true).allowsHitTesting(false)
             ForEach(Array(neighbours.enumerated()), id: \.element) { slot, itemIndex in
                 Button {
-                    withAnimation(.spring(response: 0.48, dampingFraction: 0.86)) { selectedIndex = itemIndex }
+                    move(slot + 1)
                 } label: {
-                    ArtworkView(url: items[itemIndex].thumbnailUrl, data: nil, side: 48)
-                        .frame(width: 48, height: 48).clipShape(.rect(cornerRadius: 12))
+                    ArtworkView(url: items[itemIndex].thumbnailUrl, data: nil, side: 52)
+                        .frame(width: 52, height: 52).clipShape(.rect(cornerRadius: 13))
+                        .overlay(RoundedRectangle(cornerRadius: 13).stroke(.white.opacity(0.25), lineWidth: 0.5))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Focus collection: \(items[itemIndex].title)")
-                .position(MusicMotionGeometry.orbit(index: slot, count: neighbours.count, size: size))
+                .modifier(OrbitPlacement(angle: -Double.pi / 2 + Double(slot) * step + Double(dragShift) / 90 * step,
+                                         size: size))
+                .transition(.scale(scale: 0.3).combined(with: .opacity))
             }
             if let selection {
-                collectionLink(selection, side: min(116, size.width * 0.34))
-                    .position(x: size.width / 2, y: size.height / 2)
+                ZStack {
+                    Circle()
+                        .fill(.clear)
+                        .frame(width: min(150, size.width * 0.44), height: min(150, size.width * 0.44))
+                        .modifier(ShowcaseGlass(shape: Circle()))
+                        .scaleEffect(1 + abs(glassStretch) * 0.08)
+                    collectionLink(selection, side: min(112, size.width * 0.33))
+                }
+                .id(selection.id)
+                .transition(.asymmetric(insertion: .scale(scale: 0.45).combined(with: .opacity),
+                                        removal: .scale(scale: 0.6).combined(with: .opacity)))
+                .position(x: size.width / 2, y: size.height / 2)
+                .zIndex(5)
             }
         }
     }
 
+    // MARK: Plattenregal
+
     private func records(size: CGSize) -> some View {
-        ZStack {
-            ForEach(recordOffsets, id: \.self) { delta in
-                let neighbour = MusicMotionGeometry.wrapped(index + delta, count: items.count)
-                    Button { move(delta) } label: {
-                        ArtworkView(url: items[neighbour].thumbnailUrl, data: nil, side: min(154, size.width * 0.42))
-                            .aspectRatio(1, contentMode: .fit).clipShape(.rect(cornerRadius: 12))
+        let side = min(176, size.width * 0.48)
+        return ZStack {
+            // Glasbühne wie beim Dock: dehnt sich kurz in Bewegungsrichtung.
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(.clear)
+                .frame(width: min(size.width - 8, side * 2.1) * (1 + abs(glassStretch) * 0.12), height: side * 0.42)
+                .modifier(ShowcaseGlass(shape: RoundedRectangle(cornerRadius: 30, style: .continuous)))
+                .offset(x: glassStretch * side * 0.08, y: side * 0.5)
+                .accessibilityHidden(true)
+            ForEach(recordDeltas.map { selectedIndex + $0 }, id: \.self) { virtual in
+                let itemIndex = MusicMotionGeometry.wrapped(virtual, count: items.count)
+                // Ein fester Container je Regalplatz: Er gleitet und dreht sich,
+                // während innen nur die Rolle (Link oder Auswahl) überblendet.
+                ZStack {
+                    if virtual == selectedIndex {
+                        collectionLink(items[itemIndex], side: side, vinyl: true)
+                    } else {
+                        Button { move(virtual - selectedIndex) } label: {
+                            ArtworkView(url: items[itemIndex].thumbnailUrl, data: nil, side: side)
+                                .frame(width: side, height: side).clipShape(.rect(cornerRadius: 12))
+                                .overlay(SleeveSheen().clipShape(.rect(cornerRadius: 12)))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Focus collection: \(items[itemIndex].title)")
                     }
-                    .buttonStyle(.plain)
-                    .rotation3DEffect(.degrees(Double(delta) * -18), axis: (0, 1, 0))
-                    .rotationEffect(.degrees(Double(delta) * 5))
-                    .scaleEffect(1 - CGFloat(abs(delta)) * 0.10)
-                    .opacity(abs(delta) == 2 ? 0.55 : 0.8)
-                    .offset(x: CGFloat(delta) * min(70, size.width * 0.19), y: CGFloat(abs(delta)) * 6)
-                    .accessibilityLabel("Focus collection: \(items[neighbour].title)")
-                    .zIndex(Double(3 - abs(delta)))
-            }
-            if let selection {
-                collectionLink(selection, side: min(178, size.width * 0.49), vinyl: true)
-                    .zIndex(4)
+                }
+                .modifier(RecordPlacement(delta: CGFloat(virtual - selectedIndex) + dragShift / 110, side: side))
+                .zIndex(Double(4 - abs(virtual - selectedIndex)))
+                .transition(.opacity)
             }
         }
         .frame(width: size.width, height: size.height)
@@ -144,11 +219,13 @@ struct MusicCollectionShowcase: View {
             ZStack {
                 if vinyl {
                     VinylRecord(artworkURL: card.thumbnailUrl, side: side * 0.93, isCurrent: recordIsCurrent(card))
-                        .offset(x: side * 0.25)
+                        .rotationEffect(.degrees(Double(1 - vinylOut) * -70))
+                        .offset(x: side * 0.27 * vinylOut)
                 }
                 ArtworkView(url: card.thumbnailUrl, data: nil, side: side)
                     .frame(width: side, height: side).clipShape(.rect(cornerRadius: 14))
-                    .shadow(color: .black.opacity(0.20), radius: 12, y: 6)
+                    .overlay(SleeveSheen(phase: glassStretch).clipShape(.rect(cornerRadius: 14)))
+                    .shadow(color: .black.opacity(0.22), radius: 14, y: 8)
             }
             .frame(width: side, height: side)
             .accessibilityLabel(card.title)
@@ -161,6 +238,114 @@ struct MusicCollectionShowcase: View {
         if let videoID = card.videoId, videoID == current.videoId { return true }
         return current.albumName == card.title && !current.artist.isEmpty
             && (card.subtitle?.localizedCaseInsensitiveContains(current.artist) ?? false)
+    }
+}
+
+/// Liquid Glass wie im Dock; ohne iOS 26 Material, bei reduzierter Transparenz deckend.
+private struct ShowcaseGlass<S: Shape>: ViewModifier {
+    let shape: S
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if reduceTransparency {
+            content.background(.background.secondary, in: shape)
+        } else if #available(iOS 26.0, macOS 26.0, *) {
+            content.glassEffect(.regular, in: shape)
+        } else {
+            content.background(.ultraThinMaterial, in: shape)
+        }
+    }
+}
+
+/// Lage einer Hülle im Regal; `delta` wird von SwiftUI interpoliert, die Hülle
+/// dreht sich dabei stufenlos aus der Front in die Seitenlage.
+private struct RecordPlacement: ViewModifier, Animatable {
+    var delta: CGFloat
+    let side: CGFloat
+
+    var animatableData: CGFloat {
+        get { delta }
+        set { delta = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let distance = min(2.4, abs(delta))
+        let direction: CGFloat = delta < 0 ? -1 : 1
+        let x = direction * (distance <= 1 ? distance * side * 0.6 : side * 0.6 + (distance - 1) * side * 0.32)
+        content
+            .rotation3DEffect(.degrees(Double(-direction * min(1, distance) * 42)), axis: (0, 1, 0), perspective: 0.6)
+            .scaleEffect(1 - min(1, distance) * 0.2 - max(0, distance - 1) * 0.12)
+            .opacity(Double(1 - max(0, distance - 1) * 0.5))
+            .offset(x: x, y: min(1, distance) * 8)
+    }
+}
+
+/// Lichtkante auf der Hülle, die beim Wechsel wie über Glas wandert.
+private struct SleeveSheen: View {
+    var phase: CGFloat = 0
+
+    var body: some View {
+        LinearGradient(colors: [.clear, .white.opacity(0.22), .clear],
+                       startPoint: UnitPoint(x: 0.1 + phase * 0.4, y: 0), endPoint: UnitPoint(x: 0.6 + phase * 0.4, y: 1))
+            .blendMode(.plusLighter)
+            .allowsHitTesting(false)
+    }
+}
+
+/// Umlaufbahn mit Tiefe: hintere Cover werden kleiner und blasser. Der Winkel
+/// wird interpoliert, damit Cover entlang der Bahn wandern statt quer zu springen.
+struct OrbitPlacement: ViewModifier, Animatable {
+    var angle: Double
+    let size: CGSize
+
+    var animatableData: Double {
+        get { angle }
+        set { angle = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let orbit = MusicMotionGeometry.tiltedOrbit(angle: angle, size: size)
+        content
+            .scaleEffect(0.72 + orbit.depth * 0.42)
+            .opacity(0.45 + orbit.depth * 0.55)
+            .shadow(color: .black.opacity(0.25 * orbit.depth), radius: 6, y: 4)
+            .position(orbit.point)
+            .zIndex(orbit.depth > 0.75 ? 6 : orbit.depth)
+    }
+}
+
+/// Zweiarmige Spiralgalaxie mit Kern; die Drehung ist animierbar.
+struct GalaxyBackdrop: View, Animatable {
+    var rotation: Double
+    let tint: Color
+
+    var animatableData: Double {
+        get { rotation }
+        set { rotation = newValue }
+    }
+
+    var body: some View {
+        Canvas { context, size in
+            let centre = CGPoint(x: size.width / 2, y: size.height / 2)
+            context.fill(Path(ellipseIn: CGRect(x: centre.x - size.width * 0.42, y: centre.y - size.height * 0.30,
+                                                width: size.width * 0.84, height: size.height * 0.60)),
+                         with: .radialGradient(Gradient(colors: [tint.opacity(0.22), tint.opacity(0.06), .clear]),
+                                               center: centre, startRadius: 0, endRadius: size.width * 0.42))
+            for index in 0..<260 {
+                let particle = MusicMotionGeometry.spiralParticle(index: index, rotation: rotation, size: size)
+                let twinkle = MusicMotionGeometry.unit(UInt64(index) &* 7 &+ 3)
+                let radius = CGFloat(0.5 + twinkle * 1.1 + (1 - particle.radius) * 0.6) * CGFloat(0.7 + particle.depth * 0.5)
+                let warm = particle.radius < 0.35
+                let colour: Color = warm ? tint : .primary
+                context.fill(Path(ellipseIn: CGRect(x: particle.point.x - radius, y: particle.point.y - radius,
+                                                    width: radius * 2, height: radius * 2)),
+                             with: .color(colour.opacity(0.12 + 0.38 * particle.depth * (0.5 + twinkle * 0.5))))
+            }
+            context.fill(Path(ellipseIn: CGRect(x: centre.x - 26, y: centre.y - 16, width: 52, height: 32)),
+                         with: .radialGradient(Gradient(colors: [.white.opacity(0.55), tint.opacity(0.25), .clear]),
+                                               center: centre, startRadius: 0, endRadius: 26))
+        }
     }
 }
 
@@ -178,12 +363,17 @@ private struct VinylRecord: View {
                 ForEach(1..<7) { groove in
                     Circle().stroke(.white.opacity(0.12), lineWidth: 0.5).padding(CGFloat(groove) * side * 0.045)
                 }
+                // Glanzlicht der Rillen bleibt stehen, während die Platte dreht.
                 ArtworkView(url: artworkURL, data: nil, side: side * 0.32).clipShape(Circle())
                 Circle().fill(.white.opacity(0.7)).frame(width: 4, height: 4)
             }
             // Pause hält die echte Position; andere Platten übernehmen keinen
             // Fortschritt eines fremden Titels.
             .rotationEffect(.degrees(isCurrent && !reduceMotion ? controller.livePosition(at: timeline.date) * 198 : 0))
+            .overlay {
+                Circle().fill(AngularGradient(colors: [.clear, .white.opacity(0.16), .clear, .white.opacity(0.10), .clear],
+                                              center: .center))
+            }
         }
         .frame(width: side, height: side).accessibilityHidden(true).allowsHitTesting(false)
     }
