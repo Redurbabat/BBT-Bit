@@ -318,7 +318,7 @@ object HomeBridge {
 
     private suspend fun recentlyPlayed(): HomeShelf? {
         if (Innertube.cookie == null) return null
-        val songs = fetchHistory().take(RECENT_LIMIT)
+        val songs = fetchHistory(pages = 1).take(RECENT_LIMIT)
         if (songs.isEmpty()) return null
         return HomeShelf(
             title = RECENT_TITLE,
@@ -335,6 +335,30 @@ object HomeBridge {
         )
     }
 
-    private suspend fun fetchHistory(): List<Song> =
-        InnertubeParser.collectSongsDeep(Innertube.browse(HISTORY)).distinctBy { it.videoId }
+    /**
+     * Der Verlauf über mehrere Seiten. YouTube Music liefert ihn abschnittsweise
+     * (Heute, Gestern, Letzte Woche …) und hängt ältere Abschnitte als
+     * Fortsetzung an. Bisher kam nur die erste Seite, oft nur „Heute“
+     * (Nutzerhinweis vom 11.11.2026). Die Startseite braucht nur die erste.
+     */
+    private suspend fun fetchHistory(pages: Int = HISTORY_PAGES): List<Song> {
+        val songs = LinkedHashMap<String, Song>()
+        var response = Innertube.browse(HISTORY)
+        var read = 0
+        while (true) {
+            InnertubeParser.collectSongsDeep(response).forEach { songs.getOrPut(it.videoId) { it } }
+            read++
+            if (read >= pages || songs.size >= HISTORY_LIMIT) break
+            val token = InnertubeParser.continuationToken(response) ?: break
+            // Eine fehlgeschlagene Folgeseite beendet nur das Nachladen; was da ist, bleibt.
+            response = try { Innertube.browseContinuation(token) } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Throwable) { break }
+        }
+        return songs.values.take(HISTORY_LIMIT)
+    }
+
+    /** Obergrenzen, damit ein sehr langer Verlauf die Seite nicht minutenlang lädt. */
+    private const val HISTORY_PAGES = 10
+    private const val HISTORY_LIMIT = 600
 }
