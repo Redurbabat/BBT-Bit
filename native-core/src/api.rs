@@ -294,6 +294,34 @@ pub fn set_beat_accelerator(
     crate::analyzer::set_beat_accelerator(accelerator, identity)
 }
 
+/// Stimm- und Klangkontur pro Liedtext-Wort für das Lyrics-Sternbild.
+///
+/// `starts_ms` und `ends_ms` beschreiben die Wortfenster in Songzeit. Die Datei
+/// wird einmal mono mit 16 kHz dekodiert; das Ergebnis hat genau so viele
+/// Einträge wie Fenster. Bei unpassenden Längen oder unlesbarer Datei bleibt
+/// es leer, und das Sternbild fällt auf reine Zeitmarken zurück. Läuft auf
+/// einem Hintergrund-Thread des Aufrufers, nie im Render-Pfad.
+#[uniffi::export]
+pub fn lyric_voice_contour(path: String, starts_ms: Vec<i64>, ends_ms: Vec<i64>) -> Vec<crate::records::VoiceContourRec> {
+    if starts_ms.is_empty() || starts_ms.len() != ends_ms.len() {
+        return Vec::new();
+    }
+    let last_ms = ends_ms.iter().chain(starts_ms.iter()).copied().max().unwrap_or(0).max(0);
+    // Halbe Sekunde Reserve für die Analyserahmen am Ende, höchstens 30 Minuten.
+    let seconds = (last_ms as f64 / 1000.0 + 0.5).min(1800.0);
+    let rate = crate::analyzer::voice_contour::CONTOUR_RATE;
+    let Ok(region) = decode_region_at_rate(&path, 0.0, seconds, true,
+        &std::collections::HashMap::new(), Some(rate)) else {
+        return Vec::new();
+    };
+    // Die Region beginnt bei 0; ein Decoder, der später einsetzt, verschiebt die Fenster.
+    let shift_ms = (region.start_seconds * 1000.0).round() as i64;
+    let windows: Vec<(i64, i64)> = starts_ms.iter().zip(ends_ms.iter())
+        .map(|(&start, &end)| (start - shift_ms, end - shift_ms))
+        .collect();
+    crate::analyzer::voice_contour::measure(&region.samples, region.sample_rate, &windows)
+}
+
 /// Engine version for the About pane.
 #[uniffi::export]
 pub fn core_version() -> String {

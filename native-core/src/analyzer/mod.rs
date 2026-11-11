@@ -19,6 +19,7 @@ mod sequencer;
 mod smoothness;
 mod tempo;
 mod vocal;
+pub(crate) mod voice_contour;
 
 pub use beat::Grid;
 pub use models::analyzer_ready;
