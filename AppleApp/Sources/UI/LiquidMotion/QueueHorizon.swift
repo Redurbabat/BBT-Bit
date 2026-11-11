@@ -7,8 +7,18 @@ struct QueueHorizon: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(PartyStore.self) private var party
-    @State private var focusedIndex = 0
+    /// Fortlaufende Fokusposition ohne Umbruch. Daraus entsteht je Karte eine
+    /// „Runde“; wechselt sie, blendet die Karte am anderen Rand neu ein, statt
+    /// quer durch das Karussell zu fliegen (vor allem bei kurzen Queues sichtbar).
+    @State private var focusVirtual = 0
     @GestureState private var dragOffset: CGFloat = 0
+
+    private var focusedIndex: Int { entries.isEmpty ? 0 : wrapped(focusVirtual, count: entries.count) }
+
+    private struct Slot: Hashable {
+        let index: Int
+        let lap: Int
+    }
 
     private let cardWidth: CGFloat = 154
     private let cardHeight: CGFloat = 190
@@ -44,7 +54,7 @@ struct QueueHorizon: View {
         }
         .background { LiquidLiveCaptureMarker(id: "queue") }
         .onChange(of: entries.count) { _, count in
-            focusedIndex = min(focusedIndex, max(0, count - 1))
+            focusVirtual = min(focusedIndex, max(0, count - 1))
         }
     }
 
@@ -64,8 +74,8 @@ struct QueueHorizon: View {
             let availableWidth = geometry.size.width
             let visibleStep = min(step, max(76, (availableWidth - cardWidth) * 0.44))
             ZStack {
-                ForEach(entries.indices, id: \.self) { index in
-                    carouselItem(index: index, visibleStep: visibleStep)
+                ForEach(slots, id: \.self) { slot in
+                    carouselItem(index: slot.index, visibleStep: visibleStep)
                 }
             }
             .frame(width: availableWidth, height: geometry.size.height)
@@ -160,8 +170,18 @@ struct QueueHorizon: View {
 
     private func focus(_ index: Int) {
         guard !entries.isEmpty else { return }
+        let target = wrapped(index, count: entries.count)
         withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.84)) {
-            focusedIndex = wrapped(index, count: entries.count)
+            focusVirtual += relativeIndex(target, count: entries.count)
+        }
+    }
+
+    private var slots: [Slot] {
+        let count = entries.count
+        guard count > 0 else { return [] }
+        return entries.indices.map { index in
+            let position = focusVirtual + relativeIndex(index, count: count)
+            return Slot(index: index, lap: (position - index) / count)
         }
     }
 
