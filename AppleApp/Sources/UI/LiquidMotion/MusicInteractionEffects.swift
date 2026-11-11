@@ -272,12 +272,34 @@ struct SleepEclipseView: View {
     }
 }
 
+/// Verdunkelnder Mond aus echter Restzeit: Der Schatten schiebt sich weich über
+/// die Scheibe, und je näher das Ende, desto heller leuchtet der Korona-Ring.
 struct EclipseMoon: View {
     let remaining: Double
+
     var body: some View {
+        let left: Double = MusicMotionGeometry.progress(remaining)
+        let covered: Double = 1 - left
+        let shadowShift = CGFloat(44 * left)
+        let corona: Double = 0.15 + 0.6 * covered
         ZStack {
-            Circle().fill(Theme.accent.opacity(0.85))
-            Circle().fill(.black).offset(x: 44 * MusicMotionGeometry.progress(remaining))
-        }.frame(width: 44, height: 44).clipShape(Circle()).accessibilityHidden(true)
+            Circle()
+                .fill(RadialGradient(colors: [Theme.accent.opacity(0.95), Theme.accent.opacity(0.6)],
+                                     center: .init(x: 0.35, y: 0.3), startRadius: 2, endRadius: 30))
+            Circle()
+                .fill(Color.black.opacity(0.92))
+                .blur(radius: 1.5)
+                .offset(x: shadowShift)
+        }
+        .frame(width: 44, height: 44)
+        .clipShape(Circle())
+        .background {
+            Circle()
+                .stroke(Theme.accent.opacity(corona), lineWidth: 2)
+                .blur(radius: 3)
+                .padding(-3)
+        }
+        .animation(.easeInOut(duration: 0.6), value: left)
+        .accessibilityHidden(true)
     }
 }
