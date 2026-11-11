@@ -27,13 +27,16 @@ struct LyricsMirror: View {
             Button {
                 flip()
             } label: {
-                Text(showOriginal ? original : translation)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.white)
-                    .lineLimit(3)
-                    .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
-                    .contentTransition(.opacity)
-                    .id(showOriginal)
+                ZStack(alignment: .leading) {
+                    Text(showOriginal ? original : translation)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white)
+                        .lineLimit(3)
+                        .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
+                        .id(showOriginal)
+                        .transition(reduceMotion ? .opacity : mirrorFlip)
+                }
+                .clipped()
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(showOriginal ? LocalizedStringKey("Original lyric") : LocalizedStringKey("Translated lyric")))
@@ -52,9 +55,28 @@ struct LyricsMirror: View {
         .background { LiquidLiveCaptureMarker(id: "lyrics") }
     }
 
+    /// Die Zeile klappt wie ein Spiegel um die waagrechte Achse: die alte kippt
+    /// nach oben weg, die neue kommt von unten herein.
+    private var mirrorFlip: AnyTransition {
+        .asymmetric(
+            insertion: .modifier(active: MirrorTilt(angle: 75, opacity: 0), identity: MirrorTilt(angle: 0, opacity: 1)),
+            removal: .modifier(active: MirrorTilt(angle: -75, opacity: 0), identity: MirrorTilt(angle: 0, opacity: 1)))
+    }
+
     private func flip() {
         withAnimation(reduceMotion ? nil : .spring(response: 0.32, dampingFraction: 0.84)) {
             showOriginal.toggle()
         }
+    }
+}
+
+private struct MirrorTilt: ViewModifier {
+    let angle: Double
+    let opacity: Double
+
+    func body(content: Content) -> some View {
+        content
+            .rotation3DEffect(.degrees(angle), axis: (x: 1, y: 0, z: 0), anchor: .center, perspective: 0.5)
+            .opacity(opacity)
     }
 }
