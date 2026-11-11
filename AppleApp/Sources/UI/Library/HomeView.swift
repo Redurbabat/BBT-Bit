@@ -20,6 +20,7 @@ struct HomeView: View {
     /// is a singleton while the reader's place in it was not (upstream hoists
     /// `homeListState` outside its tab switch for the same reason).
     var scrollPosition: Binding<ScrollPosition>? = nil
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("hide_recents") private var hideRecents = false
     @AppStorage("hide_home_videos") private var hideHomeVideos = false
     @AppStorage("redbit.home.media_filter") private var mediaFilterRaw = HomeMediaFilter.all.rawValue
@@ -46,6 +47,12 @@ struct HomeView: View {
                     #endif
                 }
                 .refreshable { await loadFeed(force: true) }
+                // Zurück in die App: Ist der Feed älter als FeedLoader.freshness,
+                // kommen frische Empfehlungen und Neuheiten statt der alten.
+                .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active else { return }
+                    Task { await loadFeed(force: false) }
+                }
                 .task(id: auth.sessionEpoch) {
                     discovery.clear(); discovery.seedHistory()
                     await loadFeed(force: false)

@@ -44,6 +44,12 @@ final class FeedLoader {
     var canLoadMore: Bool { loadTask == nil && continuation?.isEmpty == false }
     var sessionGeneration: Int64? { context?.generation }
     private var loadedEpoch: Int?
+    /// Zeitpunkt der letzten vollständigen Antwort. Die App läuft durch die
+    /// Wiedergabe oft tagelang im Hintergrund weiter; ohne Ablauf blieben
+    /// Empfehlungen und Neuheiten bis zum manuellen Aktualisieren alt.
+    private var loadedAt: Date?
+    /// Nach dieser Zeit lädt ein normaler Aufruf (Erscheinen, App aktiv) neu.
+    static let freshness: TimeInterval = 30 * 60
     private var context: PageContext?
     private var loadTask: Task<Void, Never>?
     private var requestID = UUID()
@@ -62,7 +68,8 @@ final class FeedLoader {
     func load(force: Bool, epoch: Int?) async {
         let current = PageSession.capture()
         if let loadTask, context == current { await loadTask.value; return }
-        if !force, context == current, loadedEpoch == epoch, case .loaded = phase { return }
+        let stale = loadedAt.map { Date().timeIntervalSince($0) > Self.freshness } ?? false
+        if !force, !stale, context == current, loadedEpoch == epoch, case .loaded = phase { return }
         if context != current {
             loadTask?.cancel(); loadTask = nil
             phase = .loading; continuation = nil
@@ -99,6 +106,7 @@ final class FeedLoader {
             }
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             loadedEpoch = epoch
+            loadedAt = Date()
             if first { phase = .loaded([]) }
             AppTestEvents.finish(probe, .success, first ? .emptyResponse : .responseReceived)
         } catch {
