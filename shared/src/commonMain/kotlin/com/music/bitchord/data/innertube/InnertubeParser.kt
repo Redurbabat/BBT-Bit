@@ -680,6 +680,35 @@ object InnertubeParser {
      * that carries a videoId. Layout-agnostic, so it survives the differences
      * between playlist and album pages.
      */
+    /**
+     * Folgen einer Podcast-Seite (`musicMultiRowListItemRenderer`). Die
+     * Abspiel-ID steht im `onTap`, die Länge im Fortschrittstext („ • 12 Min.,
+     * 25 Sek.“). Als Song gelesen laufen Folgen durch dieselbe Wiedergabe wie
+     * Musik; [show] ist der Name der Sendung für die zweite Zeile.
+     */
+    fun collectPodcastEpisodes(root: JsonElement, show: String? = null): List<Song> {
+        val out = LinkedHashMap<String, Song>()
+        for (item in collectRenderers(root, "musicMultiRowListItemRenderer")) {
+            val videoId = item.o("onTap").o("watchEndpoint").s("videoId") ?: continue
+            val title = item.o("title").runs().trim()
+            if (title.isEmpty()) continue
+            val published = item.o("subtitle").runs().trim()
+            val duration = item.o("playbackProgress").o("musicPlaybackProgressRenderer")
+                .o("playbackProgressText").runs().replace("•", "").trim()
+            val byline = listOfNotNull(show?.trim()?.takeIf { it.isNotEmpty() }, published.takeIf { it.isNotEmpty() })
+            out[videoId] = Song(
+                videoId = videoId,
+                title = title,
+                artist = byline.joinToString(" • "),
+                thumbnailUrl = item.o("thumbnail").o("musicThumbnailRenderer")
+                    .o("thumbnail").a("thumbnails").best(),
+                durationText = duration.ifEmpty { null },
+                albumName = show?.trim()?.takeIf { it.isNotEmpty() },
+            )
+        }
+        return out.values.toList()
+    }
+
     fun collectSongsDeep(root: JsonElement): List<Song> {
         val out = LinkedHashMap<String, Song>()
         // A release's own rows are credited by its header, not one by one.
@@ -971,6 +1000,7 @@ object InnertubeParser {
         "playlists" -> SearchFilter.PLAYLISTS.params
         "videos" -> SearchFilter.VIDEOS.params
         "songs" -> SearchFilter.SONGS.params
+        "podcasts" -> SearchFilter.PODCASTS.params
         else -> SearchFilter.ALL.params
     }
 

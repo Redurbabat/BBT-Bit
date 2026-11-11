@@ -131,6 +131,15 @@ struct LibraryLandingView: View {
                         tintColor: .orange,
                         destination: HistoryView()
                     )
+
+                    // Gespeicherte Podcasts des Kontos; jede Sendung öffnet ihre Folgen.
+                    OnDeviceCard(
+                        title: "Podcasts",
+                        subtitle: "Saved shows",
+                        systemImage: "mic.fill",
+                        tintColor: .purple,
+                        destination: LibraryView(lockedSection: .podcasts)
+                    )
                 }
                 .padding(.vertical, 2)
             }

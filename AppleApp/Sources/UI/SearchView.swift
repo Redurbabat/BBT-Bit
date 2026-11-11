@@ -444,7 +444,7 @@ struct SearchView: View {
     enum Scope: String, CaseIterable, Identifiable, Codable {
         /// YouTube Music's mixed page — the only one with a promoted card, and so
         /// the only one a top result is shown for.
-        case all, songs, videos, albums, artists, playlists
+        case all, songs, videos, albums, artists, playlists, podcasts
 
         var id: String { rawValue }
 
@@ -1892,6 +1892,8 @@ struct SearchView: View {
     /// Maps a browse hit's type to the entity type the recents list files it
     /// under — album, artist, playlist, or a track carrying a browse id.
     private func browseEntityType(_ hit: SearchHitDTO) -> String {
+        // Podcast-Sendungen („MPSP…“) öffnen dieselbe Sammlungsseite wie Playlists.
+        if hit.browseId?.hasPrefix("MPSP") == true { return "PLAYLIST" }
         switch (hit.browseType ?? "").uppercased() {
         case "ALBUM": return "ALBUM"
         case "ARTIST": return "ARTIST"

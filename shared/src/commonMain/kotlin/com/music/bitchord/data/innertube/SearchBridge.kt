@@ -32,7 +32,9 @@ object SearchBridge {
                 val response = Innertube.search(query, InnertubeParser.paramsFor(scope))
                 // The Videos tab is the one filter whose results are not music, so
                 // the promoted card is not read there at all.
-                val includeVideos = scope == SearchFilter.VIDEOS.name
+                // Die App schickt den Reiter klein („videos“); der frühere exakte
+                // Vergleich mit „VIDEOS“ ließ den Videos-Reiter ohne Video-Treffer.
+                val includeVideos = scope.equals(SearchFilter.VIDEOS.name, ignoreCase = true)
                 val mixed = InnertubeParser.isMixedScope(scope)
                 val hits = InnertubeParser.parseSearchPage(response, includeVideos, mixed)
                     .map { result -> hitOf(result) }
@@ -56,7 +58,9 @@ object SearchBridge {
             try {
                 Innertube.checkSession(generation)
                 val response = Innertube.searchContinuation(token)
-                val includeVideos = scope == SearchFilter.VIDEOS.name
+                // Die App schickt den Reiter klein („videos“); der frühere exakte
+                // Vergleich mit „VIDEOS“ ließ den Videos-Reiter ohne Video-Treffer.
+                val includeVideos = scope.equals(SearchFilter.VIDEOS.name, ignoreCase = true)
                 val mixed = InnertubeParser.isMixedScope(scope)
                 val hits = InnertubeParser.parseSearchPage(response, includeVideos, mixed)
                     .map { result -> hitOf(result) }

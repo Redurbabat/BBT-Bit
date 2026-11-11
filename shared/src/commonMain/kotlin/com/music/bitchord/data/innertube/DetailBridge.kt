@@ -41,7 +41,10 @@ object DetailBridge {
                     title = header?.title ?: "",
                     subtitle = header?.subtitle ?: "",
                     thumbnailUrl = header?.thumbnailUrl,
-                    songs = playlistShelf?.songs ?: songs,
+                    // Podcast-Seiten führen ihre Folgen als musicMultiRowListItemRenderer.
+                    songs = playlistShelf?.songs ?: songs.ifEmpty {
+                        InnertubeParser.collectPodcastEpisodes(response, header?.title)
+                    },
                     type = browseTypeOf(browseId),
                     sections = emptyList(),
                     description = description,
