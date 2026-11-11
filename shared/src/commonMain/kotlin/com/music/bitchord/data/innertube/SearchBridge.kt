@@ -33,7 +33,8 @@ object SearchBridge {
                 // The Videos tab is the one filter whose results are not music, so
                 // the promoted card is not read there at all.
                 val includeVideos = scope == SearchFilter.VIDEOS.name
-                val hits = InnertubeParser.parseSearchPage(response, includeVideos)
+                val mixed = InnertubeParser.isMixedScope(scope)
+                val hits = InnertubeParser.parseSearchPage(response, includeVideos, mixed)
                     .map { result -> hitOf(result) }
                 val continuation = InnertubeParser.continuationToken(response)
                 Innertube.checkSession(generation)
@@ -56,7 +57,8 @@ object SearchBridge {
                 Innertube.checkSession(generation)
                 val response = Innertube.searchContinuation(token)
                 val includeVideos = scope == SearchFilter.VIDEOS.name
-                val hits = InnertubeParser.parseSearchPage(response, includeVideos)
+                val mixed = InnertubeParser.isMixedScope(scope)
+                val hits = InnertubeParser.parseSearchPage(response, includeVideos, mixed)
                     .map { result -> hitOf(result) }
                 val continuation = InnertubeParser.continuationToken(response)
                 Innertube.checkSession(generation)
@@ -79,7 +81,7 @@ object SearchBridge {
             try {
                 Innertube.checkSession(generation)
                 val response = Innertube.searchTypeahead(query)
-                val hits = InnertubeParser.parseSearchPage(response, includeVideos = false)
+                val hits = InnertubeParser.parseSearchPage(response, includeVideos = false, mixed = true)
                     .map { result -> hitOf(result) }
                 Innertube.checkSession(generation)
                 callback.onResult(json.encodeToString(ListSerializer(SearchHit.serializer()), hits), null, null)

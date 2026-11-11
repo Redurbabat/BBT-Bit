@@ -43,13 +43,17 @@ object InnertubeParser {
      * present it is the same object the walk below will find, so it has to be
      * claimed first or it appears twice.
      *
-     * @param includeVideos whether this is the Videos tab. The mixed page is
-     *   music-only, and a music-video upload belongs exclusively to Videos — so
-     *   the card is not even read there, rather than read and then filtered.
+     * @param includeVideos whether this is the Videos tab. A music-video upload
+     *   is never the promoted card, so the card is not even read there.
+     * @param mixed whether this is the "All" page. Its list also keeps video
+     *   uploads after the songs: much music exists on YouTube only as an
+     *   upload (Hinweis vom 11.11.2026: „findet nicht alle Musiken“). The
+     *   promoted card stays music-only.
      */
     fun parseSearchPage(
         response: JsonObject,
         includeVideos: Boolean = false,
+        mixed: Boolean = false,
     ): List<SearchResult> {
         val topResults: List<SearchResult> = if (includeVideos) emptyList() else {
             collectRenderers(response, "musicCardShelfRenderer").mapNotNull { card ->
@@ -85,7 +89,7 @@ object InnertubeParser {
                     val fallback = cardCredits.firstOrNull { it.first === renderer }?.second
                     parseResponsiveListItem(renderer, fallback ?: Credits())?.let { song ->
                         if (song.isVideo && !AppSettings.convertVideoToAudio.value) return@let
-                        if (song.isVideo == includeVideos && seen.add("v:${song.videoId}")) {
+                        if ((song.isVideo == includeVideos || (mixed && song.isVideo)) && seen.add("v:${song.videoId}")) {
                             add(SearchResult.Track(song))
                         }
                     }
@@ -957,6 +961,9 @@ object InnertubeParser {
      * name to Songs would quietly turn a "Videos" search into a Songs one, which
      * looks like the filter having no effect.
      */
+    /** The "All" page (and anything unknown, which falls back to it). */
+    fun isMixedScope(scope: String): Boolean = paramsFor(scope) == SearchFilter.ALL.params
+
     fun paramsFor(scope: String): String? = when (scope.lowercase()) {
         "all" -> SearchFilter.ALL.params
         "albums" -> SearchFilter.ALBUMS.params

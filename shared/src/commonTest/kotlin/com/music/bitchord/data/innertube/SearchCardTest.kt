@@ -78,9 +78,9 @@ class SearchCardTest {
         }
     }
 
-    private fun row(videoId: String, title: String): JsonObject = buildJsonObject {
+    private fun row(videoId: String, title: String, square: Boolean = true): JsonObject = buildJsonObject {
         putJsonObject("musicResponsiveListItemRenderer") {
-            put("thumbnail", thumbnail(square = true))
+            put("thumbnail", thumbnail(square = square))
             putJsonObject("overlay") {
                 putJsonObject("musicItemThumbnailOverlayRenderer") {
                     putJsonObject("content") {
@@ -220,6 +220,28 @@ class SearchCardTest {
     }
 
     // ---- The Videos tab ---------------------------------------------------
+
+    @Test
+    fun `the all page also lists video uploads after the songs`() {
+        // Viel Musik gibt es auf YouTube nur als Upload. Auf „Alle“ fehlten
+        // diese Treffer bisher ganz; der Reiter Songs bleibt reine Songs.
+        val body = searchPage(
+            cards = emptyList(),
+            rows = listOf(row("songsongsng", "Song"), row("uploadvideo", "Upload", square = false)),
+        )
+        val mixed = InnertubeParser.parseSearchPage(page(body), mixed = true)
+            .filterIsInstance<SearchResult.Track>().map { it.song.videoId }
+        assertEquals(listOf("songsongsng", "uploadvideo"), mixed)
+        val songsOnly = InnertubeParser.parseSearchPage(page(body))
+            .filterIsInstance<SearchResult.Track>().map { it.song.videoId }
+        assertEquals(listOf("songsongsng"), songsOnly)
+    }
+
+    @Test
+    fun `a video card is still not promoted on the all page`() {
+        val results = InnertubeParser.parseSearchPage(page(searchPage(listOf(card(square = false)))), mixed = true)
+        assertTrue(results.none { it is SearchResult.TopTrack })
+    }
 
     @Test
     fun `the videos tab promotes nothing`() {
