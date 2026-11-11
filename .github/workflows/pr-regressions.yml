@@ -90,6 +90,7 @@ jobs:
           "$RUNNER_TEMP/red-bit-scroll-test"
           swiftc AppleApp/Sources/UI/NowPlaying/ArcPlaybackGeometry.swift \
             AppleApp/Sources/UI/NowPlaying/ConstellationGeometry.swift \
+            AppleApp/Sources/UI/NowPlaying/ConstellationVoiceLayout.swift \
             AppleApp/Sources/UI/LiquidMotion/MusicMotionGeometry.swift \
             scripts/test-video-reference-geometry.swift -o "$RUNNER_TEMP/red-bit-video-geometry"
           "$RUNNER_TEMP/red-bit-video-geometry"

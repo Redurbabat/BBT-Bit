@@ -307,6 +307,9 @@ mod tests {
         assert!(mismatched.is_empty());
         let nothing = crate::api::lyric_voice_contour("/nonexistent/song.m4a".into(), vec![], vec![]);
         assert!(nothing.is_empty());
+        // Ein Stream-URL wird nie für die Darstellung erneut geladen.
+        let remote = crate::api::lyric_voice_contour("https://127.0.0.1:9/song.m4a".into(), vec![0], vec![500]);
+        assert!(remote.is_empty());
     }
 
     #[test]

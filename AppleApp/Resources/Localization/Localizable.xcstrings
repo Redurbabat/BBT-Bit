@@ -18345,6 +18345,16 @@
         }
       }
     },
+    "Shape follows the singing voice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form folgt der Gesangsstimme"
+          }
+        }
+      }
+    },
     "Earlier lyrics": {
       "localizations": {
         "de": {

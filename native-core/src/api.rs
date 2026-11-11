@@ -306,6 +306,11 @@ pub fn lyric_voice_contour(path: String, starts_ms: Vec<i64>, ends_ms: Vec<i64>)
     if starts_ms.is_empty() || starts_ms.len() != ends_ms.len() {
         return Vec::new();
     }
+    // Nur lokale oder bereits geladene Dateien: Die Darstellung darf keinen
+    // zweiten Download eines Streams auslösen.
+    if !matches!(crate::decode::SourceKind::parse(&path), crate::decode::SourceKind::Path(_)) {
+        return Vec::new();
+    }
     let last_ms = ends_ms.iter().chain(starts_ms.iter()).copied().max().unwrap_or(0).max(0);
     // Halbe Sekunde Reserve für die Analyserahmen am Ende, höchstens 30 Minuten.
     let seconds = (last_ms as f64 / 1000.0 + 0.5).min(1800.0);

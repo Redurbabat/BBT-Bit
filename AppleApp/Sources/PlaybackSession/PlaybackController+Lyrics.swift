@@ -21,6 +21,22 @@ extension PlaybackController {
         return found
     }
 
+    /// Misst Stimmhöhe, Klangfarbe und Pegel je Liedtextwort aus der bereits
+    /// geladenen Datei (Audiozeit in Millisekunden). Streams ohne lokale Datei
+    /// werden nicht erneut geladen; dann bleibt die Liste leer.
+    func lyricVoiceShape(starts: [Swift.Int64], ends: [Swift.Int64]) async -> [ConstellationVoice] {
+        guard let path = loadedSourcePath, !path.hasPrefix("http"),
+              !starts.isEmpty, starts.count == ends.count else { return [] }
+        let found = await Task.detached(priority: .utility) {
+            lyricVoiceContour(path: path, startsMs: starts, endsMs: ends)
+        }.value
+        guard !Task.isCancelled, loadedSourcePath == path, found.count == starts.count else { return [] }
+        return found.map {
+            ConstellationVoice(energyDb: Double($0.energyDb), brightnessHz: Double($0.brightnessHz),
+                               pitchHz: Double($0.pitchHz), pitchConfidence: Double($0.pitchConfidence))
+        }
+    }
+
     func fetchLyrics(for entry: QueueEntry) {
         lyricsAlignmentTask?.cancel()
         lyricsAlignmentTask = nil

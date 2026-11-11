@@ -20,6 +20,17 @@ struct CreativeMotionPreviewView: View {
         }
     }
 
+    /// Offen gekennzeichnete Prüfmelodie statt gemessener Stimme: zeigt die
+    /// Stimmform ohne Audiowiedergabe.
+    private var voices: [ConstellationVoice] {
+        let melody: [Double] = [0, 4, 7, 5, 9, 7, 4, 2, 0, -3, 2, 5]
+        return words.indices.map { index in
+            ConstellationVoice(energyDb: -24 + Double(index % 4) * 4, brightnessHz: 1400 + Double(index % 5) * 150,
+                               pitchHz: 196 * pow(2, (melody[index % melody.count] + Double(index / 12)) / 12),
+                               pitchConfidence: 0.85)
+        }
+    }
+
     var body: some View {
         if showsLyrics {
             VStack(spacing: 0) {
@@ -29,7 +40,8 @@ struct CreativeMotionPreviewView: View {
                     onClose: { showsLyrics = false }, onShowList: { showsLyrics = false },
                     duration: 80, audioPosition: position,
                     beatTimes: (0...160).map { Double($0) * 0.5 },
-                    lineTexts: Array(repeating: "Wir folgen dem Licht", count: 15))
+                    lineTexts: Array(repeating: "Wir folgen dem Licht", count: 15),
+                    voices: voices)
                 HStack {
                     Button("Start") { position = 0 }.frame(minHeight: 44)
                     Button("70 s") { position = 70 }.frame(minHeight: 44).accessibilityIdentifier("red.fixture.finale")
