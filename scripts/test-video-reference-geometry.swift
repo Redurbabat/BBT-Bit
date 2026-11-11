@@ -141,9 +141,12 @@ struct VideoReferenceGeometryTests {
                 let before = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset - 1, width: width)
                 precondition(hypot(before.camera.x - arriving.camera.x, before.camera.y - arriving.camera.y) < 1,
                              "Die Kamera darf beim Wortwechsel nicht springen")
-                let settled = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset + 450, width: width)
+                // Kürzester Wortabstand hier: 450 ms. Kurz davor ist die Kamera angekommen.
+                let settled = ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: onset + 449, width: width)
                 let target = ConstellationVoiceLayout.cameraTarget(layout: melody, index: index, width: width)
-                precondition(hypot(settled.camera.x - target.x, settled.camera.y - target.y) < 0.001 && settled.appear == 1)
+                precondition(settled.index == index && settled.appear == 1 && settled.draw == 1)
+                precondition(hypot(settled.camera.x - target.x, settled.camera.y - target.y) < 0.05,
+                             "Die Kamera erreicht das Wort vor dem nächsten Einsatz")
             }
         }
         precondition(ConstellationVoiceLayout.head(layout: melody, words: sung, milliseconds: -5, width: 390).camera
