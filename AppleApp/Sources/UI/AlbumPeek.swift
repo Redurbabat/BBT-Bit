@@ -77,9 +77,23 @@ struct AlbumPeekPreview: View {
     }
 }
 
+private struct CompactCollectionPeekKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// In Galaxie und Plattenregal ist der Aktionsknopf klein und gläsern, damit
+    /// er das Cover nicht verdeckt; die Trefferfläche bleibt 44 pt.
+    var compactCollectionPeek: Bool {
+        get { self[CompactCollectionPeekKey.self] }
+        set { self[CompactCollectionPeekKey.self] = newValue }
+    }
+}
+
 struct CollectionPeekAccess: ViewModifier {
     let card: ShelfCard
     @State private var presented = false
+    @Environment(\.compactCollectionPeek) private var compact
 
     func body(content: Content) -> some View {
         content
@@ -89,10 +103,20 @@ struct CollectionPeekAccess: ViewModifier {
                         Button("Album-Vorschau", systemImage: "eye") { presented = true }
                         ShelfCardActionButtons(card: card)
                     } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.body.weight(.semibold)).foregroundStyle(.primary)
-                            .frame(width: 44, height: 44)
-                            .background(Theme.Materials.opaque.opacity(0.9), in: Circle())
+                        if compact {
+                            Image(systemName: "ellipsis")
+                                .font(.caption2.weight(.bold)).foregroundStyle(.white)
+                                .frame(width: 26, height: 26)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .overlay(Circle().strokeBorder(.white.opacity(0.25), lineWidth: 0.5))
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        } else {
+                            Image(systemName: "ellipsis")
+                                .font(.body.weight(.semibold)).foregroundStyle(.primary)
+                                .frame(width: 44, height: 44)
+                                .background(Theme.Materials.opaque.opacity(0.9), in: Circle())
+                        }
                     }
                     #if os(macOS)
                     .menuStyle(.borderlessButton)

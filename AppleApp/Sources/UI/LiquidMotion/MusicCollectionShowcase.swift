@@ -19,6 +19,8 @@ struct MusicCollectionShowcase: View {
     @State private var glassStretch: CGFloat = 0
     /// Finger-Drehung der Galaxie oder Fingerweg im Plattenregal.
     @State private var dragShift: CGFloat = 0
+    /// Farbe der Galaxie aus dem Cover der Auswahl (sonst Akzentfarbe).
+    @State private var galaxyTint: Color = Theme.accent
     /// Löst den Lichtstreif über die Glaslinse aus; Richtung des letzten Wechsels.
     @State private var glintTrigger = 0
     @State private var glintDirection: CGFloat = 1
@@ -142,6 +144,20 @@ struct MusicCollectionShowcase: View {
 
     // MARK: Musikgalaxie
 
+    /// Lebendige Farbe aus dem Cover der Auswahl; weich überblendet.
+    private func loadGalaxyTint() async {
+        guard let url = selection?.thumbnailUrl else { return }
+        let sized = SharedArtwork.sized(url, 120) ?? url
+        guard let image = await ArtworkCache.shared.load(sized), !Task.isCancelled else { return }
+        #if os(iOS)
+        let data = image.jpegData(compressionQuality: 0.6)
+        #else
+        let data = image.tiffRepresentation
+        #endif
+        let accent = ArtworkPalette.pageTint(from: data, seed: url.hashValue).accent
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.6)) { galaxyTint = accent }
+    }
+
     private func galaxy(size: CGSize) -> some View {
         let neighbours = MusicMotionGeometry.neighbours(selected: index, count: items.count)
         let step = 2 * Double.pi / Double(max(1, neighbours.count))
@@ -149,15 +165,18 @@ struct MusicCollectionShowcase: View {
         let follow: Double = Double(dragShift) / 90 * step
         let turn: Double = -Double(selectedIndex) * step + follow
         return ZStack {
-            GalaxyBackdrop(rotation: turn * 0.6, tint: Theme.accent)
+            GalaxyBackdrop(rotation: turn * 0.6, tint: galaxyTint)
                 .accessibilityHidden(true).allowsHitTesting(false)
+                .task(id: selection?.id) { await loadGalaxyTint() }
             ForEach(Array(neighbours.enumerated()), id: \.element) { slot, itemIndex in
                 Button {
                     move(slot + 1)
                 } label: {
-                    ArtworkView(url: items[itemIndex].thumbnailUrl, data: nil, side: 52)
-                        .frame(width: 52, height: 52).clipShape(.rect(cornerRadius: 13))
-                        .overlay(RoundedRectangle(cornerRadius: 13).stroke(.white.opacity(0.25), lineWidth: 0.5))
+                    ArtworkView(url: items[itemIndex].thumbnailUrl, data: nil, side: 60)
+                        .frame(width: 60, height: 60).clipShape(.rect(cornerRadius: 15))
+                        .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(
+                            LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.08)],
+                                           startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Focus collection: \(items[itemIndex].title)")
@@ -167,11 +186,14 @@ struct MusicCollectionShowcase: View {
             if let selection {
                 ZStack {
                     Circle()
-                        .fill(.clear)
-                        .frame(width: min(150, size.width * 0.44), height: min(150, size.width * 0.44))
+                        .fill(galaxyTint.opacity(0.12))
+                        .frame(width: min(156, size.width * 0.46), height: min(156, size.width * 0.46))
                         .modifier(ShowcaseGlass(shape: Circle()))
+                        .overlay(Circle().strokeBorder(.white.opacity(0.22), lineWidth: 0.8))
+                        .shadow(color: galaxyTint.opacity(0.45), radius: 22)
                         .scaleEffect(1 + abs(glassStretch) * 0.08)
                     collectionLink(selection, side: min(112, size.width * 0.33))
+                    .environment(\.compactCollectionPeek, true)
                 }
                 .id(selection.id)
                 .transition(.asymmetric(insertion: .scale(scale: 0.45).combined(with: .opacity),
@@ -204,6 +226,7 @@ struct MusicCollectionShowcase: View {
                 ZStack {
                     if virtual == selectedIndex {
                         collectionLink(items[itemIndex], side: side, vinyl: true)
+                            .environment(\.compactCollectionPeek, true)
                     } else {
                         Button { move(virtual - selectedIndex) } label: {
                             ArtworkView(url: items[itemIndex].thumbnailUrl, data: nil, side: side)
@@ -398,10 +421,13 @@ struct OrbitPlacement: ViewModifier, Animatable {
     }
 }
 
-/// Zweiarmige Spiralgalaxie mit Kern; die Drehung ist animierbar.
+/// Zweiarmige Spiralgalaxie: Sternstaub in drei Tiefen, leuchtende Arme in der
+/// Farbe der Auswahl, heller Kern. Die Scheibe dreht mit der Auswahl
+/// (animierbar) und treibt zusätzlich langsam, außer bei reduzierter Bewegung.
 struct GalaxyBackdrop: View, Animatable {
     var rotation: Double
     let tint: Color
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var animatableData: Double {
         get { rotation }
@@ -409,29 +435,65 @@ struct GalaxyBackdrop: View, Animatable {
     }
 
     var body: some View {
-        Canvas { context, size in
-            let centre = CGPoint(x: size.width / 2, y: size.height / 2)
-            context.fill(Path(ellipseIn: CGRect(x: centre.x - size.width * 0.42, y: centre.y - size.height * 0.30,
-                                                width: size.width * 0.84, height: size.height * 0.60)),
-                         with: .radialGradient(Gradient(colors: [tint.opacity(0.22), tint.opacity(0.06), .clear]),
-                                               center: centre, startRadius: 0, endRadius: size.width * 0.42))
-            for index in 0..<260 {
-                let particle = MusicMotionGeometry.spiralParticle(index: index, rotation: rotation, size: size)
-                let twinkle: Double = MusicMotionGeometry.unit(UInt64(index) &* 7 &+ 3)
-                let core: Double = 1 - particle.radius
-                let base: Double = 0.5 + twinkle * 1.1 + core * 0.6
-                let perspective: Double = 0.7 + particle.depth * 0.5
-                let radius = CGFloat(base * perspective)
-                let colour: Color = particle.radius < 0.35 ? tint : .primary
-                let shine: Double = 0.5 + twinkle * 0.5
-                let opacity: Double = 0.12 + 0.38 * particle.depth * shine
-                let dot = CGRect(x: particle.point.x - radius, y: particle.point.y - radius, width: radius * 2, height: radius * 2)
-                context.fill(Path(ellipseIn: dot), with: .color(colour.opacity(opacity)))
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { timeline in
+            let drift: Double = reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3600) * 0.035
+            Canvas { context, size in
+                drawSpace(in: &context, size: size, spin: rotation + drift, time: drift)
             }
-            context.fill(Path(ellipseIn: CGRect(x: centre.x - 26, y: centre.y - 16, width: 52, height: 32)),
-                         with: .radialGradient(Gradient(colors: [.white.opacity(0.55), tint.opacity(0.25), .clear]),
-                                               center: centre, startRadius: 0, endRadius: 26))
         }
+    }
+
+    private func drawSpace(in context: inout GraphicsContext, size: CGSize, spin: Double, time: Double) {
+        let centre = CGPoint(x: size.width / 2, y: size.height / 2)
+        // Ferner Sternstaub über die ganze Fläche, leicht funkelnd.
+        for index in 0..<90 {
+            let key = UInt64(index) &* 0x9E37_79B9 &+ 101
+            let x: CGFloat = CGFloat(MusicMotionGeometry.unit(key)) * size.width
+            let y: CGFloat = CGFloat(MusicMotionGeometry.unit(key &+ 1)) * size.height
+            let phase: Double = MusicMotionGeometry.unit(key &+ 2) * 6.28
+            let flicker: Double = 0.5 + 0.5 * sin(time * 9 + phase)
+            let alpha: Double = 0.08 + 0.22 * flicker
+            let radius: CGFloat = 0.4 + CGFloat(MusicMotionGeometry.unit(key &+ 3)) * 0.6
+            context.fill(Path(ellipseIn: CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)),
+                         with: .color(.white.opacity(alpha)))
+        }
+        // Nebel der Scheibe in der Farbe der Auswahl.
+        let halo = CGRect(x: centre.x - size.width * 0.46, y: centre.y - size.height * 0.34,
+                          width: size.width * 0.92, height: size.height * 0.68)
+        context.fill(Path(ellipseIn: halo), with: .radialGradient(
+            Gradient(colors: [tint.opacity(0.42), tint.opacity(0.14), .clear]),
+            center: centre, startRadius: 0, endRadius: size.width * 0.46))
+        // Spiralarme: additiv, damit dichte Stellen wirklich leuchten.
+        context.drawLayer { layer in
+            layer.blendMode = .plusLighter
+            for index in 0..<420 {
+                let particle = MusicMotionGeometry.spiralParticle(index: index, rotation: spin, size: size)
+                let twinkle: Double = MusicMotionGeometry.unit(UInt64(index) &* 7 &+ 3)
+                let inner: Double = 1 - particle.radius
+                let depthScale: Double = 0.65 + particle.depth * 0.55
+                let base: Double = 0.45 + twinkle * 1.0 + inner * 0.9
+                let radius = CGFloat(base * depthScale)
+                let warmth: Double = min(1, inner * 1.4)
+                let colour: Color = particle.radius < 0.22 ? .white : tint
+                let alpha: Double = (0.18 + 0.5 * particle.depth) * (0.55 + 0.45 * twinkle) * (0.6 + 0.4 * warmth)
+                let dot = CGRect(x: particle.point.x - radius, y: particle.point.y - radius,
+                                 width: radius * 2, height: radius * 2)
+                layer.fill(Path(ellipseIn: dot), with: .color(colour.opacity(alpha)))
+                if index % 9 == 0 {
+                    let glow = radius * 4
+                    layer.fill(Path(ellipseIn: CGRect(x: particle.point.x - glow, y: particle.point.y - glow,
+                                                      width: glow * 2, height: glow * 2)),
+                               with: .radialGradient(Gradient(colors: [colour.opacity(alpha * 0.5), .clear]),
+                                                     center: particle.point, startRadius: 0, endRadius: glow))
+                }
+            }
+        }
+        // Heller Kern.
+        let coreRadius: CGFloat = min(size.width, size.height) * 0.22
+        context.fill(Path(ellipseIn: CGRect(x: centre.x - coreRadius, y: centre.y - coreRadius * 0.62,
+                                            width: coreRadius * 2, height: coreRadius * 1.24)),
+                     with: .radialGradient(Gradient(colors: [.white.opacity(0.42), tint.opacity(0.3), .clear]),
+                                           center: centre, startRadius: 0, endRadius: coreRadius))
     }
 }
 
