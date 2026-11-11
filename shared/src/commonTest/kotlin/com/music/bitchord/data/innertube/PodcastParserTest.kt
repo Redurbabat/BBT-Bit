@@ -47,7 +47,7 @@ class PodcastParserTest {
     )
 
     @Test
-    fun `episodes become playable rows with show, date and length`() {
+    fun `episodes become playable rows with show and date and length`() {
         val episodes = InnertubeParser.collectPodcastEpisodes(showPage, "Learn Kurdish | Kurdish Lessons Podcast")
         assertEquals(listOf("DKmBy6Awk1g", "AAAAAAAAAAA"), episodes.map { it.videoId })
         val first = episodes.first()
