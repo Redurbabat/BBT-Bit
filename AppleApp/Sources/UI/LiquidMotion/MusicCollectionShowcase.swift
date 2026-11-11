@@ -19,6 +19,9 @@ struct MusicCollectionShowcase: View {
     @State private var glassStretch: CGFloat = 0
     /// Finger-Drehung der Galaxie oder Fingerweg im Plattenregal.
     @State private var dragShift: CGFloat = 0
+    /// Löst den Lichtstreif über die Glaslinse aus; Richtung des letzten Wechsels.
+    @State private var glintTrigger = 0
+    @State private var glintDirection: CGFloat = 1
 
     private var index: Int { MusicMotionGeometry.wrapped(selectedIndex, count: items.count) }
     private var selection: ShelfCard? { items.indices.contains(index) ? items[index] : nil }
@@ -112,6 +115,8 @@ struct MusicCollectionShowcase: View {
             dragShift = 0
             return
         }
+        glintDirection = step > 0 ? 1 : -1
+        glintTrigger &+= 1
         withAnimation(.easeIn(duration: 0.12)) {
             vinylOut = 0
             glassStretch = step > 0 ? 1 : -1
@@ -184,20 +189,18 @@ struct MusicCollectionShowcase: View {
 
     // MARK: Plattenregal
 
+    /// Plattenregal nach dem Dock-Vorbild: Die gewählte Hülle steht in einer
+    /// Liquid-Glass-Linse. Beim Wechsel dehnt sich die Linse flüssig in
+    /// Laufrichtung, ein Lichtstreif zieht über das Glas, die Nachbarhüllen
+    /// gleiten ohne Überlappung nach, und die Platte rollt oben wieder heraus.
     private func records(size: CGSize) -> some View {
-        let side = min(176, size.width * 0.48)
+        let side: CGFloat = min(150, size.width * 0.42)
+        let lens: CGFloat = side + 26
         return ZStack {
-            // Glasbühne wie beim Dock: dehnt sich kurz in Bewegungsrichtung.
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(.clear)
-                .frame(width: stageWidth(size: size, side: side), height: side * 0.42)
-                .modifier(ShowcaseGlass(shape: RoundedRectangle(cornerRadius: 30, style: .continuous)))
-                .offset(x: glassStretch * side * 0.08, y: side * 0.5)
-                .accessibilityHidden(true)
             ForEach(recordDeltas.map { selectedIndex + $0 }, id: \.self) { virtual in
                 let itemIndex = MusicMotionGeometry.wrapped(virtual, count: items.count)
-                // Ein fester Container je Regalplatz: Er gleitet und dreht sich,
-                // während innen nur die Rolle (Link oder Auswahl) überblendet.
+                // Ein fester Container je Regalplatz: Er gleitet, während innen
+                // nur die Rolle (Link oder Auswahl) überblendet.
                 ZStack {
                     if virtual == selectedIndex {
                         collectionLink(items[itemIndex], side: side, vinyl: true)
@@ -216,22 +219,22 @@ struct MusicCollectionShowcase: View {
                 .transition(.opacity)
             }
         }
+        .background {
+            GlassLens(width: lens, height: lens, stretch: glassStretch,
+                      glintTrigger: glintTrigger, glintDirection: glintDirection, reduceMotion: reduceMotion)
+                .offset(y: side * 0.08)
+                .accessibilityHidden(true)
+        }
         .frame(width: size.width, height: size.height)
-    }
-
-    private func stageWidth(size: CGSize, side: CGFloat) -> CGFloat {
-        let base: CGFloat = min(size.width - 8, side * 2.1)
-        let stretch: CGFloat = 1 + abs(glassStretch) * 0.12
-        return base * stretch
     }
 
     private func collectionLink(_ card: ShelfCard, side: CGFloat, vinyl: Bool = false) -> some View {
         ShelfCardTap(card: card, preferTrack: preferTrack) {
             ZStack {
                 if vinyl {
-                    VinylRecord(artworkURL: card.thumbnailUrl, side: side * 0.93, isCurrent: recordIsCurrent(card))
+                    VinylRecord(artworkURL: card.thumbnailUrl, side: side * 0.9, isCurrent: recordIsCurrent(card))
                         .rotationEffect(.degrees(Double(1 - vinylOut) * -70))
-                        .offset(x: side * 0.27 * vinylOut)
+                        .offset(y: -side * 0.3 * vinylOut)
                 }
                 ArtworkView(url: card.thumbnailUrl, data: nil, side: side)
                     .frame(width: side, height: side).clipShape(.rect(cornerRadius: 14))
@@ -285,15 +288,75 @@ private struct RecordPlacement: ViewModifier, Animatable {
         let direction: CGFloat = delta < 0 ? -1 : 1
         let near: CGFloat = min(1, distance)
         let far: CGFloat = max(0, distance - 1)
-        let reach: CGFloat = near * side * 0.6 + far * side * 0.32
-        let angle: Double = Double(-direction * near * 42)
-        let scale: CGFloat = 1 - near * 0.2 - far * 0.12
-        let opacity: Double = Double(1 - far * 0.5)
+        // Nachbarn stehen neben der Linse statt darunter: kein Verdecken der Platte.
+        let reach: CGFloat = near * (side * 0.84 + 16) + far * (side * 0.62 + 10)
+        let angle: Double = Double(-direction * near * 16)
+        let scale: CGFloat = 1 - near * 0.36 - far * 0.14
+        let opacity: Double = Double(1 - near * 0.2 - far * 0.45)
+        let lift: CGFloat = near * side * 0.12
         content
-            .rotation3DEffect(.degrees(angle), axis: (0, 1, 0), perspective: 0.6)
+            .rotation3DEffect(.degrees(angle), axis: (0, 1, 0), perspective: 0.5)
             .scaleEffect(scale)
             .opacity(opacity)
-            .offset(x: direction * reach, y: near * 8)
+            .offset(x: direction * reach, y: lift)
+    }
+}
+
+/// Liquid-Glass-Linse wie im Dock (iOS/macOS 26), sonst Material. Dehnt sich
+/// beim Wechsel in Laufrichtung, ein Lichtstreif zieht darüber.
+private struct GlassLens: View {
+    let width: CGFloat
+    let height: CGFloat
+    let stretch: CGFloat
+    let glintTrigger: Int
+    let glintDirection: CGFloat
+    let reduceMotion: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        let amount: CGFloat = reduceMotion ? 0 : abs(stretch)
+        let shift: CGFloat = reduceMotion ? 0 : stretch * width * 0.06
+        let shape = RoundedRectangle(cornerRadius: 30, style: .continuous)
+        ZStack {
+            lensSurface(shape)
+            if !reduceMotion {
+                glint(shape)
+            }
+        }
+        .frame(width: width, height: height)
+        .overlay(shape.strokeBorder(.white.opacity(0.18), lineWidth: 0.8))
+        .scaleEffect(x: 1 + amount * 0.16, y: 1 - amount * 0.06)
+        .offset(x: shift)
+    }
+
+    private func glint(_ shape: RoundedRectangle) -> some View {
+        LinearGradient(colors: [.clear, .white.opacity(0.35), .clear], startPoint: .leading, endPoint: .trailing)
+            .frame(width: width * 0.35)
+            .rotationEffect(.degrees(18))
+            .keyframeAnimator(initialValue: CGFloat(-1.6), trigger: glintTrigger) { content, value in
+                content.offset(x: value * width * 0.6 * glintDirection)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    LinearKeyframe(CGFloat(-1.6), duration: 0.01)
+                    CubicKeyframe(CGFloat(1.6), duration: 0.6)
+                }
+            }
+            .blendMode(.plusLighter)
+            .frame(width: width, height: height)
+            .clipShape(shape)
+            .allowsHitTesting(false)
+    }
+
+    @ViewBuilder
+    private func lensSurface(_ shape: RoundedRectangle) -> some View {
+        if reduceTransparency {
+            shape.fill(.background.secondary)
+        } else if #available(iOS 26.0, macOS 26.0, *) {
+            shape.fill(.white.opacity(0.04))
+                .glassEffect(.regular.tint(.white.opacity(0.08)).interactive(), in: shape)
+        } else {
+            shape.fill(.ultraThinMaterial)
+        }
     }
 }
 
