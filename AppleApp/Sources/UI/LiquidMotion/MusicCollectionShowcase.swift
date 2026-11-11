@@ -193,7 +193,6 @@ struct MusicCollectionShowcase: View {
                         .shadow(color: galaxyTint.opacity(0.45), radius: 22)
                         .scaleEffect(1 + abs(glassStretch) * 0.08)
                     collectionLink(selection, side: min(112, size.width * 0.33))
-                    .environment(\.compactCollectionPeek, true)
                 }
                 .id(selection.id)
                 .transition(.asymmetric(insertion: .scale(scale: 0.45).combined(with: .opacity),
@@ -226,7 +225,6 @@ struct MusicCollectionShowcase: View {
                 ZStack {
                     if virtual == selectedIndex {
                         collectionLink(items[itemIndex], side: side, vinyl: true)
-                            .environment(\.compactCollectionPeek, true)
                     } else {
                         Button { move(virtual - selectedIndex) } label: {
                             ArtworkView(url: items[itemIndex].thumbnailUrl, data: nil, side: side)

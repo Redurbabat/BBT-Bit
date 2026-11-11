@@ -77,54 +77,18 @@ struct AlbumPeekPreview: View {
     }
 }
 
-private struct CompactCollectionPeekKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
-extension EnvironmentValues {
-    /// In Galaxie und Plattenregal ist der Aktionsknopf klein und gläsern, damit
-    /// er das Cover nicht verdeckt; die Trefferfläche bleibt 44 pt.
-    var compactCollectionPeek: Bool {
-        get { self[CompactCollectionPeekKey.self] }
-        set { self[CompactCollectionPeekKey.self] = newValue }
-    }
-}
-
 struct CollectionPeekAccess: ViewModifier {
     let card: ShelfCard
     @State private var presented = false
-    @Environment(\.compactCollectionPeek) private var compact
 
+    /// Kein sichtbarer „…“-Knopf mehr auf dem Cover (Nutzerwunsch 11.11.: zu groß,
+    /// verdeckt das Bild). Die Aktionen kommen per langem Druck
+    /// (shelfCardContextMenu mit Album-Vorschau) oder in der Sammlung selbst;
+    /// VoiceOver erreicht die Vorschau über eine benannte Aktion.
     func body(content: Content) -> some View {
         content
-            .overlay(alignment: .topTrailing) {
-                if card.supportsCollectionPeek {
-                    Menu {
-                        Button("Album-Vorschau", systemImage: "eye") { presented = true }
-                        ShelfCardActionButtons(card: card)
-                    } label: {
-                        if compact {
-                            Image(systemName: "ellipsis")
-                                .font(.caption2.weight(.bold)).foregroundStyle(.white)
-                                .frame(width: 26, height: 26)
-                                .background(.ultraThinMaterial, in: Circle())
-                                .overlay(Circle().strokeBorder(.white.opacity(0.25), lineWidth: 0.5))
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                        } else {
-                            Image(systemName: "ellipsis")
-                                .font(.body.weight(.semibold)).foregroundStyle(.primary)
-                                .frame(width: 44, height: 44)
-                                .background(Theme.Materials.opaque.opacity(0.9), in: Circle())
-                        }
-                    }
-                    #if os(macOS)
-                    .menuStyle(.borderlessButton)
-                    .menuIndicator(.hidden)
-                    #endif
-                    .accessibilityLabel("Aktionen für \(card.title)")
-                    .padding(4)
-                }
+            .accessibilityAction(named: Text("Album-Vorschau")) {
+                if card.supportsCollectionPeek { presented = true }
             }
             .sheet(isPresented: $presented) {
                 NavigationStack {
