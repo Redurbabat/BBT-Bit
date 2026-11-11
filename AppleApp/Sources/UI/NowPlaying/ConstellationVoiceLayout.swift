@@ -184,12 +184,15 @@ enum ConstellationVoiceLayout {
             lineSeen[word.line] = position + 1
             if usesPitch {
                 let voice = measured[index]
-                return isVoiced(voice) ? min(12, max(-12, 12 * log2(voice.pitchHz / pitchCentre))) : nil
+                guard isVoiced(voice) else { return nil }
+                let semitones: Double = 12 * log2(voice.pitchHz / pitchCentre)
+                return min(12, max(-12, semitones))
             }
             if usesBrightness {
                 let value = measured[index].brightnessHz
                 guard value.isFinite, value > 50 else { return nil }
-                return min(8, max(-8, 5 * log2(value / brightCentre)))
+                let shift: Double = 5 * log2(value / brightCentre)
+                return min(8, max(-8, shift))
             }
             let phase = (Double(position) + 0.5) / Double(max(1, lineCount[word.line] ?? 1))
             let lineKey = UInt64(truncatingIfNeeded: word.line)
@@ -363,7 +366,8 @@ enum ConstellationVoiceLayout {
             let local = min(rowLength, max(0, distance - CGFloat(row) * rowLength))
             let x = row % 2 == 0 ? local : rowLength - local
             let y = CGFloat(row) * band + (star.melodyY - middleY) + range / 2
-            return CGPoint(x: left + x * scale, y: top + min(contentHeight / scale, max(0, y)) * scale)
+            let limited: CGFloat = min(contentHeight / scale, max(0, y))
+            return CGPoint(x: left + x * scale, y: top + limited * scale)
         }
     }
 

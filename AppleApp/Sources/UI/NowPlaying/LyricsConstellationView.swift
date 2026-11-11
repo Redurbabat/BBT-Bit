@@ -144,9 +144,14 @@ struct ConstellationStage: View {
 
     private var layoutKey: LayoutKey {
         LayoutKey(count: words.count,
-                  timing: words.reduce(Swift.Int64(0)) { $0 &+ $1.start &* 31 &+ $1.end &+ Swift.Int64($1.line) },
+                  timing: words.reduce(Swift.Int64(0)) { (sum: Swift.Int64, word: ConstellationWord) -> Swift.Int64 in
+                      let mixed: Swift.Int64 = word.start &* 31 &+ word.end
+                      return sum &+ mixed &+ Swift.Int64(word.line)
+                  },
                   voices: voices.count,
-                  voiceSum: voices.reduce(0) { $0 + $1.pitchHz + $1.energyDb + $1.brightnessHz * 0.001 },
+                  voiceSum: voices.reduce(0.0) { (sum: Double, voice: ConstellationVoice) -> Double in
+                      sum + voice.pitchHz + voice.energyDb
+                  },
                   beats: beatTimes.count, lastBeat: beatTimes.last ?? 0, title: trackTitle)
     }
 

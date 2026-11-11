@@ -186,9 +186,13 @@ private struct ConstellationScene: View, Animatable {
             if live, index == current - 1, head.appear < 1 { continue }
             let chosen = selectedLine == words[index].line
             let alpha = lineAlpha(words[index].line, current: currentLine, selected: selectedLine, live: live)
+            let emphasis: Double = chosen ? 1 : 0.7
+            let labelAlpha: Double = min(0.95, alpha * emphasis)
+            let fontSize: CGFloat = chosen ? 11 : Self.labelSize
+            let weight: Font.Weight = chosen ? .semibold : .medium
             let label = context.resolve(Text(words[index].text)
-                .font(.system(size: chosen ? 11 : Self.labelSize, weight: chosen ? .semibold : .medium))
-                .foregroundStyle(.white.opacity(min(0.95, alpha * (chosen ? 1 : 0.7)))))
+                .font(.system(size: fontSize, weight: weight))
+                .foregroundStyle(.white.opacity(labelAlpha)))
             let measured = label.measure(in: CGSize(width: 160, height: 30))
             let rect = CGRect(x: points[index].x + 3, y: points[index].y + 5, width: measured.width, height: measured.height)
             guard chosen || words[index].line == currentLine || !rect.intersects(previous) else { continue }
@@ -207,7 +211,8 @@ private struct ConstellationScene: View, Animatable {
     private func lineAlpha(_ line: Int, current: Int, selected: Int?, live: Bool) -> Double {
         if let selected { return line == selected ? 0.95 : 0.4 }
         if line == current || !live { return 0.85 }
-        return max(0.08, 0.3 - Double(max(0, current - line - 1)) * 0.08)
+        let age = Double(max(0, current - line - 1))
+        return max(0.08, 0.3 - age * 0.08)
     }
 
     /// Das gesungene Wort groß mit weichem Leuchten über einem Funkelstern; das
@@ -220,7 +225,9 @@ private struct ConstellationScene: View, Animatable {
         let fontSize: CGFloat = word.text.count > 18 ? 24 : Self.bigSize
         let big = context.resolve(Text(word.text).font(.system(size: fontSize, design: .serif)).foregroundStyle(.white))
         let measured = big.measure(in: CGSize(width: size.width - 40, height: 90))
-        let centreX = min(size.width - 20 - measured.width / 2, max(20 + measured.width / 2, point.x - measured.width * 0.12))
+        let half: CGFloat = measured.width / 2
+        let preferred: CGFloat = point.x - measured.width * 0.12
+        let centreX: CGFloat = min(size.width - 20 - half, max(20 + half, preferred))
         let rise = CGFloat(8 * (1 - appear))
         let textRect = CGRect(x: centreX - measured.width / 2, y: point.y - 10 - measured.height + rise,
                               width: measured.width, height: measured.height)
@@ -235,7 +242,9 @@ private struct ConstellationScene: View, Animatable {
                               currentLine: word.line)
         }
         let energy = CGFloat(layout.stars[current].energy)
-        sparkle(in: &context, at: point, size: (9 + 6 * energy + CGFloat(pulse) * 5) * CGFloat(appear), alpha: 1)
+        let beat = CGFloat(pulse) * 5
+        let starSize: CGFloat = (9 + 6 * energy + beat) * CGFloat(appear)
+        sparkle(in: &context, at: point, size: starSize, alpha: 1)
         context.drawLayer { layer in
             layer.opacity = appear
             layer.addFilter(.shadow(color: .white.opacity(0.45), radius: 9))
@@ -256,9 +265,9 @@ private struct ConstellationScene: View, Animatable {
         let bigOrigin = CGPoint(x: point.x - measured.width * 0.62, y: point.y - 10 - measured.height)
         let labelOrigin = CGPoint(x: point.x + 3, y: point.y + 5)
         let t = CGFloat(progress)
-        context.draw(text, in: CGRect(x: bigOrigin.x + (labelOrigin.x - bigOrigin.x) * t,
-                                      y: bigOrigin.y + (labelOrigin.y - bigOrigin.y) * t,
-                                      width: measured.width, height: measured.height))
+        let x: CGFloat = bigOrigin.x + (labelOrigin.x - bigOrigin.x) * t
+        let y: CGFloat = bigOrigin.y + (labelOrigin.y - bigOrigin.y) * t
+        context.draw(text, in: CGRect(x: x, y: y, width: measured.width, height: measured.height))
     }
 
     /// Vierstrahliger Funkelstern; der senkrechte Strahl ist länger.

@@ -141,7 +141,8 @@ struct MusicCollectionShowcase: View {
         let neighbours = MusicMotionGeometry.neighbours(selected: index, count: items.count)
         let step = 2 * Double.pi / Double(max(1, neighbours.count))
         // Die Scheibe dreht mit der Auswahl und folgt live dem Finger.
-        let turn = -Double(selectedIndex) * step + Double(dragShift) / 90 * step
+        let follow: Double = Double(dragShift) / 90 * step
+        let turn: Double = -Double(selectedIndex) * step + follow
         return ZStack {
             GalaxyBackdrop(rotation: turn * 0.6, tint: Theme.accent)
                 .accessibilityHidden(true).allowsHitTesting(false)
@@ -155,8 +156,7 @@ struct MusicCollectionShowcase: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Focus collection: \(items[itemIndex].title)")
-                .modifier(OrbitPlacement(angle: -Double.pi / 2 + Double(slot) * step + Double(dragShift) / 90 * step,
-                                         size: size))
+                .modifier(OrbitPlacement(angle: orbitAngle(slot: slot, step: step), size: size))
                 .transition(.scale(scale: 0.3).combined(with: .opacity))
             }
             if let selection {
@@ -177,6 +177,11 @@ struct MusicCollectionShowcase: View {
         }
     }
 
+    private func orbitAngle(slot: Int, step: Double) -> Double {
+        let follow: Double = Double(dragShift) / 90 * step
+        return -Double.pi / 2 + Double(slot) * step + follow
+    }
+
     // MARK: Plattenregal
 
     private func records(size: CGSize) -> some View {
@@ -185,7 +190,7 @@ struct MusicCollectionShowcase: View {
             // Glasbühne wie beim Dock: dehnt sich kurz in Bewegungsrichtung.
             RoundedRectangle(cornerRadius: 30, style: .continuous)
                 .fill(.clear)
-                .frame(width: min(size.width - 8, side * 2.1) * (1 + abs(glassStretch) * 0.12), height: side * 0.42)
+                .frame(width: stageWidth(size: size, side: side), height: side * 0.42)
                 .modifier(ShowcaseGlass(shape: RoundedRectangle(cornerRadius: 30, style: .continuous)))
                 .offset(x: glassStretch * side * 0.08, y: side * 0.5)
                 .accessibilityHidden(true)
@@ -212,6 +217,12 @@ struct MusicCollectionShowcase: View {
             }
         }
         .frame(width: size.width, height: size.height)
+    }
+
+    private func stageWidth(size: CGSize, side: CGFloat) -> CGFloat {
+        let base: CGFloat = min(size.width - 8, side * 2.1)
+        let stretch: CGFloat = 1 + abs(glassStretch) * 0.12
+        return base * stretch
     }
 
     private func collectionLink(_ card: ShelfCard, side: CGFloat, vinyl: Bool = false) -> some View {
@@ -270,14 +281,19 @@ private struct RecordPlacement: ViewModifier, Animatable {
     }
 
     func body(content: Content) -> some View {
-        let distance = min(2.4, abs(delta))
+        let distance: CGFloat = min(2.4, abs(delta))
         let direction: CGFloat = delta < 0 ? -1 : 1
-        let x = direction * (distance <= 1 ? distance * side * 0.6 : side * 0.6 + (distance - 1) * side * 0.32)
+        let near: CGFloat = min(1, distance)
+        let far: CGFloat = max(0, distance - 1)
+        let reach: CGFloat = near * side * 0.6 + far * side * 0.32
+        let angle: Double = Double(-direction * near * 42)
+        let scale: CGFloat = 1 - near * 0.2 - far * 0.12
+        let opacity: Double = Double(1 - far * 0.5)
         content
-            .rotation3DEffect(.degrees(Double(-direction * min(1, distance) * 42)), axis: (0, 1, 0), perspective: 0.6)
-            .scaleEffect(1 - min(1, distance) * 0.2 - max(0, distance - 1) * 0.12)
-            .opacity(Double(1 - max(0, distance - 1) * 0.5))
-            .offset(x: x, y: min(1, distance) * 8)
+            .rotation3DEffect(.degrees(angle), axis: (0, 1, 0), perspective: 0.6)
+            .scaleEffect(scale)
+            .opacity(opacity)
+            .offset(x: direction * reach, y: near * 8)
     }
 }
 
@@ -306,12 +322,16 @@ struct OrbitPlacement: ViewModifier, Animatable {
 
     func body(content: Content) -> some View {
         let orbit = MusicMotionGeometry.tiltedOrbit(angle: angle, size: size)
+        let scale = CGFloat(0.72 + orbit.depth * 0.42)
+        let opacity: Double = 0.45 + orbit.depth * 0.55
+        let shade: Double = 0.25 * orbit.depth
+        let layer: Double = orbit.depth > 0.75 ? 6 : orbit.depth
         content
-            .scaleEffect(0.72 + orbit.depth * 0.42)
-            .opacity(0.45 + orbit.depth * 0.55)
-            .shadow(color: .black.opacity(0.25 * orbit.depth), radius: 6, y: 4)
+            .scaleEffect(scale)
+            .opacity(opacity)
+            .shadow(color: .black.opacity(shade), radius: 6, y: 4)
             .position(orbit.point)
-            .zIndex(orbit.depth > 0.75 ? 6 : orbit.depth)
+            .zIndex(layer)
     }
 }
 
@@ -334,13 +354,16 @@ struct GalaxyBackdrop: View, Animatable {
                                                center: centre, startRadius: 0, endRadius: size.width * 0.42))
             for index in 0..<260 {
                 let particle = MusicMotionGeometry.spiralParticle(index: index, rotation: rotation, size: size)
-                let twinkle = MusicMotionGeometry.unit(UInt64(index) &* 7 &+ 3)
-                let radius = CGFloat(0.5 + twinkle * 1.1 + (1 - particle.radius) * 0.6) * CGFloat(0.7 + particle.depth * 0.5)
-                let warm = particle.radius < 0.35
-                let colour: Color = warm ? tint : .primary
-                context.fill(Path(ellipseIn: CGRect(x: particle.point.x - radius, y: particle.point.y - radius,
-                                                    width: radius * 2, height: radius * 2)),
-                             with: .color(colour.opacity(0.12 + 0.38 * particle.depth * (0.5 + twinkle * 0.5))))
+                let twinkle: Double = MusicMotionGeometry.unit(UInt64(index) &* 7 &+ 3)
+                let core: Double = 1 - particle.radius
+                let base: Double = 0.5 + twinkle * 1.1 + core * 0.6
+                let perspective: Double = 0.7 + particle.depth * 0.5
+                let radius = CGFloat(base * perspective)
+                let colour: Color = particle.radius < 0.35 ? tint : .primary
+                let shine: Double = 0.5 + twinkle * 0.5
+                let opacity: Double = 0.12 + 0.38 * particle.depth * shine
+                let dot = CGRect(x: particle.point.x - radius, y: particle.point.y - radius, width: radius * 2, height: radius * 2)
+                context.fill(Path(ellipseIn: dot), with: .color(colour.opacity(opacity)))
             }
             context.fill(Path(ellipseIn: CGRect(x: centre.x - 26, y: centre.y - 16, width: 52, height: 32)),
                          with: .radialGradient(Gradient(colors: [.white.opacity(0.55), tint.opacity(0.25), .clear]),

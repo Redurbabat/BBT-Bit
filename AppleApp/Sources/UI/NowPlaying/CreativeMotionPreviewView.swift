@@ -24,10 +24,12 @@ struct CreativeMotionPreviewView: View {
     /// Stimmform ohne Audiowiedergabe.
     private var voices: [ConstellationVoice] {
         let melody: [Double] = [0, 4, 7, 5, 9, 7, 4, 2, 0, -3, 2, 5]
-        return words.indices.map { index in
-            ConstellationVoice(energyDb: -24 + Double(index % 4) * 4, brightnessHz: 1400 + Double(index % 5) * 150,
-                               pitchHz: 196 * pow(2, (melody[index % melody.count] + Double(index / 12)) / 12),
-                               pitchConfidence: 0.85)
+        return words.indices.map { (index: Int) -> ConstellationVoice in
+            let loudness: Double = -24 + Double(index % 4) * 4
+            let brightness: Double = 1400 + Double(index % 5) * 150
+            let semitones: Double = melody[index % melody.count] + Double(index / 12)
+            let pitch: Double = 196 * pow(2.0, semitones / 12)
+            return ConstellationVoice(energyDb: loudness, brightnessHz: brightness, pitchHz: pitch, pitchConfidence: 0.85)
         }
     }
 
