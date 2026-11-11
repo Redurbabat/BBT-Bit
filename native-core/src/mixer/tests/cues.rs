@@ -170,6 +170,126 @@ fn a_planned_transition_overlaps_rather_than_waits_for_the_end() {
     let _ = handle.join();
 }
 
+/// Nutzerweg: kurz vor Liedende pausieren und nach einer Weile weiterhören.
+/// Der nächste Titel war schon vorbereitet; die Überblendung muss bleiben,
+/// statt nach einer Uhrzeit-Frist samt Titel verworfen zu werden.
+#[test]
+fn a_long_pause_after_arming_keeps_the_planned_transition() {
+    let dir = std::env::temp_dir().join("bitchord-mixer-arm-pause");
+    std::fs::create_dir_all(&dir).unwrap();
+    let a = dir.join("a.wav");
+    let b = dir.join("b.wav");
+    // Eight seconds each, so there is room to be early by a real margin.
+    test_wav(&a, 8.0, 440.0);
+    test_wav(&b, 8.0, 660.0);
+
+    let events = std::sync::Arc::new(RecordedEvents::default());
+    let (tx, rx) = crossbeam_channel::unbounded::<Command>();
+    let (consumer_side, mut consumer) = rtrb::RingBuffer::<f32>::new(44_100 * 2 * 2);
+    let buffered = std::sync::Arc::new(AtomicU64::new(0));
+    let position = std::sync::Arc::new(AtomicU64::new(0));
+    let duration = std::sync::Arc::new(AtomicU64::new(0));
+    let shutdown = std::sync::Arc::new(AtomicBool::new(false));
+
+    let handle = std::thread::spawn({
+        let events = events.clone();
+        let buffered = buffered.clone();
+        let position = position.clone();
+        let duration = duration.clone();
+        let shutdown = shutdown.clone();
+        move || {
+            run_mixer(
+                rx,
+                consumer_side,
+                buffered,
+                position,
+                duration,
+                44_100,
+                events,
+                shutdown,
+                std::sync::Arc::new(AtomicBool::new(false)),
+                std::sync::Arc::new(AtomicBool::new(false)),
+                std::sync::Arc::new(Mutex::new(NerdSnapshot::default())),
+            )
+        }
+    });
+
+    // Two seconds of blend ending at 6 s into an 8 s track: the handoff must
+    // land while two more seconds of the outgoing are still coming.
+    let fade = 2.0f64;
+    tx.send(Command::Load {
+        request: TrackSource {
+            source: a.display().to_string(),
+            title: "A".into(),
+            artist: String::new(),
+            start_seconds: 0.0,
+            plan: TransitionPlan::default(),
+            headers: std::collections::HashMap::new(),
+            claimed_kbps: 0,
+            loudness_db: None,
+            duration_seconds: 0.0,
+        },
+        reply: crossbeam_channel::bounded(1).0,
+    })
+    .unwrap();
+    tx.send(Command::QueueNext {
+        request: TrackSource {
+            source: b.display().to_string(),
+            title: "B".into(),
+            artist: String::new(),
+            start_seconds: 0.0,
+            plan: TransitionPlan {
+                style: TransitionStyle::DjBlend,
+                bass_swap: false,
+                fade_seconds: fade,
+                effect_seconds: 0.0,
+                effect_start_seconds: 0.0,
+                transition_end_seconds: 6.0,
+                ..TransitionPlan::default()
+            },
+            headers: std::collections::HashMap::new(),
+            claimed_kbps: 0,
+            loudness_db: None,
+            duration_seconds: 0.0,
+        },
+    })
+    .unwrap();
+
+    // Abspielen, bis B vorbereitet ist (Vorlauf 4 s + Blende 2 s vor dem
+    // 6-s-Anker, also sofort), aber noch vor dem Blendenstart bei 4 s.
+    let guard = std::time::Instant::now() + std::time::Duration::from_secs(120);
+    while position.load(Ordering::Relaxed) < 2_000 && std::time::Instant::now() < guard {
+        while consumer.pop().is_ok() {
+            let current = buffered.load(Ordering::Relaxed);
+            if current > 0 {
+                buffered.store(current - 1, Ordering::Relaxed);
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+    assert!(position.load(Ordering::Relaxed) < 4_000, "the blend started before the pause");
+    // Länger pausieren als die alte 12-s-Uhrzeitfrist: Sie verwarf die
+    // Überblendung samt B, A lief aus und die Wiedergabe stoppte.
+    tx.send(Command::Pause).unwrap();
+    std::thread::sleep(std::time::Duration::from_secs(13));
+    tx.send(Command::Play).unwrap();
+
+    let at = drain_until_handoff(&mut consumer, &buffered, &position, &events, 20)
+        .expect("the pause dropped the armed transition");
+    assert!(
+        at <= 6.0 + 0.6,
+        "the handoff fired at {at:.2}s, past the 6 s blend anchor"
+    );
+    assert!(
+        at <= 8.0 - 0.5,
+        "the handoff fired at {at:.2}s of an 8 s track — that is a cut at the end, not a mix"
+    );
+
+    shutdown.store(true, std::sync::atomic::Ordering::Relaxed);
+    tx.send(Command::Shutdown).ok();
+    let _ = handle.join();
+}
+
 /// The engine's length for a track, and which of the two sources wins.
 ///
 /// The container's own figure is measured from the bytes being decoded and

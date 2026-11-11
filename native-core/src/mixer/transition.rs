@@ -13,7 +13,6 @@ use super::{
 };
 use crate::sound::SoundMode;
 use std::sync::atomic::Ordering;
-use std::time::{Duration, Instant};
 
 impl MixerState {
     /// A later plan for the track already armed, applied only while the fade
@@ -269,13 +268,18 @@ impl MixerState {
                 // seconds ahead, and this is the only cold decode in the path.
                 prime_voice(&mut voice, self.device_rate);
                 log::info!("armed next track: {}", request.title);
+                let arm_position_s = self
+                    .current
+                    .as_ref()
+                    .map(|voice| voice.emitted_position_seconds())
+                    .unwrap_or(0.0);
                 self.incoming = Some(voice);
                 self.transition = Some(TransitionState {
                     phase: Phase::Arming,
                     fade_frames,
                     handed_off: false,
                     plan,
-                    arm_deadline: Instant::now() + Duration::from_millis(ARM_TIMEOUT_MS),
+                    arm_position_s,
                     swap: false,
                     fx: None,
                     effect_start_frame: 0,
@@ -369,7 +373,11 @@ impl MixerState {
         let Some(_incoming) = &self.incoming else {
             return;
         };
-        if Instant::now() > t.arm_deadline {
+        // Gemessen in abgespielter Musik des laufenden Titels. Eine Uhrzeit-Frist
+        // verwarf die vorbereitete Überblendung samt nächstem Titel, sobald
+        // zwischen Vorbereitung und Blendenstart pausiert oder gepuffert wurde
+        // (Pause > 8 s kurz vor Liedende); die App lud dann hart nach.
+        if current.emitted_position_seconds() - t.arm_position_s > ARM_TIMEOUT_MS as f64 / 1000.0 {
             // Incoming never became ready; queue moves on plainly.
             log::warn!("arm timeout; dropping transition");
             self.incoming = None;

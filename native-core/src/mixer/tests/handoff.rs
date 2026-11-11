@@ -834,7 +834,7 @@ fn outgoing_eof_does_not_finish_an_incoming_fade_early() {
             fade_frames: 4 * 44_100,
             handed_off: true,
             plan: TransitionPlan::default(),
-            arm_deadline: Instant::now(),
+            arm_position_s: 0.0,
             swap: false,
             fx: None,
             effect_start_frame: 0,

@@ -483,7 +483,7 @@ fn armed_test_state(
                 reason: "safety:".into(),
                 ..TransitionPlan::default()
             },
-            arm_deadline: Instant::now() + Duration::from_secs(30),
+            arm_position_s: 0.0,
             swap: false,
             fx: None,
             effect_start_frame: 0,
@@ -676,7 +676,9 @@ fn drain_until_handoff(
             return Some(position.load(Ordering::Relaxed) as f64 / 1000.0);
         }
         let played = position.load(Ordering::Relaxed) as f64 / 1000.0;
-        if played >= seconds as f64 || std::time::Instant::now() > hang_guard {
+        // Gestoppt ohne Handoff ist endgültig: Der nächste Titel kommt nicht mehr.
+        let stopped = events.states.lock().unwrap().last() == Some(&"stopped");
+        if stopped || played >= seconds as f64 || std::time::Instant::now() > hang_guard {
             eprintln!(
                 "drain_until_handoff: no handoff at {played:.2}s playhead after {:.1}s wall, {drained} samples drained, states={:?} ended={:?} errors={:?}",
                 started.elapsed().as_secs_f64(),

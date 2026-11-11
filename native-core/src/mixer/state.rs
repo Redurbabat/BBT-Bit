@@ -23,7 +23,10 @@ pub(super) struct TransitionState {
     pub(super) fade_frames: u64,
     pub(super) handed_off: bool,
     pub(super) plan: TransitionPlan,
-    pub(super) arm_deadline: Instant,
+    /// Wo der laufende Titel beim Vorbereiten des nächsten stand. Die Frist für
+    /// die Überblendung zählt abgespielte Musik, nicht Uhrzeit: Pause oder ein
+    /// puffernder Stream dürfen den vorbereiteten Titel nicht verwerfen.
+    pub(super) arm_position_s: f64,
     /// A same-track source swap (quality upgrade / alternate version) rather
     /// than a queue advance. Upstream fades these with a plain equal-power
     /// curve and no filter ride — filtering a track against itself would edit
@@ -464,7 +467,7 @@ impl MixerState {
             fade_frames,
             handed_off: true,
             plan: TransitionPlan::default(),
-            arm_deadline: Instant::now(),
+            arm_position_s: 0.0,
             swap: true,
             fx: None,
             effect_start_frame: 0,
