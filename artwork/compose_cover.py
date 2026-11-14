@@ -2,7 +2,7 @@ import copy, glob, hashlib, json, uuid, zipfile
 from pathlib import Path
 
 BASE = Path(__file__).parent
-old = zipfile.ZipFile(BASE / 'RedBit-Cover.sketch')
+old = zipfile.ZipFile(BASE / 'BitChord-Cover.sketch')
 files = {n: old.read(n) for n in old.namelist()}
 doc = json.loads(files['document.json'])
 page_name = doc['pages'][0]['_ref'] + '.json'
@@ -10,7 +10,7 @@ page = json.loads(files[page_name])
 root = page['layers'][0]
 source = root['layers'][0]['layers']
 templates = {c: next(x for x in source if x['_class'] == c) for c in ['rectangle', 'oval', 'text', 'bitmap']}
-glass = json.loads(Path('/private/tmp/redbit-glass.json').read_text())
+glass = json.loads(Path('/private/tmp/bitchord-glass.json').read_text())
 
 def uid(): return str(uuid.uuid4()).upper()
 def frame(x, y, w, h): return {'_class':'rect','constrainProportions':False,'x':x,'y':y,'width':w,'height':h}
@@ -59,9 +59,9 @@ layers.append(gradient(shape('Coral reflected light',1280,-410,1000,1050,'FD4974
 # Reference-style feature copy, directly on the background.
 layers.append(text('Hi-Res audio and\nAutomix',90,879,500,80,34,hex='CBD6F5',a=.96))
 layers.append(text('Your library. Across Apple devices.',90,977,510,36,24,hex='DDE6FF',a=.76))
-icon=group('RedBit · rounded app icon',88,77,96,96,[bitmap('/Users/developer/Downloads/AppIcon.png','Original app icon',0,0,96,96)],25)
+icon=group('BitChord · rounded app icon',88,77,96,96,[bitmap('/Users/developer/Downloads/AppIcon.png','Original app icon',0,0,96,96)],25)
 shadow(icon,24,10,.2);layers.append(icon)
-layers.append(text('RedBit',206,93,390,62,46,'SFProDisplay-Bold'))
+layers.append(text('BitChord',206,93,390,62,46,'SFProDisplay-Bold'))
 layers.append(text('Your music.',84,293,535,100,86,'SFProDisplay-Bold'))
 layers.append(text('Native',84,396,535,100,86,'SFProDisplay-Bold'))
 layers.append(text('everywhere.',84,499,535,100,86,'SFProDisplay-Bold'))
@@ -70,7 +70,7 @@ layers.append(text('Made for Mac, iPad and iPhone.',90,633,510,70,29,hex='DDE6FF
 def add_devices():
     config=json.loads((BASE/'Apple-Resources/device-layout.json').read_text())
     # Preserve the original Mac screenshot, cropping only its black margin.
-    native=json.loads(Path('/private/tmp/redbit-window.json').read_text())
+    native=json.loads(Path('/private/tmp/bitchord-window.json').read_text())
     mac=group('Mac · Apple UI Kit window',648,128,1160,731.56,[],16)
     mac['style']=copy.deepcopy(native['style']);mac['style']['do_objectID']=uid()
     mac['style']['corners']['radii']=[16]
@@ -89,12 +89,12 @@ def add_devices():
         layers.append(g)
 
 if (BASE/'Apple-Resources/device-layout.json').exists():add_devices()
-root['layers']=layers;root['name']='RedBit · Apple cover';root['frame']=frame(0,0,1920,1080);root['clippingBehavior']=1
+root['layers']=layers;root['name']='BitChord · Apple cover';root['frame']=frame(0,0,1920,1080);root['clippingBehavior']=1
 root['exportOptions']['exportFormats']=[{'_class':'exportFormat','absoluteSize':0,'fileFormat':'png','name':'','namingScheme':0,'scale':1,'visibleScaleType':0}]
 page['name']='Cover';page['layers']=[root]
 files[page_name]=json.dumps(page).encode();files['document.json']=json.dumps(doc).encode()
 files['user.json']=json.dumps({}).encode()
-out=BASE/'RedBit-Apple-Cover.sketch'
+out=BASE/'BitChord-Apple-Cover.sketch'
 with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
     for n,b in files.items():
         if not n.startswith('previews/'):z.writestr(n,b)

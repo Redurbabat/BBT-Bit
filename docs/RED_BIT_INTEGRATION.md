@@ -170,7 +170,7 @@ Ausgangsstand: `06a835d11e218b9304942b128ca636161f991eb3`, weiterhin ausschließ
 
 ### Geräte-IPA und tatsächliche Laufzeitpfade
 
-Der frühere Gerätebau erzeugte eine Debug-IPA, scheiterte dann aber mit `Binary fehlt: Payload/RED Bit.app/Frameworks/RED Bit.debug.dylib`. Eine Mach-O-Fixture mit `LC_RPATH=@executable_path` und einer Debug-Bibliothek neben dem App-Programm reproduzierte genau diese Meldung. Zwei weitere Gegenproben zeigten, dass fehlende `@loader_path`-/`@executable_path`-Bibliotheken gar nicht geprüft wurden (12 Fälle, zwei Fehlschläge und ein Fehler vor Korrektur).
+Der frühere Gerätebau erzeugte eine Debug-IPA, scheiterte dann aber mit `Binary fehlt: Payload/BitChord.app/Frameworks/BitChord.debug.dylib`. Eine Mach-O-Fixture mit `LC_RPATH=@executable_path` und einer Debug-Bibliothek neben dem App-Programm reproduzierte genau diese Meldung. Zwei weitere Gegenproben zeigten, dass fehlende `@loader_path`-/`@executable_path`-Bibliotheken gar nicht geprüft wurden (12 Fälle, zwei Fehlschläge und ein Fehler vor Korrektur).
 
 `verify-ios-test-ipa.py` liest jetzt `LC_RPATH` und löst die paketbezogenen Ladepfade aus dem aktuellen Binary und seiner Ladekette auf. `@loader_path` wird dort ausgewertet, wo es deklariert wurde. Ein bloßes Suchen an zwei pauschalen Stellen ersetzt diese Zuordnung nicht. Verschachtelte Abhängigkeiten werden geprüft; Zyklen enden nach der ersten Prüfung desselben Binarys. Vorhandene System-/Swift-Laufzeit-Ausnahmen, Bundle-ID, Quellrevision, Gerätearchitektur, Verschlüsselungs- und Extension-Prüfungen bleiben erhalten. Das Kommandozeilenformat ändert sich nicht.
 
@@ -205,7 +205,7 @@ Für BBT-023: Nach verfügbarer Apple-Kapazität dieselbe PR-Revision bauen, das
 
 ## Home-Kopfzeile und gemischte Regale vom 9. November 2026
 
-Der Nutzer meldete anhand von drei Home-Fotos ein unruhiges Layout und benannte den Apple-Port [Redurbabat/RED-Bit](https://github.com/Redurbabat/RED-Bit) als Referenz. Die Fotos stammen laut Nutzer von einer älteren PR-59-IPA. Die angezeigte Version `1.0.4 (build 13)` identifiziert keinen bestimmten PR-Commit; die About-Aufnahme enthält keine Quellrevision. Die Fotos sind keine Abnahme des neuen Codes.
+Der Nutzer meldete anhand von drei Home-Fotos ein unruhiges Layout und benannte den Apple-Port [bagumamartin/BitChord](https://github.com/bagumamartin/BitChord) als Referenz. Die Fotos stammen laut Nutzer von einer älteren PR-59-IPA. Die angezeigte Version `1.0.4 (build 13)` identifiziert keinen bestimmten PR-Commit; die About-Aufnahme enthält keine Quellrevision. Die Fotos sind keine Abnahme des neuen Codes.
 
 Der Quellvergleich zeigt zwei konkrete Unterschiede: Der Apple-Port zeichnet keinen zusätzlichen Logo-Player über die Kopfzeile und verwendet quadratische Regalkarten. RED Bit öffnete seine zusätzliche Logo-Steuerung beim Wiedergabestart und beim Hochscrollen; gleichzeitig konnten innerhalb einer Reihe quadratische Cover neben 16:9-Videos stehen. Damit hatten Titel derselben Reihe unterschiedliche Höhen und die obere Steuerung konnte Seitentitel überdecken.
 

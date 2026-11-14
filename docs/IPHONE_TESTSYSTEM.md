@@ -66,7 +66,7 @@ Manuell auf dem iPhone:
 
 ## IPA herunterladen und erstmals installieren
 
-**Prüferkorrektur vom 9. November 2026 (PR #59):** Der Paketprüfer liest jetzt `LC_RPATH`, löst `@rpath`, `@loader_path` und `@executable_path` innerhalb des App-Pakets auf und prüft abhängige Bibliotheken weiter. So darf Xcodes `RED Bit.debug.dylib` direkt neben dem App-Programm liegen, wenn ein deklarierter Laufzeitpfad dorthin zeigt. Die frühere feste `Frameworks/`-Annahme konnte eine gültige Struktur ablehnen. 21 künstliche Paket-/Konfigurationsfälle bestehen; das ist noch kein Nachweis für eine neu erzeugte IPA oder SideStore-Installation. [Details und Grenzen](RED_BIT_INTEGRATION.md#paket--und-reader-korrektur-vom-9-november-2026).
+**Prüferkorrektur vom 9. November 2026 (PR #59):** Der Paketprüfer liest jetzt `LC_RPATH`, löst `@rpath`, `@loader_path` und `@executable_path` innerhalb des App-Pakets auf und prüft abhängige Bibliotheken weiter. So darf Xcodes `RedBit.debug.dylib` direkt neben dem App-Programm liegen, wenn ein deklarierter Laufzeitpfad dorthin zeigt. Die frühere feste `Frameworks/`-Annahme konnte eine gültige Struktur ablehnen. 21 künstliche Paket-/Konfigurationsfälle bestehen; das ist noch kein Nachweis für eine neu erzeugte IPA oder SideStore-Installation. [Details und Grenzen](RED_BIT_INTEGRATION.md#paket--und-reader-korrektur-vom-9-november-2026).
 
 1. Lade das Artefakt auf der erfolgreichen Run-Seite in Safari herunter. Das private Repository verlangt eine GitHub-Anmeldung; eine öffentliche SideStore-Quelle wird nicht eingerichtet.
 2. Öffne **Dateien → Downloads** und entpacke das äußere Artefakt-ZIP. Im Ordner liegen `.ipa`, `build.json`, `SHA256.txt` und `INSTALLIEREN.txt`. **Die IPA selbst nicht entpacken.**

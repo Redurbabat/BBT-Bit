@@ -61,7 +61,7 @@ Der Simulatorworkflow kompiliert zusätzlich die macOS-App mit Apple-SDK und den
 | Release | `python scripts/release-verify/check.py` und [Artefaktprüfung](RELEASE.md). | Fixture prüft gepaarte Metadaten und Checksummen. Für ein Release die echten Artefakte und das Update prüfen. |
 | SideStore-Testsystem | `python scripts/ios-test-verify/check.py`, danach erfolgreicher Lauf von `ios-sidestore-test.yml` und [Installation/Update am iPhone](IPHONE_TESTSYSTEM.md). | Fixtures prüfen Konfiguration und Paketfehler. Die echte IPA wird auf Gerätearchitektur, Revision, Frameworks und Identität geprüft. Signierung, Installation, Datenbestand und Audio haben eigene Abnahmen. |
 
-## RED Bit-v1.9.1-Portierung: Home-Musikvideos
+## BitChord-v1.9.1-Portierung: Home-Musikvideos
 
 - **Kotlin-Parser:** `shared/src/commonTest/kotlin/com/music/redbit/data/innertube/HomeVideoParserTest.kt` mit `./gradlew :shared:macosArm64Test` ausführen. Erwartet: auf Home werden Video-/Audio-Karten erhalten, im bisherigen Explore-Standard nicht; Video-Shelves bleiben bedienbar, Compilations ohne Watch-Endpunkt werden nicht als Videos angeboten, Continuation-Politik bleibt konsistent und `ShelfItem.isVideo` übersteht JSON.
 - **Native UI:** Home mit einer gemischten Shelf, einer reinen Videoshelf und „Recents“ öffnen. Schalter „Musikvideos auf der Startseite ausblenden“ ein- und ausschalten: nur die Darstellung wechselt, Playlists/Songs sowie Reihenfolge und Suchresultate bleiben erhalten. Video-Cover 16:9 und Song-Cover quadratisch.
@@ -71,7 +71,7 @@ Der Simulatorworkflow kompiliert zusätzlich die macOS-App mit Apple-SDK und den
 
 Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETESTET**.
 
-## RED Bit-v1.9.1-Portierung: AutoPlay/Empfehlungen (B)
+## BitChord-v1.9.1-Portierung: AutoPlay/Empfehlungen (B)
 
 - **Kotlin:** `./gradlew :shared:macosArm64Test` auf Apple Silicon mit JDK 21; mindestens `QueueBuilderBridgeTest`, `PartyAutoplayRulesTest`, `AutoplayWatchQueueTest`. 10er-Tail, Video-/Audio-Paarung und Session-Deduplikation gegen echte `next`-Antworten validieren; Fixtures allein ersetzen kein Netzwerk.
 - **Swift-Queue:** `bash scripts/check-queue.sh`. Original-Reihenfolge, manuelle Queue-Priorität, AutoPlay aus/an, Repeat-All, Löschung vorausliegender Titel, 2s/15s-Leerantwort-Watchdog und Trackwechsel/Cancellation überprüfen.
@@ -81,7 +81,7 @@ Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETEST
 
 **Status 07.11.2026:** Neue Tests als Quelltext hinzugefügt; **Kompilierung, Unit-Tests, iPhone-Simulator, Echtgerät und hörbares Audio NICHT GETESTET**. CI-Fehlschläge dürfen nicht als Bestehen gewertet werden.
 
-## RED Bit-v1.9.1-Portierung: Automix/Crossfade (B)
+## BitChord-v1.9.1-Portierung: Automix/Crossfade (B)
 
 - **Rust/Mathematik:** `cargo test --locked --manifest-path native-core/Cargo.toml`. In `mixer/tests/blends.rs` die neuen Tests für originalen Headroom `1/sqrt(gainIn+gainOut)`, Block-Gain-Rampe, Swap/Notch sowie die vorhandenen Equal-Power-/Handoff-/Pegel-Tests ausführen.
 - **Rust/Audio-Qualität:** `bash scripts/check-automix.sh` sowie `bash scripts/check-engine.sh`; absichtlich hochpegelige und korrelierte Audio-Files, echte Decoder-/Filter-/Sample-Rate-Wechsel, Unterbrechung und Error Recovery. Nur echte hörbare Wiedergabe belegt Klang.
@@ -91,7 +91,7 @@ Bis zur Durchführung sind alle neuen Tests und Geräteprüfungen **NICHT GETEST
 
 **Status 07.11.2026:** Der Headroom-Diff und die Regressionen sind committed. Die neue Rust-Implementierung ist **NICHT KOMPILIERT**, Tests **NICHT AUSGEFÜHRT**, tatsächliche Audioqualität **NICHT GETESTET**.
 
-## RED Bit-v1.9.1-Portierung: Bit-perfect Pause/Resume (B)
+## BitChord-v1.9.1-Portierung: Bit-perfect Pause/Resume (B)
 
 - **Rust-Unit:** `cargo test --locked --manifest-path native-core/Cargo.toml` – neue Tests in `native-core/src/output.rs` prüfen Idle-Bedingungen (genau 30 s, nur pausierter 16-/24-Bit-Exklusivpfad) und dass eine pausierte Render-Callback-Passage `rtrb`-Frames **nicht** verbraucht.
 - **macOS-Hardware:** USB-DAC mit exklusivem Integer-PCM (16 und 24 Bit) anschließen. Vor Pause Format/AudioDeviceID protokollieren; nach 29 s darf die Gerätebelegung nicht freigegeben sein, nach mindestens 30 s schon. Ring-/Playhead-Zustand sichern; beim Fortsetzen kein erneutes Intro/kein hörbarer Verlust.

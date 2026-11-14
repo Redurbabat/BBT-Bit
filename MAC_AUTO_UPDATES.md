@@ -29,17 +29,17 @@ install” setting.
 
    ```sh
    scripts/generate-mac-appcast.sh v0.1.2 \
-     "/path/to/RED Bit-0.1.2.dmg" \
+     "/path/to/RedBit-0.1.2.dmg" \
      "/path/to/0.1.2-release-notes.md"
    ```
 
-   The script uses Sparkle's `generate_appcast` with the `RED Bit` signing key in
+   The script uses Sparkle's `generate_appcast` with the `RedBit` signing key in
    the login Keychain, embeds the notes, and writes the signed enclosure entry to
    `appcast.xml`. Resolve the Xcode package once if that tool is not present yet.
 4. Commit and push the updated `appcast.xml` to `main`. Confirm the raw feed is
    reachable at `https://raw.githubusercontent.com/Redurbabat/RED-Bit/main/appcast.xml`.
 
-The private EdDSA key stays in the login Keychain under the `RED Bit` account.
+The private EdDSA key stays in the login Keychain under the `RedBit` account.
 Only the corresponding `SUPublicEDKey` is in `AppleApp/project.yml`. Never commit
 the private key or leave an export unencrypted. Keep a protected backup outside
 the repository so it can be imported on a replacement Mac; without the key,

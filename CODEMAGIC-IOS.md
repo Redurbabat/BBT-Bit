@@ -42,7 +42,7 @@ Dieses Workflow-Rezept wurde eingerichtet, **aber noch nicht auf Codemagic
 ausgeführt oder durch einen echten IPA-Download bestätigt**.
 
 Die Paketdatei heißt BBT-Bit, obwohl das intern bewahrte Xcode-Schema und das
-ausgelieferte App-Verzeichnis `RED Bit.app` heißen. Ausschlaggebend für die
+ausgelieferte App-Verzeichnis `RedBit.app` heißen. Ausschlaggebend für die
 Anzeige auf dem Gerät ist die `CFBundleDisplayName` `BBT-Bit`. Die Original-Lizenzen
 und Quellennachweise bleiben erhalten.
 

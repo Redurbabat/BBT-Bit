@@ -40,7 +40,7 @@ def offline():
     store = (ROOT / "AppleApp/Sources/PlaybackSession/AutomixModelStore.swift").read_text()
     script = (ROOT / "scripts/fetch-automix-models.sh").read_text()
     codemagic = (ROOT / "codemagic.yaml").read_text()
-    check("https://github.com/Redurbabat/RED-Bit/releases/download/" not in store,
+    check("https://github.com/Redurbabat/BBT-Bit/releases/download/" not in store,
           "private release URL produces HTTP 404 for an unauthenticated iPhone")
     for ident, shell, tag, filename, length, digest in MODELS:
         marker = f"static let {ident} = ModelSpec("

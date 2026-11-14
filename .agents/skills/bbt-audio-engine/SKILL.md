@@ -11,7 +11,7 @@ Beginne bei [API](../../../native-core/src/api.rs), [Decode](../../../native-cor
 
 ## Bit-perfect Pause und Gerätewechsel
 
-Bei RED Bit-v1.9.1-Parität auf macOS nur echten exklusiven Integer-PCM-Ausgang nach 30 s Pause/Stop freigeben. Der `rtrb`-Puffer wird beim erfolgreichen Fortsetzen **nicht** geleert. Vor der Wiederaufnahme müssen CoreAudio-AudioDeviceID, physische Wortbreite/Kanalzahl/Samplerate und exklusiver Zugriff stimmen. Bei Abweichungen erst kontrolliert neu aufbauen, nie falschen Bit-perfect-Erfolg melden. iOS-RemoteIO-Float ist keine exklusive CoreAudio-Integer-Ausgabe. Prüfe Pause/Play-/Route-Rennen mit demselben Ausgabelock; niemals CoreAudio-Aufrufe im zeitkritischen Callback. Beachte [Entscheidung E-010](../../../ENTSCHEIDUNGEN.md) und [Testplan](../../../docs/TESTPLAN.md).
+Bei BitChord-v1.9.1-Parität auf macOS nur echten exklusiven Integer-PCM-Ausgang nach 30 s Pause/Stop freigeben. Der `rtrb`-Puffer wird beim erfolgreichen Fortsetzen **nicht** geleert. Vor der Wiederaufnahme müssen CoreAudio-AudioDeviceID, physische Wortbreite/Kanalzahl/Samplerate und exklusiver Zugriff stimmen. Bei Abweichungen erst kontrolliert neu aufbauen, nie falschen Bit-perfect-Erfolg melden. iOS-RemoteIO-Float ist keine exklusive CoreAudio-Integer-Ausgabe. Prüfe Pause/Play-/Route-Rennen mit demselben Ausgabelock; niemals CoreAudio-Aufrufe im zeitkritischen Callback. Beachte [Entscheidung E-010](../../../ENTSCHEIDUNGEN.md) und [Testplan](../../../docs/TESTPLAN.md).
 
 ## Prüfung
 

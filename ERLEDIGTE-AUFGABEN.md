@@ -1,5 +1,9 @@
 # Erledigte Aufgaben
 
+## 2026-11-14 · Interne Namen heißen RED Bit (E-024) auf PR #59
+
+Code-Bezeichner, Kotlin-Paket, geteiltes Framework, Xcode-Projekt und -Ziele, Datenordner und Paketnamen tragen jetzt RED Bit; Bundle-ID, URL-Schema, App-Group und Keychain bleiben. `BrandMigration` übernimmt beim ersten Start Ordner, Warteschlange und Anmeldecookies und räumt alte Temp-Stücke weg. Verweise auf das Originalprojekt und alle Protokolle behalten ihren Wortlaut ([P-036](PROBLEME.md)). Nachweise: Kotlin-Framework und App gebaut, Simulator gestartet, unsignierte Release-IPA erzeugt; auf iPhone 13 Pro Max (iOS 26.6.1) Prozess `RedBit`, `redbit_brand_migration_v2 = true`, Downloads und Warteschlange erhalten, 212 MB Altreste entfernt ([P-037](PROBLEME.md)); Automix-Modelle öffentlich mit passender SHA-256. Hörbares Audio **NICHT GETESTET**.
+
 ## 2026-11-10 · Sperrbildschirm-Priorität und Coverwechsel auf PR #59
 
 Bei noch nicht gespeicherter Audio-Mischpräferenz erhält die Musik-App den normalen nicht mischbaren `.playback`-Standard; die explizit gespeicherte Option zum parallelen Hören anderer Apps wird nicht verändert. Im Vollplayer entfällt die kreisförmige Cover-Verzerrung; statt Boom-Zoom wird nur die Deckkraft kurz überblendet. Das quadratische Cover bleibt bei `.buffering` stabil. Bereits vorhandene native Mini-/Vollplayer-Zoom-Navigation sowie Rust-/Kotlin-Audiofluss bleiben unverändert. Der neue Quellen-Invariantentest erfasst beide Korrekturpfade. Signierte IPA, Apple-SDK-Kompilierung, Sperrbildschirm, tatsächliche Animation und hörbare Wiedergabe: **NICHT GETESTET**. Abnahme BBT-029/030.

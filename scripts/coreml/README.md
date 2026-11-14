@@ -55,7 +55,7 @@ clone and two runs on the same machine: same `.aar` SHA-256). Pin the `.aar` byt
 
 **Contract (fixed):** input `spectrogram` Float32 `[1,1500,128]`; outputs
 `beat`, `downbeat` Float32 `[1,1500]` logits, same meaning as the ONNX heads.
-Metadata: author `RED Bit`, license `MIT`, short description, and
+Metadata: author `RedBit`, license `MIT`, short description, and
 `source_commit` / `checkpoint_sha256` / `provenance` user keys.
 
 ## Parity
@@ -67,7 +67,7 @@ app's decode → stereo downmix → `StreamResampler(22.05 kHz)` →
 ```bash
 CARGO_TARGET_DIR=/tmp/redbit-coreml/meldump-target \
   cargo run --release --manifest-path scripts/coreml/mel_dumper/Cargo.toml -- \
-  ~/Library/Caches/RED Bit/audio/<track>.m4a /tmp/mel/<track>.bin
+  ~/Library/Caches/RedBit/audio/<track>.m4a /tmp/mel/<track>.bin
 
 python scripts/coreml/parity_beat_this.py \
   --mels /tmp/mel --out /tmp/parity \

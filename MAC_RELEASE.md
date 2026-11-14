@@ -11,21 +11,21 @@ container are unavailable in this ad-hoc package.
 ## Build and package
 
 Create an Apple Silicon Release archive without code signing, then copy its app
-bundle into a folder named `RED Bit.app` inside an export directory:
+bundle into a folder named `RedBit.app` inside an export directory:
 
 ```sh
 xcodebuild \
-  -project AppleApp/RED Bit.xcodeproj \
-  -scheme RED Bit \
+  -project AppleApp/RedBit.xcodeproj \
+  -scheme RedBit \
   -configuration Release \
   -destination 'platform=macOS,arch=arm64' \
-  -archivePath "$TMPDIR/RED Bit-mac.xcarchive" \
+  -archivePath "$TMPDIR/RedBit-mac.xcarchive" \
   archive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=
 
-mkdir -p "$TMPDIR/RED Bit-mac-export"
-ditto "$TMPDIR/RED Bit-mac.xcarchive/Products/Applications/RED Bit.app" \
-  "$TMPDIR/RED Bit-mac-export/RED Bit.app"
-scripts/package-mac-dmg.sh 1.0.0 "$TMPDIR/RED Bit-mac-export"
+mkdir -p "$TMPDIR/RedBit-mac-export"
+ditto "$TMPDIR/RedBit-mac.xcarchive/Products/Applications/RedBit.app" \
+  "$TMPDIR/RedBit-mac-export/RedBit.app"
+scripts/package-mac-dmg.sh 1.0.0 "$TMPDIR/RedBit-mac-export"
 ```
 
 The script checks the app version, stages a copy, removes provisioning profiles
@@ -60,8 +60,8 @@ After moving the app to Applications, an informed user can also clear the
 quarantine flag in Terminal:
 
 ```sh
-xattr -dr com.apple.quarantine "/Applications/RED Bit.app"
-open "/Applications/RED Bit.app"
+xattr -dr com.apple.quarantine "/Applications/RedBit.app"
+open "/Applications/RedBit.app"
 ```
 
 This removes the downloaded-file quarantine attribute; it does not add a

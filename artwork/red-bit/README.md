@@ -2,7 +2,7 @@
 
 ## Aktuell: Wellen-Logo des Nutzers (11. November 2026)
 
-Vom Nutzer gelieferter Entwurf: cremefarbene, plastisch gedrehte Klangwelle zwischen zwei Punkten auf Bordeaux. [Vorschau](wave-brand-preview.png). App-Icon, Icon-Composer-Ebene (iOS/macOS 26) und In-App-Marker (Toolbar, Onboarding, Konto, Glass Bloom) verwenden dieselbe Quelle. Asset-Namen, Bundle-IDs und Datenpfade bleiben unverändert.
+Vom Nutzer gelieferter Entwurf: cremefarbene, plastisch gedrehte Klangwelle zwischen zwei Punkten auf Bordeaux. [Vorschau](wave-brand-preview.png). App-Icon, Icon-Composer-Ebene (iOS/macOS 26) und In-App-Marker (Toolbar, Onboarding, Konto, Glass Bloom) verwenden dieselbe Quelle. Asset-Namen und Bundle-IDs bleiben unverändert; die Datenpfade heißen seit [E-024](../../ENTSCHEIDUNGEN.md) `RedBit`.
 
 | Datei | Zweck |
 | --- | --- |

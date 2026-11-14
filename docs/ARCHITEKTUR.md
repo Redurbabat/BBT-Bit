@@ -4,12 +4,12 @@
 
 | Bereich | Einstieg | Aufgabe |
 | --- | --- | --- |
-| Swift App | [RED BitApp](../AppleApp/Sources/App/RED BitApp.swift), [RootView](../AppleApp/Sources/UI/RootView.swift) | Lebenszyklus, Dienste, Tabs und Settings. |
+| Swift App | [RedBitApp](../AppleApp/Sources/App/RedBitApp.swift), [RootView](../AppleApp/Sources/UI/RootView.swift) | Lebenszyklus, Dienste, Tabs und Settings. |
 | Wiedergabesitzung | [PlaybackController](../AppleApp/Sources/PlaybackSession/PlaybackController.swift) und [Erweiterungen](../AppleApp/Sources/PlaybackSession/) | Queue, Transport, Laden, Recovery, Zeitfortschritt, Routen und UI-Zustand. Mini- und Vollplayer lesen dieselbe Sitzung. |
 | Resolver | [InnertubeStreamResolver](../AppleApp/Sources/App/InnertubeStreamResolver.swift), [SourceResolution](../AppleApp/Sources/PlaybackSession/PlaybackController%2BSourceResolution.swift) | Kandidaten bestimmen und verifizieren, Fehlertypen und Fallback an die Sitzung melden. |
 | Kotlin Multiplatform | [shared](../shared/), [InnerTubeX](../vendor/innertubex/), [Gradle-Graph](../settings.gradle.kts) | Shared-API, Konto, HTTP, Stream-/Metadatenlogik und Persistenz. `:shared` verwendet `:innertubex`. Darwin-spezifische Implementierungen liegen in `appleMain`. |
 | Audio-Engine | [Native API](../native-core/src/api.rs), [Decode](../native-core/src/decode/), [Mixer](../native-core/src/mixer/), [Output](../native-core/src/output.rs) | Decode, Buffer, DSP, Mixer, Ausgabe, Analysen und Callbacks an Swift. |
-| Widget | [RED BitWidget](../AppleApp/Sources/Widget/), [NowPlayingActivityAttributes](../AppleApp/Sources/Shared/NowPlayingActivityAttributes.swift) | Separates Target. Austausch über App Group und Activity-Daten. |
+| Widget | [RedBitWidget](../AppleApp/Sources/Widget/), [NowPlayingActivityAttributes](../AppleApp/Sources/Shared/NowPlayingActivityAttributes.swift) | Separates Target. Austausch über App Group und Activity-Daten. |
 
 ## Abhängigkeitsgrenzen
 

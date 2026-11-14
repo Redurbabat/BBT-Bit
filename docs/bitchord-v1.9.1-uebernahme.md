@@ -1,12 +1,12 @@
-# RED Bit v1.9.1 → BBT-Bit: Übernahme und Konfliktentscheidungen
+# BitChord v1.9.1 → BBT-Bit: Übernahme und Konfliktentscheidungen
 
 Stand: 2026-11-07. Ausgangsbasis für BBT-Bit: `main` bei `c2cf0a961f6a5d8a6a21308745d9dd187e11bbc7`.
-Arbeitsbranch: `feature/redbit-v1-9-1-port-20261106`. **Keine Änderung oder Merge nach `main` ohne ausdrückliche Freigabe.**
+Arbeitsbranch: `feature/bitchord-v1-9-1-port-20261106`. **Keine Änderung oder Merge nach `main` ohne ausdrückliche Freigabe.**
 
 ## Umfang und Quellen
 
 - Original: [kushagrasinghx/BitChord](https://github.com/kushagrasinghx/BitChord/compare/v1.9...v1.9.1) – 17 Commits, 94 geänderte Dateien. `v1.9.1...main`: ein Merge-Commit, keine zusätzlichen Dateiänderungen.
-- Ziel: BBT-Bit mit SwiftUI, Kotlin Multiplatform und Rust-Audio-Engine; RED Morph [eigenes Repository](https://github.com/Redurbabat/RED-Morph) und [eigener BBT-Bit-Branch](https://github.com/Redurbabat/RED-Bit/tree/feature/red-morph-player-search-navigation) sind separate Referenzen.
+- Ziel: BBT-Bit mit SwiftUI, Kotlin Multiplatform und Rust-Audio-Engine; RED Morph [eigenes Repository](https://github.com/Redurbabat/RED-Morph) und [eigener BBT-Bit-Branch](https://github.com/Redurbabat/BBT-Bit/tree/feature/red-morph-player-search-navigation) sind separate Referenzen.
 - „Alles übernehmen“ bedeutet funktionale Parität der **Änderungen** – nicht blindes Kopieren von Android-/Compose-/TV-Code. Daten, Wiedergabe, native Navigation und Plattformgrenzen bleiben erhalten.
 - Bei bereits vorhandener Funktion **zuerst Nutzerentscheidung** zur Variante einholen. Kein Ersatz der bestehenden Implementierung durch eine zweite parallele Implementierung.
 
@@ -21,7 +21,7 @@ Arbeitsbranch: `feature/redbit-v1-9-1-port-20261106`. **Keine Änderung oder Mer
 | `squareVideoThumbnails` | AUSSTEHEND | Video-Identifikation und Artwork-Sizing in SwiftUI sauber definieren |
 | Prefer Music Only / Video→Audio | **FREIGEGEBEN, TEILWEISE PORTIERT** | Nutzerentscheidung: Originalverhalten. Der native Resolver wartet jetzt maximal 15 Sekunden, startet den Original-YouTube-Fallback nur nach Miss/Timeout/Identitätsfehler und scheitert nicht mehr an unnötiger Videoauflösung bei verifizierter Audioquelle. Die echte Audio-Song-ID einschließlich Queue-/Now-Playing-Metadaten und Konvertierung des nächsten Songs sind **noch nicht portiert**. |
 | Autoplay / Empfehlungen / Recents | **ENTSCHIEDEN B / CODE TEILPORTIERT** | v1.9.1-Verhalten für 10er-Tail, Audio-/Video-Radios, gemeinsame Party-Einstellung, Lieferantenwahl, Aufnahme-Deduplikation, Retry/Watchdog und Server-Queue portiert. Nicht vollständig abgenommen: Modul-Track-Seed und Echtgerät/CI fehlen. |
-| Crossfade, Automix-Vorschau | **ENTSCHIEDEN B – RUST-TEILPORTIERUNG** | Original-RED Bit v1.9.1 als Ziel: bestehender Rust-Parallelmixer mit Equal-Power, Beatmatching und Filterkurven bleibt einzige Audio-Engine. Original-Headroom-Trim `1/√(gainIn+gainOut)` plus sampleweise geglätteter gemeinsamer Bus-Pegel und 2 neue Rust-Regressionen ergänzt; ursprünglicher `CrossfadeController`-Diff ist überwiegend vorauseilende Mix-Preview mit Waveform-Retry. Am 09.11.2026 auf PR #59 um Metadatenübergabe im Mix und gemessene native Wellenformen ergänzt; lokale Nachweise und offene Apple-Abnahme siehe [aktueller Stand](ORIGINAL_PARITAET_PR59.md). |
+| Crossfade, Automix-Vorschau | **ENTSCHIEDEN B – RUST-TEILPORTIERUNG** | Original-BitChord v1.9.1 als Ziel: bestehender Rust-Parallelmixer mit Equal-Power, Beatmatching und Filterkurven bleibt einzige Audio-Engine. Original-Headroom-Trim `1/√(gainIn+gainOut)` plus sampleweise geglätteter gemeinsamer Bus-Pegel und 2 neue Rust-Regressionen ergänzt; ursprünglicher `CrossfadeController`-Diff ist überwiegend vorauseilende Mix-Preview mit Waveform-Retry. Am 09.11.2026 auf PR #59 um Metadatenübergabe im Mix und gemessene native Wellenformen ergänzt; lokale Nachweise und offene Apple-Abnahme siehe [aktueller Stand](ORIGINAL_PARITAET_PR59.md). |
 | SourceResolver, Song-Matching, StreamLengthProbe | AUSSTEHEND – priorisiert | Gemeinsamer Kotlin-Resolver, Streamdauer, Titel/Künstler/Album-Matching und realistische Tests; `NO_PLAYABLE_STREAM` getrennt nachweisen |
 | AddonAuth / Addon-Qualitätswahl | AUSSTEHEND – Sicherheitsreview | Keine unverschlüsselten Tokens, keine Bypass-Implementierung; iOS Keychain und Add-on-Protokoll prüfen |
 | Bit-perfect Pause/Resume | **ENTSCHIEDEN B – MACOS-RUST-TEILPORTIERT** | Originalregel nach 30 s Pause: exklusiver DAC wird auf macOS via CoreAudio-Hog-Mode freigegeben; cpal-Stream/PCM-Ring bleiben für exakten Frame-Fortschritt erhalten. Wiederaufnahme prüft AudioDeviceID + physisches Integerformat und reacquiriert Exklusivität; bei geänderter Route sichere Neuinitialisierung, kein falscher Wiedergabeerfolg. iOS lässt diesen exklusiven Integerpfad nicht zu und bleibt beim AVAudioSession/RemoteIO-Float-Ausgang. Rust-Tests hinzugefügt, Build/Hardware noch NICHT GETESTET. |
@@ -35,14 +35,14 @@ Arbeitsbranch: `feature/redbit-v1-9-1-port-20261106`. **Keine Änderung oder Mer
 
 ## Implementiert in diesem Branch
 
-- `shared/src/commonMain/kotlin/com/music/redbit/data/settings/AppSettings.kt`: `hideRecents` StateFlow und Setter auf der bestehenden `PlatformSettings`-Persistenz.
+- `shared/src/commonMain/kotlin/com/music/bitchord/data/settings/AppSettings.kt`: `hideRecents` StateFlow und Setter auf der bestehenden `PlatformSettings`-Persistenz.
 - `AppleApp/Sources/UI/Settings/SettingsView.swift` und `SettingsView+Appearance.swift`: Schalter für „Hide Recently Played“.
 - `AppleApp/Sources/UI/Library/HomeView.swift`: Filtern der angezeigten Recents-Shelf; Skeleton ebenfalls ausgeblendet. Server-/lokaler Verlauf und Queue bleiben unverändert.
 - `AppleApp/Resources/Localization/Localizable.xcstrings`: deutsche Übersetzung der neuen Beschriftung und Beschreibung.
 
 ## Freigabe und Portierungsschritt 2: Prefer Music Only
 
-Entscheidung des Maintainers vom 06.11.2026: **Das Verhalten von Original-RED Bit v1.9.1 übernehmen und nativ an BBT-Bit anpassen.**
+Entscheidung des Maintainers vom 06.11.2026: **Das Verhalten von Original-BitChord v1.9.1 übernehmen und nativ an BBT-Bit anpassen.**
 
 Bereits umgesetzt:
 
@@ -56,17 +56,17 @@ Bereits umgesetzt:
 
 ## Portierungsschritt 3: Home-Musikvideos (Nutzerentscheidung A)
 
-- Original-RED Bit v1.9.1 zeigt Musikvideos im Home-Feed, `hide_home_videos` ist standardmäßig `false`. Der Maintainer hat Variante A bestätigt.
+- Original-BitChord v1.9.1 zeigt Musikvideos im Home-Feed, `hide_home_videos` ist standardmäßig `false`. Der Maintainer hat Variante A bestätigt.
 - `InnertubeParser.parseHome(..., includeVideos = true)` gilt nur für Home (auch Supplements und Continuations). Explore und Bibliothek nutzen weiterhin die bestehende Video-Filterung.
 - `ShelfItem.isVideo` (Kotlin) wird als JSON transportiert und in `ShelfCard.isVideo` (Swift) gelesen. Home-Karten, Recents und Kontextmenüs übergeben die Kennzeichnung an `QueueEntry.youtube(..., isVideo:)`; andere Aufrufstellen bleiben durch einen Defaultparameter kompatibel.
 - In `HomeView` filtert `hide_home_videos` nur sichtbare Karten, anschließend leere Shelves. Originalfeed, Hörverlauf und Queue-Daten werden nicht gelöscht.
-- SwiftUI verwendet für abspielbare Videokarten standardmäßig Vorschaubilder im Format 16:9. Die gesonderte RED Bit-Option `square_video_thumbnails` ist noch offen und wird nicht ohne weiteren Abgleich hinzugefügt.
+- SwiftUI verwendet für abspielbare Videokarten standardmäßig Vorschaubilder im Format 16:9. Die gesonderte BitChord-Option `square_video_thumbnails` ist noch offen und wird nicht ohne weiteren Abgleich hinzugefügt.
 - Neue Einstellung und deutsche Übersetzungen unter „Darstellung“, KMP-StateFlow sowie Backup-Export und -Import ergänzt. Der bereits vorhandene Schlüssel `hide_recents` wurde ebenfalls dem Backup hinzugefügt.
 - Sechs Kotlin-Regressionstests wurden hinzugefügt, sind jedoch **NICHT AUSGEFÜHRT**. Der Test prüft inklusive Fortsetzung, reiner Video-Shelf, gemischter Shelf, Explore-Standardverhalten, nicht abspielbarer Compilation und JSON-Roundtrip.
 
 ## Portierungsschritt 4: AutoPlay und Musikempfehlungen – Nutzerentscheidung B
 
-Am 07.11.2026 wurde **B: Verhalten von Original-RED Bit v1.9.1 übernehmen** gewählt. Audioausgabe bleibt nativ auf dem vorhandenen Rust-Pfad; keine zweite Queue-Engine und keine Änderungen auf `main`.
+Am 07.11.2026 wurde **B: Verhalten von Original-BitChord v1.9.1 übernehmen** gewählt. Audioausgabe bleibt nativ auf dem vorhandenen Rust-Pfad; keine zweite Queue-Engine und keine Änderungen auf `main`.
 
 **Implementierter Code (ohne erfolgreichen App-Build):**
 
@@ -82,12 +82,12 @@ Am 07.11.2026 wurde **B: Verhalten von Original-RED Bit v1.9.1 übernehmen** gew
 
 ## Portierungsschritt 5: Automix / Crossfade – Nutzerentscheidung B
 
-**Freigabe 07.11.2026:** Der Ablauf von RED Bit v1.9.1 soll in BBT-Bit mit SwiftUI und der **einzigen** vorhandenen Rust-Audio-Engine umgesetzt werden. `main`, RED Morph und die Branches anderer Agenten bleiben unangetastet.
+**Freigabe 07.11.2026:** Der Ablauf von BitChord v1.9.1 soll in BBT-Bit mit SwiftUI und der **einzigen** vorhandenen Rust-Audio-Engine umgesetzt werden. `main`, RED Morph und die Branches anderer Agenten bleiben unangetastet.
 
 ### Code im Feature-Branch (nicht gebaut)
 
 - Der Mixer nutzt bereits **zwei simultane Rust-Voices** mit getrennten Decodern, `sin/cos`-Equal-Power-Fades, geplanten Cue-Punkten, DSP-Filtern, Tempoanpassung und True-Peak-Protector. Kein Android-ExoPlayer-Code wurde in Swift/Rust kopiert.
-- Neu: RED Bits **Blend-Headroom** `1 / sqrt(incomingGain + outgoingGain)` wird auf den gemeinsam gemischten Stereo-Bus **vor** EQ und True-Peak-Protector angewendet, nur während eines echten Zwei-Titel-Übergangs. Source-Swaps derselben Aufnahme, bei denen lineare Gewinne zusammen 1 ergeben, werden nicht unnötig gedämpft; DJ-Notches werden nicht hochverstärkt.
+- Neu: BitChords **Blend-Headroom** `1 / sqrt(incomingGain + outgoingGain)` wird auf den gemeinsam gemischten Stereo-Bus **vor** EQ und True-Peak-Protector angewendet, nur während eines echten Zwei-Titel-Übergangs. Source-Swaps derselben Aufnahme, bei denen lineare Gewinne zusammen 1 ergeben, werden nicht unnötig gedämpft; DJ-Notches werden nicht hochverstärkt.
 - Die Gain-Änderung interpoliert von Audioblock zu Audioblock **pro Stereo-Frame**, ohne zusätzliche Decodierung, Netzwerk-/Dateizugriff oder Speicherallokation im Renderpfad. `MixerState.mix_headroom` speichert den letzten Pegel. Alle bestehenden Mixer-Test-Fixtures wurden um den neuen Zustand ergänzt.
 - Zwei neue Rust-Regressionen in `native-core/src/mixer/tests/blends.rs` prüfen den Originalwert bei halbem Crossfade (ca. −1,5 dB Headroom), Source-Swap-Bypass, ausbleibende Verstärkung von Dips sowie gleitende Puffergrenzen.
 - Der Original-Diff von v1.9 auf v1.9.1 in `CrossfadeController.kt` betrifft vor allem **Vorschau des nächsten Mixes**, getrennt nachladbare Wellenformen, Loading-Zustände und Retry-Abstand. BBT-Bits `AutomixWeave` zeigt bereits eine native Vorschau des analysierten Übergangs; PR #59 ergänzt am 09.11.2026 zwei gemessene native Ausschnitte mit Ladezustand und begrenzten Wiederholungen. Die Apple-UI ist noch nicht abgenommen; [aktueller Stand](ORIGINAL_PARITAET_PR59.md).
@@ -100,7 +100,7 @@ Am 07.11.2026 wurde **B: Verhalten von Original-RED Bit v1.9.1 übernehmen** gew
 
 ## Portierungsschritt 6: Bit-perfect Pause/Fortsetzen – Nutzerentscheidung B
 
-**Freigabe 07.11.2026:** Das Originalverhalten aus RED Bit v1.9.1 möglichst vollständig in der bestehenden Rust-/CoreAudio-Implementierung abbilden, ohne Android-USB-/AAudio-Treiber oder zweite Audioausgabe.
+**Freigabe 07.11.2026:** Das Originalverhalten aus BitChord v1.9.1 möglichst vollständig in der bestehenden Rust-/CoreAudio-Implementierung abbilden, ohne Android-USB-/AAudio-Treiber oder zweite Audioausgabe.
 
 ### Original v1.9.1
 
@@ -118,8 +118,8 @@ Am 07.11.2026 wurde **B: Verhalten von Original-RED Bit v1.9.1 übernehmen** gew
 
 ## Automix-Modell-404: drei korrigierte öffentliche Quellen für die IPA
 
-- Ursache: `Redurbabat/RED-Bit` ist **privat**. Alle drei GitHub-Release-Assets existieren, doch die anonymen iPhone-Downloads der eingebauten `URLSession` erhalten dort HTTP 404.
-- `AutomixModelStore.swift` verwendet für Beat + Downbeat (23 478 460 B), Accelerated Beat/Core ML (18 818 981 B) und Vocal + Clash (23 209 009 B) ab jetzt öffentliche Release-Assets unter `Redurbabat/RED-Bit`. Alle drei veröffentlichten GitHub-Asset-Metadaten stimmen mit den bereits gepinnten SHA-256-Werten und Bytezahlen überein; die Integritätskontrolle bleibt vollständig aktiv.
+- Ursache: `Redurbabat/BBT-Bit` ist **privat**. Alle drei GitHub-Release-Assets existieren, doch die anonymen iPhone-Downloads der eingebauten `URLSession` erhalten dort HTTP 404.
+- `AutomixModelStore.swift` verwendet für Beat + Downbeat (23 478 460 B), Accelerated Beat/Core ML (18 818 981 B) und Vocal + Clash (23 209 009 B) ab jetzt öffentliche Release-Assets unter `bagumamartin/BitChord`. Alle drei veröffentlichten GitHub-Asset-Metadaten stimmen mit den bereits gepinnten SHA-256-Werten und Bytezahlen überein; die Integritätskontrolle bleibt vollständig aktiv.
 - `scripts/fetch-automix-models.sh` verwendet ebenfalls die öffentlichen Quellen und kann nun **alle drei Modelle** abrufen. Neue Prüfung `scripts/verify-automix-model-sources.py` vergleicht die Swift-Modellspezifikationen und Fetch-Konstanten; optional `--online` prüft die GitHub-Release-API. Die Offline-Prüfung läuft vor **beiden** Codemagic-IPA-Workflows sowie im PR-Workflow.
 - Die Modellgewichte werden **nicht in die IPA eingebettet**. Die IPA enthält den korrigierten Downloadcode und die drei Optionen; die Nutzer laden die Modelle in der App in den Application-Support-Speicher. Tempo-/DSP-Fallbacks ohne diese Modelle bleiben erhalten.
 - Abnahme: `python3 scripts/verify-automix-model-sources.py`, optional `--online`, auf macOS `MODELS_LIVE=1 bash scripts/check-models.sh`, danach echte iPhone-Downloads inklusive SHA-256-Kontrolle, Core-ML-Kompilierung und hörbarer Automix-Wiedergabe. **Derzeit weder neues iPhone-Downloadresultat noch erfolgreiche IPA bestätigt.**
@@ -147,8 +147,8 @@ Am 07.11.2026 wurde **B: Verhalten von Original-RED Bit v1.9.1 übernehmen** gew
 ## Entscheidungspunkte vor Eingriffen in bereits vorhandene Funktionen
 
 1. Prefer Music Only / Musikvideo-Konvertierung: **ENTSCHIEDEN – Originalverhalten, nativ portieren**. Vollständige Queue-ID-Umstellung und Next-Track-Konvertierung offen.
-2. Autoplay und Empfehlungen: **ENTSCHIEDEN – Variante B, RED Bit v1.9.1 maßgebend**. Native Swift/Kotlin-Portierung auf diesem Branch, Build-/Geräteabnahme und Modultitel-Seeds offen.
-3. Automix/Crossfade: **ENTSCHIEDEN – Variante B.** RED Bit v1.9.1 soll maßgeblich sein, jedoch nativ in der bestehenden Rust-Audio-Engine. Headroom-Trim portiert. Mid-Fade-Metadaten-Handoff und gemessene native Vorschau am 09.11.2026 implementiert; Apple-Abnahme offen. Kein zweiter Audio-Player.
+2. Autoplay und Empfehlungen: **ENTSCHIEDEN – Variante B, BitChord v1.9.1 maßgebend**. Native Swift/Kotlin-Portierung auf diesem Branch, Build-/Geräteabnahme und Modultitel-Seeds offen.
+3. Automix/Crossfade: **ENTSCHIEDEN – Variante B.** BitChord v1.9.1 soll maßgeblich sein, jedoch nativ in der bestehenden Rust-Audio-Engine. Headroom-Trim portiert. Mid-Fade-Metadaten-Handoff und gemessene native Vorschau am 09.11.2026 implementiert; Apple-Abnahme offen. Kein zweiter Audio-Player.
 4. Player-Themes / RED Morph: native RED-Morph-Oberfläche belassen und neue Optionen ergänzen oder das Originaldesign übernehmen?
 5. Glass-Performance: bestehende Reduce-Blur-/Performance-Modi ergänzen oder Originalschalter separat anbieten?
 

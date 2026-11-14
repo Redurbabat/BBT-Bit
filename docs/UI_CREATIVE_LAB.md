@@ -1,6 +1,6 @@
 # BBT-Bit · UI Creative Lab (isolierter Entwurfsbranch)
 
-Stand: 2026-11-08. Ausgangspunkt: PR #50 (`feature/redbit-v1-9-1-port-20261106`).
+Stand: 2026-11-08. Ausgangspunkt: PR #50 (`feature/bitchord-v1-9-1-port-20261106`).
 
 Integrationshinweis: Die nachfolgenden Angaben beschreiben den ursprünglichen Entwurfsbranch #54. Seine Änderungen und die gestapelten Tests #57/#58 werden inzwischen gemeinsam in [PR #59](https://github.com/Redurbabat/RED-Bit/pull/59) geprüft. Den aktuellen Befund und Prüfstand enthält [RED_BIT_INTEGRATION.md](RED_BIT_INTEGRATION.md); dieser ersetzt die ursprünglichen Statusangaben für den Integrationsbranch.
 
