@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -17,7 +17,7 @@ extension PlaybackController {
     /// listener does — a skip, a like, a new pick — steers the *next* fill,
     /// because the next fill is seeded from whatever is playing then. It never
     /// rewrites the fill already shown.
-    /// In Party-Sitzungen liefert nur der per BitChord-Regel gewählte Teilnehmer.
+    /// In Party-Sitzungen liefert nur der per RedBit-Regel gewählte Teilnehmer.
     private var canSupplyRecommendations: Bool {
         PartyAutoplayRules.shared.canSupply(
             party: PartyStore.shared.state, localPreference: autoplayEnabled
@@ -45,7 +45,7 @@ extension PlaybackController {
             // A forced fill tops the tail up to its target; it does not replace it.
             guard autoplayRoom() > 0 else { return }
         }
-        // BitChord füllt nach jedem Titelwechsel auf zehn Empfehlungen auf,
+        // RedBit füllt nach jedem Titelwechsel auf zehn Empfehlungen auf,
         // nicht erst bei weniger als drei vorausliegenden Queue-Einträgen.
         let due = force || (lowWaterRefill && autoplayRoom() > 0)
         guard due else { return }
@@ -145,7 +145,7 @@ extension PlaybackController {
                         fromAutoplay: true, isVideo: $0.isVideo ?? false
                     )
                 }
-                // Original-BitChord respektiert die Reihenfolge der Radio-Antwort.
+                // Original-RedBit respektiert die Reihenfolge der Radio-Antwort.
                 // Nur ein ausdrücklich eingeschaltetes AutoMix kann später den
                 // noch nicht abgespielten Bereich neu ordnen.
                 let ordered = extras

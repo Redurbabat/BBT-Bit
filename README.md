@@ -2,15 +2,15 @@
 
 RED Bit (ehemals BBT-Bit) ist eine eigenständig gepflegte native Musik-App für iPhone, iPad und Apple-Silicon-Macs aus der BABAT-Appfamilie.
 
-Die Grundlage ist der offene BitChord-Apple-Port von Martin BAGUMA, der auf BitChord von Kushagra Singh basiert. RED Bit ist eine eigenständige Weiterentwicklung. Herkunft und Lizenzen bleiben erhalten.
+Die Grundlage ist der offene RED Bit-Apple-Port von Martin BAGUMA, der auf RED Bit von Kushagra Singh basiert. RED Bit ist eine eigenständige Weiterentwicklung. Herkunft und Lizenzen bleiben erhalten.
 
 ## Projekt und Kompatibilität
 
 - Repository und Quellcode: https://github.com/Redurbabat/RED-Bit
 - Anzeigename: RED Bit. Die App-ID `com.babat.bbtbit`, das URL-Schema `bbtbit://`, Datenordner und interne Dateinamen bleiben für bestehende RED-/BBT-Bit-Installationen erhalten.
 - Widget-ID: `com.babat.bbtbit.widget`. Keychain und App Group verwenden eigene BBT-Bit-Namensräume.
-- SwiftUI zeigt die Oberfläche; Kotlin Multiplatform bündelt Daten und Netzwerk; Rust stellt die Audioengine bereit. Interne BitChord-Modulnamen erhalten die Build-Kompatibilität.
-- Optionale Automix-Modelle stammen aus den öffentlichen BitChord-Apple-Modellreleases und werden anhand festgelegter SHA-256-Prüfsummen geprüft. Sie sind nicht in der App gebündelt.
+- SwiftUI zeigt die Oberfläche; Kotlin Multiplatform bündelt Daten und Netzwerk; Rust stellt die Audioengine bereit. Interne RED Bit-Modulnamen erhalten die Build-Kompatibilität.
+- Optionale Automix-Modelle stammen aus den öffentlichen RED Bit-Apple-Modellreleases und werden anhand festgelegter SHA-256-Prüfsummen geprüft. Sie sind nicht in der App gebündelt.
 - Externe Dienste wie YouTube Music bleiben von ihren jeweiligen Anbietern abhängig.
 
 ## Übernommene Original-Funktionen
@@ -21,11 +21,11 @@ Der Playlist-Abgleich läuft bei aktiver App und holt fällige Prüfungen beim �
 
 ## Bauen und aktualisieren
 
-Erforderlich sind ein Mac mit Xcode, XcodeGen, JDK, Rust, CMake und Zugriff auf die Abhängigkeiten. Die [ursprüngliche Bauanleitung](docs/ORIGINAL_BITCHORD_README.md) beschreibt die Werkzeuge; zu klonen ist `Redurbabat/RED-Bit`. Xcode-Projekt und Scheme heißen intern weiterhin BitChord; die installierte App heißt RED Bit.
+Erforderlich sind ein Mac mit Xcode, XcodeGen, JDK, Rust, CMake und Zugriff auf die Abhängigkeiten. Die [ursprüngliche Bauanleitung](docs/ORIGINAL_BITCHORD_README.md) beschreibt die Werkzeuge; zu klonen ist `Redurbabat/RED-Bit`. Xcode-Projekt und Scheme heißen intern weiterhin RED Bit; die installierte App heißt RED Bit.
 
 Die Updateprüfung verwendet ausschließlich RED-Bit-Veröffentlichungen. Das private GitHub-Repository liefert der anonymen App keine Releases; die App benennt diese Grenze und bietet die Release-Seite im Browser an. Automatische Mac-Updates bleiben bis zu einem eigenen konfigurierten Signatur-Feed deaktiviert.
 
-Ein RED-Bit-App-Installer wurde noch nicht veröffentlicht. Für eine Auslieferung sind passende Signierung, Paketprüfung und ein Gerätetest erforderlich. Von einer ursprünglichen BitChord-Installation findet keine automatische Datenmigration statt. [Release-Ablauf](docs/RELEASE.md).
+Ein RED-Bit-App-Installer wurde noch nicht veröffentlicht. Für eine Auslieferung sind passende Signierung, Paketprüfung und ein Gerätetest erforderlich. Von einer ursprünglichen RED Bit-Installation findet keine automatische Datenmigration statt. [Release-Ablauf](docs/RELEASE.md).
 
 ## Mitwirken
 

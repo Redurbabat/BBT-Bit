@@ -8,7 +8,7 @@ variants, picks the shipping variant, and packages it as
 BeatThisFinal0.mlpackage inside beat_this_final0_coreml.aar.
 
 Usage:
-    python scripts/coreml/convert_beat_this.py --out /tmp/bitchord-coreml/release
+    python scripts/coreml/convert_beat_this.py --out /tmp/redbit-coreml/release
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ DESCRIPTION = (
 
 
 def set_metadata(model: "ct.models.MLModel", variant: str) -> None:
-    model.author = "BitChord"
+    model.author = "RedBit"
     model.license = "MIT"
     model.short_description = DESCRIPTION
     model.version = "1.0"

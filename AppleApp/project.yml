@@ -1,10 +1,10 @@
 # xcodegen spec — app target + WidgetKit extension target, shared App Group
 # entitlement (spec §0, §9). Generate with: xcodegen generate
-# Deployment targets sit at the UI spec's floor (bitchord-apple-ui-spec.md §9):
+# Deployment targets sit at the UI spec's floor (redbit-apple-ui-spec.md §9):
 # iOS 18 / macOS 15 unlock Tab, TabSection, .tabViewStyle(.sidebarAdaptable),
 # Tab(role: .search) and MeshGradient. iOS 26 / macOS 26-only chrome
 # (.tabViewBottomAccessory, Liquid Glass) is availability-gated at call sites.
-name: BitChord
+name: RedBit
 attributes:
   LastUpgradeCheck: "1520"
 options:
@@ -22,7 +22,7 @@ settings:
     SWIFT_VERSION: "5"
     MARKETING_VERSION: "1.0.4"
     CURRENT_PROJECT_VERSION: "13"
-    BITCHORD_BUILD_REVISION: "unknown"
+    REDBIT_BUILD_REVISION: "unknown"
     # Typed asset symbols (Image(.bchHome)) — Xcode 15+ asset codegen.
     ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
     # String Catalog localization (upstream ships 19 locales; translations
@@ -34,7 +34,7 @@ settings:
     # The spec (§0) ports arm64 targets only: iosArm64, iosSimulatorArm64,
     # macosArm64. Generic iOS Simulator destinations otherwise attempt a
     # universal arm64+x86_64 build, which cannot link against the arm64-only
-    # BitChordShared / NativeCoreFFI slices.
+    # RedBitShared / NativeCoreFFI slices.
     EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
     EXCLUDED_ARCHS[sdk=macosx*]: x86_64
 packages:
@@ -42,12 +42,12 @@ packages:
     url: https://github.com/sparkle-project/Sparkle
     from: 2.10.0
 targets:
-  BitChord:
+  RedBit:
     type: application
     supportedDestinations: [iOS, macOS]
     scheme:
       testTargets:
-        - BitChordUITests
+        - RedBitUITests
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit
@@ -78,9 +78,9 @@ targets:
         type: folder
         buildPhase: resources
     dependencies:
-      - target: BitChordWidget
+      - target: RedBitWidget
         embed: true
-      - framework: Frameworks/BitChordShared.xcframework
+      - framework: Frameworks/RedBitShared.xcframework
         embed: true
       - framework: Frameworks/NativeCoreFFI.xcframework
         embed: true
@@ -94,13 +94,13 @@ targets:
         product: Sparkle
         destinationFilters: [macOS]
     info:
-      path: BitChord-Info.plist
+      path: RedBit-Info.plist
       properties:
         CFBundleDisplayName: RED Bit
         CFBundleName: RED Bit
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        BitChordRevision: "$(BITCHORD_BUILD_REVISION)"
+        RedBitRevision: "$(REDBIT_BUILD_REVISION)"
         LSApplicationCategoryType: public.app-category.music
         SUFeedURL: https://raw.githubusercontent.com/Redurbabat/RED-Bit/main/appcast.xml
         SUEnableAutomaticChecks: false
@@ -137,7 +137,7 @@ targets:
         NSPhotoLibraryAddUsageDescription: RED Bit saves lyric share cards and Liquid Motion design previews to Photos only when you choose to export them.
         NSSpeechRecognitionUsageDescription: RED Bit uses on-device speech recognition to align fetched lyrics with the playing audio. Audio is not sent to a server for alignment.
     entitlements:
-      path: BitChord.entitlements
+      path: RedBit.entitlements
       properties:
         # Dev-build note: sandbox disabled so the NSOpenPanel runs in-process
         # (remote-hosted sandboxed panels cannot be driven by automated UI
@@ -151,7 +151,7 @@ targets:
           - group.com.babat.bbtbit
         # iCloud key-value store: syncs the per-song lyrics provider choice (O1).
         com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
-  BitChordWidget:
+  RedBitWidget:
     type: app-extension
     supportedDestinations: [iOS, macOS]
     settings:
@@ -160,21 +160,21 @@ targets:
     sources:
       - Sources/Widget
     info:
-      path: BitChordWidget-Info.plist
+      path: RedBitWidget-Info.plist
       properties:
         CFBundleDisplayName: RED Bit Widget
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        BitChordRevision: "$(BITCHORD_BUILD_REVISION)"
+        RedBitRevision: "$(REDBIT_BUILD_REVISION)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
-      path: BitChordWidget.entitlements
+      path: RedBitWidget.entitlements
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
           - group.com.babat.bbtbit
-  BitChordUITests:
+  RedBitUITests:
     type: bundle.ui-testing
     platform: iOS
     sources:
@@ -183,6 +183,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit.uitests
         GENERATE_INFOPLIST_FILE: YES
-        TEST_TARGET_NAME: BitChord
+        TEST_TARGET_NAME: RedBit
     dependencies:
-      - target: BitChord
+      - target: RedBit

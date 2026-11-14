@@ -28,15 +28,15 @@ class RepositoryChecksTest(unittest.TestCase):
             checks.check_version(self.project)
 
     def test_rejects_per_sdk_build_override(self):
-        self.project["targets"]["BitChord"]["settings"]["configs"] = {
+        self.project["targets"]["RedBit"]["settings"]["configs"] = {
             "Release": {"CURRENT_PROJECT_VERSION[sdk=iphoneos*]": "999"},
         }
         with self.assertRaisesRegex(ValueError, "must be set only under settings.base"):
             checks.check_version(self.project)
 
     def test_rejects_widget_plist_drift(self):
-        self.project["targets"]["BitChordWidget"]["info"]["properties"]["CFBundleVersion"] = "999"
-        with self.assertRaisesRegex(ValueError, "BitChordWidget.CFBundleVersion"):
+        self.project["targets"]["RedBitWidget"]["info"]["properties"]["CFBundleVersion"] = "999"
+        with self.assertRaisesRegex(ValueError, "RedBitWidget.CFBundleVersion"):
             checks.check_version(self.project)
 
     def test_rejects_missing_document_and_anchor(self):
@@ -66,7 +66,7 @@ class RepositoryChecksTest(unittest.TestCase):
         read = checks.read
 
         def read_with_forbidden_import(path):
-            if isinstance(path, Path) and path.name == "BitChordWidget.swift":
+            if isinstance(path, Path) and path.name == "RedBitWidget.swift":
                 return "import SwiftUI\n@testable import NativeCoreFFI\n"
             return read(path)
 

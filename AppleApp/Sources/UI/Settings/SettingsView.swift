@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 #if os(iOS)
 import UIKit
@@ -278,9 +278,9 @@ struct SettingsView: View {
         }
         .fileExporter(
             isPresented: $exportPresented,
-            document: SettingsBackupFile(text: BitChordBackup.exportText()),
+            document: SettingsBackupFile(text: RedBitBackup.exportText()),
             contentType: .json,
-            defaultFilename: BitChordBackup.suggestedName()
+            defaultFilename: RedBitBackup.suggestedName()
         ) { result in
             if case .success = result { backupNote = "Settings exported" }
         }
@@ -289,7 +289,7 @@ struct SettingsView: View {
             let access = url.startAccessingSecurityScopedResource()
             defer { if access { url.stopAccessingSecurityScopedResource() } }
             if let data = try? Data(contentsOf: url), let text = String(data: data, encoding: .utf8) {
-                BitChordBackup.importText(text)
+                RedBitBackup.importText(text)
                 backupNote = "Imported — reopen Settings to see them"
             }
         }

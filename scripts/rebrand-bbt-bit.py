@@ -4,8 +4,8 @@ from pathlib import Path
 import json
 
 root = Path(__file__).resolve().parent.parent
-src_repo = "bagumamartin/BitChord"
-dst_repo = "Redurbabat/BBT-Bit"
+src_repo = "Redurbabat/RED-Bit"
+dst_repo = "Redurbabat/RED-Bit"
 
 original = (root / "README.md").read_text(encoding="utf-8")
 docs = root / "docs"
@@ -23,18 +23,18 @@ def edit(rel, pairs):
     print("Updated", rel)
 
 edit("AppleApp/project.yml", [
-  ("PRODUCT_BUNDLE_IDENTIFIER: app.bitchord.BitChord.widget", "PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit.widget"),
-  ("PRODUCT_BUNDLE_IDENTIFIER: app.bitchord.BitChord", "PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit"),
-  ("CFBundleDisplayName: BitChord Widget", "CFBundleDisplayName: BBT-Bit Widget"),
-  ("CFBundleDisplayName: BitChord", "CFBundleDisplayName: BBT-Bit"),
-  ("CFBundleURLName: app.bitchord.BitChord", "CFBundleURLName: com.babat.bbtbit"),
-  ("CFBundleURLSchemes: [bitchord]", "CFBundleURLSchemes: [bbtbit]"),
-  ("app.bitchord.playback", "com.babat.bbtbit.playback"),
-  ("group.app.bitchord.BitChord", "group.com.babat.bbtbit"),
-  ("SUFeedURL: https://raw.githubusercontent.com/bagumamartin/BitChord/main/appcast.xml", "SUFeedURL: https://raw.githubusercontent.com/Redurbabat/BBT-Bit/main/appcast.xml"),
+  ("PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit.widget", "PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit.widget"),
+  ("PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit", "PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit"),
+  ("CFBundleDisplayName: RedBit Widget", "CFBundleDisplayName: BBT-Bit Widget"),
+  ("CFBundleDisplayName: RedBit", "CFBundleDisplayName: BBT-Bit"),
+  ("CFBundleURLName: com.babat.bbtbit", "CFBundleURLName: com.babat.bbtbit"),
+  ("CFBundleURLSchemes: [redbit]", "CFBundleURLSchemes: [bbtbit]"),
+  ("com.babat.bbtbit.playback", "com.babat.bbtbit.playback"),
+  ("group.com.babat.bbtbit", "group.com.babat.bbtbit"),
+  ("SUFeedURL: https://raw.githubusercontent.com/Redurbabat/RED-Bit/main/appcast.xml", "SUFeedURL: https://raw.githubusercontent.com/Redurbabat/RED-Bit/main/appcast.xml"),
   ("SUEnableAutomaticChecks: true", "SUEnableAutomaticChecks: false"),
-  ("BitChord uses ", "BBT-Bit uses "),
-  ("BitChord saves ", "BBT-Bit saves "),
+  ("RedBit uses ", "BBT-Bit uses "),
+  ("RedBit saves ", "BBT-Bit saves "),
 ])
 p = root / "AppleApp/project.yml"
 s = p.read_text(encoding="utf-8")
@@ -46,20 +46,20 @@ for p in (root / "AppleApp/Sources").rglob("*.swift"):
     s = p.read_text(encoding="utf-8")
     before = s
     for a, b in [
-      ("group.app.bitchord.BitChord", "group.com.babat.bbtbit"),
-      ("app.bitchord.BitChord", "com.babat.bbtbit"),
-      ("app.bitchord.playback", "com.babat.bbtbit.playback"),
-      ('"bitchord"', '"bbtbit"'),
-      ("bitchord://", "bbtbit://"),
-      ("com.bitchord.app", "com.babat.bbtbit"),
-      ('Text("BitChord")', 'Text("BBT-Bit")'),
-      ('title: "BitChord"', 'title: "BBT-Bit"'),
-      ("BitChord uses ", "BBT-Bit uses "),
-      ("BitChord is hidden", "BBT-Bit is hidden"),
+      ("group.com.babat.bbtbit", "group.com.babat.bbtbit"),
+      ("com.babat.bbtbit", "com.babat.bbtbit"),
+      ("com.babat.bbtbit.playback", "com.babat.bbtbit.playback"),
+      ('"redbit"', '"bbtbit"'),
+      ("redbit://", "bbtbit://"),
+      ("com.babat.bbtbit", "com.babat.bbtbit"),
+      ('Text("RED Bit")', 'Text("BBT-Bit")'),
+      ('title: "RED Bit"', 'title: "BBT-Bit"'),
+      ("RedBit uses ", "BBT-Bit uses "),
+      ("RedBit is hidden", "BBT-Bit is hidden"),
     ]:
         s = s.replace(a, b)
     if p.name == "UpdateChecker.swift":
-        s = s.replace(src_repo, dst_repo).replace("BitChord Apple updater", "BBT-Bit Apple updater")
+        s = s.replace(src_repo, dst_repo).replace("RedBit Apple updater", "BBT-Bit Apple updater")
     if p.name == "AutomixModelStore.swift":
         s = s.replace("github.com/" + src_repo + "/releases/download/", "github.com/" + dst_repo + "/releases/download/")
     if p.name == "MacUpdateManager.swift":
@@ -69,7 +69,7 @@ for p in (root / "AppleApp/Sources").rglob("*.swift"):
         changed += 1
 print("Changed Swift files", changed)
 
-edit("shared/src/commonMain/kotlin/com/music/bitchord/data/AppUpdateChecker.kt", [
+edit("shared/src/commonMain/kotlin/com/music/redbit/data/AppUpdateChecker.kt", [
     ("api.github.com/repos/" + src_repo + "/releases/latest", "api.github.com/repos/" + dst_repo + "/releases/latest")
 ])
 edit("scripts/fetch-automix-models.sh", [
@@ -79,7 +79,7 @@ edit("scripts/fetch-automix-models.sh", [
 (root / "appcast.xml").write_text("""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
 <channel><title>BBT-Bit Updates</title>
-<link>https://github.com/Redurbabat/BBT-Bit/releases</link>
+<link>https://github.com/Redurbabat/RED-Bit/releases</link>
 <description>No independent Mac release yet.</description></channel></rss>
 """, encoding="utf-8")
 
@@ -123,19 +123,19 @@ im.save(root / "AppleApp/Assets.xcassets/AppIcon.appiconset/AppIcon.png")
 BBT-Bit is an independently maintained native music app for iPhone, iPad,
 and Apple Silicon Mac under the BABAT app family.
 
-BBT-Bit is a derivative of the open-source BitChord Apple port by Martin BAGUMA,
-itself based on BitChord by Kushagra Singh. It is not an official BitChord release.
+BBT-Bit is a derivative of the open-source RedBit Apple port by Martin BAGUMA,
+itself based on BitChord by Kushagra Singh. It is not an official RedBit release.
 
 ## Independent development
 
-- Repository and source: https://github.com/Redurbabat/BBT-Bit
+- Repository and source: https://github.com/Redurbabat/RED-Bit
 - Display name: BBT-Bit
 - iOS/macOS bundle: com.babat.bbtbit
 - Widget bundle: com.babat.bbtbit.widget
 - Keychain and App Group use separate BBT-Bit namespaces.
 - Update checks target BBT-Bit's own GitHub Releases; upstream releases are never installed.
 - Automatic macOS updates are disabled pending independent signing keys.
-- The app icon is original. Internal BitChord Swift and Kotlin module symbols
+- The app icon is original. Internal RedBit Swift and Kotlin module symbols
   remain to preserve build compatibility.
 - Optional verified Automix weight downloads target BBT-Bit's own release assets.
   The weights are not bundled with the app.
@@ -146,13 +146,13 @@ itself based on BitChord by Kushagra Singh. It is not an official BitChord relea
 
 Building requires a Mac with Xcode, XcodeGen, JDK, Rust, CMake, and access to
 third-party dependencies. Follow the original detailed build steps in
-docs/ORIGINAL_BITCHORD_README.md but clone Redurbabat/BBT-Bit instead.
-The generated Xcode project and native scheme retain the internal BitChord
+docs/ORIGINAL_BITCHORD_README.md but clone Redurbabat/RED-Bit instead.
+The generated Xcode project and native scheme retain the internal RedBit
 name; the installed app displays BBT-Bit.
 
 There is no signed BBT-Bit IPA yet. Configure your own signing identity, then
 build and test before releasing. The new app identifier does not migrate data
-from an existing BitChord installation.
+from an existing RedBit installation.
 
 ## Credits and licenses
 

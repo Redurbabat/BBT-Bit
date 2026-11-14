@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 // The search paths, against YouTube Music.
 //

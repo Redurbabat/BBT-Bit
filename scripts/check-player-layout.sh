@@ -18,7 +18,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 HERE="$(cd "$(dirname "$0")" && pwd)"
-CHECK_DIR="${TMPDIR:-/tmp}/bitchord-player-layout-check"
+CHECK_DIR="${TMPDIR:-/tmp}/redbit-player-layout-check"
 
 rm -rf "$CHECK_DIR"
 mkdir -p "$CHECK_DIR"

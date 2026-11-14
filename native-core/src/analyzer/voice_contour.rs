@@ -258,7 +258,7 @@ mod tests {
     /// Stereo-Float-WAV wie in den Wiedergabetests; 44,1 kHz zwingt den Export
     /// durch den echten Decoder und die Umrechnung auf 16 kHz.
     fn write_wav(name: &str, seconds: f64, sample: impl Fn(f64) -> f32) -> std::path::PathBuf {
-        let path = std::env::temp_dir().join(format!("bitchord-voice-{}-{name}.wav", std::process::id()));
+        let path = std::env::temp_dir().join(format!("redbit-voice-{}-{name}.wav", std::process::id()));
         let rate = 44_100u32;
         let frames = (seconds * rate as f64) as usize;
         let length = frames as u32 * 8;

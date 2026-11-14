@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 // Every lyrics source, against the real thing.
 //

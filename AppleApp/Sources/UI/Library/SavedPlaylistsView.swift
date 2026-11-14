@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 /// A saved-collections grid straight from one signed-in library shelf

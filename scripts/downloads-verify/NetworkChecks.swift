@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 final class ProgressSamples: @unchecked Sendable {
     private let lock = NSLock()
@@ -32,7 +32,7 @@ private final class StreamProgress: StreamDownloadBridgeProgressCallback {
 enum NetworkChecks {
     @MainActor static func run(root: URL) async throws {
         func check(_ condition: Bool, _ text: String) { precondition(condition, text); print("PASS \(text)"); fflush(stdout) }
-        let base = URL(string: ProcessInfo.processInfo.environment["BITCHORD_DOWNLOAD_TEST_BASE_URL"]!)!
+        let base = URL(string: ProcessInfo.processInfo.environment["REDBIT_DOWNLOAD_TEST_BASE_URL"]!)!
         check(FileDownloadTransport.requiresRedirectControl(headers: ["Authorization": "fixture"]) &&
               FileDownloadTransport.requiresRedirectControl(headers: ["X-API-Key": "fixture"]) &&
               !FileDownloadTransport.requiresRedirectControl(headers: ["User-Agent": "fixture"]), "requests carrying credentials or custom headers use a session with redirect control")

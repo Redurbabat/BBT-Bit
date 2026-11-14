@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 work = Path(sys.argv[1])
 models = Path('AppleApp/Sources/App/InnertubeHome.swift').read_text().split('final class InnertubeFeed:', 1)[0]
-(work/'Models.swift').write_text(models.replace('import BitChordShared\n', ''))
+(work/'Models.swift').write_text(models.replace('import RedBitShared\n', ''))
 loader = Path('AppleApp/Sources/UI/FeedViews.swift').read_text().split('@MainActor @Observable\nfinal class FeedLoader', 1)[1].split('/// Shared shelf heading:', 1)[0]
 loader = 'import Foundation\nimport Observation\n@MainActor @Observable\nfinal class FeedLoader' + loader
 (work/'LoaderObserved.swift').write_text(loader)

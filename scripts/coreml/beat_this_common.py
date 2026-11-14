@@ -33,7 +33,7 @@ BORDER_FRAMES = 6
 FRAME_RATE = 50.0
 
 DEFAULT_CACHE = Path(
-    os.environ.get("BITCHORD_COREML_CACHE", Path.home() / ".cache" / "bitchord-coreml")
+    os.environ.get("REDBIT_COREML_CACHE", Path.home() / ".cache" / "redbit-coreml")
 )
 
 

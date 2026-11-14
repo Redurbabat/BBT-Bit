@@ -4,11 +4,11 @@ Der Workflow `BBT-Bit iPhone Simulator UI Tests (GitHub)` benutzt
 `macos-26` (Apple Silicon), Xcode und einen iPhone-Simulator.
 Er installiert Java 21, XcodeGen, CMake und Rust, baut die
 Kotlin/Native- und Rust-Simulator-Frameworks, generiert das
-BitChord-Xcode-Projekt und führt `xcodebuild test` aus.
+RED Bit-Xcode-Projekt und führt `xcodebuild test` aus.
 
 ## Öffnen
 
-GitHub -> Redurbabat/BBT-Bit -> Pull requests -> PR dieses Workflows.
+GitHub -> Redurbabat/RED-Bit -> Pull requests -> PR dieses Workflows.
 Unter **Checks** oder **Actions** den Test anklicken.
 
 Ein PR mit dem neuen Workflow löst den GitHub-Test automatisch aus,

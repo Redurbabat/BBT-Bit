@@ -181,7 +181,7 @@ final class LiquidLiveScreenshotRecorder {
             capturedOnIPhone: true,
             limitations: "Only currently visible app window content was captured after each real Liquid Motion component appeared. Missing features were not simulated or marked as completed. These images do not certify functional correctness.",
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
-            buildRevision: Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String ?? "unknown",
+            buildRevision: Bundle.main.object(forInfoDictionaryKey: "RedBitRevision") as? String ?? "unknown",
             captured: captures.sorted { $0.index < $1.index }
         )
         do {

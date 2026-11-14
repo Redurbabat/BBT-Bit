@@ -6,7 +6,7 @@ import AppKit
 import UIKit
 #endif
 import MediaPlayer
-import BitChordShared
+import RedBitShared
 #if os(iOS)
 // NowPlaying is an iOS 27 SDK framework; Xcode 26 must compile the MediaPlayer fallback.
 #if canImport(NowPlaying)
@@ -334,7 +334,7 @@ final class NowPlayingController {
 @Observable
 @MainActor
 private final class ModernNowPlaying: MediaSessionRepresentable {
-    let id = "bitchord-player-\(UUID().uuidString)"
+    let id = "redbit-player-\(UUID().uuidString)"
     weak var delegate: NowPlayingController?
     var title = ""
     var artist = ""
@@ -365,7 +365,7 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
         foreground: { UIApplication.shared.applicationState != .background },
         log: { message in
             PlaybackDebugLog.shared.record(message)
-            NSLog("[BitChord] %@", message)
+            NSLog("[RED Bit] %@", message)
         }
     )
 
@@ -457,7 +457,7 @@ private final class ModernNowPlaying: MediaSessionRepresentable {
         let message = "Now Playing \(event) session=\(id) content=\(contentID ?? "none") "
             + "rate=\(rate) preparing=\(preparing) appState=\(UIApplication.shared.applicationState.rawValue)"
         PlaybackDebugLog.shared.record(message)
-        NSLog("[BitChord] %@", message)
+        NSLog("[RED Bit] %@", message)
     }
 
     func prepare(id: String, title: String, artist: String, albumName: String?, duration: Double,
@@ -619,7 +619,7 @@ private final class ModernNowPlayingSession: NowPlayingSessionDriver {
                 let message = "Now Playing status session=\(self.session.id) eligible=\(eligible) "
                     + "applicationPrimary=\(applicationPrimary) systemPrimary=\(self.isSystemPrimary)"
                 PlaybackDebugLog.shared.record(message)
-                NSLog("[BitChord] %@", message)
+                NSLog("[RED Bit] %@", message)
                 // A superseded uncancellable request can steal application
                 // primary from the new session. Recover on that status edge;
                 // system prominence changes alone never trigger takeover.

@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// The genre lookup needs Last.fm and a cache folder; Replay only asks whether
 /// it is on. Stubbed so this check is the store and nothing else.
@@ -67,7 +67,7 @@ ListeningStore.persistenceDisabled = true
 /// leaves behind, which the next case would read.
 func withStore(_ body: (ListeningStore) -> Void) {
     let folder = FileManager.default.temporaryDirectory
-        .appendingPathComponent("bitchord-listening-\(UUID().uuidString)", isDirectory: true)
+        .appendingPathComponent("redbit-listening-\(UUID().uuidString)", isDirectory: true)
     try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     ListeningStore.folderOverride = folder
     defer { try? FileManager.default.removeItem(at: folder) }

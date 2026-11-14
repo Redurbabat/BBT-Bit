@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 struct LibraryGridView: View {

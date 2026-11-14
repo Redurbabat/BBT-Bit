@@ -171,7 +171,7 @@ enum MusicUnderstandingAnalyzer {
         } catch {
             guard !Task.isCancelled else { return false }
             if await isForeground() {
-                NSLog("[BitChord] Music Understanding failed for %@: %@", path, String(describing: error))
+                NSLog("[RED Bit] Music Understanding failed for %@: %@", path, String(describing: error))
             } else {
                 // Expected, not news: the GPU submission raced a lock and lost.
                 // Suspend the rest of this background stretch so the failure —

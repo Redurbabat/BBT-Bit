@@ -86,7 +86,7 @@ def verify(ipa: Path, source_sha: str, source_ref: str, run_url: str):
         require(info.get("BBTTestDistribution") == "SideStore", "SideStore-Testkonfiguration fehlt.")
         require(info.get("BBTTestSourceBranch") == source_ref and info.get("BBTTestRunURL") == run_url,
                 "Build-Zuordnung stimmt nicht mit dem Auftrag überein.")
-        require(info.get("BitChordRevision") == source_sha[:12], "Eingebettete Quellrevision stimmt nicht.")
+        require(info.get("RedBitRevision") == source_sha[:12], "Eingebettete Quellrevision stimmt nicht.")
         require("audio" in info.get("UIBackgroundModes", []), "Hintergrund-Audio fehlt.")
         executable = info.get("CFBundleExecutable", "")
         require(executable and "/" not in executable and "\\" not in executable, "Ungültiger Programmname.")

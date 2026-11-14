@@ -75,7 +75,7 @@ echo "ok   edge detection trims a relative fade tail and keeps quiet music"
 # The scorecard reads both graphs from native-core/fixtures/models by default.
 # Fill it with scripts/fetch-automix-models.sh; the test fails rather than
 # silently measuring the DSP fallback when either graph is absent.
-corpus="${AUTOMIX_CORPUS:-$HOME/Library/Caches/BitChord/audio}"
+corpus="${AUTOMIX_CORPUS:-$HOME/Library/Caches/RedBit/audio}"
 if [ ! -d "$corpus" ]; then
   echo "automix: plan-order checks passed; no corpus at $corpus"
   exit 0

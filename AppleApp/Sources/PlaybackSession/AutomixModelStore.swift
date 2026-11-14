@@ -36,7 +36,7 @@ private let automixModelLog = OSLog(
 /// hash is recomputed on this device, so neither a moved tag nor a truncated
 /// transfer can put a bad graph in the analyzer.
 ///
-/// Deliberately free of `BitChordShared` and SwiftUI:
+/// Deliberately free of `RedBitShared` and SwiftUI:
 /// `scripts/check-models.sh` compiles this file alone with the real network and
 /// real hashing, and a file that can only be exercised from inside the app is a
 /// file whose download logic is only ever tested by hand. Policy that belongs to
@@ -83,7 +83,7 @@ final class AutomixModelStore {
             sha256: "9f10e5efa37d3e120da2121141825fe54b23b487b32dd25a54f89039fd8f85cb",
             // Public upstream asset: private BBT-Bit releases return 404 on iPhones.
             // The exact bytes are secured by the pinned size and SHA-256.
-            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx")!
+            url: URL(string: "https://github.com/Redurbabat/RED-Bit/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx")!
         )
 
         // Core ML compilation of the same Beat This! final0 checkpoint (CPJKU,
@@ -99,7 +99,7 @@ final class AutomixModelStore {
             sha256: "4f545c60ac59282bd8601104a94ff4123f5304d4e5e233311f6ec67243975fff",
             // Public upstream asset: private BBT-Bit releases return 404 on iPhones.
             // The exact bytes are secured by the pinned size and SHA-256.
-            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar")!
+            url: URL(string: "https://github.com/Redurbabat/RED-Bit/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar")!
         )
 
         /// The compiled bundle this archive yields. Kept next to the archive so
@@ -122,7 +122,7 @@ final class AutomixModelStore {
             sha256: "7eba6bebce0cc2e2d3b5c0e490a8074e66ce27f64170c6802b245740dcaf21ef",
             // Public upstream asset: private BBT-Bit releases return 404 on iPhones.
             // The exact bytes are secured by the pinned size and SHA-256.
-            url: URL(string: "https://github.com/bagumamartin/BitChord/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx")!
+            url: URL(string: "https://github.com/Redurbabat/RED-Bit/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx")!
         )
     }
 
@@ -228,7 +228,7 @@ final class AutomixModelStore {
     static var defaultDirectory: URL {
         let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        return root.appendingPathComponent("BitChord/Models", isDirectory: true)
+        return root.appendingPathComponent("RedBit/Models", isDirectory: true)
     }
 
     /// One session per transfer, because a `URLSessionDataTask` takes its delegate
@@ -1052,7 +1052,7 @@ final class AutomixModelStore {
     /// invalidate the compiled model, and the verified bytes are the repair.
     nonisolated static func compileCoreMLArchive(from archive: URL, to destination: URL) -> Bool {
         let work = FileManager.default.temporaryDirectory
-            .appendingPathComponent("bitchord-coreml-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("redbit-coreml-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: work) }
         do {
             try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)

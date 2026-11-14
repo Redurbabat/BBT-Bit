@@ -16,7 +16,7 @@ def read(path: str) -> str:
 
 native = read("AppleApp/Sources/PlaybackSession/NowPlayingController.swift")
 legacy = read("AppleApp/Sources/PlaybackSession/NowPlayingActivityController.swift")
-widget = read("AppleApp/Sources/Widget/BitChordWidget.swift")
+widget = read("AppleApp/Sources/Widget/RedBitWidget.swift")
 app = read("AppleApp/project.yml")
 root = read("AppleApp/Sources/UI/RootView.swift")
 pill = read("AppleApp/Sources/UI/PlaybackPill.swift")

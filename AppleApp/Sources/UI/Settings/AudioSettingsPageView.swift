@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 /// Bind to the owning Settings screen so the existing persistence path stays authoritative.
 struct AudioSettingsPreferences: DynamicProperty {

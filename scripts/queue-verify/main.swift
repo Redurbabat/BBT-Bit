@@ -99,10 +99,10 @@ check(AutoplayEmptyPolicy.waitSeconds(forFailureCount: 2) == 15, "Later empty an
 check(AutoplayEmptyPolicy.seedIndex(currentIndex: 3, failureCount: 2) == 2, "Watchdog falls back to the previous queue song")
 check(AutoplayEmptyPolicy.seedIndex(currentIndex: 0, failureCount: 4) == 0, "Watchdog never goes before queue start")
 let defaults = UserDefaults.standard
-let previousSnapshot = defaults.object(forKey: "bitchord_last_played")
+let previousSnapshot = defaults.object(forKey: "redbit_last_played")
 defer {
-    if let previousSnapshot { defaults.set(previousSnapshot, forKey: "bitchord_last_played") }
-    else { defaults.removeObject(forKey: "bitchord_last_played") }
+    if let previousSnapshot { defaults.set(previousSnapshot, forKey: "redbit_last_played") }
+    else { defaults.removeObject(forKey: "redbit_last_played") }
 }
 var contextVideo = track("context-video", order: 1)
 contextVideo.isVideo = true
@@ -119,7 +119,7 @@ check(restored.tracks == ordered && restored.index == 1 && restored.position == 
 check(restored.contextEntries.map(\.id) == ["context-a", "context-video"] && restored.orderedContextEntries.map(\.id) == ["context-video", "context-a"], "Canonical and playback-ordered context survive restore")
 check(restored.contextEntries.last?.isVideo == true, "Video metadata survives context restore")
 check(restored.contextContinuation == "next-page" && restored.contextCursor == 1 && restored.contextBaseIndex == 2, "Continuation and rolling window cursors survive restore")
-var old = try JSONSerialization.jsonObject(with: defaults.data(forKey: "bitchord_last_played")!) as! [String: Any]
+var old = try JSONSerialization.jsonObject(with: defaults.data(forKey: "redbit_last_played")!) as! [String: Any]
 old.removeValue(forKey: "contextID")
 old.removeValue(forKey: "contextTitle")
 old.removeValue(forKey: "contextEntries")
@@ -130,6 +130,6 @@ old.removeValue(forKey: "contextBaseIndex")
 old["tracks"] = (old["tracks"] as! [[String: Any]]).map { track in
     var track = track; track.removeValue(forKey: "contextOrder"); return track
 }
-defaults.set(try JSONSerialization.data(withJSONObject: old), forKey: "bitchord_last_played")
+defaults.set(try JSONSerialization.data(withJSONObject: old), forKey: "redbit_last_played")
 check(LastPlayed.load()?.contextID == nil && LastPlayed.load()?.tracks.count == queue.count, "Older snapshots remain readable")
 print("PASS \(checks) queue, recommendation, sequencing, hero and restore checks")

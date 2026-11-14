@@ -6,7 +6,7 @@
 //! open-unmix vocals) via `rten`. Missing models fall back to the energy
 //! envelope planner, matching upstream's unanalysed-pair behaviour.
 //!
-//! Ported from Orchard (https://github.com/SFG5453/Orchard) via BitChord's
+//! Ported from Orchard (https://github.com/SFG5453/Orchard) via RedBit's
 //! `native/analyzer` — Copyright (C) 2026 SFG545, Copyright (C) 2026 Kushagra
 //! Singh. The original is AGPLv3-or-later; this port keeps that status as
 //! part of the same GPL-3 combined work.

@@ -51,16 +51,16 @@ class DevicePackageTest(unittest.TestCase):
         path = Path(directory) / "test.ipa"
         info = {
             "CFBundleIdentifier": "com.babat.bbtbit", "CFBundleDisplayName": "RED Bit",
-            "CFBundleExecutable": "BitChord", "CFBundleSupportedPlatforms": ["iPhoneOS"],
+            "CFBundleExecutable": "RedBit", "CFBundleSupportedPlatforms": ["iPhoneOS"],
             "CFBundleShortVersionString": "1.0.4", "CFBundleVersion": "13",
-            "BBTTestDistribution": "SideStore", "BitChordRevision": SHA[:12],
+            "BBTTestDistribution": "SideStore", "RedBitRevision": SHA[:12],
             "BBTTestSourceBranch": REF, "BBTTestRunURL": RUN, "UIBackgroundModes": ["audio"],
         }
         info.update(changes or {})
         with zipfile.ZipFile(path, "w") as archive:
-            archive.writestr("Payload/BitChord.app/Info.plist", plistlib.dumps(info))
+            archive.writestr("Payload/RedBit.app/Info.plist", plistlib.dumps(info))
             if executable:
-                archive.writestr("Payload/BitChord.app/BitChord", macho if macho is not None else binary(platform, encrypted))
+                archive.writestr("Payload/RedBit.app/RedBit", macho if macho is not None else binary(platform, encrypted))
             for name, data in (extra or {}).items():
                 archive.writestr(name, data)
         return path
@@ -81,15 +81,15 @@ class DevicePackageTest(unittest.TestCase):
 
     def test_changed_identity_or_provenance_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
-            for changes in ({"CFBundleIdentifier": "com.other.app"}, {"BitChordRevision": "b" * 12},
+            for changes in ({"CFBundleIdentifier": "com.other.app"}, {"RedBitRevision": "b" * 12},
                             {"BBTTestSourceBranch": "main"}, {"UIBackgroundModes": []}):
                 with self.subTest(changes=changes), self.assertRaises(ValueError):
                     verify(self.make_ipa(directory, changes=changes), SHA, REF, RUN)
 
     def test_extensions_profiles_and_unsafe_paths_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
-            for name in ("Payload/BitChord.app/PlugIns/Widget.appex/Info.plist",
-                         "Payload/BitChord.app/embedded.mobileprovision", "../escaped"):
+            for name in ("Payload/RedBit.app/PlugIns/Widget.appex/Info.plist",
+                         "Payload/RedBit.app/embedded.mobileprovision", "../escaped"):
                 with self.subTest(name=name), self.assertRaises(ValueError):
                     verify(self.make_ipa(directory, extra={name: b"fixture"}), SHA, REF, RUN)
 
@@ -103,27 +103,27 @@ class DevicePackageTest(unittest.TestCase):
         macho = struct.pack("<8I", 0xFEEDFACF, 0x0100000C, 0, 2, 2, len(commands), 0, 0) + commands
         self.assertEqual(module.inspect_macho(macho).dependencies, (name.rstrip(b"\0").decode(),))
         with tempfile.TemporaryDirectory() as directory:
-            path = self.make_ipa(directory, executable=False, extra={"Payload/BitChord.app/BitChord": macho})
+            path = self.make_ipa(directory, executable=False, extra={"Payload/RedBit.app/RedBit": macho})
             with self.assertRaises(ValueError):
                 verify(path, SHA, REF, RUN)
 
     def test_xcode_debug_dylib_can_live_beside_the_executable(self):
         # Xcode lädt diese Bibliothek über LC_RPATH=@executable_path.
         # Die pauschale Frameworks/-Suche meldete sie fälschlich als fehlend.
-        macho = binary(dependencies=["@rpath/BitChord.debug.dylib"],
+        macho = binary(dependencies=["@rpath/RedBit.debug.dylib"],
                        rpaths=["@executable_path/Frameworks", "@executable_path"])
         with tempfile.TemporaryDirectory() as directory:
             ipa = self.make_ipa(directory, macho=macho, extra={
-                "Payload/BitChord.app/BitChord.debug.dylib": binary(kind=6),
+                "Payload/RedBit.app/RedBit.debug.dylib": binary(kind=6),
             })
             self.assertEqual(verify(ipa, SHA, REF, RUN)["structure"], "BESTANDEN")
 
     def test_a_root_dylib_is_not_found_without_a_matching_rpath(self):
-        macho = binary(dependencies=["@rpath/BitChord.debug.dylib"],
+        macho = binary(dependencies=["@rpath/RedBit.debug.dylib"],
                        rpaths=["@executable_path/Frameworks"])
         with tempfile.TemporaryDirectory() as directory:
             ipa = self.make_ipa(directory, macho=macho, extra={
-                "Payload/BitChord.app/BitChord.debug.dylib": binary(kind=6),
+                "Payload/RedBit.app/RedBit.debug.dylib": binary(kind=6),
             })
             with self.assertRaises(ValueError):
                 verify(ipa, SHA, REF, RUN)
@@ -144,9 +144,9 @@ class DevicePackageTest(unittest.TestCase):
         macho = binary(dependencies=["@rpath/First.framework/First"], rpaths=["@loader_path/Frameworks"])
         with tempfile.TemporaryDirectory() as directory:
             ipa = self.make_ipa(directory, macho=macho, extra={
-                "Payload/BitChord.app/Frameworks/First.framework/First": binary(
+                "Payload/RedBit.app/Frameworks/First.framework/First": binary(
                     kind=6, dependencies=["@rpath/Second.framework/Second"]),
-                "Payload/BitChord.app/Frameworks/Second.framework/Second": binary(kind=6),
+                "Payload/RedBit.app/Frameworks/Second.framework/Second": binary(kind=6),
             })
             self.assertEqual(verify(ipa, SHA, REF, RUN)["structure"], "BESTANDEN")
 
@@ -154,26 +154,26 @@ class DevicePackageTest(unittest.TestCase):
         macho = binary(dependencies=["@rpath/First.framework/First"], rpaths=["@executable_path/Frameworks"])
         with tempfile.TemporaryDirectory() as directory:
             ipa = self.make_ipa(directory, macho=macho, extra={
-                "Payload/BitChord.app/Frameworks/First.framework/First": binary(
+                "Payload/RedBit.app/Frameworks/First.framework/First": binary(
                     kind=6, dependencies=["@rpath/Helper.dylib"], rpaths=["@loader_path/Helpers"]),
-                "Payload/BitChord.app/Frameworks/First.framework/Helpers/Helper.dylib": binary(kind=6),
+                "Payload/RedBit.app/Frameworks/First.framework/Helpers/Helper.dylib": binary(kind=6),
             })
             self.assertEqual(verify(ipa, SHA, REF, RUN)["structure"], "BESTANDEN")
 
     def test_nested_library_platform_and_encryption_are_checked(self):
-        macho = binary(dependencies=["@rpath/BitChord.debug.dylib"], rpaths=["@executable_path"])
+        macho = binary(dependencies=["@rpath/RedBit.debug.dylib"], rpaths=["@executable_path"])
         with tempfile.TemporaryDirectory() as directory:
             for library in (binary(platform=7, kind=6), binary(encrypted=True, kind=6)):
                 with self.subTest(library=library), self.assertRaises(ValueError):
                     verify(self.make_ipa(directory, macho=macho, extra={
-                        "Payload/BitChord.app/BitChord.debug.dylib": library,
+                        "Payload/RedBit.app/RedBit.debug.dylib": library,
                     }), SHA, REF, RUN)
 
     def test_nested_missing_library_is_not_hidden_by_a_valid_debug_dylib(self):
-        macho = binary(dependencies=["@rpath/BitChord.debug.dylib"], rpaths=["@executable_path"])
+        macho = binary(dependencies=["@rpath/RedBit.debug.dylib"], rpaths=["@executable_path"])
         with tempfile.TemporaryDirectory() as directory:
             ipa = self.make_ipa(directory, macho=macho, extra={
-                "Payload/BitChord.app/BitChord.debug.dylib": binary(
+                "Payload/RedBit.app/RedBit.debug.dylib": binary(
                     kind=6, dependencies=["@loader_path/Frameworks/Missing.dylib"]),
             })
             with self.assertRaisesRegex(ValueError, "Binary fehlt"):
@@ -183,8 +183,8 @@ class DevicePackageTest(unittest.TestCase):
         macho = binary(dependencies=["@rpath/One.dylib"], rpaths=["@executable_path"])
         with tempfile.TemporaryDirectory() as directory:
             ipa = self.make_ipa(directory, macho=macho, extra={
-                "Payload/BitChord.app/One.dylib": binary(kind=6, dependencies=["@rpath/Two.dylib"]),
-                "Payload/BitChord.app/Two.dylib": binary(kind=6, dependencies=["@rpath/One.dylib"]),
+                "Payload/RedBit.app/One.dylib": binary(kind=6, dependencies=["@rpath/Two.dylib"]),
+                "Payload/RedBit.app/Two.dylib": binary(kind=6, dependencies=["@rpath/One.dylib"]),
             })
             self.assertEqual(verify(ipa, SHA, REF, RUN)["structure"], "BESTANDEN")
 
@@ -228,14 +228,14 @@ class ProjectTest(unittest.TestCase):
             self.assertEqual(project.read_bytes(), original)
             before = yaml.safe_load(original)
             after = yaml.safe_load(output.read_text(encoding="utf-8"))
-            app = after["targets"]["BitChord"]
-            self.assertNotIn("BitChordWidget", after["targets"])
+            app = after["targets"]["RedBit"]
+            self.assertNotIn("RedBitWidget", after["targets"])
             self.assertNotIn("entitlements", app)
             self.assertEqual(app["settings"]["base"]["PRODUCT_BUNDLE_IDENTIFIER"], "com.babat.bbtbit")
-            self.assertEqual(app["sources"], before["targets"]["BitChord"]["sources"])
+            self.assertEqual(app["sources"], before["targets"]["RedBit"]["sources"])
             self.assertEqual(app["info"]["properties"]["UIBackgroundModes"], ["audio"])
             self.assertEqual(after["settings"], before["settings"])
-            for framework in ("BitChordShared", "NativeCoreFFI"):
+            for framework in ("RedBitShared", "NativeCoreFFI"):
                 self.assertTrue(any(framework in item.get("framework", "") for item in app["dependencies"]))
 
     def test_original_project_cannot_be_overwritten(self):

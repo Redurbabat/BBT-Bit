@@ -25,7 +25,7 @@ private actor SwapResultProbe {
             fatalError("A ready YouTube fallback must not beat the requested lossless source")
         }
 
-        // BitChord v1.9.1 Prefer Music Only: no video fallback is started
+        // RedBit v1.9.1 Prefer Music Only: no video fallback is started
         // until the audio search has answered or its deadline has elapsed.
         // The preferred recording must work even when video resolution would fail.
         let musicOnlyHit = Race(preferPrimary: true)

@@ -20,7 +20,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 HERE="$(cd "$(dirname "$0")" && pwd)"
-CHECK_DIR="${TMPDIR:-/tmp}/bitchord-handoff-check"
+CHECK_DIR="${TMPDIR:-/tmp}/redbit-handoff-check"
 
 rm -rf "$CHECK_DIR"
 mkdir -p "$CHECK_DIR"
@@ -36,7 +36,7 @@ xcrun swiftc \
 status=0
 "$CHECK_DIR/check" || status=1
 
-if grep -q -- "- app.bitchord.playback" "$ROOT/AppleApp/project.yml"; then
+if grep -q -- "- com.babat.bbtbit.playback" "$ROOT/AppleApp/project.yml"; then
   echo "  ok   the activity type is declared in NSUserActivityTypes"
 else
   echo "  FAIL the activity type is not declared in AppleApp/project.yml"

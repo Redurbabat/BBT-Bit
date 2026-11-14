@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 /// Das hervorgehobene Suchergebnis mit getrennten Wiedergabe- und Playlist-Aktionen.
 struct TopResultSection: View {

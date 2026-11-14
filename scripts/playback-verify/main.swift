@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 // Nur für diesen Prüfprozess: den iOS-Sprachfall ohne Änderung gespeicherter Einstellungen nachstellen.
 if let language = ProcessInfo.processInfo.environment["VERIFY_APPLE_LANGUAGE"] {

@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -118,7 +118,7 @@ extension PlaybackController {
         AppSettings.shared.setAutoplay(value: autoplayEnabled)
         if !autoplayEnabled {
             autoplayRefresh.invalidate()
-            // BitChord entfernt beim Abschalten alle noch nicht gehörten
+            // RedBit entfernt beim Abschalten alle noch nicht gehörten
             // automatischen Titel, nicht die manuell hinzugefügte Queue.
             let before = queue.count
             queue = queue.enumerated().filter {

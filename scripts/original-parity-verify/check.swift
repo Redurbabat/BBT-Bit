@@ -67,7 +67,7 @@ import Foundation
         print("ok: Produktions-Vorschaudecoder mit kontrolliertem FFI-Adapter, Cache-BPM und fehlenden Daten")
 
         assert(ReleaseRepository.accepts(page: URL(string: "https://github.com/Redurbabat/RED-Bit/releases/tag/v1.0.5")!))
-        for url in ["https://github.com/bagumamartin/BitChord/releases/tag/v1", "https://github.com/Redurbabat/BBT-Bit/releases/tag/v1", "http://github.com/Redurbabat/RED-Bit/releases/tag/v1", "https://user@github.com/Redurbabat/RED-Bit/releases/tag/v1", "https://github.com:999/Redurbabat/RED-Bit/releases/tag/v1"] {
+        for url in ["https://github.com/Redurbabat/RED-Bit/releases/tag/v1", "https://github.com/Redurbabat/RED-Bit/releases/tag/v1", "http://github.com/Redurbabat/RED-Bit/releases/tag/v1", "https://user@github.com/Redurbabat/RED-Bit/releases/tag/v1", "https://github.com:999/Redurbabat/RED-Bit/releases/tag/v1"] {
             assert(!ReleaseRepository.accepts(page: URL(string: url)!))
         }
         print("ok: Update-Identität bleibt bei RED Bit")

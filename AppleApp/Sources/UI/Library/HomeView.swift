@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 /// Home tab — upstream's "Play" tab: signed out it leads with the sign-in
@@ -41,7 +41,7 @@ struct HomeView: View {
                 #endif
                 .toolbar {
                     #if os(iOS)
-                    // Upstream FrostedTopBar's root-page leading BitChord logo.
+                    // Upstream FrostedTopBar's root-page leading RedBit logo.
                     TopBarLeadingItems()
                     ToolbarItem(placement: .topBarTrailing) { TopBarAccountButton() }
                     #endif

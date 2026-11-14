@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 /// Listening history page — signed-in `FEmusic_history`, newest first.

@@ -11,7 +11,7 @@ from pathlib import Path
 import sys
 source = Path('AppleApp/Sources/UI/AutomixLiveTestView.swift').read_text()
 monitor = source.split('struct AutomixLiveTestView: View {', 1)[0]
-monitor = monitor.replace('import SwiftUI\n', '').replace('import BitChordShared\n', '')
+monitor = monitor.replace('import SwiftUI\n', '').replace('import RedBitShared\n', '')
 observed = monitor
 if sys.platform == 'linux':
     # Linux hat keine App-UI; hier nur die unveränderten Mess-/Exportmethoden prüfen.

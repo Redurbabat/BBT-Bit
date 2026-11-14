@@ -21,7 +21,7 @@ require AppleApp/Sources/UI/DetailView.swift 'Signed by '
 require AppleApp/Sources/UI/DetailView.swift 'for delaySeconds in [0, 5, 15, 30]'
 require AppleApp/tests/ArtistSignatureRepositoryTests.swift 'testParseSelectsMatchingSvgThumbnail'
 
-binary="$(mktemp "${TMPDIR:-/tmp}/bitchord-artist-signature-tests.XXXXXX")"
+binary="$(mktemp "${TMPDIR:-/tmp}/redbit-artist-signature-tests.XXXXXX")"
 trap 'rm -f "$binary"' EXIT
 swiftc -parse-as-library \
   "$repo/AppleApp/Sources/App/ArtistSignatureRepository.swift" \

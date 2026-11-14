@@ -32,8 +32,8 @@ class NativeCacheTest(unittest.TestCase):
             write("scripts/build-shared-framework.sh", """#!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-mkdir -p AppleApp/Frameworks/BitChordShared.xcframework
-cat shared/src/main.kt vendor/innertubex/src/main.kt vendor/innertubex/build.gradle.kts > AppleApp/Frameworks/BitChordShared.xcframework/evidence
+mkdir -p AppleApp/Frameworks/RedBitShared.xcframework
+cat shared/src/main.kt vendor/innertubex/src/main.kt vendor/innertubex/build.gradle.kts > AppleApp/Frameworks/RedBitShared.xcframework/evidence
 printf 'build\n' >> build-count
 """)
             for name in ("xcodebuild", "java"):
@@ -54,7 +54,7 @@ printf 'build\n' >> build-count
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertIn(f"BBT_NATIVE_CACHE_{expected}=kotlin", result.stdout)
                 self.assertEqual(len((root / "build-count").read_text().splitlines()), count)
-                return (root / "AppleApp/Frameworks/BitChordShared.xcframework/evidence").read_text()
+                return (root / "AppleApp/Frameworks/RedBitShared.xcframework/evidence").read_text()
 
             run("MISS", 1)
             run("HIT", 1)

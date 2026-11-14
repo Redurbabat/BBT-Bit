@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 work = Path(sys.argv[1])
 models = Path('AppleApp/Sources/App/InnertubeHome.swift').read_text().split('private struct FeedPage', 1)[0]
-(work/'Models.swift').write_text(models.replace('import BitChordShared\n', ''))
+(work/'Models.swift').write_text(models.replace('import RedBitShared\n', ''))
 targets = Path('AppleApp/Sources/UI/QueueCoverDrop.swift').read_text().split('extension ShelfCard {', 1)[1].split('struct QueueCardDragSource', 1)[0]
 (work/'Targets.swift').write_text('import Foundation\nextension ShelfCard {' + targets)
 peek = Path('AppleApp/Sources/UI/AlbumPeek.swift').read_text().split('@MainActor @Observable final class', 1)[1].split('struct AlbumPeekContents', 1)[0]

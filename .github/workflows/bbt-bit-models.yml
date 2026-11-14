@@ -58,14 +58,14 @@ jobs:
           mirror "model-beat-this-final0-v1" "beat_this_full_int8.onnx" \
             "23478460" "9f10e5efa37d3e120da2121141825fe54b23b487b32dd25a54f89039fd8f85cb" \
             "Beat This! CPJKU authors Foscarin, Schlüter and Widmer; https://github.com/CPJKU/beat_this" \
-            "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx"
+            "https://github.com/Redurbabat/RED-Bit/releases/download/model-beat-this-final0-v1/beat_this_full_int8.onnx"
 
           mirror "model-beat-this-final0-coreml-v1" "beat_this_final0_coreml.aar" \
             "18818981" "4f545c60ac59282bd8601104a94ff4123f5304d4e5e233311f6ec67243975fff" \
             "Beat This! CPJKU authors Foscarin, Schlüter and Widmer; https://github.com/CPJKU/beat_this" \
-            "https://github.com/bagumamartin/BitChord/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar"
+            "https://github.com/Redurbabat/RED-Bit/releases/download/model-beat-this-final0-coreml-v1/beat_this_final0_coreml.aar"
 
           mirror "model-umxhq-vocals-v1" "vocals_umxhq_int8.onnx" \
             "23209009" "7eba6bebce0cc2e2d3b5c0e490a8074e66ce27f64170c6802b245740dcaf21ef" \
             "open-unmix by Fabian-Robert Stöter and Antoine Liutkus; https://github.com/sigsep/open-unmix-pytorch" \
-            "https://github.com/bagumamartin/BitChord/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx"
+            "https://github.com/Redurbabat/RED-Bit/releases/download/model-umxhq-vocals-v1/vocals_umxhq_int8.onnx"

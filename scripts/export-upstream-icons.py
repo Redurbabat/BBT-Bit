@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Export upstream BitChordIcons.kt glyphs to asset-catalog image sets.
+"""Export upstream RedBitIcons.kt glyphs to asset-catalog image sets.
 
-Pipeline per bitchord-apple-ui-spec.md §6: Compose ImageVector path data
+Pipeline per redbit-apple-ui-spec.md §6: Compose ImageVector path data
 converts losslessly to SVG (moveTo/lineTo/arcToRelative/curveTo → M/L/A/C),
 imported as template images with Preserve Vector Data. Stroke: 2.2, round
 caps/joins — the family's signature. Run from the repo root.

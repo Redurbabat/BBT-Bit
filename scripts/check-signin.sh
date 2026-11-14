@@ -22,7 +22,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 HERE="$(cd "$(dirname "$0")" && pwd)"
-CHECK_DIR="${TMPDIR:-/tmp}/bitchord-signin-check"
+CHECK_DIR="${TMPDIR:-/tmp}/redbit-signin-check"
 
 rm -rf "$CHECK_DIR"
 mkdir -p "$CHECK_DIR"

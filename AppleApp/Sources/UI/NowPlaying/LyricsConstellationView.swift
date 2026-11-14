@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 /// Zusätzliche Lyrics-Darstellung; Zeitbasis, Versatz und Daten bleiben mit der Liste geteilt.
 struct LyricsConstellationView: View {

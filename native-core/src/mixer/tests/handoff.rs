@@ -72,7 +72,7 @@ fn explicit_skip_mix_keeps_its_immediate_session_handoff() {
 #[test]
 fn disabling_automix_releases_its_processing_but_keeps_user_speed() {
     let path =
-        std::env::temp_dir().join(format!("bitchord-automix-off-{}.wav", std::process::id()));
+        std::env::temp_dir().join(format!("redbit-automix-off-{}.wav", std::process::id()));
     test_wav(&path, 6.0, 440.0);
     let mut state = armed_test_state(&path, &path, Phase::Arming);
     state.transition = None;
@@ -110,7 +110,7 @@ fn disabling_automix_releases_its_processing_but_keeps_user_speed() {
 #[test]
 fn disabling_automix_preserves_a_pending_quality_swap() {
     let path = std::env::temp_dir().join(format!(
-        "bitchord-automix-off-swap-{}.wav",
+        "redbit-automix-off-swap-{}.wav",
         std::process::id()
     ));
     test_wav(&path, 2.0, 440.0);
@@ -131,7 +131,7 @@ fn disabling_automix_preserves_a_pending_quality_swap() {
 #[test]
 fn a_unity_plan_replaces_the_armed_stretcher_and_cannot_leak_into_the_song() {
     let path =
-        std::env::temp_dir().join(format!("bitchord-unity-replan-{}.wav", std::process::id()));
+        std::env::temp_dir().join(format!("redbit-unity-replan-{}.wav", std::process::id()));
     test_wav(&path, 6.0, 440.0);
     let mut state = armed_test_state(&path, &path, Phase::Arming);
     let voice = state.incoming.as_mut().unwrap();
@@ -175,7 +175,7 @@ fn a_unity_plan_replaces_the_armed_stretcher_and_cannot_leak_into_the_song() {
 #[test]
 fn releasing_tempo_processing_keeps_every_pending_decoded_frame() {
     let path = std::env::temp_dir().join(format!(
-        "bitchord-stretch-backlog-{}.wav",
+        "redbit-stretch-backlog-{}.wav",
         std::process::id()
     ));
     test_wav(&path, 2.0, 440.0);
@@ -204,7 +204,7 @@ fn releasing_tempo_processing_keeps_every_pending_decoded_frame() {
 
 #[test]
 fn gapless_queue_advances_and_fires_handoff() {
-    let dir = std::env::temp_dir().join("bitchord-mixer-test");
+    let dir = std::env::temp_dir().join("redbit-mixer-test");
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("a.wav");
     let b = dir.join("b.wav");
@@ -320,7 +320,7 @@ fn an_explicit_gapless_repeat_is_accepted_and_hands_off() {
 }
 
 fn check_self_handoff(gapless: bool) {
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-self-mix-{gapless}"));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-self-mix-{gapless}"));
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("loop.wav");
     test_wav(&a, 3.0, 440.0);
@@ -435,7 +435,7 @@ fn check_self_handoff(gapless: bool) {
 
 #[test]
 fn load_pushes_current_voice_into_the_ring() {
-    let dir = std::env::temp_dir().join("bitchord-mixer-current");
+    let dir = std::env::temp_dir().join("redbit-mixer-current");
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("solo.wav");
     test_wav(&a, 0.5, 440.0);
@@ -509,7 +509,7 @@ fn cold_resume_seek_at_180_seconds_outputs_pcm_from_that_position() {
     // A seekable source must start directly at the requested timestamp:
     // restoring a saved playhead must not decode 180 seconds of audio, and
     // the first ring samples must contain the signal at that position.
-    let a = std::env::temp_dir().join(format!("bitchord-mixer-resume-{}.wav", std::process::id()));
+    let a = std::env::temp_dir().join(format!("redbit-mixer-resume-{}.wav", std::process::id()));
     test_wav(&a, 190.0, 997.0);
 
     let events = Arc::new(RecordedEvents::default());
@@ -606,7 +606,7 @@ fn cold_resume_seek_at_180_seconds_outputs_pcm_from_that_position() {
 /// the overlap, then settle back to 116 once the post-blend glide ends.
 #[test]
 fn a_beatmatched_blend_holds_the_grid_then_glides_home() {
-    let dir = std::env::temp_dir().join("bitchord-mixer-beats");
+    let dir = std::env::temp_dir().join("redbit-mixer-beats");
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("out.wav");
     let b = dir.join("in.wav");
@@ -799,7 +799,7 @@ fn a_beatmatched_blend_holds_the_grid_then_glides_home() {
 
 #[test]
 fn outgoing_eof_does_not_finish_an_incoming_fade_early() {
-    let dir = std::env::temp_dir().join("bitchord-mixer-outgoing-eof");
+    let dir = std::env::temp_dir().join("redbit-mixer-outgoing-eof");
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("outgoing.wav");
     let b = dir.join("incoming.wav");
@@ -898,7 +898,7 @@ fn outgoing_eof_does_not_finish_an_incoming_fade_early() {
 
 #[test]
 fn crossfade_handoff_playhead_is_incoming_not_outgoing_tail() {
-    let dir = std::env::temp_dir().join("bitchord-mixer-xfade-pos");
+    let dir = std::env::temp_dir().join("redbit-mixer-xfade-pos");
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("out.wav");
     let b = dir.join("in.wav");
@@ -1035,7 +1035,7 @@ fn the_handoff_tempo_glide_lands_on_unity_rather_than_stepping() {
 /// runs, gone and drained once it ends.
 #[test]
 fn a_promoted_voice_drops_the_handoff_tempo_stretch() {
-    let dir = std::env::temp_dir().join("bitchord-mixer-stretch");
+    let dir = std::env::temp_dir().join("redbit-mixer-stretch");
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("a.wav");
     test_wav(&path, 4.0, 440.0);
@@ -1124,7 +1124,7 @@ fn a_promoted_voice_drops_the_handoff_tempo_stretch() {
 /// because the blend is already over.
 #[test]
 fn retiring_the_stretch_drains_rather_than_drops() {
-    let dir = std::env::temp_dir().join("bitchord-mixer-stretch");
+    let dir = std::env::temp_dir().join("redbit-mixer-stretch");
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("drain.wav");
     test_wav(&path, 3.0, 440.0);

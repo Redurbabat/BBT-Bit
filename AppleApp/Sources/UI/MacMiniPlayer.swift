@@ -1,7 +1,7 @@
 #if os(macOS)
 import SwiftUI
 import AppKit
-import BitChordShared
+import RedBitShared
 
 /// The Mac's small players: a floating Mini Player window (⌥⌘M, as in Music)
 /// and the same controls in a menu bar extra. Both are the ordinary transport

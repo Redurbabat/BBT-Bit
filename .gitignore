@@ -16,8 +16,8 @@ AppleApp/*.xcodeproj
 AppleApp/project.sidestore.yml
 AppleApp/Frameworks/
 AppleApp/Generated/
-AppleApp/BitChord-Info.plist
-AppleApp/BitChordWidget-Info.plist
+AppleApp/RedBit-Info.plist
+AppleApp/RedBitWidget-Info.plist
 AppleApp/*.entitlements
 xcuserdata/
 DerivedData/

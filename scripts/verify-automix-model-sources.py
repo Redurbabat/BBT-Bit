@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REPO = "bagumamartin/BitChord"
+REPO = "Redurbabat/RED-Bit"
 BASE = f"https://github.com/{REPO}/releases/download"
 MODELS = (
     ("beat", "BEAT", "model-beat-this-final0-v1", "beat_this_full_int8.onnx",
@@ -40,7 +40,7 @@ def offline():
     store = (ROOT / "AppleApp/Sources/PlaybackSession/AutomixModelStore.swift").read_text()
     script = (ROOT / "scripts/fetch-automix-models.sh").read_text()
     codemagic = (ROOT / "codemagic.yaml").read_text()
-    check("https://github.com/Redurbabat/BBT-Bit/releases/download/" not in store,
+    check("https://github.com/Redurbabat/RED-Bit/releases/download/" not in store,
           "private release URL produces HTTP 404 for an unauthenticated iPhone")
     for ident, shell, tag, filename, length, digest in MODELS:
         marker = f"static let {ident} = ModelSpec("

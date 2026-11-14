@@ -2,7 +2,7 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 
 /// Account & Settings hub — Apple-style modal account sheet and profile switcher.
 ///
@@ -537,7 +537,7 @@ struct Avatar: View {
 }
 
 #if os(iOS)
-/// A page's leading top-bar items: the BitChord mark and, on the iPad, back and
+/// A page's leading top-bar items: the RedBit mark and, on the iPad, back and
 /// forward through the tab's pages, beside it as the Mac's titlebar has them.
 struct TopBarLeadingItems: ToolbarContent {
     @Environment(\.pageHistory) private var history

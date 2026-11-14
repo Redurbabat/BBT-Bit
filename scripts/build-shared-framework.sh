@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Kotlin/Native -> BitChordShared.xcframework (spec §0/§1.1), copied into
+# Kotlin/Native -> RedBitShared.xcframework (spec §0/§1.1), copied into
 # AppleApp/Frameworks/ for xcodegen to consume.
 set -euo pipefail
 
@@ -31,15 +31,15 @@ export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-15.0}"
 # every framework twice for a release copy nobody copied.
 CFG="${CONFIG:-debug}"
 VARIANT="$(printf '%s' "${CFG:0:1}" | tr '[:lower:]' '[:upper:]')${CFG:1}"
-./gradlew ":shared:assembleBitChordShared${VARIANT}XCFramework"
+./gradlew ":shared:assembleRedBitShared${VARIANT}XCFramework"
 
 # KGP emits separate debug/ and release/ xcframeworks, and
 # `xcodebuild -create-xcframework` refuses two libraries with the same
 # platform identifier, so the two configurations cannot live in one
 # xcframework. Package one configuration (debug by default — right for
 # development; use CONFIG=release for distribution builds).
-SRC="shared/build/XCFrameworks/$CFG/BitChordShared.xcframework"
-DEST="AppleApp/Frameworks/BitChordShared.xcframework"
+SRC="shared/build/XCFrameworks/$CFG/RedBitShared.xcframework"
+DEST="AppleApp/Frameworks/RedBitShared.xcframework"
 mkdir -p AppleApp/Frameworks
 rm -rf "$DEST"
 cp -R "$SRC" "$DEST"

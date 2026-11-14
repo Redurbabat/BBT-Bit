@@ -84,8 +84,8 @@ definitions:
         cd "$CM_BUILD_DIR"
         export PATH="/opt/homebrew/bin:$PATH"
         xcodegen generate --spec AppleApp/project.yml
-        test -d AppleApp/BitChord.xcodeproj
-        test -d AppleApp/Frameworks/BitChordShared.xcframework
+        test -d AppleApp/RedBit.xcodeproj
+        test -d AppleApp/Frameworks/RedBitShared.xcframework
         test -d AppleApp/Frameworks/NativeCoreFFI.xcframework
         test -f AppleApp/Generated/NativeCore.swift
 
@@ -98,12 +98,12 @@ definitions:
         test -n "$APP_VERSION"
         mkdir -p build/ios/logs
         ./scripts/package-ios-ipa.sh "$APP_VERSION" --fast --output-dir build/ios/ipa 2>&1 | tee build/ios/logs/fast-ipa.log
-        ls -lh build/ios/ipa/BBT-Bit-*-ios-debug-unsigned.ipa
-        IPA="$(find build/ios/ipa -name 'BBT-Bit-*-ios-debug-unsigned.ipa' -type f -print -quit)"
+        ls -lh build/ios/ipa/RedBit-*-ios-debug-unsigned.ipa
+        IPA="$(find build/ios/ipa -name 'RedBit-*-ios-debug-unsigned.ipa' -type f -print -quit)"
         test -n "$IPA"
-        unzip -p "$IPA" Payload/BitChord.app/Info.plist > /tmp/BBT-Bit-Info.plist
-        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /tmp/BBT-Bit-Info.plist)" = "com.babat.bbtbit"
-        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/BBT-Bit-Info.plist)" = "RED Bit"
+        unzip -p "$IPA" Payload/RedBit.app/Info.plist > /tmp/RedBit-Info.plist
+        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /tmp/RedBit-Info.plist)" = "com.babat.bbtbit"
+        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/RedBit-Info.plist)" = "RED Bit"
         echo "OK: fast unsigned Debug IPA for iPhone/iPad — signing required before installation"
 
     - &build_release_ipa
@@ -115,12 +115,12 @@ definitions:
         test -n "$APP_VERSION"
         mkdir -p build/ios/logs
         ./scripts/package-ios-ipa.sh "$APP_VERSION" --output-dir build/ios/ipa 2>&1 | tee build/ios/logs/archive.log
-        ls -lh build/ios/ipa/BBT-Bit-*-ios-unsigned.ipa
-        IPA="$(find build/ios/ipa -name 'BBT-Bit-*-ios-unsigned.ipa' -type f -print -quit)"
+        ls -lh build/ios/ipa/RedBit-*-ios-unsigned.ipa
+        IPA="$(find build/ios/ipa -name 'RedBit-*-ios-unsigned.ipa' -type f -print -quit)"
         test -n "$IPA"
-        unzip -p "$IPA" Payload/BitChord.app/Info.plist > /tmp/BBT-Bit-Info.plist
-        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /tmp/BBT-Bit-Info.plist)" = "com.babat.bbtbit"
-        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/BBT-Bit-Info.plist)" = "RED Bit"
+        unzip -p "$IPA" Payload/RedBit.app/Info.plist > /tmp/RedBit-Info.plist
+        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /tmp/RedBit-Info.plist)" = "com.babat.bbtbit"
+        test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' /tmp/RedBit-Info.plist)" = "RED Bit"
         echo "OK: unsigned Release IPA — signing required before installation"
 
 workflows:

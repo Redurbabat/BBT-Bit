@@ -6,7 +6,7 @@ set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/.." && pwd)"
-fw="$repo/AppleApp/Frameworks/BitChordShared.xcframework/macos-arm64"
+fw="$repo/AppleApp/Frameworks/RedBitShared.xcframework/macos-arm64"
 native_fw="$repo/AppleApp/Frameworks/NativeCoreFFI.xcframework/macos-arm64"
 verification_dir="$(mktemp -d)"
 bin="$verification_dir/video-versions-verify"
@@ -18,12 +18,12 @@ if [ ! -d "$native_fw" ]; then
   exit 2
 fi
 
-xcrun swiftc -O -module-cache-path /tmp/bitchord-swift-module-cache -o "$bin" \
+xcrun swiftc -O -module-cache-path /tmp/redbit-swift-module-cache -o "$bin" \
   -F "$native_fw" -framework NativeCoreFFI \
   -framework CoreAudio -framework AudioToolbox -framework CoreFoundation \
   -Xlinker -rpath -Xlinker "$native_fw/NativeCoreFFI.framework/Versions/A" \
-  -F "$fw" -framework BitChordShared -framework WebKit -framework JavaScriptCore \
-  -Xlinker -rpath -Xlinker "$fw/BitChordShared.framework/Versions/A" \
+  -F "$fw" -framework RedBitShared -framework WebKit -framework JavaScriptCore \
+  -Xlinker -rpath -Xlinker "$fw/RedBitShared.framework/Versions/A" \
   "$repo/AppleApp/Sources/App/YouTubeChallengeSolver.swift" \
   "$repo/AppleApp/Sources/App/YouTubePlayerJs.swift" \
   "$repo/AppleApp/Sources/App/ApplePoTokenProvider.swift" \

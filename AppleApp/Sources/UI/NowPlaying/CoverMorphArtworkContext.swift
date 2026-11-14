@@ -1,6 +1,6 @@
 #if os(iOS)
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UIKit
 
 /// A single color sampling path for the mini-player and its full-screen

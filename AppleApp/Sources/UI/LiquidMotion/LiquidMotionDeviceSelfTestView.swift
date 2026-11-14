@@ -166,7 +166,7 @@ struct LiquidMotionDeviceSelfTestView: View {
             device: UIDevice.current.model,
             iosVersion: UIDevice.current.systemVersion,
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
-            buildRevision: Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String ?? "unknown",
+            buildRevision: Bundle.main.object(forInfoDictionaryKey: "RedBitRevision") as? String ?? "unknown",
             passed: measured.filter(\.passed).count,
             failed: measured.filter { !$0.passed }.count,
             checks: measured

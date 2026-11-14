@@ -1,6 +1,6 @@
 import CryptoKit
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// Disk LRU of completed stream files — Apple stand-in for upstream `AudioCache`
 /// + `DynamicLruCacheEvictor`. Keyed by video id, ceiling from Settings
@@ -541,7 +541,7 @@ enum DiskCache {
     }
     static func cachesSubfolder(_ name: String) -> URL {
         let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("BitChord/\(name)", isDirectory: true)
+            .appendingPathComponent("RedBit/\(name)", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         if name == "audio" { allowLockedPlayback(dir) }
         return dir

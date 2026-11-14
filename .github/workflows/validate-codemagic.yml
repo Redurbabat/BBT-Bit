@@ -83,12 +83,12 @@ jobs:
           assert '--fast)' in package
           # Verify real-device test target and launch-only harness are wired.
           app = yaml.safe_load(Path('AppleApp/project.yml').read_text())
-          assert app['targets']['BitChordUITests']['type'] == 'bundle.ui-testing'
-          assert app['targets']['BitChordUITests']['platform'] == 'iOS'
-          assert 'BitChordUITests' in app['targets']['BitChord']['scheme']['testTargets']
+          assert app['targets']['RedBitUITests']['type'] == 'bundle.ui-testing'
+          assert app['targets']['RedBitUITests']['platform'] == 'iOS'
+          assert 'RedBitUITests' in app['targets']['RedBit']['scheme']['testTargets']
           assert Path('AppleApp/UITests/LiquidMotionUITests.swift').exists()
           assert Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').exists()
-          assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/BitChordApp.swift').read_text()
+          assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/RedBitApp.swift').read_text()
           assert 'Alle 15 Designs prüfen' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
           assert '.navigationTitle("Vorschau-Selbsttest")' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
           # Real screenshots must capture the existing application window,

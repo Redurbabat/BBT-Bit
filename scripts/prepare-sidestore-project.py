@@ -12,14 +12,14 @@ def prepare(project: Path, output: Path, branch: str, run_url: str):
     if project.resolve() == output.resolve() or project.resolve().parent != output.resolve().parent:
         raise ValueError("Die Testkonfiguration muss neben dem Original unter einem anderen Namen liegen.")
     spec = copy.deepcopy(yaml.safe_load(project.read_text(encoding="utf-8")))
-    app = spec["targets"]["BitChord"]
+    app = spec["targets"]["RedBit"]
     if app["settings"]["base"]["PRODUCT_BUNDLE_IDENTIFIER"] != "com.babat.bbtbit":
         raise ValueError("Unerwartete Bundle-ID; kein automatischer Identitätswechsel.")
     app["supportedDestinations"] = ["iOS"]
     app.pop("entitlements", None)
     app["settings"]["base"]["CODE_SIGN_ENTITLEMENTS"] = ""
-    app["dependencies"] = [item for item in app["dependencies"] if item.get("target") != "BitChordWidget"]
-    spec["targets"].pop("BitChordWidget", None)
+    app["dependencies"] = [item for item in app["dependencies"] if item.get("target") != "RedBitWidget"]
+    spec["targets"].pop("RedBitWidget", None)
     app["info"]["properties"].update({
         "BBTTestDistribution": "SideStore",
         "BBTTestSourceBranch": branch,

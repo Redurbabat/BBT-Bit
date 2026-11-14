@@ -11,14 +11,14 @@ import UniformTypeIdentifiers
 /// engine's `fetch_loop` and the aligner fetch the same way). The asset is
 /// opened under a private scheme so every request comes here instead.
 final class ChunkedVideoLoader: NSObject, AVAssetResourceLoaderDelegate, @unchecked Sendable {
-    static let scheme = "bitchord-chunked"
+    static let scheme = "redbit-chunked"
     /// The playlist `VideoSegmentIndex` builds, served from here.
-    static let hlsScheme = "bitchord-hls"
+    static let hlsScheme = "redbit-hls"
     static let playlistURL = URL(string: "\(hlsScheme)://picture/playlist.m3u8")!
     private static let chunkBytes: Int64 = 1 << 20
     private static let parallel: Int64 = 4
 
-    let queue = DispatchQueue(label: "app.bitchord.video-loader")
+    let queue = DispatchQueue(label: "com.babat.bbtbit.video-loader")
     private let source: URL
     private let headers: [String: String]
     private let lock = NSLock()

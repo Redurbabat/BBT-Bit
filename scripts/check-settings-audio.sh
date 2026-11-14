@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-scratch="$(mktemp -d "${TMPDIR:-/tmp}/bitchord-settings-audio.XXXXXX")"
+scratch="$(mktemp -d "${TMPDIR:-/tmp}/redbit-settings-audio.XXXXXX")"
 trap 'rm -rf "$scratch"' EXIT
 "${SWIFTC:-swiftc}" -parse-as-library \
   AppleApp/Sources/UI/Settings/AudioSettingsCatalog.swift \

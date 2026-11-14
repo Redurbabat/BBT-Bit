@@ -91,13 +91,13 @@ jobs:
           bash scripts/ensure-metal-toolchain.sh
           xcodegen generate --spec AppleApp/project.yml
           bash scripts/retry-transient.sh xcodebuild -resolvePackageDependencies \
-            -project AppleApp/BitChord.xcodeproj -scheme BitChord \
+            -project AppleApp/RedBit.xcodeproj -scheme RedBit \
             -derivedDataPath "$RUNNER_TEMP/RED-Bit-Mac-DerivedData"
       - name: Gesamte SwiftUI-App mit echten macOS-Frameworks kompilieren
         run: |
           set -uo pipefail
           set +e
-          xcodebuild -project AppleApp/BitChord.xcodeproj -scheme BitChord \
+          xcodebuild -project AppleApp/RedBit.xcodeproj -scheme RedBit \
             -configuration Debug -sdk macosx -destination 'platform=macOS,arch=arm64' \
             -derivedDataPath "$RUNNER_TEMP/RED-Bit-Mac-DerivedData" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build \

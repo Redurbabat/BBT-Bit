@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 import CryptoKit
-import BitChordShared
+import RedBitShared
 
 struct DownloadedTrack: Identifiable, Hashable {
     let path: String
@@ -117,7 +117,7 @@ final class DownloadStore {
         if let legacyDirectoryOverride { return legacyDirectoryOverride }
         let base = FileManager.default.urls(for: .musicDirectory, in: .userDomainMask).first
             ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("BitChord", isDirectory: true)
+        return base.appendingPathComponent("RedBit", isDirectory: true)
     }
 
     init(directory: URL? = nil, startWorker: Bool = true, legacyDirectory: URL? = nil, backend: (any DownloadBackend)? = nil) {
@@ -126,7 +126,7 @@ final class DownloadStore {
         self.keepsPlaylistsUpdated = PlatformSettings.shared.getBoolean(key: "sync_downloaded_playlists", default: false)
         self.legacyDirectoryOverride = legacyDirectory
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("BitChord/Downloads", isDirectory: true)
+            .appendingPathComponent("RedBit/Downloads", isDirectory: true)
         if startWorker {
             restoring = true; writable = false
             let root = self.directory

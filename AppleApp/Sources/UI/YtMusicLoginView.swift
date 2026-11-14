@@ -1,6 +1,6 @@
 import SwiftUI
 import WebKit
-import BitChordShared
+import RedBitShared
 
 /// Google's login stays in an isolated WebKit cookie store. Reaching Music
 /// presents a native completion step; the listener still explicitly confirms
@@ -515,7 +515,7 @@ final class LoginWebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, W
             // app and lost the sign-in, and the only way to be sure that cannot
             // happen again is for the capability not to exist on this screen.
             decisionHandler(.cancel)
-            NSLog("[BitChord] sign-in refused scheme: \(url?.scheme ?? "unknown")")
+            NSLog("[RED Bit] sign-in refused scheme: \(url?.scheme ?? "unknown")")
             flow.refusal = why
         }
     }
@@ -535,7 +535,7 @@ final class LoginWebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, W
             if let url { webView.load(URLRequest(url: url)) }
             noteMainFrame(url, isMainFrame: true)
         case .refuse(let why):
-            NSLog("[BitChord] sign-in refused popup scheme: \(url?.scheme ?? "unknown")")
+            NSLog("[RED Bit] sign-in refused popup scheme: \(url?.scheme ?? "unknown")")
             flow.refusal = why
         }
         return nil

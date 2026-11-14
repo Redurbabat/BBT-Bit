@@ -190,7 +190,7 @@ mod track_number_tests {
     #[test]
     fn summary_preserves_metadata_without_returning_cover_bytes() {
         let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/seek-tone.m4a");
-        let path = std::env::temp_dir().join(format!("bitchord-summary-{}.m4a", std::process::id()));
+        let path = std::env::temp_dir().join(format!("redbit-summary-{}.m4a", std::process::id()));
         std::fs::copy(source, &path).unwrap();
         let cover = [0xff, 0xd8, 0xff, 0xe0, 0x01, 0x02];
         assert!(write_track_tags(path.to_str().unwrap(), "Cover test", "Artist", "Album", &cover));
@@ -211,7 +211,7 @@ mod track_number_tests {
     fn a_tagged_track_number_reads_back() {
         let mut source = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         source.push("tests/fixtures/seek-tone.m4a");
-        let dir = std::env::temp_dir().join("bitchord-track-number-test");
+        let dir = std::env::temp_dir().join("redbit-track-number-test");
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("numbered.m4a");
         std::fs::copy(&source, &path).unwrap();
@@ -239,7 +239,7 @@ mod track_number_tests {
     fn an_untagged_file_reports_zero() {
         let mut source = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         source.push("tests/fixtures/seek-tone.m4a");
-        let dir = std::env::temp_dir().join("bitchord-track-number-test");
+        let dir = std::env::temp_dir().join("redbit-track-number-test");
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("bare.m4a");
         std::fs::copy(&source, &path).unwrap();

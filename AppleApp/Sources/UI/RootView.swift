@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
@@ -11,7 +11,7 @@ import AppKit
 /// single declaration. Exactly four canonical tabs, upstream icons, search
 /// role pinned trailing. `@SceneStorage` keeps the last tab across launches.
 struct RootView: View {
-    @SceneStorage("bitchord.selectedTab") private var selection: Int = AppModel.Tab.home.rawValue
+    @SceneStorage("redbit.selectedTab") private var selection: Int = AppModel.Tab.home.rawValue
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(AuthController.self) private var auth
@@ -62,7 +62,7 @@ struct RootView: View {
     @State private var sidebarArtwork: [String: UIImage] = [:]
     /// The library section last chosen on the iPad, where a deep link to the
     /// Library lands.
-    @SceneStorage("bitchord.iPadLibrary") private var iPadLibraryTab: Int = AppModel.Tab.libraryYouTube.rawValue
+    @SceneStorage("redbit.iPadLibrary") private var iPadLibraryTab: Int = AppModel.Tab.libraryYouTube.rawValue
     #endif
     @AppStorage(OnboardingView.doneKey) private var onboardingDone = false
     @State private var onboardingPresented = false
@@ -798,11 +798,11 @@ struct RootView: View {
                                 }
                             }
                         }
-                        .customizationID("bitchord.sidebar.playlist.\(playlist.playlistId)")
+                        .customizationID("redbit.sidebar.playlist.\(playlist.playlistId)")
                         .tabPlacement(.sidebarOnly)
                     }
                 }
-                .customizationID("bitchord.sidebar.playlists")
+                .customizationID("redbit.sidebar.playlists")
                 .defaultVisibility(.hidden, for: .tabBar)
             } else {
                 Tab("Home", systemImage: "house.fill", value: RootPage.tab(.home)) {

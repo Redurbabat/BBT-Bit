@@ -7,7 +7,7 @@
 //! trusted than a model's grid (see `MIN_BEATMATCH_CONFIDENCE`), but real
 //! evidence — not a guess — because it carries actual beat and downbeat times.
 //!
-//! Ported from Orchard (https://github.com/SFG5453/Orchard) via BitChord's
+//! Ported from Orchard (https://github.com/SFG5453/Orchard) via RedBit's
 //! `native/analyzer` — Copyright (C) 2026 SFG545, Copyright (C) 2026 Kushagra
 //! Singh. AGPLv3-or-later, kept as part of the same GPL-3 combined work.
 

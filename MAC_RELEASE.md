@@ -11,21 +11,21 @@ container are unavailable in this ad-hoc package.
 ## Build and package
 
 Create an Apple Silicon Release archive without code signing, then copy its app
-bundle into a folder named `BitChord.app` inside an export directory:
+bundle into a folder named `RED Bit.app` inside an export directory:
 
 ```sh
 xcodebuild \
-  -project AppleApp/BitChord.xcodeproj \
-  -scheme BitChord \
+  -project AppleApp/RED Bit.xcodeproj \
+  -scheme RED Bit \
   -configuration Release \
   -destination 'platform=macOS,arch=arm64' \
-  -archivePath "$TMPDIR/BitChord-mac.xcarchive" \
+  -archivePath "$TMPDIR/RED Bit-mac.xcarchive" \
   archive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=
 
-mkdir -p "$TMPDIR/BitChord-mac-export"
-ditto "$TMPDIR/BitChord-mac.xcarchive/Products/Applications/BitChord.app" \
-  "$TMPDIR/BitChord-mac-export/BitChord.app"
-scripts/package-mac-dmg.sh 1.0.0 "$TMPDIR/BitChord-mac-export"
+mkdir -p "$TMPDIR/RED Bit-mac-export"
+ditto "$TMPDIR/RED Bit-mac.xcarchive/Products/Applications/RED Bit.app" \
+  "$TMPDIR/RED Bit-mac-export/RED Bit.app"
+scripts/package-mac-dmg.sh 1.0.0 "$TMPDIR/RED Bit-mac-export"
 ```
 
 The script checks the app version, stages a copy, removes provisioning profiles
@@ -45,23 +45,23 @@ and ask before changing GitHub; `--create-release` requires an existing pushed
 `vVERSION` tag. No tag, signature, notarization, or upload is created by this
 local packaging command.
 
-## Open BitChord on macOS
+## Open RED Bit on macOS
 
 Because the download is not Developer ID signed or notarized, Gatekeeper may
 block its first launch. Only continue if you downloaded the DMG from the
-official BitChord release and trust it.
+official RED Bit release and trust it.
 
-1. Drag BitChord to Applications.
-2. In Applications, Control-click BitChord and choose **Open**, then confirm
+1. Drag RED Bit to Applications.
+2. In Applications, Control-click RED Bit and choose **Open**, then confirm
    **Open** in the warning dialog. If that choice is not available, open
-   System Settings → Privacy & Security and choose **Open Anyway** for BitChord.
+   System Settings → Privacy & Security and choose **Open Anyway** for RED Bit.
 
 After moving the app to Applications, an informed user can also clear the
 quarantine flag in Terminal:
 
 ```sh
-xattr -dr com.apple.quarantine "/Applications/BitChord.app"
-open "/Applications/BitChord.app"
+xattr -dr com.apple.quarantine "/Applications/RED Bit.app"
+open "/Applications/RED Bit.app"
 ```
 
 This removes the downloaded-file quarantine attribute; it does not add a

@@ -1,6 +1,6 @@
 import Foundation
 import Security
-import BitChordShared
+import RedBitShared
 
 /// Encrypted-at-rest storage for the YouTube Music session cookie.
 ///

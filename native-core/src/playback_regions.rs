@@ -393,7 +393,7 @@ mod tests {
         stereo: bool,
     ) -> std::path::PathBuf {
         let path = std::env::temp_dir().join(format!(
-            "bitchord-regions-{}-{name}.wav",
+            "redbit-regions-{}-{name}.wav",
             std::process::id()
         ));
         let rate = 10000u32;
@@ -433,7 +433,7 @@ mod tests {
     /// single sine-and-silence fixture cannot make.
     fn float_wav(name: &str, seconds: f32, sample: impl Fn(f32) -> (f32, f32)) -> std::path::PathBuf {
         let path = std::env::temp_dir().join(format!(
-            "bitchord-regions-{}-{name}.wav",
+            "redbit-regions-{}-{name}.wav",
             std::process::id()
         ));
         let rate = 10000u32;

@@ -3,7 +3,7 @@ import AppKit
 import JavaScriptCore
 import ImageIO
 import UniformTypeIdentifiers
-import BitChordShared
+import RedBitShared
 
 private func expect(_ value: @autoclosure () -> Bool, _ message: String) {
     guard value() else { fatalError(message) }
@@ -53,9 +53,9 @@ private final class Callback: EngineCallback, @unchecked Sendable {
         expect(enabled.beat == "beat" && enabled.vocal == "vocal", "normal Automix lost models")
         print("PASS model lifetime policy for browsing, disabled, Efficient, and normal playback")
 
-        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("bitchord-memory-\(UUID().uuidString)")
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("redbit-memory-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: folder); unsetenv("BITCHORD_LIBRARY_PATH") }
+        defer { try? FileManager.default.removeItem(at: folder); unsetenv("REDBIT_LIBRARY_PATH") }
         let fixture = ProcessInfo.processInfo.environment["MEMORY_FIXTURE"]!
         let cover = makeCover(red: 1, blue: 0, alpha: 0.4)
         for (index, title) in ["zebra", "Alpha", "MiXeD"].enumerated() {
@@ -63,7 +63,7 @@ private final class Callback: EngineCallback, @unchecked Sendable {
             try FileManager.default.copyItem(atPath: fixture, toPath: path)
             expect(writeTrackTags(path: path, title: title, artist: "Artist", album: "Album", artwork: index == 2 ? Data() : cover), "fixture tag write failed")
         }
-        setenv("BITCHORD_LIBRARY_PATH", folder.path, 1)
+        setenv("REDBIT_LIBRARY_PATH", folder.path, 1)
         let library = LocalLibrary()
         library.restore()
         await library.waitForScan()

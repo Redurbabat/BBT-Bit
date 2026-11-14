@@ -14,7 +14,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/.." && pwd)"
 port="${WEBDAV_PORT:-8081}"
-scratch="$(mktemp -d "${TMPDIR:-/tmp}/bitchord-webdav-check.XXXXXX")"
+scratch="$(mktemp -d "${TMPDIR:-/tmp}/redbit-webdav-check.XXXXXX")"
 fixture_root="$scratch/root"
 request_log="$scratch/requests.log"
 upload_source="$scratch/upload.flac"
@@ -44,14 +44,14 @@ for _ in $(seq 1 40); do
   sleep 0.25
 done
 
-fw="$repo/AppleApp/Frameworks/BitChordShared.xcframework/macos-arm64"
+fw="$repo/AppleApp/Frameworks/RedBitShared.xcframework/macos-arm64"
 bin="$(mktemp -d)/webdav-verify"
 grep -Fq 'refreshAfterUpload: false' "$repo/AppleApp/Sources/UI/Library/DownloadsView.swift"
 grep -Fq 'Upload selected to WebDAV' "$repo/AppleApp/Sources/UI/Library/DownloadsView.swift"
 echo "  ok  Downloads selection uploads through the deferred-refresh batch path"
 xcrun swiftc -O -o "$bin" \
-  -F "$fw" -framework BitChordShared \
-  -Xlinker -rpath -Xlinker "$fw/BitChordShared.framework/Versions/A" \
+  -F "$fw" -framework RedBitShared \
+  -Xlinker -rpath -Xlinker "$fw/RedBitShared.framework/Versions/A" \
   "$repo/AppleApp/Sources/UI/WebDavStore.swift" \
   "$here/webdav-verify/main.swift"
 

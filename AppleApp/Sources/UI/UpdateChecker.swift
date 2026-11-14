@@ -27,7 +27,7 @@ import Observation
         #endif
     }
     var revision: String? {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String,
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "RedBitRevision") as? String,
               !value.isEmpty, value != "unknown", !value.contains("$(") else { return nil }
         return value
     }
@@ -123,7 +123,7 @@ import Observation
 }
 
 enum UpdateAcknowledgementStore {
-    private static let key = "bitchord.acknowledgedUpdateVersions"
+    private static let key = "redbit.acknowledgedUpdateVersions"
     static func contains(_ version: String) -> Bool { (UserDefaults.standard.stringArray(forKey: key) ?? []).contains(version) }
     static func record(_ version: String) {
         var versions = Set(UserDefaults.standard.stringArray(forKey: key) ?? [])

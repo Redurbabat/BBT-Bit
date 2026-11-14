@@ -8,7 +8,7 @@
 
 Der Nutzer hat den echten iPhone-Screenshot aus **Einstellungen → Playback → Musik-Diagnose** und zwei Diagnoseberichte vorgelegt.
 
-Gerät: iOS 26.6.1, BBT-Bit/BitChord **1.0.4 (Build 13)**.
+Gerät: iOS 26.6.1, BBT-Bit/RED Bit **1.0.4 (Build 13)**.
 
 Screenshot (Titel **Training Season**, Dua Lipa):
 - Status **Pausiert**, Position **0.0 s**, Dauer **Unbekannt / 0**
@@ -31,13 +31,13 @@ Detaillierte Berichte (mehrere Songs/Downloads):
 
 ## 2. Relevante reale Codepfade
 
-- `shared/src/commonMain/kotlin/com/music/bitchord/data/innertube/UpstreamPlaybackExtractor.kt`
+- `shared/src/commonMain/kotlin/com/music/redbit/data/innertube/UpstreamPlaybackExtractor.kt`
   - `extractStream()` setzt **`allowHls=false`, `allowSabr=false`, `allowBoundedRange=true`**.
   - `extract()` prüft `stream.sabrBootstrap == null` und liefert derzeit progressive URL.
   - `SharedExtractionRefreshGate` begrenzt bereits wiederholte Resets.
-- `shared/src/commonMain/kotlin/com/music/bitchord/data/innertube/StreamResolver.kt`
+- `shared/src/commonMain/kotlin/com/music/redbit/data/innertube/StreamResolver.kt`
   - Resolver, Sitzungs-/Botcheck-Verhalten, URL-/Rangfolge, Validierung.
-- `shared/src/commonMain/kotlin/com/music/bitchord/data/innertube/PlayerBridge.kt`
+- `shared/src/commonMain/kotlin/com/music/redbit/data/innertube/PlayerBridge.kt`
   - Übergabe von `StreamResolveException` inklusive Grund und Clientversuchszahl.
 - `vendor/innertubex/src/commonMain/kotlin/com/metrolist/innertubex/extraction/`
   - tatsächliche Clientprofile, `InnerTubeExtractor`, Diagnosen, Streamfähigkeiten.
@@ -97,11 +97,11 @@ Detaillierte Berichte (mehrere Songs/Downloads):
 
 ### Nachweise
 
-- Vor dem Fix (`e7525bf`) schlugen beide Kotlin-Regressionen im isolierten JVM-Lauf mit `No playable stream found for this track` fehl. In den kontrollierten Antworten lieferte das erste Profil nur HLS oder eine URL auf einem unerlaubten Host. Ein zweites Profil desselben Clients lieferte ein progressives Audioformat. Der [native Gegenlauf vor dem Fix](https://github.com/Redurbabat/BBT-Bit/actions/runs/41879520101) erhielt wegen fehlender Runner-Kapazität keinen Mac.
+- Vor dem Fix (`e7525bf`) schlugen beide Kotlin-Regressionen im isolierten JVM-Lauf mit `No playable stream found for this track` fehl. In den kontrollierten Antworten lieferte das erste Profil nur HLS oder eine URL auf einem unerlaubten Host. Ein zweites Profil desselben Clients lieferte ein progressives Audioformat. Der [native Gegenlauf vor dem Fix](https://github.com/Redurbabat/RED-Bit/actions/runs/41879520101) erhielt wegen fehlender Runner-Kapazität keinen Mac.
 - Mit Fix waren alle sieben Kotlin-JVM-Fixtures erfolgreich. Der Filter lautete `jvmTest --tests '*InnerTubeExtractorTest.progressiveAudio*' --tests '*InnerTubeExtractorTest.hlsManifest*' --tests '*InnerTubeExtractorTest.automaticFallbackReachesSabrAfterDirectClientsFail'`. Der isolierte Lauf verwendete die echten Extractor-Quellen und Ktor MockEngine. Plattformfunktionen für Apple und JavaScript waren Testadapter.
 - `jvmTest --tests '*StreamResolverRecoveryTest'` war mit 16 Fällen erfolgreich. Der isolierte Lauf verwendete den Produktionsresolver, die Bridge und Testadapter für Konto und Netzwerk. Er prüft keine Kotlin/Native-Verknüpfung.
 - `gradlew.bat :shared:compileCommonMainKotlinMetadata` hat die Kotlin-Metadaten der echten Module `shared` und `innertubex` erfolgreich gebaut.
-- Der [Apple-Silicon-Lauf für den Fix](https://github.com/Redurbabat/BBT-Bit/actions/runs/41882806296) umfasst Kotlin/Native, Xcode und die iOS-Prüfung. Der alternative [Intel-Lauf für Swift und Rust](https://github.com/Redurbabat/BBT-Bit/actions/runs/41883326163) wurde laut GitHub vor dem Start wegen Abrechnung oder Ausgabenlimit abgebrochen. Für diese Prüfungen liegt noch kein Ergebnis vor.
+- Der [Apple-Silicon-Lauf für den Fix](https://github.com/Redurbabat/RED-Bit/actions/runs/41882806296) umfasst Kotlin/Native, Xcode und die iOS-Prüfung. Der alternative [Intel-Lauf für Swift und Rust](https://github.com/Redurbabat/RED-Bit/actions/runs/41883326163) wurde laut GitHub vor dem Start wegen Abrechnung oder Ausgabenlimit abgebrochen. Für diese Prüfungen liegt noch kein Ergebnis vor.
 - Der Prüfweg nutzt den bestehenden Simulator-Workflow. `:innertubex:macosArm64Test` und `:shared:macosArm64Test` prüfen Extraktion, Netzfehler, Abbruch und Kontowechsel. Swift-Prüfungen prüfen Fehlermeldung, Download-Retry und vorhandene Offline-Dateien. `cargo test --locked` prüft unter anderem Decoder und Puffer.
 - **ECHTGERÄT NICHT GETESTET.** Für BBT-002 den signierten Reparaturbuild auf dem iPhone verwenden. Der Nachweis braucht eine aufgelöste YouTube-Quelle, erste Audio-Bytes, einen positiven Audiopuffer, hörbare Ausgabe und steigende Position. Vorschau und Fixtures werden separat gewertet.
 
@@ -124,7 +124,7 @@ Dies belegt einen konkreten Fehler im Apple-Anfrageaufbau. Weil die Gerätesprac
 
 - Eine gemeinsame, testbare Umwandlung bildet regionale Gerätesprachen wie `de-CH`, `de-DE` oder `de-AT` auf `de` ab. Unterstützte Sprachvarianten und chinesische Schriftvarianten werden berücksichtigt. Die Inhaltsregion `gl`, die gespeicherte App-Sprache und Kontodaten bleiben erhalten.
 - Der Kotlin-Framework-Cache berücksichtigt jetzt auch `vendor/innertubex`. Sonst könnte gerade diese Änderung ausschließlich im Vendor-Modul ein altes Apple-Framework weiterverwenden.
-- Der Gerätebericht nennt künftig zusätzlich `BitChordRevision` und die bevorzugte Gerätesprache. Der native macOS-Prüfprozess unterstützt `VERIFY_APPLE_LANGUAGE` ohne Änderung gespeicherter Systemeinstellungen.
+- Der Gerätebericht nennt künftig zusätzlich `RED BitRevision` und die bevorzugte Gerätesprache. Der native macOS-Prüfprozess unterstützt `VERIFY_APPLE_LANGUAGE` ohne Änderung gespeicherter Systemeinstellungen.
 
 ### Prüfstand
 

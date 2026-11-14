@@ -350,7 +350,7 @@ fn level_spread(samples: &[f32]) -> (f64, f32) {
 }
 
 fn levels() -> (std::path::PathBuf, std::path::PathBuf) {
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-levels-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-levels-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let loud = dir.join("loud.wav");
     let quiet = dir.join("quiet.wav");
@@ -742,7 +742,7 @@ struct SwapHarness {
 
 impl SwapHarness {
     fn new(tag: &str) -> (SwapHarness, std::path::PathBuf, std::path::PathBuf) {
-        let dir = std::env::temp_dir().join(format!("bitchord-mixer-{tag}"));
+        let dir = std::env::temp_dir().join(format!("redbit-mixer-{tag}"));
         std::fs::create_dir_all(&dir).unwrap();
         let low = dir.join("low.wav");
         let high = dir.join("high.wav");

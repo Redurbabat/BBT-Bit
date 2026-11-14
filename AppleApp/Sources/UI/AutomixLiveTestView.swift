@@ -1,7 +1,7 @@
 import SwiftUI
 import Observation
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// One genuine player observation. Deliberately excludes titles, IDs,
 /// file paths, stream URLs, account metadata and private diagnostic logs.
@@ -394,7 +394,7 @@ final class AutomixLiveTestMonitor {
                 manualPassed: nil, manualFailed: nil, manualTotal: nil),
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
             buildNumber: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown",
-            buildRevision: Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String ?? "unknown",
+            buildRevision: Bundle.main.object(forInfoDictionaryKey: "RedBitRevision") as? String ?? "unknown",
             engineBuildRevision: engineBuildRevision,
             operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString,
             startedAt: startedAt, endedAt: endedAt,

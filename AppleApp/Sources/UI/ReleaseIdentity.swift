@@ -98,10 +98,10 @@ struct AppReleaseUpdate: Identifiable {
         let matches = assets.filter { asset in
             let name = asset.name.lowercased()
             if let version {
-                let prefix = "bitchord-" + version.lowercased()
+                let prefix = "redbit-" + version.lowercased()
                 guard name == prefix + suffix || name.hasPrefix(prefix + "-") else { return false }
             }
-            return name.hasPrefix("bitchord-") && name.hasSuffix(suffix) && asset.size > 0 && asset.url != nil
+            return name.hasPrefix("redbit-") && name.hasSuffix(suffix) && asset.size > 0 && asset.url != nil
                 && !name.contains("x64") && !name.contains("x86") && !name.contains("intel")
                 && !name.contains("debug") && !name.contains("simulator")
         }

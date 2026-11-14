@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 import zipfile
 
-BUNDLE_ID = 'app.bitchord.BitChord'
+BUNDLE_ID = 'com.babat.bbtbit'
 
 
 def identity(plist):
@@ -19,7 +19,7 @@ def identity(plist):
     if not re.fullmatch(r'\d+\.\d+\.\d+', version) or not build.isdecimal() or int(build) <= 0:
         raise ValueError('Each app must have a stable version and a positive numeric build')
     if plist.get('CFBundleIdentifier') != BUNDLE_ID:
-        raise ValueError('Both installers must use the existing BitChord app identity')
+        raise ValueError('Both installers must use the existing RedBit app identity')
     return version, int(build)
 
 
@@ -35,7 +35,7 @@ def prepare(ipa, dmg, ios, mac, output):
     version, build = identity(ios)
     if identity(mac) != (version, build):
         raise ValueError('iOS and Mac must have the same version AND build; no release files were written')
-    revisions = {ios.get('BitChordRevision', 'unknown'), mac.get('BitChordRevision', 'unknown')}
+    revisions = {ios.get('RedBitRevision', 'unknown'), mac.get('RedBitRevision', 'unknown')}
     if len(revisions) != 1:
         raise ValueError('iOS and Mac must be built from the same revision')
     revision = revisions.pop()
@@ -56,7 +56,7 @@ def prepare(ipa, dmg, ios, mac, output):
 Diese Veröffentlichung enthält eine iOS-IPA und ein Apple-Silicon-Mac-DMG aus Revision {revision}.
 
 - **iPhone/iPad:** `{ipa.name}` herunterladen und mit derselben Signier-App und Identität wie die installierte RED-Bit-App signieren und installieren. Die bestehende Bundle-Identität bewahrt lokale Daten.
-- **Mac-Update:** Den Mac-Updater nur verwenden, wenn dieser RED-Bit-Build einen eigenen konfigurierten, signierten Sparkle-Feed besitzt. Andernfalls das geprüfte DMG manuell installieren. Ein ursprüngliches BitChord-Update gehört nicht über RED Bit.
+- **Mac-Update:** Den Mac-Updater nur verwenden, wenn dieser RED-Bit-Build einen eigenen konfigurierten, signierten Sparkle-Feed besitzt. Andernfalls das geprüfte DMG manuell installieren. Ein ursprüngliches RedBit-Update gehört nicht über RED Bit.
 - **Erste Mac-Installation/manuelle Wiederherstellung:** `{dmg.name}` öffnen und RED Bit nach Programme verschieben; die vorhandene App ersetzen, ohne zuvor die App oder ihre Daten zu löschen.
 
 Aktuelle Veröffentlichungen: https://github.com/Redurbabat/RED-Bit/releases/latest
@@ -84,17 +84,17 @@ def main():
     if not args.ipa.is_file() or not args.dmg.is_file():
         parser.error('Both existing installers are required')
     with zipfile.ZipFile(args.ipa) as archive:
-        ios = plistlib.loads(archive.read('Payload/BitChord.app/Info.plist'))
-    with tempfile.TemporaryDirectory(prefix='bitchord-release-') as temporary:
+        ios = plistlib.loads(archive.read('Payload/RedBit.app/Info.plist'))
+    with tempfile.TemporaryDirectory(prefix='redbit-release-') as temporary:
         mount = Path(temporary) / 'mount'
         mount.mkdir()
         subprocess.run(['hdiutil', 'attach', '-readonly', '-nobrowse', '-mountpoint', str(mount), str(args.dmg.resolve())], check=True, capture_output=True)
         try:
-            mac = plistlib.loads((mount / 'BitChord.app/Contents/Info.plist').read_bytes())
+            mac = plistlib.loads((mount / 'RedBit.app/Contents/Info.plist').read_bytes())
             result = prepare(args.ipa, args.dmg, ios, mac, args.output_dir)
         finally:
             subprocess.run(['diskutil', 'eject', str(mount)], check=True, capture_output=True)
-    print(f"Prepared BitChord {result['version']} build {result['build']}; no release was published")
+    print(f"Prepared RedBit {result['version']} build {result['build']}; no release was published")
 
 
 if __name__ == '__main__':

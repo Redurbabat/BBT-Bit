@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 /// Apple equivalent of upstream `SongActionsSheet` / `BrowseActionsSheet`:
 /// context menu on both platforms, swipe actions on iOS.
