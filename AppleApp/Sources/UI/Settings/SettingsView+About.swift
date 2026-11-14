@@ -283,8 +283,10 @@ extension SettingsView {
         rows.row("Developer", "developer", "author", "github") {
             Link("Developer", destination: URL(string: "https://github.com/Redurbabat")!)
         }
-        rows.row("RedBit-Apple-Grundlage", "redbit", "upstream", "credits") {
-            Link("RedBit-Apple-Grundlage", destination: URL(string: "https://github.com/Redurbabat/RED-Bit")!)
+        // Dank an die Apple-Grundlage: zeigt auf das fremde Projekt, von dem
+        // RED Bit abstammt, nicht auf RED Bit selbst.
+        rows.row("BitChord-Apple-Grundlage", "bitchord", "upstream", "credits") {
+            Link("BitChord-Apple-Grundlage", destination: URL(string: "https://github.com/bagumamartin/BitChord")!)
         }
         rows.row("Open-source licenses", "open source", "licenses", "license", "acknowledgements", "third party") {
             PushLink {

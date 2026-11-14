@@ -2754,12 +2754,12 @@
     "RED BIT REPLAY" : {
 
     },
-    "RedBit-Apple-Grundlage" : {
+    "BitChord-Apple-Grundlage" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "RedBit-Apple-Grundlage"
+            "value" : "BitChord-Apple-Grundlage"
           }
         }
       }

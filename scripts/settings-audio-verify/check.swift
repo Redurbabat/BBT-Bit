@@ -22,7 +22,9 @@ import Foundation
   let good = ReleaseAsset(name: "RedBit-1.0.4-build13-ios-unsigned.ipa", browser_download_url: "https://github.com/Redurbabat/RED-Bit/releases/download/v1.0.4/app.ipa", size: 10)
   let bad = ReleaseAsset(name: good.name, browser_download_url: "https://example.invalid/app.ipa", size: 10)
   precondition(bad.url == nil)
-  let foreign = ReleaseAsset(name: good.name, browser_download_url: "https://github.com/Redurbabat/RED-Bit/releases/download/v1.0.4/app.ipa", size: 10)
+  // Fremdes Projekt: Die Adresse muss abgelehnt werden und darf deshalb nicht
+  // die eigene sein; die Umbenennung hatte beide gleichgemacht.
+  let foreign = ReleaseAsset(name: good.name, browser_download_url: "https://github.com/bagumamartin/BitChord/releases/download/v1.0.4/app.ipa", size: 10)
   precondition(foreign.url == nil && good.url != nil)
   precondition(AppReleaseUpdate.legacyAsset(platform: "ios", assets: [good])?.name == good.name)
   precondition(AppReleaseUpdate.legacyAsset(platform: "ios", assets: [good,good]) == nil)
