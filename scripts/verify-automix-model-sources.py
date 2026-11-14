@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REPO = "Redurbabat/RED-Bit"
+REPO = "bagumamartin/BitChord"
 BASE = f"https://github.com/{REPO}/releases/download"
 MODELS = (
     ("beat", "BEAT", "model-beat-this-final0-v1", "beat_this_full_int8.onnx",

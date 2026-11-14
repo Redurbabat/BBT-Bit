@@ -78,7 +78,7 @@ jobs:
           assert 'CFBundleDisplayName: RED Bit' in p
           assert re.search(r'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"', p)
           package = Path('scripts/package-ios-ipa.sh').read_text()
-          assert 'BBT-Bit-$version-' in package
+          assert 'RedBit-$version-' in package
           assert 'COMPILATION_CACHE_ENABLE_CACHING=YES' in package
           assert '--fast)' in package
           # Verify real-device test target and launch-only harness are wired.
