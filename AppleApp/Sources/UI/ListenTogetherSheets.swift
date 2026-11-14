@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import CoreImage
 import CoreImage.CIFilterBuiltins
 #if os(iOS)

@@ -1,12 +1,7 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
-/// The promoted result: what YouTube Music says the listener meant.
-///
-/// A card rather than a row, because the thing it carries is the *answer* to the
-/// query — a heading above a list of equally plausible rows is what tells someone
-/// "not those, this one". The row list below is the other reading of the same
-/// words, not a continuation of this one.
+/// Das hervorgehobene Suchergebnis mit getrennten Wiedergabe- und Playlist-Aktionen.
 struct TopResultSection: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
@@ -75,6 +70,7 @@ struct TopResultSection: View {
         }
         // Aktionen bleiben für VoiceOver einzeln erreichbar.
         .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("bbt.search.topResult")
     }
 
     @ViewBuilder
@@ -156,13 +152,17 @@ struct TopResultSection: View {
                 playButton
                 addToPlaylistButton
             }
-            .fixedSize(horizontal: true, vertical: false)
+            .fixedSize(horizontal: true, vertical: true)
 
             VStack(alignment: .leading, spacing: 8) {
                 playButton
                 addToPlaylistButton
             }
         }
+        // List bietet der Zeile bei der Messung auch große Höhen an.
+        // Die Aktionsleiste braucht ihre Texthöhe, nicht diese verfügbare Höhe.
+        .fixedSize(horizontal: false, vertical: true)
+        .labelStyle(.titleAndIcon)
     }
 
     private var playButton: some View {
@@ -170,8 +170,10 @@ struct TopResultSection: View {
             Label("Play", systemImage: "play.fill")
                 .font(.callout.weight(.semibold))
                 .frame(minHeight: 44)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .buttonStyle(.bordered)
+        .accessibilityIdentifier("bbt.search.topResult.play")
     }
 
     private var addToPlaylistButton: some View {
@@ -191,8 +193,10 @@ struct TopResultSection: View {
             Label("Add to Playlist", systemImage: "text.badge.plus")
                 .font(.callout.weight(.semibold))
                 .frame(minHeight: 44)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .buttonStyle(.bordered)
+        .accessibilityIdentifier("bbt.search.topResult.playlist")
         .disabled(hit.videoId == nil)
     }
 

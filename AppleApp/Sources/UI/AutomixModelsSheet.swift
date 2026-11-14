@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 /// Whether an Automix model download may use the connection in hand.
 @MainActor

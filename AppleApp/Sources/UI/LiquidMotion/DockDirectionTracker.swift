@@ -1,53 +1,52 @@
 import Foundation
 
-/// Reversals are detected while the same finger is still dragging, instead
-/// of waiting for another touch-down. Navigation stays owned by the system.
+/// Erkennt Richtungswechsel innerhalb einer Berührung; die Navigation bleibt nativ.
 enum DockScrollDirection: Equatable {
     case towardTop
     case towardBottom
 }
 
-/// Offline-testable hysteresis; excludes tiny scroll noise and initial layout
-/// adjustments. SwiftUI's scroll phase determines whether a finger is active.
+/// Misst den Weg ab dem letzten Wendepunkt statt einzelne Bilddeltas zu filtern.
+/// So bleiben langsame Gesten erkennbar, ohne auf Mikrozittern zu reagieren.
 final class DockDirectionTracker {
     private(set) var isInteracting = false
-    private var previousOffset: CGFloat?
-    private var pendingDirection: DockScrollDirection?
-    private var pendingDistance: CGFloat = 0
+    private var turningOffset: CGFloat?
     private var lastEmittedDirection: DockScrollDirection?
 
     func begin(at offset: CGFloat) {
         isInteracting = true
-        previousOffset = offset
-        pendingDirection = nil
-        pendingDistance = 0
+        turningOffset = offset.isFinite ? offset : nil
         lastEmittedDirection = nil
     }
 
     func end() {
         isInteracting = false
-        previousOffset = nil
-        pendingDirection = nil
-        pendingDistance = 0
+        turningOffset = nil
         lastEmittedDirection = nil
     }
 
     func sample(_ offset: CGFloat) -> DockScrollDirection? {
-        guard isInteracting, let previousOffset else { return nil }
-        self.previousOffset = offset
-        let delta = offset - previousOffset
-        guard abs(delta) > 0.75 else { return nil }
-
-        // Scrolling toward earlier content decreases the content offset.
-        let direction: DockScrollDirection = delta < 0 ? .towardTop : .towardBottom
-        if pendingDirection != direction {
-            pendingDirection = direction
-            pendingDistance = 0
+        guard isInteracting, offset.isFinite else { return nil }
+        guard let turningOffset else {
+            self.turningOffset = offset
+            return nil
         }
-        pendingDistance += abs(delta)
-        guard pendingDistance >= 13, lastEmittedDirection != direction else { return nil }
+        // Nach einer bestätigten Richtung den äußersten Punkt mitführen.
+        // Erst 13 pt Gegenbewegung dürfen eine neue Richtung auslösen.
+        if lastEmittedDirection == .towardBottom, offset > turningOffset {
+            self.turningOffset = offset
+            return nil
+        }
+        if lastEmittedDirection == .towardTop, offset < turningOffset {
+            self.turningOffset = offset
+            return nil
+        }
+        let distance = offset - turningOffset
+        guard abs(distance) >= 13 else { return nil }
+        let direction: DockScrollDirection = distance < 0 ? .towardTop : .towardBottom
+        guard lastEmittedDirection != direction else { return nil }
         lastEmittedDirection = direction
-        pendingDistance = 0
+        self.turningOffset = offset
         return direction
     }
 }

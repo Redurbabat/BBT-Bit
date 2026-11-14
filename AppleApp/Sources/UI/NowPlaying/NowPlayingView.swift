@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 import AVKit
 import CoreImage
@@ -23,6 +23,7 @@ struct NowPlayingView: View {
     @Environment(PartyStore.self) var party
     @Environment(\.dismiss) var dismiss
     @Environment(\.accessibilityReduceMotion) var reduceMotion
+    @Environment(\.dynamicTypeSize) var dynamicTypeSize
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
@@ -38,6 +39,7 @@ struct NowPlayingView: View {
     @State var trailingInset: CGFloat = 0
     #endif
     @State var lyricsControlsOpen = true
+    @State private var artworkHistory = ArtworkTransitionHistory()
     @State var lyricsControlActivity = 0
     @State var lyricsScrubbing = false
     @State var volumeDragging = false
@@ -71,6 +73,7 @@ struct NowPlayingView: View {
             iOSBody
             #endif
         }
+        .environment(\.artworkTransitionHistory, artworkHistory)
         #if os(iOS)
         .statusBarHidden(hideStatusBarInPlayer)
         #endif
@@ -102,6 +105,7 @@ struct NowPlayingView: View {
         .onReceive(NotificationCenter.default.publisher(for: .lyricsOffsetChanged)) { _ in
             lyricsOffsetMs = LyricsOffsetBridge.offsetMs()
         }
+        .onAppear { AppTestEvents.emit(.playerNavigation, .success, .screenDisplayed) }
         .onChange(of: appModel.queueRevealRequested) { _, requested in
             if requested {
                 withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { pane = .queue }
@@ -120,6 +124,9 @@ struct NowPlayingView: View {
                 lyricsControlsOpen = true
                 lyricsControlActivity += 1
             }
+        }
+        .onChange(of: lyricsConstellation) { _, enabled in
+            if enabled { pane = .lyrics }
         }
         .task(id: lyricsControlActivity) {
             while pane == .lyrics, lyricsControlsOpen {

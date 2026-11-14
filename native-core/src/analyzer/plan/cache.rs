@@ -123,7 +123,7 @@ pub(super) mod analysis_cache {
         #[cfg(not(test))]
         std::env::var_os("HOME")
             .map(std::path::PathBuf::from)
-            .map(|home| home.join("Library/Caches/BitChord/Analysis"))
+            .map(|home| home.join("Library/Caches/RedBit/Analysis"))
     }
 
     #[cfg(test)]
@@ -342,6 +342,66 @@ pub(super) mod analysis_cache {
             }
         })
     }
+
+    /// Nur vorhandene Beat-Marker der unveränderten Datei lesen; kein Decode,
+    /// kein Modellstart und kein Warten auf eine laufende Analyse.
+    pub(crate) fn cached_beat_times(path: &str) -> Vec<f64> {
+        let norm_path = path.strip_prefix("file://").unwrap_or(path);
+        if !std::fs::metadata(norm_path).is_ok_and(|metadata| metadata.is_file()) {
+            return Vec::new();
+        }
+        let (size, modified) = file_identity(norm_path);
+        let guard = cache().lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        beat_times_for_identity(&guard, norm_path, size, modified)
+    }
+
+    fn beat_times_for_identity(guard: &Cache, norm_path: &str, size: u64, modified: u64) -> Vec<f64> {
+        let mut beats = guard.order.iter().rev().find_map(|key| {
+            let key_path = key.0.strip_prefix("file://").unwrap_or(&key.0);
+            (key_path == norm_path && key.1 == size && key.2 == modified)
+                .then(|| guard.entries.get(key).map(|analysis| analysis.beats.clone()))
+                .flatten()
+        }).unwrap_or_default();
+        beats.retain(|time| time.is_finite() && *time >= 0.0);
+        beats.sort_by(f64::total_cmp);
+        beats.dedup();
+        beats
+    }
+
+    #[cfg(test)]
+    mod beat_snapshot_tests {
+        use super::*;
+
+        #[test]
+        fn beat_snapshot_is_read_only_finite_and_rejects_changed_audio() {
+            // Eigener Cache: andere parallel laufende Tests dürfen den globalen
+            // Cache leeren, ohne diesen Nachweis zufällig zu beeinflussen.
+            let path = std::env::temp_dir().join(format!("red-bit-beat-snapshot-{}.bin", std::process::id()));
+            std::fs::write(&path, b"original").unwrap();
+            let source = path.to_string_lossy().to_string();
+            let (size, modified) = file_identity(&source);
+            let mut isolated = Cache::default();
+            assert!(beat_times_for_identity(&isolated, &source, size, modified).is_empty());
+            let key = (source.clone(), size, modified, 30.0_f64.to_bits(), "fixture".into(), true);
+            isolated.entries.insert(key.clone(), Arc::new(Analysis {
+                beats: vec![1.0, 0.5, f64::NAN, -1.0, 0.5, f64::INFINITY],
+                ..Default::default()
+            }));
+            isolated.order.push_back(key);
+            assert_eq!(beat_times_for_identity(&isolated, &source, size, modified), vec![0.5, 1.0]);
+            assert_eq!(isolated.entries.len(), 1);
+            assert!(isolated.in_flight.is_empty());
+            std::fs::write(&path, b"changed and longer").unwrap();
+            let (changed_size, changed_modified) = file_identity(&source);
+            assert!(beat_times_for_identity(&isolated, &source, changed_size, changed_modified).is_empty());
+            std::fs::remove_file(path).unwrap();
+            assert!(cached_beat_times(&format!("file://{source}")).is_empty());
+        }
+    }
+}
+
+pub fn cached_beat_times(path: &str) -> Vec<f64> {
+    analysis_cache::cached_beat_times(path)
 }
 
 pub(crate) fn clear_analysis_cache() {

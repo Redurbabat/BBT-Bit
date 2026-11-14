@@ -45,7 +45,7 @@ pub(super) fn rise_gain(progress: f64) -> f32 {
     (progress.clamp(0.0, 1.0) * core::f64::consts::PI / 2.0).sin() as f32
 }
 
-/// BitChord v1.9.1 trims two simultaneously playing masters by
+/// RedBit v1.9.1 trims two simultaneously playing masters by
 /// `1 / sqrt(incoming + outgoing)` in its CrossfadeController. The same
 /// reduction is applied once to the mixed stereo bus, ahead of the limiter,
 /// rather than multiplying each decoder's samples individually.

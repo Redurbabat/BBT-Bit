@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 func check(_ value: Bool, _ message: String) {
     guard value else { fatalError(message) }; print("PASS \(message)")
 }

@@ -25,7 +25,7 @@ SKILLS = {
     "swiftui-ux-auditor", "bbt-player", "bbt-streaming", "bbt-audio-engine",
     "bbt-liquid-motion", "bbt-ios-testing", "bbt-release", "bbt-apple-xcode",
 }
-FRAMEWORKS = {"BitChordShared", "NativeCoreFFI"}
+FRAMEWORKS = {"RedBitShared", "NativeCoreFFI"}
 PROJECT = "AppleApp/project.yml"
 VERSION = r"[0-9]+\.[0-9]+\.[0-9]+"
 VERSION_KEYS = ("MARKETING_VERSION", "CURRENT_PROJECT_VERSION")
@@ -149,7 +149,7 @@ def check_version(project):
     version, build = (str(base[key]) for key in VERSION_KEYS)
     require(re.fullmatch(VERSION, version) and re.fullmatch(r"[1-9][0-9]*", build),
             f"{PROJECT}: expected MAJOR.MINOR.PATCH and a positive integer build")
-    for target in ("BitChord", "BitChordWidget"):
+    for target in ("RedBit", "RedBitWidget"):
         plist = project["targets"][target]["info"]["properties"]
         for field, setting in zip(("CFBundleShortVersionString", "CFBundleVersion"), VERSION_KEYS):
             require(plist.get(field) == f"$({setting})",
@@ -167,23 +167,23 @@ def check_version(project):
             "version.md and version.json statuses differ")
     if status == "published":
         url = record.get("release_url", "")
-        require(re.fullmatch(r"https://github\.com/Redurbabat/BBT-Bit/releases/tag/[^/\s]+", url)
+        require(re.fullmatch(r"https://github\.com/Redurbabat/(?:RED-Bit|BBT-Bit)/releases/tag/[^/\s]+", url)
                 and url in section[2], "published version needs its GitHub release URL in both files")
 
 
 def check_boundaries(project):
-    app = project["targets"]["BitChord"]
-    widget = project["targets"]["BitChordWidget"]
+    app = project["targets"]["RedBit"]
+    widget = project["targets"]["RedBitWidget"]
     apple_frameworks = {f"Frameworks/{name}.xcframework" for name in FRAMEWORKS}
     app_frameworks = {item.get("framework") for item in app["dependencies"]}
     require(apple_frameworks <= app_frameworks, "app must link both native XCFrameworks")
-    require(any(dep.get("target") == "BitChordWidget" and dep.get("embed") is True
-                for dep in app["dependencies"]), "app must embed BitChordWidget")
+    require(any(dep.get("target") == "RedBitWidget" and dep.get("embed") is True
+                for dep in app["dependencies"]), "app must embed RedBitWidget")
     require(not widget.get("dependencies"),
-            "BitChordWidget must remain independent of app and native targets")
+            "RedBitWidget must remain independent of app and native targets")
     require(all((item if isinstance(item, str) else item["path"]) in {"Sources/Widget", "Sources/Shared"}
                 for item in widget["sources"]),
-            "BitChordWidget must use only Widget and Shared sources")
+            "RedBitWidget must use only Widget and Shared sources")
 
     imports = re.compile(
         r"^[ \t]*(?:@\w+[ \t]+)*import[ \t]+"
@@ -191,7 +191,7 @@ def check_boundaries(project):
     )
     for area in ("Widget", "Shared"):
         for path in (ROOT / "AppleApp/Sources" / area).rglob("*.swift"):
-            require(not (set(imports.findall(read(path))) & (FRAMEWORKS | {"BitChord"})),
+            require(not (set(imports.findall(read(path))) & (FRAMEWORKS | {"RedBit"})),
                     f"{path.relative_to(ROOT)}: widget/shared source imports an app dependency")
 
     shared_edges = set(re.findall(r'project\s*\(\s*"(:[^"]+)"', read("shared/build.gradle.kts")))

@@ -2,7 +2,7 @@ import Foundation
 import CryptoKit
 import ImageIO
 import UniformTypeIdentifiers
-import BitChordShared
+import RedBitShared
 
 /// One bounded cover beside each saved audio file. A URL/credential digest
 /// joins display sizes; the audio file, rather than the image LRU, owns retention.
@@ -17,8 +17,8 @@ actor OfflineArtworkStore {
     init(audioDirectories: [URL]? = nil, imageDirectory: URL? = nil) {
         let files = FileManager.default
         self.audioDirectories = audioDirectories ?? [
-            files.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("BitChord/audio"),
-            files.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("BitChord/Downloads/audio")
+            files.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("RedBit/audio"),
+            files.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("RedBit/Downloads/audio")
         ]
         self.imageDirectory = imageDirectory ?? DiskCache.cachesSubfolder("images")
     }

@@ -16,11 +16,11 @@ cache = (repo / 'AppleApp/Sources/PlaybackSession/StreamFileCache.swift').read_t
 (work / 'DiskCache.swift').write_text('import Foundation\nimport CryptoKit\n' + cache[cache.index('enum DiskCache {'):])
 PY
 native="$repo/AppleApp/Frameworks/NativeCoreFFI.xcframework/macos-arm64"
-shared="$repo/AppleApp/Frameworks/BitChordShared.xcframework/macos-arm64"
+shared="$repo/AppleApp/Frameworks/RedBitShared.xcframework/macos-arm64"
 xcrun swiftc -O -disable-sandbox -parse-as-library -module-cache-path "$work/modules" -o "$work/verify" \
- -F "$native" -framework NativeCoreFFI -F "$shared" -framework BitChordShared \
+ -F "$native" -framework NativeCoreFFI -F "$shared" -framework RedBitShared \
  -framework CoreAudio -framework AudioToolbox -framework JavaScriptCore \
- -Xlinker -rpath -Xlinker "$shared/BitChordShared.framework/Versions/A" \
+ -Xlinker -rpath -Xlinker "$shared/RedBitShared.framework/Versions/A" \
  "$repo/AppleApp/Generated/NativeCore.swift" "$work/ModuleJsEngine.swift" \
  "$repo/AppleApp/Sources/PlaybackSession/LocalArtwork.swift" \
  "$repo/AppleApp/Sources/PlaybackSession/OfflineArtworkStore.swift" \

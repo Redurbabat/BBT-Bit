@@ -1,16 +1,23 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// Swift wrappers over `LibraryActionsBridge` (likes, playlists, library save).
 @MainActor
 enum LibraryActions {
     static func rate(videoId: String, status: String) async -> String? {
+        let generation = PageSession.generation()
+        let wasLiked = cachedLike(videoId) == "LIKE"
         LikeStore.shared.set(videoId, status)
-        return await withCheckedContinuation { cont in
+        let failure: String? = await withCheckedContinuation { cont in
             LibraryActionsBridge.shared.rate(videoId: videoId, status: status, callback: DoneCB { ok, msg in
                 cont.resume(returning: ok ? nil : (msg ?? "YouTube could not update this rating."))
             })
         }
+        if failure == nil, status == "LIKE", !wasLiked, cachedLike(videoId) == "LIKE",
+           generation == PageSession.generation() {
+            MusicConfirmation.shared.savedFavorite(videoId)
+        }
+        return failure
     }
 
     /// Toggle the heart on `videoId` — write the rating to the screen first and

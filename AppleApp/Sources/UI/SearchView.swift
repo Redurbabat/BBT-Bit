@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 
 /// One recent search, stored as an entity rather than a raw query string:
 /// the exact identity (id, artwork, type) of what was tapped, so recents
@@ -444,7 +444,7 @@ struct SearchView: View {
     enum Scope: String, CaseIterable, Identifiable, Codable {
         /// YouTube Music's mixed page — the only one with a promoted card, and so
         /// the only one a top result is shown for.
-        case all, songs, videos, albums, artists, playlists
+        case all, songs, videos, albums, artists, playlists, podcasts
 
         var id: String { rawValue }
 
@@ -519,9 +519,9 @@ struct SearchView: View {
                     isPresented: $isSearchPresented,
                     focused: $searchFieldFocused,
                     onSubmit: {
+                        searchFieldFocused = false
                         Task {
                             await performSearch()
-                            searchFieldFocused = false
                         }
                     }
                 ))
@@ -927,9 +927,11 @@ struct SearchView: View {
                     }
                 }
                 .listStyle(.plain)
+                #if os(iOS)
                 // Top-Ergebnis und Songliste gehören zu einem zusammenhängenden
                 // Ergebnisstrom: keine große Systemlücke zwischen den Sections.
                 .listSectionSpacing(.compact)
+                #endif
                 .listSectionSeparator(.hidden)
                 .scrollContentBackground(.hidden)
                 // Upstream's `scrollResetTrigger`: one list whose contents change,
@@ -1328,7 +1330,9 @@ struct SearchView: View {
     private func searchHitRow(_ hit: SearchHitDTO) -> some View {
         Group {
             if hit.isBrowse, let browseId = hit.browseId {
-                PushLink(destination: DetailView(browseId: browseId, initialTitle: hit.title)) {
+                NativeCardZoomLink(id: browseId) {
+                    DetailView(browseId: browseId, initialTitle: hit.title)
+                } label: {
                     browseRow(hit)
                 }
                 .buttonStyle(.plain)
@@ -1381,7 +1385,9 @@ struct SearchView: View {
     private func typeaheadRow(_ hit: SearchHitDTO) -> some View {
         Group {
             if hit.isBrowse, let browseId = hit.browseId {
-                PushLink(destination: DetailView(browseId: browseId, initialTitle: hit.title)) {
+                NativeCardZoomLink(id: browseId) {
+                    DetailView(browseId: browseId, initialTitle: hit.title)
+                } label: {
                     browseRow(hit)
                 }
                 .buttonStyle(.plain)
@@ -1886,6 +1892,8 @@ struct SearchView: View {
     /// Maps a browse hit's type to the entity type the recents list files it
     /// under — album, artist, playlist, or a track carrying a browse id.
     private func browseEntityType(_ hit: SearchHitDTO) -> String {
+        // Podcast-Sendungen („MPSP…“) öffnen dieselbe Sammlungsseite wie Playlists.
+        if hit.browseId?.hasPrefix("MPSP") == true { return "PLAYLIST" }
         switch (hit.browseType ?? "").uppercased() {
         case "ALBUM": return "ALBUM"
         case "ARTIST": return "ARTIST"
@@ -1924,6 +1932,7 @@ struct SearchView: View {
         requestToken &+= 1
         searchedTerm = term
         let wanted = scope
+        let probe = AppTestEvents.begin(.search)
         let task = Task { @MainActor in
             do {
                 let page = try await InnertubeSearch.shared.searchPage(term, scope: wanted.rawValue)
@@ -1937,11 +1946,13 @@ struct SearchView: View {
                 // checked before the request.
                 guard !Task.isCancelled else { return }
                 hits = found
+                AppTestEvents.finish(probe, .success, .responseReceived)
                 searchContinuationToken = page.continuation
             } catch {
                 guard !Task.isCancelled else { return }
                 AuthController.reportIfSessionExpired(error)
                 searchError = "Couldn't reach the music service. Check your connection and try again."
+                AppTestEvents.finish(probe, .failure, .requestFailed)
                 hits = []
                 searchContinuationToken = nil
             }
@@ -1969,14 +1980,17 @@ struct SearchView: View {
         searchedTerm = term
         AddonSearchHistory.record(term)
         addonHistory = AddonSearchHistory.load()
+        let probe = AppTestEvents.begin(.search)
         let task = Task { @MainActor in
             do {
                 let found = try await SourceSearch.shared.addons(term)
                 guard !Task.isCancelled else { return }
                 addonHits = found
+                AppTestEvents.finish(probe, .success, .responseReceived)
             } catch {
                 guard !Task.isCancelled else { return }
                 addonError = "Couldn't reach your sources. \(error.localizedDescription)"
+                AppTestEvents.finish(probe, .failure, .requestFailed)
                 addonHits = []
             }
             searchingAddons = false

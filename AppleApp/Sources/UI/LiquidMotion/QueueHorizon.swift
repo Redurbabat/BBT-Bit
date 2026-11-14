@@ -6,8 +6,19 @@ struct QueueHorizon: View {
     let onSelect: (Int) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var focusedIndex = 0
+    @Environment(PartyStore.self) private var party
+    /// Fortlaufende Fokusposition ohne Umbruch. Daraus entsteht je Karte eine
+    /// „Runde“; wechselt sie, blendet die Karte am anderen Rand neu ein, statt
+    /// quer durch das Karussell zu fliegen (vor allem bei kurzen Queues sichtbar).
+    @State private var focusVirtual = 0
     @GestureState private var dragOffset: CGFloat = 0
+
+    private var focusedIndex: Int { entries.isEmpty ? 0 : wrapped(focusVirtual, count: entries.count) }
+
+    private struct Slot: Hashable {
+        let index: Int
+        let lap: Int
+    }
 
     private let cardWidth: CGFloat = 154
     private let cardHeight: CGFloat = 190
@@ -26,12 +37,24 @@ struct QueueHorizon: View {
                     accessibleStrip
                 } else {
                     carousel
+                    HStack(spacing: 14) {
+                        Button { focus(focusedIndex - 1) } label: {
+                            Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                        }.accessibilityLabel("Previous track")
+                        Button("Play selected track") {
+                            guard entries.indices.contains(focusedIndex) else { return }
+                            onSelect(focusedIndex)
+                        }.frame(minHeight: 44).disabled(party.state.controlsLocked)
+                        Button { focus(focusedIndex + 1) } label: {
+                            Image(systemName: "chevron.right").frame(width: 44, height: 44)
+                        }.accessibilityLabel("Next track")
+                    }.buttonStyle(.plain).frame(maxWidth: .infinity)
                 }
             }
         }
         .background { LiquidLiveCaptureMarker(id: "queue") }
         .onChange(of: entries.count) { _, count in
-            focusedIndex = min(focusedIndex, max(0, count - 1))
+            focusVirtual = min(focusedIndex, max(0, count - 1))
         }
     }
 
@@ -51,8 +74,8 @@ struct QueueHorizon: View {
             let availableWidth = geometry.size.width
             let visibleStep = min(step, max(76, (availableWidth - cardWidth) * 0.44))
             ZStack {
-                ForEach(entries.indices, id: \.self) { index in
-                    carouselItem(index: index, visibleStep: visibleStep)
+                ForEach(slots, id: \.self) { slot in
+                    carouselItem(index: slot.index, visibleStep: visibleStep)
                 }
             }
             .frame(width: availableWidth, height: geometry.size.height)
@@ -79,7 +102,7 @@ struct QueueHorizon: View {
                 }
             }
         }
-        .frame(height: cardHeight + 24)
+        .frame(height: cardHeight + 80)
     }
 
     /// Keep the SwiftUI type-checker away from a nested ForEach + 3D transform.
@@ -91,12 +114,15 @@ struct QueueHorizon: View {
         if distance < 2.6 {
             let scale: CGFloat = max(0.74, 1 - distance * 0.14)
             let angle: Angle = .degrees(Double(-relative * 32))
-            let xOffset: CGFloat = relative * visibleStep
-            let yOffset: CGFloat = distance * 8
+            let theta = Double(relative) * 24 * .pi / 180
+            let radius = max(visibleStep * 2.1, 150)
+            let xOffset: CGFloat = sin(theta) * radius
+            let yOffset: CGFloat = (1 - cos(theta)) * radius
             let alpha: Double = Double(max(0.12, 1 - distance * 0.30))
             card(entries[index], index: index)
                 .scaleEffect(scale)
                 .rotation3DEffect(angle, axis: (x: 0, y: 1, z: 0), perspective: 0.55)
+                .rotationEffect(.degrees(Double(relative) * 9))
                 .offset(x: xOffset, y: yOffset)
                 .opacity(alpha)
                 .zIndex(10 - Double(distance))
@@ -133,14 +159,29 @@ struct QueueHorizon: View {
             }
         }
         .buttonStyle(.plain)
+        .disabled(party.state.controlsLocked)
         .accessibilityLabel("\(entry.title), \(entry.artist)")
-        .accessibilityHint("Titel auswählen oder abspielen")
+        .accessibilityHint(
+            reduceMotion || focusedIndex == index
+                ? "Doppeltippen, um den Titel abzuspielen"
+                : "Doppeltippen, um diesen Titel im Karussell zu fokussieren"
+        )
     }
 
     private func focus(_ index: Int) {
         guard !entries.isEmpty else { return }
+        let target = wrapped(index, count: entries.count)
         withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.84)) {
-            focusedIndex = wrapped(index, count: entries.count)
+            focusVirtual += relativeIndex(target, count: entries.count)
+        }
+    }
+
+    private var slots: [Slot] {
+        let count = entries.count
+        guard count > 0 else { return [] }
+        return entries.indices.map { index in
+            let position = focusVirtual + relativeIndex(index, count: count)
+            return Slot(index: index, lap: (position - index) / count)
         }
     }
 

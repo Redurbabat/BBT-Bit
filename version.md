@@ -4,6 +4,7 @@
 
 **Status:** `candidate`
 
+- 2026-11-14 · Interne Namen heißen RED Bit ([E-024](ENTSCHEIDUNGEN.md)); Version und Build bleiben. Alte Daten werden beim ersten Start übernommen, auf dem iPhone geprüft.
 - 2026-11-04 · Der Architekturbranch führt Agentenregeln, native SwiftUI-Skills und Prüfungen ein. Die Versionsnummer und Buildnummer bleiben bei den vorhandenen Werten.
 - 2026-11-04 · Der Ausgangsstand enthält Cover Morph, Glass Bloom und Änderungen zur YouTube-Extraktions-Recovery. Die Nachweise stehen in den jeweiligen Berichten. [Cover Morph](docs/cover-morph-video-comparison.md) · [Glass Bloom](docs/glass-bloom-motion-lab.md) · [Recovery](docs/iphone-youtube-extraction-recovery-20261104.md)
 

@@ -3,7 +3,7 @@ import NowPlaying
 import Observation
 import SwiftUI
 
-/// A real, audible local player with no BitChord engine, shared library, queue,
+/// A real, audible local player with no RedBit engine, shared library, queue,
 /// artwork downloader, MediaPlayer publisher, or remote media extension.
 @main
 struct ProbeApp: App {

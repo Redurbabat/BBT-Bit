@@ -157,6 +157,11 @@ jobs:
         run: |
           set -euo pipefail
           for file in AppleApp/Sources/UI/LiquidMotion/*.swift \
+                      AppleApp/Sources/UI/NowPlaying/ConstellationGeometry.swift \
+                      AppleApp/Sources/UI/NowPlaying/LyricsConstellationView.swift \
+                      AppleApp/Sources/UI/NowPlaying/RhythmicConstellationCanvas.swift \
+                      AppleApp/Sources/UI/NowPlaying/CreativeMotionPreviewView.swift \
+                      AppleApp/Sources/UI/KeyboardPlaybackClearance.swift \
                       AppleApp/Sources/UI/NowPlaying/CoverMorphArtworkContext.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift \
                       AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift \
@@ -179,6 +184,9 @@ jobs:
           swiftc -frontend -parse AppleApp/Sources/UI/RootView.swift
           swiftc -frontend -parse AppleApp/Sources/UI/AccountProfileSheet.swift
 
+      - name: Metal-Toolchain für die Kartenbiegung bereitstellen
+        run: bash scripts/ensure-metal-toolchain.sh
+
       - name: Verify Swift error handling and stream recovery
         run: |
           bash scripts/check-network-errors.sh
@@ -190,8 +198,8 @@ jobs:
         run: |
           set -euo pipefail
           CONFIG=debug bash scripts/retry-transient.sh ./scripts/build-shared-framework.sh
-          test -d AppleApp/Frameworks/BitChordShared.xcframework
-          /usr/libexec/PlistBuddy -c "Print :AvailableLibraries" AppleApp/Frameworks/BitChordShared.xcframework/Info.plist
+          test -d AppleApp/Frameworks/RedBitShared.xcframework
+          /usr/libexec/PlistBuddy -c "Print :AvailableLibraries" AppleApp/Frameworks/RedBitShared.xcframework/Info.plist
           # It must include an iOS Simulator variant, not only iphoneos.
 
       - name: Build Rust simulator framework and Swift UniFFI bindings
@@ -210,7 +218,7 @@ jobs:
         run: |
           set -euo pipefail
           xcodegen generate --spec AppleApp/project.yml
-          test -d AppleApp/BitChord.xcodeproj
+          test -d AppleApp/RedBit.xcodeproj
           xcrun simctl list -j devices available > "$RESULT_DIR/available-simulators.json"
           python3 - <<'PY'
           import json, os
@@ -248,8 +256,8 @@ jobs:
           # Xcode-Build schon vor dem Kompilieren scheitern. Gleicher derivedDataPath
           # wie im Build, damit er die aufgelösten Pakete wiederverwendet.
           bash scripts/retry-transient.sh xcodebuild -resolvePackageDependencies \
-            -project AppleApp/BitChord.xcodeproj \
-            -scheme BitChord \
+            -project AppleApp/RedBit.xcodeproj \
+            -scheme RedBit \
             -derivedDataPath "$RUNNER_TEMP/BBT-Bit-DerivedData"
 
       - name: Xcode build and XCUITest - 15 preview screens and screenshots
@@ -259,8 +267,8 @@ jobs:
           set -uo pipefail
           set +e
           xcodebuild \
-            -project AppleApp/BitChord.xcodeproj \
-            -scheme BitChord \
+            -project AppleApp/RedBit.xcodeproj \
+            -scheme RedBit \
             -configuration Debug \
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
@@ -273,6 +281,29 @@ jobs:
             test 2>&1 | tee "$RESULT_DIR/xcodebuild.log"
           status="${PIPESTATUS[0]}"
           echo "TEST_EXIT_CODE=$status" >> "$GITHUB_ENV"
+          exit "$status"
+
+      - name: Gemeinsame SwiftUI-Oberfläche auch für macOS kompilieren
+        if: ${{ !cancelled() && steps.kotlin_framework.outcome == 'success' && steps.rust_framework.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          xcodebuild \
+            -project AppleApp/RedBit.xcodeproj \
+            -scheme RedBit \
+            -configuration Debug \
+            -sdk macosx \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/BBT-Bit-Mac-DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tee "$RESULT_DIR/macos-build.log"
+          status="${PIPESTATUS[0]}"
+          if [[ "$status" -eq 0 ]]; then
+            printf '\nmacOS-App-Kompilierung: **BESTANDEN**. Hardware und Audio: **NICHT GETESTET**.\n' >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf '\nmacOS-App-Kompilierung: **FEHLGESCHLAGEN**. Siehe macos-build.log im Prüfartefakt.\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit "$status"
 
       - name: Export screenshots and machine-readable test report

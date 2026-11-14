@@ -128,7 +128,7 @@ struct LicenseAcknowledgementsView: View {
     var body: some View {
         List {
             Section {
-                Text("BitChord is derived from the Android project by Kushagra Singh. The Apple-platform port and original additions are Copyright © 2026 Martin BAGUMA.")
+                Text("RED Bit is derived from the Android project by Kushagra Singh. The Apple-platform port and original additions are Copyright © 2026 Martin BAGUMA.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Link("Full third-party notices", destination: URL(string: "https://github.com/bagumamartin/BitChord/blob/main/THIRD_PARTY_NOTICES.md")!)

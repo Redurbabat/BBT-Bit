@@ -23,7 +23,10 @@ pub(super) struct TransitionState {
     pub(super) fade_frames: u64,
     pub(super) handed_off: bool,
     pub(super) plan: TransitionPlan,
-    pub(super) arm_deadline: Instant,
+    /// Wo der laufende Titel beim Vorbereiten des nächsten stand. Die Frist für
+    /// die Überblendung zählt abgespielte Musik, nicht Uhrzeit: Pause oder ein
+    /// puffernder Stream dürfen den vorbereiteten Titel nicht verwerfen.
+    pub(super) arm_position_s: f64,
     /// A same-track source swap (quality upgrade / alternate version) rather
     /// than a queue advance. Upstream fades these with a plain equal-power
     /// curve and no filter ride — filtering a track against itself would edit
@@ -70,7 +73,7 @@ pub(super) struct MixerState {
     pub(super) sleep_gain: f32,
     pub(super) hold_end: bool,
     pub(super) crossfade_window_s: f64,
-    /// Smooth bus trim from BitChord's paired-deck headroom rule. Retained
+    /// Smooth bus trim from RedBit's paired-deck headroom rule. Retained
     /// across rendered chunks to avoid zipper noise at buffer boundaries.
     pub(super) mix_headroom: f32,
     pub(super) spatial_enabled: bool,
@@ -464,7 +467,7 @@ impl MixerState {
             fade_frames,
             handed_off: true,
             plan: TransitionPlan::default(),
-            arm_deadline: Instant::now(),
+            arm_position_s: 0.0,
             swap: true,
             fx: None,
             effect_start_frame: 0,
@@ -541,8 +544,15 @@ impl MixerState {
             return;
         };
         if !t.handed_off {
-            // Nothing was ever audible; no ramp to run.
-            self.incoming = None;
+            // Vor der Metadatenübergabe bleibt Seek beim ausgehenden Titel.
+            // Ein bereits hörbares Incoming bekommt denselben Abbruch-Ramp.
+            if let Some(mut voice) = self.incoming.take() {
+                if t.phase == Phase::Fading {
+                    let from_gain = voice.gain;
+                    voice.filter.open();
+                    self.retiring.push(RetiringVoice { voice, from_gain, started_at: Instant::now() });
+                }
+            }
             self.transition = None;
             if let Some(current) = &mut self.current {
                 current.gain = 1.0;

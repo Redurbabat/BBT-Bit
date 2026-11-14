@@ -18,7 +18,7 @@ case "$kind" in
     # Das Shared-Framework enthält auch das in settings.gradle.kts eingebundene
     # InnerTubeX-Modul. Dessen Quell- und Buildänderungen müssen den Cache verwerfen.
     source_paths=(shared vendor/innertubex gradle gradlew gradle.properties settings.gradle.kts build.gradle.kts buildSrc build-logic scripts/build-shared-framework.sh scripts/ci-ios-native-cache.sh)
-    output_paths=(AppleApp/Frameworks/BitChordShared.xcframework)
+    output_paths=(AppleApp/Frameworks/RedBitShared.xcframework)
     ;;
   rust)
     source_paths=(native-core Cargo.toml Cargo.lock rust-toolchain rust-toolchain.toml scripts/build-native-core.sh scripts/ci-ios-native-cache.sh)

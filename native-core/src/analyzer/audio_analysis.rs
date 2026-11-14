@@ -7,7 +7,7 @@
 //! policy needs a beat grid (from [`super::tempo`]) to know *how* to mix, and
 //! these features to know *where*.
 //!
-//! Ported from Orchard (https://github.com/SFG5453/Orchard) via BitChord's
+//! Ported from Orchard (https://github.com/SFG5453/Orchard) via RedBit's
 //! `native/analyzer` — Copyright (C) 2026 SFG545, Copyright (C) 2026 Kushagra
 //! Singh. AGPLv3-or-later, kept as part of the same GPL-3 combined work.
 

@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 /// Detail page for an album / artist / playlist browseId.
 ///
@@ -207,6 +207,15 @@ struct DetailView: View {
                         releaseHeader(page, tint: tint, width: width)
                     }
 
+                    if kind(of: page) == .playlist, !page.songs.isEmpty {
+                        PlaylistCoverFan(entries: page.songs.map { toEntry($0, fallbackArt: fallbackArt(page)) }) { selected in
+                            controller.play(page.songs.map { toEntry($0, fallbackArt: fallbackArt(page)) },
+                                at: selected, context: page.title, contextID: browseId,
+                                shuffleRequested: controller.shuffleEnabled, boundedContext: true,
+                                continuationToken: handoffContinuation(page))
+                        }.padding(.vertical, 12)
+                    }
+
                     if isArtist, let shelf = latestReleaseShelf(page), let card = shelf.items.first {
                         latestReleaseCard(card)
                             .padding(.horizontal, 16)
@@ -317,7 +326,8 @@ struct DetailView: View {
                                         ? { showAllGrid = ShowAllGrid(title: shelf.title, items: cards) }
                                         : nil,
                                     inset: 28,
-                                    rail: isArtist
+                                    rail: isArtist,
+                                    records: isArtist && cards.contains { $0.browseId?.hasPrefix("MPRE") == true }
                                 )
                                 .padding(.horizontal, 28)
                                 .padding(.top, 28)

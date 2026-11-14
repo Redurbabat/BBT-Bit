@@ -21,7 +21,7 @@ fn automix_corpus_scorecard() {
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
             PathBuf::from(std::env::var("HOME").unwrap_or_default())
-                .join("Library/Caches/BitChord/audio")
+                .join("Library/Caches/RedBit/audio")
         });
     // The app downloads both graphs into its own Application Support store;
     // development builds and this scorecard read the fetched cache instead.
@@ -610,7 +610,7 @@ fn sleep_gain_does_not_replace_user_volume() {
 
 #[test]
 fn source_verification_decodes_payload_instead_of_trusting_the_extension() {
-    let path = std::env::temp_dir().join(format!("bitchord-verified-{}.flac", std::process::id()));
+    let path = std::env::temp_dir().join(format!("redbit-verified-{}.flac", std::process::id()));
     let rate = 48_000u32;
     let frames = rate / 2;
     let mut bytes = Vec::new();

@@ -404,6 +404,9 @@ pub(super) fn handle_command(state: &mut MixerState, cmd: Command, ring: &mut Pr
         Command::HoldTrackEnd(hold) => {
             state.hold_end = hold;
             if hold {
+                if state.transition.as_ref().is_some_and(|t| t.phase == Phase::Fading && !t.handed_off) {
+                    state.bail();
+                }
                 if state.transition.as_ref().is_some_and(|t| t.handed_off) {
                     state.current = state.incoming.take();
                     if let Some(voice) = &mut state.current {

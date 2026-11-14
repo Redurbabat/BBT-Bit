@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 /// Dedicated Downloads destination with Songs, Albums, and Artists tabs,
@@ -140,6 +140,7 @@ struct DownloadsView: View {
     @ViewBuilder
     private var content: some View {
         VStack(spacing: 0) {
+            DownloadTransferScene()
             tabPicker
             toolbar
             switch selectedTab {

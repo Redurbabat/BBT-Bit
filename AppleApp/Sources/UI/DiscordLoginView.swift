@@ -1,6 +1,6 @@
 import SwiftUI
 import WebKit
-import BitChordShared
+import RedBitShared
 
 /// Captures a Discord user token the same unofficial way upstream's Kizzy login does.
 struct DiscordLoginView: View {

@@ -23,12 +23,12 @@ Device verification (iOS/iPadOS 27):
 2. Pause during initial loading, then wait for the download to finish. It must
    remain silent. Play again, then rapidly next/back/pause. Only the latest
    selection may play; a final pause must remain paused.
-3. First test BitChord alone, including cold play, restored play, pause/resume,
+3. First test RED Bit alone, including cold play, restored play, pause/resume,
    rapid skipping, locking and returning to the foreground. Verify its native
    metadata, seeking and transport controls. Mixing follows only the listener's
    preference, in both foreground and background. Test another audio app started
-   both before and after BitChord; record effective session options at each step.
-   Stop the competing app and verify system arbitration while BitChord stays
+   both before and after RED Bit; record effective session options at each step.
+   Stop the competing app and verify system arbitration while RED Bit stays
    in the background. Apple controls which session receives prominence.
    Repeat with mixing disabled as an explicitly chosen exclusive-mode control.
    While playing, change Play Alongside Other Apps in Settings: the effective

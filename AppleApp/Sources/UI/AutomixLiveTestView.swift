@@ -1,6 +1,7 @@
 import SwiftUI
 import Observation
 import Foundation
+import RedBitShared
 
 /// One genuine player observation. Deliberately excludes titles, IDs,
 /// file paths, stream URLs, account metadata and private diagnostic logs.
@@ -12,12 +13,15 @@ struct AutomixLiveSample: Codable {
     let position: Double
     let duration: Double
     let automixEnabled: Bool
+    let automixPerformanceMode: String
     let planRevision: UInt64
     let transitionRevision: UInt64
     let engineTransitionActive: Bool
     let analysisSource: String
     let analysisStyle: String
     let playbackErrorPresent: Bool
+    let playbackErrorKind: PlaybackDiagnosticFailure?
+    let appErrorPresent: Bool
     let networkConnected: Bool
     let queueIndexValid: Bool
     let sourceLoaded: Bool
@@ -26,55 +30,9 @@ struct AutomixLiveSample: Codable {
     let audioSessionActive: Bool?
 }
 
-enum BBTManualTest: String, CaseIterable, Identifiable {
-    case audibleAudio, pauseAndResume, nextAndPrevious, shuffleAndRepeat
-    case automixSound, searchAndDiscover, homeAndLibrary, playlistsAndFavorites
-    case downloadsAndOffline, musicVideosAndLyrics, backgroundAndLockScreen
-    case bluetoothAndAudioRoute, accessibilityAndGlass, partyAndSync
-
-    var id: String { rawValue }
-    var name: String {
-        switch self {
-        case .audibleAudio: return "Ton tatsächlich hörbar"
-        case .pauseAndResume: return "Pause und Fortsetzen"
-        case .nextAndPrevious: return "Nächster / vorheriger Song"
-        case .shuffleAndRepeat: return "Shuffle und Wiederholen"
-        case .automixSound: return "Crossfade wirklich hörbar"
-        case .searchAndDiscover: return "Suche und Entdecken"
-        case .homeAndLibrary: return "Startseite und Bibliothek"
-        case .playlistsAndFavorites: return "Playlists, Favoriten, Verlauf"
-        case .downloadsAndOffline: return "Downloads und Offline-Wiedergabe"
-        case .musicVideosAndLyrics: return "Musikvideos und Liedtexte"
-        case .backgroundAndLockScreen: return "Sperrbildschirm und Hintergrund"
-        case .bluetoothAndAudioRoute: return "Bluetooth, Kopfhörer, Audio-Routen"
-        case .accessibilityAndGlass: return "Liquid Glass, VoiceOver, große Schrift"
-        case .partyAndSync: return "Listen Together und Synchronisation"
-        }
-    }
-    var instruction: String {
-        switch self {
-        case .audibleAudio: return "Höre einen echten Song über Lautsprecher/Kopfhörer."
-        case .pauseAndResume: return "Pausiere und starte denselben Song erneut."
-        case .nextAndPrevious: return "Wechsle vor und zurück; prüfe Titel und hörbaren Ton."
-        case .shuffleAndRepeat: return "Teste Zufall, Repeat One und Repeat All mit deiner Queue."
-        case .automixSound: return "Höre beide Quellen beim Übergang ohne Knacken oder Lücke."
-        case .searchAndDiscover: return "Suche echte Musik und öffne ein Suchergebnis."
-        case .homeAndLibrary: return "Öffne Start, Entdecken und deine Bibliothek."
-        case .playlistsAndFavorites: return "Speichere und entferne einen Test-Favoriten und prüfe den Verlauf."
-        case .downloadsAndOffline: return "Teste einen vorhandenen Offline-Song im Flugmodus."
-        case .musicVideosAndLyrics: return "Öffne ein Musikvideo und synchronisierte Liedtexte."
-        case .backgroundAndLockScreen: return "Sperre das iPhone und prüfe Play/Pause und Fortschritt."
-        case .bluetoothAndAudioRoute: return "Wechsle zu AirPods/Bluetooth oder USB und höre weiter."
-        case .accessibilityAndGlass: return "Prüfe Dark Mode, Kontrast, VoiceOver und größere Schrift."
-        case .partyAndSync: return "Teste Listen Together nur mit einem zweiten Gerät."
-        }
-    }
-}
-
-enum BBTManualVerdict: String, CaseIterable {
-    case open = "Nicht getestet"
-    case pass = "Bestanden"
-    case fail = "Fehler"
+struct AppTestModelCheck: Codable {
+    let passed: Bool
+    let checkedAt: Date
 }
 
 @MainActor
@@ -83,6 +41,11 @@ final class AutomixLiveTestMonitor {
     static let shared = AutomixLiveTestMonitor()
     private(set) var running = false
     private(set) var startedAt: Date?
+    private(set) var endedAt: Date?
+    private(set) var sessionID = UUID()
+    private(set) var lastSavedAt: Date?
+    private(set) var storageError: String?
+    private(set) var modelChecks: [String: AppTestModelCheck] = [:]
     private(set) var samples: [AutomixLiveSample] = []
     private(set) var progressObserved = false
     private(set) var outputObserved = false
@@ -91,7 +54,9 @@ final class AutomixLiveTestMonitor {
     private(set) var networkObserved = false
     private(set) var sessionObserved = false
     private(set) var playbackErrorObserved = false
-    private(set) var manualVerdicts: [BBTManualTest: BBTManualVerdict] = [:]
+    private(set) var appErrorObserved = false
+    private(set) var engineBuildRevision = "unknown"
+    private(set) var automaticResults: [AppAutomaticCheck: AppTestCheckResult] = [:]
     private(set) var plansObserved = 0
     private(set) var transitionsObserved = 0
     private(set) var onnxObserved = false
@@ -108,13 +73,30 @@ final class AutomixLiveTestMonitor {
     @ObservationIgnored private var basePlan: UInt64 = 0
     @ObservationIgnored private var baseTransition: UInt64 = 0
     @ObservationIgnored private var observedPlanRevision: UInt64 = 0
-    @ObservationIgnored private var lastTrackID: String?
-    @ObservationIgnored private var lastPosition: Double?
+    @ObservationIgnored private var progressTracker = PlaybackProgressTracker()
+    @ObservationIgnored private let archive: AppTestReportStore
+    @ObservationIgnored private var modelTask: Task<Void, Never>?
+    @ObservationIgnored private var designTask: Task<Void, Never>?
+    @ObservationIgnored private var previousTrackID: String?
+    @ObservationIgnored private var pausedTrackID: String?
+    @ObservationIgnored private var changedTrackID: String?
+    @ObservationIgnored private var wasPlaying = false
+    @ObservationIgnored private var inBackground = false
+    @ObservationIgnored private var routePending = false
+    @ObservationIgnored private var sampling = false
+    @ObservationIgnored private var needsCheckpoint = false
+    @ObservationIgnored private var completedDownloads: Set<String> = []
+    @ObservationIgnored private var modelsChecking = false
 
-    private init() {}
+    init(archive: AppTestReportStore) { self.archive = archive }
+    convenience init() { self.init(archive: .shared) }
 
-    func start(controller: PlaybackController) {
-        stop()
+    func start(controller: PlaybackController, locale: Locale = .current) {
+        guard !running else { return }
+        if startedAt != nil {
+            do { _ = try saveReport() } catch { return }
+        }
+        sessionID = UUID(); endedAt = nil; lastSavedAt = nil; storageError = nil
         startedAt = Date()
         samples = []
         progressObserved = false
@@ -124,7 +106,13 @@ final class AutomixLiveTestMonitor {
         networkObserved = false
         sessionObserved = false
         playbackErrorObserved = false
-        manualVerdicts = [:]
+        appErrorObserved = false
+        engineBuildRevision = "unknown"
+        automaticResults = [:]; previousTrackID = nil; pausedTrackID = nil; changedTrackID = nil
+        wasPlaying = false; inBackground = false; routePending = false
+        modelChecks = [:]
+        modelsChecking = false
+        completedDownloads = Set(DownloadStore.shared.jobs.filter { $0.status == .done }.map(\.id))
         plansObserved = 0
         transitionsObserved = 0
         onnxObserved = false
@@ -132,51 +120,130 @@ final class AutomixLiveTestMonitor {
         vocalsObserved = false
         lastPlanSource = nil
         message = nil
-        lastTrackID = nil
-        lastPosition = nil
+        runtime = AutomixRuntimeSnapshot(beatReady: false, vocalsRequested: false, coreMLLoaded: false, configuredAt: nil)
+        progressTracker = PlaybackProgressTracker()
         basePlan = controller.automixPlanRevision
         baseTransition = controller.automixTransitionRevision
         observedPlanRevision = basePlan
         running = true
-        // This monitor observes the real user queue without starting, stopping,
-        // muting, seeking or replacing any audio.
+        AppTestEvents.start(sessionID) { [weak self] check, outcome, code in
+            self?.note(check, outcome, code)
+        }
+        record(controller: controller)
+        checkpoint()
+        scheduleModelChecks()
+        #if os(iOS)
+        designTask = Task { await AppTestDesignSmoke.run(controller: controller, locale: locale) }
+        if #available(iOS 26, *) {} else { note(.dockInline, .unavailable, .platformUnsupported) }
+        #else
+        note(.designPreviews, .unavailable, .platformUnsupported)
+        note(.dockInline, .unavailable, .platformUnsupported)
+        #endif
+        let run = sessionID
+        // Nur beobachten: Queue, Lautstärke und Wiedergabe bleiben beim Player.
         sampleTask = Task { @MainActor [weak self, weak controller] in
             while !Task.isCancelled {
-                guard let self, self.running, let controller else { return }
-                self.record(controller: controller)
-                self.runtime = await AutomixModelLoader.shared.snapshot()
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                guard let self, self.running, self.sessionID == run, let controller else { return }
                 if Date().timeIntervalSince(self.startedAt ?? Date()) >= 30 * 60 {
-                    self.message = "30 Minuten aufgezeichnet. Der Test wurde automatisch beendet."
+                    self.message = "Zeitlimit erreicht. Der Test wurde automatisch beendet."
                     self.stop()
                     return
                 }
-                do { try await Task.sleep(for: .seconds(1)) }
-                catch { return }
+                self.record(controller: controller)
+                let snapshot = await AutomixModelLoader.shared.snapshot()
+                guard !Task.isCancelled, self.running, self.sessionID == run else { return }
+                self.runtime = snapshot
+                if self.samples.count % 30 == 0 { self.checkpoint(); self.scheduleModelChecks() }
             }
         }
     }
 
     func stop() {
+        guard running else { return }
         running = false
+        endedAt = Date()
         sampleTask?.cancel()
         sampleTask = nil
+        modelTask?.cancel(); modelTask = nil
+        designTask?.cancel(); designTask = nil
+        AppTestEvents.stop(sessionID)
+        checkpoint()
     }
 
-    func setManual(_ test: BBTManualTest, verdict: BBTManualVerdict) {
-        manualVerdicts[test] = verdict
+    func setModelCheck(_ id: String, passed: Bool) {
+        guard AutomixModelStore.ModelID.allCases.contains(where: { $0.rawValue == id }) else { return }
+        modelChecks[id] = AppTestModelCheck(passed: passed, checkedAt: Date())
+        checkpoint()
+    }
+
+    func result(_ check: AppAutomaticCheck) -> AppTestCheckResult {
+        automaticResults[check] ?? AppTestCheckResult(id: check)
+    }
+
+    private func note(_ check: AppAutomaticCheck, _ outcome: AppTestOutcome, _ code: AppTestEvidenceCode) {
+        guard running else { return }
+        let previous = result(check)
+        var updated = previous
+        updated.record(outcome, code: code, at: Date())
+        automaticResults[check] = updated
+        if check == .audioRoute, code == .routeChanged { routePending = true }
+        if previous.status != updated.status {
+            if sampling { needsCheckpoint = true } else { checkpoint() }
+        }
+    }
+
+    func applicationBackgroundChanged(_ background: Bool) {
+        guard running else { return }
+        inBackground = background
+        if background { note(.backgroundPlayback, .observation, .backgroundEntered) }
+    }
+
+    private func scheduleModelChecks() {
+        guard running, !modelsChecking else { return }
+        let run = sessionID
+        modelTask = Task { [weak self] in
+            guard let self else { return }; await self.verifyModels(run: run)
+        }
+    }
+
+    private func verifyModels(run: UUID) async {
+        guard running, sessionID == run, !modelsChecking else { return }
+        modelsChecking = true
+        defer { if sessionID == run { modelsChecking = false } }
+        let store = AutomixModelStore.shared
+        for id in AutomixModelStore.ModelID.allCases {
+            guard !Task.isCancelled, running, sessionID == run else { return }
+            let check: AppAutomaticCheck
+            switch id { case .beat: check = .beatFile; case .beatCoreML: check = .coreMLFile; case .vocals: check = .vocalFile }
+            if result(check).status == .passed || result(check).status == .failed { continue }
+            if store.anyBusy { note(check, .observation, .modelBusy); continue }
+            note(check, .observation, .pending)
+            let verified = await store.inspectIntegrity(id)
+            guard !Task.isCancelled, running, sessionID == run else { return }
+            guard let verified else { note(check, .unavailable, .fileUnavailable); continue }
+            setModelCheck(id.rawValue, passed: verified)
+            note(check, verified ? .success : .failure, verified ? .fileVerified : .integrityFailed)
+        }
+    }
+
+    func checkpoint() {
+        guard startedAt != nil else { return }
+        do { _ = try saveReport() } catch { }
     }
 
     private func record(controller: PlaybackController) {
-        guard let startedAt else { return }
+        guard running, let startedAt, samples.count < 1800 else { return }
+        sampling = true
+        defer { sampling = false; if needsCheckpoint { needsCheckpoint = false; checkpoint() } }
         let currentID = controller.current?.id
-        let position = max(0, controller.position)
-        if currentID == lastTrackID, let prior = lastPosition,
-           controller.isPlaying, !controller.isBuffering,
-           position.isFinite, position > prior + 0.25 {
-            progressObserved = true
-        }
-        lastTrackID = currentID
-        lastPosition = position
+        let position = controller.position
+        let progressed = progressTracker.observe(
+            trackID: currentID, position: position,
+            at: ProcessInfo.processInfo.systemUptime,
+            playing: controller.isPlaying, buffering: controller.isBuffering
+        )
+        progressObserved = progressObserved || progressed
 
         if controller.automixPlanRevision > observedPlanRevision {
             observedPlanRevision = controller.automixPlanRevision
@@ -196,6 +263,7 @@ final class AutomixLiveTestMonitor {
             : controller.queue.indices.contains(controller.playingIndex)
         let outputStarted = controller.outputDevice.started
         let decoderReported = controller.nerd?.codec.isEmpty == false
+        if let revision = controller.nerd?.buildRevision { engineBuildRevision = revision }
         let sourceLoaded = controller.settingsAudioReadout.loaded
         let networkConnected = NetworkQuality.shared.connected
         #if os(iOS)
@@ -208,21 +276,28 @@ final class AutomixLiveTestMonitor {
         validQueueObserved = validQueueObserved || (controller.current != nil && queueValid)
         networkObserved = networkObserved || networkConnected
         sessionObserved = sessionObserved || (audioSessionActive == true)
-        playbackErrorObserved = playbackErrorObserved || controller.lastError != nil
+        playbackErrorObserved = playbackErrorObserved || controller.lastPlaybackFailure != nil
+        appErrorObserved = appErrorObserved || controller.lastError != nil
+        let configuredMode = PlatformSettings.shared.getString(key: "automix_performance", default: "BALANCED")
+        let performanceMode = ["EFFICIENT", "BALANCED", "PERFORMANCE"].contains(configuredMode)
+            ? configuredMode : "BALANCED"
         let item = AutomixLiveSample(
             second: Int(Date().timeIntervalSince(startedAt)),
             playing: controller.isPlaying,
             buffering: controller.isBuffering,
-            progressed: progressObserved,
-            position: position.isFinite ? position : 0,
+            progressed: progressed,
+            position: position.isFinite ? max(0, position) : 0,
             duration: controller.duration.isFinite ? max(0, controller.duration) : 0,
             automixEnabled: controller.automixEnabled,
+            automixPerformanceMode: performanceMode,
             planRevision: controller.automixPlanRevision,
             transitionRevision: controller.automixTransitionRevision,
             engineTransitionActive: controller.smartMixInProgress,
             analysisSource: lastPlanSource ?? "",
             analysisStyle: controller.analysisTier ?? "",
-            playbackErrorPresent: controller.lastError != nil,
+            playbackErrorPresent: controller.lastPlaybackFailure != nil,
+            playbackErrorKind: controller.lastPlaybackFailure,
+            appErrorPresent: controller.lastError != nil,
             networkConnected: networkConnected,
             queueIndexValid: queueValid,
             sourceLoaded: sourceLoaded,
@@ -231,11 +306,44 @@ final class AutomixLiveTestMonitor {
             audioSessionActive: audioSessionActive
         )
         samples.append(item)
+        if !controller.queue.isEmpty || controller.current != nil {
+            note(.queueIntegrity, queueValid && controller.current != nil ? .success : .failure,
+                queueValid && controller.current != nil ? .validState : .invalidState)
+        }
+        if progressed {
+            note(.playbackProgress, .success, .positionAdvanced)
+            if pausedTrackID == currentID { note(.pauseResume, .success, .positionAdvanced); pausedTrackID = nil }
+            if changedTrackID == currentID { note(.trackChange, .success, .positionAdvanced); changedTrackID = nil }
+            if !networkConnected, sourceLoaded, let path = controller.loadedSourcePath,
+               path.hasPrefix("/") || path.hasPrefix("file:") { note(.offlinePlayback, .success, .positionAdvanced) }
+            if inBackground { note(.backgroundPlayback, .success, .positionAdvanced) }
+            if routePending, outputStarted { note(.audioRoute, .success, .positionAdvanced); routePending = false }
+        }
+        if wasPlaying, !controller.isPlaying, !controller.isBuffering { pausedTrackID = currentID }
+        if let previousTrackID, previousTrackID != currentID { changedTrackID = currentID }
+        previousTrackID = currentID; wasPlaying = controller.isPlaying
+        if controller.isPlaying, decoderReported { note(.decoder, .success, .validState) }
+        if controller.isPlaying, outputStarted { note(.outputStream, .success, .validState) }
+        if audioSessionActive == true { note(.audioSession, .success, .validState) }
+        if audioSessionActive == nil, result(.audioSession).observations == 0 { note(.audioSession, .unavailable, .platformUnsupported) }
+        note(.networkStatus, .success, .validState)
+        if controller.lastPlaybackFailure != nil {
+            if result(.playbackErrors).failures == 0 { note(.playbackErrors, .failure, .failureReported) }
+        } else { note(.playbackErrors, .success, .validState) }
+        if controller.lastError != nil {
+            if result(.appErrors).failures == 0 { note(.appErrors, .failure, .failureReported) }
+        } else { note(.appErrors, .success, .validState) }
+        if plansObserved > 0 { note(.automixPlan, .success, .validState) }
+        if transitionsObserved > 0 { note(.automixTransition, .success, .validState) }
+        if !controller.lyrics.isEmpty, !controller.lyricsLoading { note(.lyrics, .success, .responseReceived) }
+        let done = Set(DownloadStore.shared.jobs.filter { $0.status == .done }.map(\.id))
+        if !done.subtracting(completedDownloads).isEmpty { note(.downloads, .success, .fileVerified) }
+        completedDownloads.formUnion(done)
     }
 
-    /// A privacy-minimal on-device report. Saving never sends anything;
-    /// the user decides whether to share the resulting file.
-    func saveReport() throws -> URL {
+    /// Gemeinsame Berichtsdaten für Zwischenstand, Abschluss und Datei-Export.
+    func reportData() throws -> Data {
+        guard let startedAt else { throw AppTestReportError.noSession }
         struct Model: Codable {
             let name: String
             let installedPinned: Bool
@@ -243,16 +351,24 @@ final class AutomixLiveTestMonitor {
         }
         struct Report: Codable {
             let version: Int
+            let automaticChecks: [AppTestCheckResult]
+            let summary: AppTestSessionSummary
+            let appVersion: String
+            let buildNumber: String
+            let buildRevision: String
+            let engineBuildRevision: String
+            let operatingSystem: String
             let startedAt: Date?
-            let endedAt: Date
+            let endedAt: Date?
+            let modelIntegrityChecks: [String: AppTestModelCheck]
             let modelState: [Model]
-            let manualChecks: [String: String]
             let nativeAudioOutputObserved: Bool
             let decoderObserved: Bool
             let queueWasValid: Bool
             let internetStatusObserved: Bool
             let audioSessionObserved: Bool
             let playbackErrorObserved: Bool
+            let appErrorObserved: Bool
             let beatRuntimeReady: Bool
             let vocalRuntimeRequested: Bool
             let coreMLRuntimeLoaded: Bool
@@ -267,20 +383,33 @@ final class AutomixLiveTestMonitor {
         }
         let store = AutomixModelStore.shared
         let payload = Report(
-            version: 1, startedAt: startedAt, endedAt: Date(),
+            version: 5,
+            automaticChecks: AppAutomaticCheck.allCases.map { result($0) },
+            summary: AppTestSessionSummary(id: sessionID, startedAt: startedAt, updatedAt: Date(),
+                finishedAt: endedAt, state: running ? .running : .completed, sampleCount: samples.count,
+                automaticPassed: AppAutomaticCheck.allCases.filter { result($0).status == .passed }.count,
+                automaticFailed: AppAutomaticCheck.allCases.filter { result($0).status == .failed }.count,
+                automaticTotal: AppAutomaticCheck.allCases.count,
+                automaticObserved: AppAutomaticCheck.allCases.filter { result($0).observations > 0 }.count,
+                manualPassed: nil, manualFailed: nil, manualTotal: nil),
+            appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
+            buildNumber: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown",
+            buildRevision: Bundle.main.object(forInfoDictionaryKey: "RedBitRevision") as? String ?? "unknown",
+            engineBuildRevision: engineBuildRevision,
+            operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString,
+            startedAt: startedAt, endedAt: endedAt,
+            modelIntegrityChecks: modelChecks,
             modelState: AutomixModelStore.ModelID.allCases.map { id in
                 Model(name: id.rawValue, installedPinned: store.status(of: id).isInstalled,
                       usablePreviousVersion: store.isUsingPreviousGraph(id))
             },
-            manualChecks: Dictionary(uniqueKeysWithValues:
-                BBTManualTest.allCases.map { ($0.rawValue, (manualVerdicts[$0] ?? .open).rawValue) }
-            ),
             nativeAudioOutputObserved: outputObserved,
             decoderObserved: decoderObserved,
             queueWasValid: validQueueObserved,
             internetStatusObserved: networkObserved,
             audioSessionObserved: sessionObserved,
             playbackErrorObserved: playbackErrorObserved,
+            appErrorObserved: appErrorObserved,
             beatRuntimeReady: runtime.beatReady,
             vocalRuntimeRequested: runtime.vocalsRequested,
             coreMLRuntimeLoaded: runtime.coreMLLoaded,
@@ -291,15 +420,23 @@ final class AutomixLiveTestMonitor {
             coreMLPlanObserved: coreMLObserved,
             vocalModelPlanObserved: vocalsObserved,
             samples: samples,
-            notice: "Automatische Statuswerte beweisen keine hoerbare Wiedergabe. Manuelle Tests stammen vom Benutzer; Build, Signierung und IPA sind nicht auf dem iPhone testbar."
+            notice: "Automatische Ergebnisse belegen die jeweils beobachteten Softwareprüfungen. Nicht verwendete Funktionen bleiben nicht beobachtet. Physische Hörbarkeit, vollständige Bildschirmqualität und externe Builds werden damit nicht bestätigt."
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("BBT-Bit-Automix-Livetest.json")
-        try encoder.encode(payload).write(to: url, options: .atomic)
-        return url
+        return try encoder.encode(payload)
+    }
+
+    func saveReport() throws -> URL {
+        do {
+            let url = try archive.save(reportData())
+            lastSavedAt = Date(); storageError = nil
+            return url
+        } catch {
+            storageError = "Der Testbericht konnte nicht lokal gespeichert werden. Bitte erneut versuchen."
+            throw error
+        }
     }
 }
 
@@ -309,28 +446,30 @@ struct AutomixLiveTestView: View {
     @Environment(PlaybackController.self) private var controller
     private let store = AutomixModelStore.shared
     private let monitor = AutomixLiveTestMonitor.shared
+    @Environment(\.locale) private var locale
 
-    @State private var checkingHashes = false
-    @State private var hashResults: [AutomixModelStore.ModelID: String] = [:]
     @State private var reportURL: URL?
+    @State private var exportData: Data?
     @State private var exportError: String?
 
     var body: some View {
         Form {
             Section {
-                Text("Prüfe RED Bit während der normalen Nutzung: KI-Modelle, Audiopfad, Queue, Streaming, Übergänge und App-Funktionen. Verlasse die Seite und nutze die App weiter. Die Aufzeichnung endet nach spätestens 30 Minuten. Deine Queue und Wiedergabe werden durch den Monitor nicht verändert.")
+                Text("Starte den automatischen App-Test und nutze RED Bit wie gewohnt. Modell-Dateien und Vorschauen werden automatisch geprüft; während deiner Nutzung kommen Ergebnisse der ausgeführten Funktionen dazu. Es gibt keine manuelle Bewertung. Beende und speichere den Lauf, wenn du fertig bist.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Button {
                     if monitor.running {
                         monitor.stop()
+                        prepareExport()
                     } else {
                         reportURL = nil
+                        exportData = nil
                         exportError = nil
-                        monitor.start(controller: controller)
+                        monitor.start(controller: controller, locale: locale)
                     }
                 } label: {
-                    Label(monitor.running ? "Livetest stoppen" : "Livetest starten",
+                    Label(monitor.running ? "Beenden und speichern" : "App-Test starten",
                           systemImage: monitor.running ? "stop.circle" : "record.circle")
                 }
                 .accessibilityIdentifier("bbt.automixLive.toggle")
@@ -347,6 +486,14 @@ struct AutomixLiveTestView: View {
                 }
                 LabeledContent("Messpunkte", value: "\(monitor.samples.count)")
                 LabeledContent("Maximale Laufzeit", value: "30 Minuten")
+                if let saved = monitor.lastSavedAt {
+                    LabeledContent("Letzter Speicherstand") { Text(saved, style: .time) }
+                }
+                if let error = monitor.storageError {
+                    Text(LocalizedStringKey(error)).foregroundStyle(.red)
+                }
+                NavigationLink("Gespeicherte Testberichte") { AppTestReportsView() }
+                    .accessibilityIdentifier("red.tests.openHistory")
                 Text("Im Hintergrund kann iOS die App pausieren. Aufzeichnung läuft nur, solange die App tatsächlich ausgeführt wird.")
                     .font(.caption).foregroundStyle(.secondary)
             } header: {
@@ -359,27 +506,16 @@ struct AutomixLiveTestView: View {
                         Text(modelName(id)).font(.subheadline.weight(.semibold))
                         LabeledContent("Datei", value: installedText(id))
                         LabeledContent("Echte Analyse", value: inferredText(id))
-                        if let result = hashResults[id] {
-                            Text(result).font(.footnote).foregroundStyle(.secondary)
+                        if let result = monitor.modelChecks[id.rawValue] {
+                            Text(result.passed ? "SHA-256 und Dateigröße der aktuellen Version bestätigt"
+                                : "Aktuelle SHA-256-Datei nicht bestätigt")
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                     .padding(.vertical, 4)
                 }
-                Button {
-                    Task { await verifyAll() }
-                } label: {
-                    if checkingHashes {
-                        HStack(spacing: 8) {
-                            ProgressView().controlSize(.small)
-                            Text("SHA-256 wird geprüft …")
-                        }
-                    } else {
-                        Label("Alle drei SHA-256-Dateien prüfen",
-                              systemImage: "checkmark.shield")
-                    }
-                }
-                .disabled(checkingHashes || store.anyBusy)
-                .accessibilityIdentifier("bbt.automixLive.verifyHashes")
+                Text("Vorhandene Modell-Dateien werden automatisch geprüft. Optionale fehlende Modelle erscheinen als nicht verfügbar.")
+                    .font(.footnote).foregroundStyle(.secondary)
                 NavigationLink("Modelle herunterladen oder verwalten") {
                     AutomixModelsPage()
                 }
@@ -398,8 +534,10 @@ struct AutomixLiveTestView: View {
                                ? (controller.analysisTier ?? "—") : "Noch keine neue Planung seit Testbeginn")
                 LabeledContent("Start des Übergangs", value: monitor.transitionsObserved > 0
                                ? "\(monitor.transitionsObserved) Engine-Meldung(en)" : "Noch nicht gemeldet")
-                LabeledContent("Wiedergabezeit läuft", value: monitor.progressObserved
-                               ? "Ja, Fortschritt beobachtet" : "Noch nicht nachgewiesen")
+                LabeledContent("Wiedergabezeit läuft", value: monitor.samples.last?.progressed == true
+                               ? "Fortschritt im letzten Messintervall" : "Kein Fortschritt im letzten Messintervall")
+                LabeledContent("Fortschritt seit Testbeginn", value: monitor.progressObserved
+                               ? "Mindestens einmal beobachtet" : "Noch nicht nachgewiesen")
                 if let reason = controller.transitionReason, !reason.isEmpty {
                     Text("Planer: \(reason)").font(.footnote).foregroundStyle(.secondary)
                 }
@@ -413,7 +551,7 @@ struct AutomixLiveTestView: View {
             } header: {
                 Text("Echter Player-Status")
             } footer: {
-                Text("Die Anzeige liest echte Analyse- und Übergangsereignisse aus dem Rust-/Swift-Player. Ein gemeldeter Übergang oder fortschreitender Zeitwert beweist noch keine hörbare Audioausgabe. Bitte den Klang selbst auf dem iPhone prüfen.")
+                Text("Die Prüfung bestätigt Engine-Ereignisse und Zeitfortschritt. Physische Hörbarkeit ist damit nicht messbar.")
             }
 
             Section {
@@ -431,6 +569,8 @@ struct AutomixLiveTestView: View {
                 #endif
                 LabeledContent("Playback-Fehler während Test", value:
                     monitor.playbackErrorObserved ? "Mindestens einer registriert" : "Keiner beobachtet")
+                LabeledContent("App-Fehler während Test", value:
+                    monitor.appErrorObserved ? "Mindestens einer registriert" : "Keiner beobachtet")
                 NavigationLink("Audio-Pipeline und DSP ansehen") {
                     AudioPipelineSheet()
                 }
@@ -449,53 +589,29 @@ struct AutomixLiveTestView: View {
             }
 
             Section {
-                ForEach(BBTManualTest.allCases) { test in
+                LabeledContent("Automatisch geprüft", value: "\(AppAutomaticCheck.allCases.filter { monitor.result($0).status == .passed }.count)/\(AppAutomaticCheck.allCases.count)")
+                ForEach(AppAutomaticCheck.allCases) { check in
+                    let result = monitor.result(check)
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(test.name).font(.subheadline.weight(.medium))
-                        Text(test.instruction).font(.caption).foregroundStyle(.secondary)
-                        Picker(test.name, selection: Binding(
-                            get: { monitor.manualVerdicts[test] ?? .open },
-                            set: { monitor.setManual(test, verdict: $0) }
-                        )) {
-                            Text("Offen").tag(BBTManualVerdict.open)
-                            Text("Bestanden").tag(BBTManualVerdict.pass)
-                            Text("Fehler").tag(BBTManualVerdict.fail)
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .accessibilityIdentifier("bbt.fullTest.\(test.rawValue)")
-                    }
-                    .padding(.vertical, 4)
+                        Text(LocalizedStringKey(check.title)).font(.subheadline.weight(.medium))
+                        Text(LocalizedStringKey(result.status.title))
+                            .foregroundStyle(result.status == .failed ? Color.red : Color.secondary)
+                        if let at = result.lastAt { Text(at, style: .time).font(.caption).foregroundStyle(.secondary) }
+                    }.padding(.vertical, 4)
+                    .accessibilityIdentifier("red.tests.auto.\(check.rawValue)")
                 }
-            } header: {
-                Text("Manuelle Tests – alle App-Bereiche")
-            } footer: {
-                Text("Du markierst nur tatsächlich selbst ausgeführte Tests als bestanden. Diese Auswahl startet keine Funktion und ändert weder Account noch Wiedergabe. Mit ‚Fehler‘ kannst du Probleme im Bericht kennzeichnen.")
+            } header: { Text("Automatische Ergebnisse") } footer: {
+                Text("Ergebnisse stammen aus echten Ereignissen und Prüfungen. Unbenutzte Funktionen bleiben nicht beobachtet. Ein gemeldeter Ausgabestream bestätigt nicht die physische Hörbarkeit; Vorschau-PNGs bestätigen nur das Rendern.")
             }
 
             Section {
-                LabeledContent("Swift / iPhone-Simulator", value: "Extern prüfen")
-                LabeledContent("GitHub Actions / Codemagic", value: "Extern prüfen")
-                LabeledContent("Signierte IPA", value: "Extern prüfen")
-                LabeledContent("Musik tatsächlich hörbar", value:
-                    (monitor.manualVerdicts[.audibleAudio] ?? .open).rawValue)
-                Text("Compiler, Xcode-Simulator, GitHub-CI und Codesignierung laufen nicht in dieser iPhone-App. Dafür sind externe Builds und Hardwareprüfungen notwendig.")
-                    .font(.footnote).foregroundStyle(.secondary)
-            } header: {
-                Text("Weitere notwendige Nachweise")
-            }
-
-            Section {
-                Button("Lokalen Testbericht speichern") {
-                    do {
-                        reportURL = try monitor.saveReport()
-                        exportError = nil
-                    } catch {
-                        exportError = "Bericht konnte nicht gespeichert werden: \(error.localizedDescription)"
-                    }
-                }
-                .disabled(monitor.samples.isEmpty)
+                Button("Lokalen Testbericht speichern") { prepareExport() }
+                .disabled(monitor.startedAt == nil)
                 .accessibilityIdentifier("bbt.automixLive.saveReport")
+                if let exportData {
+                    AppTestReportExportButton(data: exportData, name: "RED-Bit-Test-\(monitor.sessionID.uuidString)",
+                        latestData: { try monitor.reportData() })
+                }
                 if let reportURL {
                     ShareLink("Testbericht teilen", item: reportURL)
                         .accessibilityIdentifier("bbt.automixLive.shareReport")
@@ -506,11 +622,23 @@ struct AutomixLiveTestView: View {
             } header: {
                 Text("Ergebnis")
             } footer: {
-                Text("Der Bericht enthält technische Statuswerte und deine manuellen Ergebnisse, aber keine Songtitel, YouTube-IDs, Dateipfade oder Zugangsdaten. Er bleibt lokal, bis du ihn ausdrücklich teilst.")
+                Text("Der Bericht enthält automatische Prüfergebnisse und technische Statuswerte, aber keine Songtitel, Suchtexte, Dateipfade oder Zugangsdaten. Er bleibt lokal, bis du ihn ausdrücklich teilst.")
             }
         }
         .formStyle(.grouped)
         .navigationTitle("RED Bit Testzentrale")
+    }
+
+    private func prepareExport() {
+        reportURL = nil; exportData = nil
+        do {
+            let url = try monitor.saveReport()
+            exportData = try Data(contentsOf: url)
+            reportURL = url
+            exportError = nil
+        } catch {
+            exportError = "Der Testbericht konnte nicht lokal gespeichert werden. Bitte erneut versuchen."
+        }
     }
 
     private func modelName(_ id: AutomixModelStore.ModelID) -> String {
@@ -550,17 +678,5 @@ struct AutomixLiveTestView: View {
         return "Noch nicht nachgewiesen"
     }
 
-    private func verifyAll() async {
-        guard !checkingHashes else { return }
-        checkingHashes = true
-        defer { checkingHashes = false }
-        for id in AutomixModelStore.ModelID.allCases {
-            // verify() can report an old fallback as usable: only .installed
-            // proves the checksum of the *current* pinned artifact.
-            _ = await store.verify(id)
-            hashResults[id] = store.status(of: id).isInstalled
-                ? "SHA-256 und Dateigröße der aktuellen Version bestätigt"
-                : "Aktuelle SHA-256-Datei nicht bestätigt"
-        }
-    }
+
 }

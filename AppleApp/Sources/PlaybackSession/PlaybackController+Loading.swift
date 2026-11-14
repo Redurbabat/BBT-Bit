@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -69,6 +69,8 @@ extension PlaybackController {
         smartMixInProgress = false
         smartTransitionWindow = nil
         pendingAutomixPlan = nil
+        automixPreviewRequest = nil
+        queuedAutomixPreviewRequest = nil
         mixFadeUntil = nil
         analysisTier = nil
         analysisConfidence = nil
@@ -212,7 +214,7 @@ extension PlaybackController {
                             sessionChannels: sessionFormat?.channels
                         )
                     } catch {
-                        NSLog("[BitChord] track output preparation failed; continuing with current output: \(error)")
+                        NSLog("[RED Bit] track output preparation failed; continuing with current output: \(error)")
                     }
                     guard loadSubmissionGate.isCurrent(generation) else { return nil as TrackInfoRec? }
                     return try engine.loadTrackPaused(request: loadRequest)
@@ -265,7 +267,7 @@ extension PlaybackController {
             renderer.onFailure = { [weak self, weak renderer] in
                 guard let self, self.playGeneration == generation, self.dolbyRenderer === renderer else { return }
                 self.pausePlayback()
-                self.lastError = "The Dolby source stopped serving playable audio."
+                self.reportPlaybackFailure(.engine, message: "The Dolby source stopped serving playable audio.")
             }
             prepareNowPlayingForPlayback(entry: entry, duration: info.durationSeconds, position: start)
             let hold = holdAfterLoad

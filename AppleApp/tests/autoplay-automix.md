@@ -37,7 +37,7 @@ Passed checks:
 - Download origin/ownership checks: `scripts/check-downloads.sh`.
 - Transport submission/race checks: `scripts/check-transport.sh`.
 - 20 controller/runtime checks with silent local audio and controlled `next`
-  replies: `scripts/check-queue-runtime.sh /path/to/Debug/BitChord.app`.
+  replies: `scripts/check-queue-runtime.sh /path/to/Debug/RedBit.app`.
 - Debug macOS application build linked with the rebuilt shared Mac framework.
 
 Generate the Xcode project with `xcodegen generate --spec AppleApp/project.yml`

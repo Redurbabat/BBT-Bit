@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 /// Upstream's unified Library landing page (`LibraryScreen.kt`):
@@ -29,6 +29,13 @@ struct LibraryLandingView: View {
             VStack(alignment: .leading, spacing: 26) {
                 // 1. Replay hero: cards when there is listening data, banner before.
                 ReplayHeroSection { page in appModel.openReplay(at: page) }
+
+                if !galaxyItems.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Your music galaxy").font(.title2.bold())
+                        MusicCollectionShowcase(items: galaxyItems)
+                    }
+                }
 
                 // 2. On Device Shelf
                 onDeviceShelf
@@ -124,10 +131,24 @@ struct LibraryLandingView: View {
                         tintColor: .orange,
                         destination: HistoryView()
                     )
+
+                    // Gespeicherte Podcasts des Kontos; jede Sendung öffnet ihre Folgen.
+                    OnDeviceCard(
+                        title: "Podcasts",
+                        subtitle: "Saved shows",
+                        systemImage: "mic.fill",
+                        tintColor: .purple,
+                        destination: LibraryView(lockedSection: .podcasts)
+                    )
                 }
                 .padding(.vertical, 2)
             }
         }
+    }
+
+    private var galaxyItems: [ShelfCard] {
+        var seen = Set<String>()
+        return shelves.flatMap(\.items).filter { seen.insert($0.id).inserted }
     }
 
     private var signedInPrompt: some View {

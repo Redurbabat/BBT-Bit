@@ -1,6 +1,51 @@
 # Testplan
 
+## PR #59: Sperrbildschirm und ruhiger Coverwechsel · 10. November 2026
+
+**Quellregression:** `python3 scripts/check-native-island-source.py` prüft zusätzlich gleiche nicht mischbare iOS-Standardwerte in Player und AudioSession, Erhalt der expliziten Mixing-Option und die Abwesenheit der Cover-Verzerrung. Dieser statische Test beweist keine iOS-Medienauswahl und keinen SwiftUI-Render.
+
+**Echtes iPhone (iOS 26, inklusive iPhone 13 Pro Max ohne Dynamic Island):**
+1. Bei neuer Testinstallation ohne gespeicherte Mischpräferenz Song tatsächlich hörbar abspielen. Mit gesperrtem Bildschirm müssen Song, Cover, Laufzeit und Play/Pause/Skip sichtbar und bedienbar sein; den gleichen Fall im Kontrollzentrum prüfen.
+2. Zwei Titel normal wechseln und per Skip sowie Automix übergeben: Sperrbildschirm muss auf den hörbaren Titel wechseln. Hintergrund 5–10 Minuten, Headset/Bluetooth sowie Wiedereinstieg und Seek separat prüfen. Aktiver Systemstatus, Audio-Log und tatsächliche Hörbarkeit dokumentieren.
+3. Option **„Gleichzeitige Audioausgabe anderer Apps“** aktivieren: paralleles Audio bleibt möglich; die primäre Systemmedienkarte ist dann nicht garantiert. Wieder ausschalten und erneut testen. Eine bereits ausdrücklich gespeicherte Wahl darf nach dem Update nicht verändert werden.
+4. Im Vollplayer drei schnelle Songwechsel, Wechsel bei langer Lade-/Buffering-Phase, Lyrics-/Hero-Modus und Cover-Rückkehr filmen: **keine kreisförmige Expansion, keine Shader-Verzerrung und kein federndes Schrumpfen während Buffering**. Bei bewusster Pause ist eine leichte, ruhige Verkleinerung erlaubt; mit Reduce Motion bleibt die Anzeige stabil.
+5. Den Mini-Player antippen, Vollplayer öffnen/schliessen, Tab-Leiste beim Scrollen verkleinern/erweitern: **nativer Zoom und Dock-Verhalten müssen unverändert bleiben**. Audio darf dabei nicht pausieren.
+
+**Status:** GitHub-Quelländerungen vorhanden; Quellinvariantentest bei jeder Regression erneut ausführen. Apple-SDK-Typecheck, Simulator, echter iPhone-Test, signierte/aktualisierte IPA, Datenerhalt, Sperrbildschirm-Screenshot, visuelle Motion-Prüfung und hörbare Wiedergabe: **NICHT GETESTET**. Die Einstellungsänderung betrifft nur bisher nicht gespeicherte Werte; es wird keine Nutzerpräferenz überschrieben.
+
+
+## Automatischer App-Testbereich auf PR #59
+
+[Funktionsweise, JSON v5 und v4-Erhalt](iphone-device-self-tests.md#1b-red-bit-testzentrale--produktive-app-im-alltag-prüfen).
+`SWIFTC=…/swiftc bash scripts/check-automix-live-test.sh` prüft Produktionsmonitor,
+Nachweisregister und Archiv mit kontrollierten Diensten einschließlich Observation.
+Die App enthält keine Bewertungs-Picker. Abnahme BBT-028:
+
+1. Test starten und Einstellungen verlassen: derselbe Lauf sammelt echte Messpunkte ohne Änderung der Wiedergabe. Doppeltstart verwirft nichts.
+2. Vorhandene Modelle werden automatisch geprüft; fehlende optionale Dateien bleiben nicht verfügbar. Bei laufendem Modell-Download muss die automatische Wiederholung greifen.
+3. Alle 15 iOS-Vorschauen automatisch rendern. App-Hintergrund/Abbruch darf keinen GPU-Auftrag fortsetzen und keinen vollständigen Erfolg vorwegnehmen.
+4. Suche, Feed/Paging, Album-Vorschau, Tagesmix und Cover-Drop normal nutzen. Ergebnis nur bei tatsächlich abgeschlossenem Vorgang; keine privaten Werte im Ereignisprotokoll.
+5. Nicht verwendete Funktionen bleiben nicht beobachtet. Fehler mit erfolgreicher Wiederholung bleibt als beobachteter Fehler gespeichert; verspätete Antworten eines alten Laufs werden verworfen.
+6. Pause/Fortsetzen, Skip, lokalen Song, Download, Lyrics, Party und Routenwechsel verwenden. Die automatisch bestätigten Kriterien müssen den Beschriftungen entsprechen, ohne physische Hörbarkeit zu behaupten.
+7. Abschluss/Dateiexport/Neustart prüfen. Neue v5-Berichte ohne Handurteile; alte v4-Dateien unverändert lesbar und exportierbar. Schreibfehler erhalten vorhandene Daten.
+8. Auf iPhone/Mac große Schrift/VoiceOver, Sprachwahl, Vordergrund/Hintergrund und native Inline-Pill prüfen. Tastatur-Pill ist kein Nachweis für native Scroll-Minimierung.
+
+Native Geräte-/UI- und Audionachweise bleiben getrennt von isolierten Tests.
+Keine manuelle CI-Neuausführung oder Budgetänderung.
+
+Die Paket-/Reader-Korrektur in PR #59 ergänzt `python3 scripts/ios-test-verify/check.py` auf 21 Paket- und Konfigurationsfälle und `cargo test --locked --manifest-path native-core/Cargo.toml decode::` um Fehler-/Abbruchmarker sowie leere Leseanfragen. Die vollständige Rust-Reihe bleibt zusätzlich erforderlich; der lokale Linux-Lauf enthält einen auf dem bisherigen Decoder reproduzierten AAC-Regionenfehler. [Tatsächliche Ergebnisse, Ressourcenfehler und Geräteabnahme](RED_BIT_INTEGRATION.md#paket--und-reader-korrektur-vom-9-november-2026).
+
+Für die Livetest-v3-Korrektur in PR #59: `bash scripts/check-automix-live-test.sh` prüft den echten Monitor isoliert mit kontrollierten Player-/Modelladaptern, Fehlertrennung, aktuellen Fortschritt, Neustart und JSON-Datenschutz. Der Monitor einschließlich Observation-Makros wird typgeprüft; unter Linux läuft der Verhaltenstest ohne Observation-Anbindung. Der neue `NetworkRangeRequestTest` wird über `./gradlew :shared:macosArm64Test --tests '*NetworkRangeRequestTest'` auf Apple ausgeführt. Für den RED-Morph-Scrub-Fokus: `swiftc -parse-as-library -swift-version 5 AppleApp/Sources/UI/NowPlaying/ScrubFocusGeometry.swift scripts/test-scrub-focus.swift -o /tmp/red-bit-scrub-focus && /tmp/red-bit-scrub-focus`. [Befehle und tatsächlich ausgeführte Nachweise](RED_BIT_INTEGRATION.md#korrekturen-vom-9-november-2026).
+
+Die [zwölf kreativen Interaktionen](RED_BIT_KREATIVE_INTERAKTIONEN.md) ergänzen die bestehende Matrix. Für Sternroute, echte Lichtmarker, Karten-Grenzen und den Zehn-Sekunden-Schlusszoom: `swiftc AppleApp/Sources/UI/NowPlaying/ArcPlaybackGeometry.swift AppleApp/Sources/UI/NowPlaying/ConstellationGeometry.swift AppleApp/Sources/UI/NowPlaying/ConstellationVoiceLayout.swift AppleApp/Sources/UI/LiquidMotion/MusicMotionGeometry.swift scripts/test-video-reference-geometry.swift -o /tmp/red-bit-geometry && /tmp/red-bit-geometry`. Die native UI-Regression `testCreativeCollectionsAndTimedConstellationFinale` prüft Verlauf, automatischen Kartenwechsel, 0/50/100 Prozent und Zurückspulen mit offengelegten Prüfdaten. Rust prüft `beat_snapshot_is_read_only_finite_and_rejects_changed_audio`. Echte Rhythmusqualität, VoiceOver und hörbare Musik benötigen weiterhin Geräteabnahme.
+
+Die [RED-Bit-Integration vom 8. November](RED_BIT_INTEGRATION.md) ergänzt konkrete Prüfungen für langsame Scrollbewegung, Dock-Zustand über mehrere Berührungen, Logo-Ursprung und Tastatur-Pill. Swift-Verhaltenstest: `swiftc AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift scripts/test-dock-direction-tracker.swift -o /tmp/red-bit-scroll-test && /tmp/red-bit-scroll-test`. Dieser reine Foundation-Test ersetzt weder SwiftUI-Typecheck noch Geräteanimation oder Audio.
+
 ## Prüfmatrix
+
+Sämtliche `.github/workflows/*.yml` werden im PR-Regressionsjob zusätzlich mit Actionlint 1.7.12 und ShellCheck 0.11.0 geprüft. Die offiziellen Linux-Archive sind auf feste SHA-256-Prüfsummen gebunden. Das prüft Workflow-Ausdrücke, Runner-/Action-Konfiguration und eingebettete Bash-Blöcke; es ersetzt keine tatsächliche Jobausführung. Der native Logo-Koordinatortest importiert auf Apple zusätzlich CoreGraphics und prüft ungültige Logo-Maße sowie die Auswahl der nächsten Toolbar-Aktion derselben Zeile. Der ursprüngliche macOS-Fehler bleibt im [Laufprotokoll](https://github.com/Redurbabat/RED-Bit/actions/runs/42714848937) nachvollziehbar.
+
+Der Simulatorworkflow kompiliert zusätzlich die macOS-App mit Apple-SDK und den ohnehin erzeugten macOS-Kotlin-/Rust-Slices. Der Schritt läuft auch nach fehlgeschlagenen iPhone-UI-Tests, sofern beide Frameworks gebaut wurden und der Lauf nicht abgebrochen wurde. `macos-build.log` wird mit den Simulatornachweisen hochgeladen. Eine erfolgreiche macOS-Kompilierung belegt weder Mac-Hardwareverhalten noch Audioausgabe; die installierbare iPhone-IPA entsteht weiterhin ausschließlich im getrennten Gerätebau.
 
 | Bereich | Befehl oder Nachweis | Aussage |
 | --- | --- | --- |
@@ -18,7 +63,7 @@
 
 ## BitChord-v1.9.1-Portierung: Home-Musikvideos
 
-- **Kotlin-Parser:** `shared/src/commonTest/kotlin/com/music/bitchord/data/innertube/HomeVideoParserTest.kt` mit `./gradlew :shared:macosArm64Test` ausführen. Erwartet: auf Home werden Video-/Audio-Karten erhalten, im bisherigen Explore-Standard nicht; Video-Shelves bleiben bedienbar, Compilations ohne Watch-Endpunkt werden nicht als Videos angeboten, Continuation-Politik bleibt konsistent und `ShelfItem.isVideo` übersteht JSON.
+- **Kotlin-Parser:** `shared/src/commonTest/kotlin/com/music/redbit/data/innertube/HomeVideoParserTest.kt` mit `./gradlew :shared:macosArm64Test` ausführen. Erwartet: auf Home werden Video-/Audio-Karten erhalten, im bisherigen Explore-Standard nicht; Video-Shelves bleiben bedienbar, Compilations ohne Watch-Endpunkt werden nicht als Videos angeboten, Continuation-Politik bleibt konsistent und `ShelfItem.isVideo` übersteht JSON.
 - **Native UI:** Home mit einer gemischten Shelf, einer reinen Videoshelf und „Recents“ öffnen. Schalter „Musikvideos auf der Startseite ausblenden“ ein- und ausschalten: nur die Darstellung wechselt, Playlists/Songs sowie Reihenfolge und Suchresultate bleiben erhalten. Video-Cover 16:9 und Song-Cover quadratisch.
 - **Queue und Wiedergabe:** Video-Karte direkt sowie über das Kontextmenü starten, `QueueEntry.isVideo` kontrollieren. Einmal mit `Prefer Music Only` aus und einmal ein prüfen. Bei aktiver Party darf die Konvertierung nicht die gemeinsame Song-ID überschreiben. Einen Folgetitel, Pause/Fortsetzen und Rückfall auf Original-Audio bei fehlender Katalogaufnahme prüfen.
 - **Accessibility:** VoiceOver-Toggle und Kartenbeschriftungen, Dynamic Type, iPhone-Safe-Areas, iPad-Split-View, macOS-Klick und Tastatur; zusätzlich Reduce Motion.

@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// Binds a party to this device's player.
 ///
@@ -175,6 +175,12 @@ final class PartySync {
         // 2 and 3 together: the judge owns the transport and the playhead, and
         // answering it is the whole of "following".
         let partyPosition = partyPositionMs ?? playback.positionMs
+        if loadedVideoId != nil, loadedVideoId == playback.track?.videoId,
+           controller.current?.videoId == loadedVideoId,
+           controller.isPlaying == playback.isPlaying, controller.position.isFinite,
+           abs(controller.position * 1000 - Double(partyPosition)) < 2_000 {
+            AppTestEvents.emit(.partySync, .success, .validState)
+        }
         let decision = judge.onTick(
             partyPositionMs: partyPosition,
             localPositionMs: Int64(controller.position * 1000),

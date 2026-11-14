@@ -1,0 +1,128 @@
+name: RED Bit macOS-App prüfen
+
+on:
+  pull_request:
+    paths:
+      - AppleApp/**
+      - shared/**
+      - vendor/innertubex/**
+      - native-core/**
+      - gradle/**
+      - '*.gradle.kts'
+      - gradle.properties
+      - gradlew
+      - scripts/build-shared-framework.sh
+      - scripts/build-native-core.sh
+      - scripts/ci-ios-native-cache.sh
+      - scripts/ensure-metal-toolchain.sh
+      - scripts/retry-transient.sh
+      - .github/workflows/macos-app-check.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bbt-macos-app-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos-app:
+    name: Vollständige macOS-App kompilieren
+    runs-on: macos-26
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: source
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Apple- und native Bauwerkzeuge vorbereiten
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          command -v xcodegen >/dev/null || brew install xcodegen
+          command -v cmake >/dev/null || brew install cmake
+          if ! command -v rustup >/dev/null; then
+            curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
+          rustup default stable
+          rustup target add aarch64-apple-darwin aarch64-apple-ios
+          mkdir -p "$RUNNER_TEMP/RED-Bit-macOS"
+          git rev-parse HEAD > "$RUNNER_TEMP/RED-Bit-macOS/source-sha.txt"
+      - name: Geprüfte Framework-Archive aus dem Testbau wiederverwenden
+        id: native_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cache/bbt-bit/ios-frameworks
+          key: bbt-macos-app-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('source/gradle/**', 'source/**/*.gradle.kts', 'source/native-core/Cargo.lock', 'source/native-core/Cargo.toml') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            bbt-macos-app-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('source/gradle/**', 'source/**/*.gradle.kts', 'source/native-core/Cargo.lock', 'source/native-core/Cargo.toml') }}-
+            bbt-sidestore-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('source/gradle/**', 'source/**/*.gradle.kts', 'source/native-core/Cargo.lock', 'source/native-core/Cargo.toml') }}-
+            bbt-sidestore-${{ runner.os }}-${{ runner.arch }}-
+      - name: Kotlin- und Rust-Quellen samt Archiv-Prüfsummen kontrollieren
+        id: frameworks
+        run: |
+          set -euo pipefail
+          chmod +x gradlew scripts/build-shared-framework.sh scripts/build-native-core.sh
+          # Der bestehende Helfer prüft Quellen, Werkzeuge und Archiv-SHA vor
+          # jeder Übernahme; ein unpassendes Archiv wird neu gebaut.
+          bash scripts/ci-ios-native-cache.sh kotlin
+          bash scripts/ci-ios-native-cache.sh rust
+      - name: Originales macOS-Projekt und Swift-Pakete vorbereiten
+        run: |
+          set -euo pipefail
+          bash scripts/ensure-metal-toolchain.sh
+          xcodegen generate --spec AppleApp/project.yml
+          bash scripts/retry-transient.sh xcodebuild -resolvePackageDependencies \
+            -project AppleApp/RedBit.xcodeproj -scheme RedBit \
+            -derivedDataPath "$RUNNER_TEMP/RED-Bit-Mac-DerivedData"
+      - name: Gesamte SwiftUI-App mit echten macOS-Frameworks kompilieren
+        run: |
+          set -uo pipefail
+          set +e
+          xcodebuild -project AppleApp/RedBit.xcodeproj -scheme RedBit \
+            -configuration Debug -sdk macosx -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/RED-Bit-Mac-DerivedData" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build \
+            2>&1 | tee "$RUNNER_TEMP/RED-Bit-macOS/macos-build.log"
+          status="${PIPESTATUS[0]}"
+          printf 'xcodebuild exit code: %s\n' "$status" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Dieser Check kompiliert die macOS-App. Installation und hörbares Audio: NICHT GETESTET.\n' >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      - name: Compilerprotokoll und Quellrevision bereitstellen
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: RED-Bit-macOS-Build-${{ github.run_id }}
+          path: ${{ runner.temp }}/RED-Bit-macOS
+          if-no-files-found: warn
+          retention-days: 3
+      - name: Validierte Framework-Caches auch nach Swift-Buildfehler sichern
+        if: ${{ !cancelled() && steps.frameworks.outcome == 'success' && steps.native_cache.outputs.cache-primary-key != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cache/bbt-bit/ios-frameworks
+          key: ${{ steps.native_cache.outputs.cache-primary-key }}

@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import BitChordShared
+import RedBitShared
 #if os(iOS)
 import UIKit
 #endif

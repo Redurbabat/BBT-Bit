@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 enum ReplayStoryPage: Int, CaseIterable, Identifiable {
     case intro, minutes, artists, songs, albums, genres, habits, summary
@@ -528,7 +528,7 @@ struct ReplayCreditCardView: View {
                 )
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
-                        Text("BITCHORD")
+                        Text("RED BIT")
                             .font(.caption2.weight(.bold))
                             .tracking(1.4)
                         Spacer()
@@ -965,7 +965,7 @@ private struct ReplayShareSheet: View {
             .frame(width: 1080, height: 1920)
         let renderer = ImageRenderer(content: poster)
         renderer.scale = 1
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("bitchord-replay.png")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("redbit-replay.png")
         #if os(iOS)
         guard let img = renderer.uiImage, let data = img.pngData() else { return nil }
         try? data.write(to: url)
@@ -1014,7 +1014,7 @@ private struct ReplayPosterView: View {
                 // 300pt one because someone set their text large. It is a rendered
                 // artefact, like a chart's axis labels, not interface text.
                 VStack(alignment: .leading, spacing: 16 * k) {
-                    Text("BITCHORD REPLAY")
+                    Text("RED BIT REPLAY")
                         .scaledFont(size: 30 * k, weight: .bold)
                         .tracking(2 * k)
                         .foregroundStyle(.white.opacity(0.7))

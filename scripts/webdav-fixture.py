@@ -34,9 +34,9 @@ from urllib.parse import quote, unquote
 
 USER, PASSWORD = "listener", "correct-horse"
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8081
-ROOT = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("WEBDAV_FIXTURE_ROOT", "/tmp/bitchord-webdav")
+ROOT = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("WEBDAV_FIXTURE_ROOT", "/tmp/redbit-webdav")
 
-REQUEST_LOG = os.environ.get("WEBDAV_REQUEST_LOG", "/tmp/bitchord-webdav-requests.log")
+REQUEST_LOG = os.environ.get("WEBDAV_REQUEST_LOG", "/tmp/redbit-webdav-requests.log")
 _lock = threading.Lock()
 
 JPEG = bytes([0xFF, 0xD8, 0xFF, 0xE0]) + b"filed-cover" + bytes(200)
@@ -91,7 +91,7 @@ def relative(path: str) -> str:
 
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
-    server_version = "bitchord-fixture/1"
+    server_version = "redbit-fixture/1"
 
     def log_message(self, *args):
         pass
@@ -113,7 +113,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def deny(self) -> None:
         self.send_response(401)
-        self.send_header("WWW-Authenticate", 'Basic realm="bitchord"')
+        self.send_header("WWW-Authenticate", 'Basic realm="redbit"')
         self.send_header("Content-Length", "0")
         self.end_headers()
 

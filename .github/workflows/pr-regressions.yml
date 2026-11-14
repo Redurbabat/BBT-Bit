@@ -23,6 +23,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Alle GitHub-Workflows mit fixiertem Actionlint prüfen
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl --fail --location --retry 3 \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            --output "$archive"
+          printf '%s  %s\n' 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8 "$archive" | sha256sum --check
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          shellcheck_archive="$RUNNER_TEMP/shellcheck.tar.xz"
+          curl --fail --location --retry 3 \
+            https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz \
+            --output "$shellcheck_archive"
+          printf '%s  %s\n' 8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198 "$shellcheck_archive" | sha256sum --check
+          tar -xJf "$shellcheck_archive" -C "$RUNNER_TEMP" --strip-components=1 shellcheck-v0.11.0/shellcheck
+          export PATH="$RUNNER_TEMP:$PATH"
+          "$RUNNER_TEMP/actionlint" -color
       - name: Validate documentation, skills, version and module boundaries
         shell: bash
         run: |
@@ -35,12 +53,15 @@ jobs:
           python scripts/check-repository.py --base "$BASE_SHA"
           python scripts/repository-verify/check.py
           python scripts/release-verify/check.py
+          python scripts/ios-test-verify/check.py
           python scripts/verify-automix-model-sources.py
           python scripts/verify-settings-german.py
       - name: Check RED-Morph-Quellinvarianten (ohne Apple-Build)
         run: python3 scripts/check-red-morph-source.py
       - name: Check native Dynamic Island / Now Playing (ohne Apple-Build)
         run: python3 scripts/check-native-island-source.py
+      - name: Check Metal toolchain helper (waits for the download)
+        run: bash scripts/metal-toolchain-verify/check.sh
       - name: Check CI retry helper (retries network errors only)
         run: bash scripts/retry-transient-verify/check.sh
       - name: Scan introduced commits for secrets
@@ -52,18 +73,90 @@ jobs:
 
   network-regressions:
     runs-on: macos-15
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Compile and test network error handling
         run: bash scripts/check-network-errors.sh
+      - name: Eigenen Karten-Shader mit Apples Metal-Toolchain kompilieren
+        run: |
+          bash scripts/ensure-metal-toolchain.sh
+          xcrun --sdk iphonesimulator metal -c \
+            AppleApp/Sources/UI/LiquidMotion/HorizonRail.metal -o "$RUNNER_TEMP/horizon-rail.air"
+      - name: Scrollrichtung bei langsamen Gesten und Umkehr prüfen
+        run: |
+          swiftc AppleApp/Sources/UI/LiquidMotion/DockDirectionTracker.swift \
+            scripts/test-dock-direction-tracker.swift -o "$RUNNER_TEMP/red-bit-scroll-test"
+          "$RUNNER_TEMP/red-bit-scroll-test"
+          swiftc AppleApp/Sources/UI/NowPlaying/ArcPlaybackGeometry.swift \
+            AppleApp/Sources/UI/NowPlaying/ConstellationGeometry.swift \
+            AppleApp/Sources/UI/NowPlaying/ConstellationVoiceLayout.swift \
+            AppleApp/Sources/UI/LiquidMotion/MusicMotionGeometry.swift \
+            scripts/test-video-reference-geometry.swift -o "$RUNNER_TEMP/red-bit-video-geometry"
+          "$RUNNER_TEMP/red-bit-video-geometry"
+          for file in AppleApp/Sources/UI/LiquidMotion/LogoGlassBloom.swift \
+                      AppleApp/Sources/UI/LiquidMotion/DockScrollDirection.swift \
+                      AppleApp/Sources/UI/AccountProfileSheet.swift \
+                      AppleApp/Sources/UI/RootView.swift \
+                      AppleApp/Sources/UI/KeyboardPlaybackClearance.swift \
+                      AppleApp/Sources/UI/PlaybackPill.swift \
+                      AppleApp/Sources/UI/FeedViews.swift \
+                      AppleApp/Sources/UI/SearchView.swift \
+                      AppleApp/Sources/UI/TopResultSection.swift \
+                      AppleApp/Sources/UI/BrowseNavigation.swift \
+                      AppleApp/Sources/UI/NowPlaying/ArcPlaybackDeck.swift \
+                      AppleApp/Sources/UI/NowPlaying/LyricsConstellationView.swift \
+                      AppleApp/Sources/UI/NowPlaying/RhythmicConstellationCanvas.swift \
+                      AppleApp/Sources/UI/NowPlaying/CreativeMotionPreviewView.swift \
+                      AppleApp/Sources/UI/NowPlaying/VideoReferencePreviewView.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Layouts.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Stage.swift \
+                      AppleApp/Sources/UI/NowPlaying/NowPlayingView+Transport.swift \
+                      AppleApp/UITests/LiquidMotionUITests.swift; do
+            swiftc -frontend -parse "$file"
+          done
       - name: Parse App-wide Testzentrale and model loader Swift syntax
         run: |
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixLiveTestView.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/AppTestReportsView.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Tests.swift
+          xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/Settings/SettingsView+Playback.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/UI/AutomixModelsSheet.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/AutomixModelLoader.swift
           xcrun swiftc -frontend -parse AppleApp/Sources/PlaybackSession/PlaybackController+AutomixState.swift
+      - name: Livetest-Messung, Fehlerkategorien und privaten JSON-Export prüfen
+        run: bash scripts/check-automix-live-test.sh
+      - name: Automatische Modellprüfung ohne Dateiänderung prüfen
+        run: bash scripts/check-test-model-integrity.sh
+      - name: Original-Parität für Seeds, Playlist-Journal und Wellenformen prüfen
+        run: bash scripts/check-original-parity.sh
+      - name: Ungefragten zweiten Player beim Scrollen ausschließen
+        run: bash scripts/check-phone-layout.sh
+      - name: Gemeinsamen Vorschau-Schlüssel mit macOS-SwiftUI typprüfen
+        run: |
+          xcrun swiftc -swift-version 5 -typecheck \
+            AppleApp/Sources/UI/LiquidMotion/LiquidLiveScreenshotRecorder.swift \
+            scripts/test-liquid-sample-environment.swift
+      - name: Home-Mix, Vorschau und atomare Cover-Queue prüfen
+        run: |
+          bash scripts/check-home-discovery.sh
+          bash scripts/check-feed-loading.sh
+          for file in AppleApp/Sources/UI/AlbumPeek.swift \
+                      AppleApp/Sources/UI/QueueCoverDrop.swift \
+                      AppleApp/Sources/UI/Library/HomeDiscoveryDashboard.swift \
+                      AppleApp/Sources/UI/Library/HomeDiscoveryModel.swift \
+                      AppleApp/Sources/UI/Library/HomeView.swift \
+                      AppleApp/Sources/UI/ActionMenus.swift; do
+            swiftc -frontend -parse "$file"
+          done
+      - name: Sound-Ribbon-Fokus ohne Audio-Fixtures prüfen
+        run: |
+          swiftc -parse-as-library -swift-version 5 \
+            AppleApp/Sources/UI/NowPlaying/ScrubFocusGeometry.swift \
+            scripts/test-scrub-focus.swift -o "$RUNNER_TEMP/red-bit-scrub-focus"
+          "$RUNNER_TEMP/red-bit-scrub-focus"
+          swiftc -frontend -parse AppleApp/Sources/UI/NowPlaying/ArcPlaybackDeck.swift
       - name: Verify Google sign-in browser device identity
         run: bash scripts/check-signin-device.sh
       - name: Validate release shell scripts

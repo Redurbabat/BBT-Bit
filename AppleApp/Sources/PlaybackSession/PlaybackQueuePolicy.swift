@@ -95,7 +95,7 @@ enum PlaybackQueuePolicy {
     }
 }
 
-/// BitChord v1.9.1: 2 s einmalige Leerantwort-Wiederholung, danach alle
+/// RedBit v1.9.1: 2 s einmalige Leerantwort-Wiederholung, danach alle
 /// 15 s ein Watchdog mit einem früheren Queue-Titel als Radio-Startpunkt.
 enum AutoplayEmptyPolicy {
     static func waitSeconds(forFailureCount failures: Int) -> Int {

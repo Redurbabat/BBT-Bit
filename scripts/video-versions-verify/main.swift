@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 private struct ProbeSong {
     enum Expectation { case officialVideo, lyricOnly, artTrack, noVideo, either }

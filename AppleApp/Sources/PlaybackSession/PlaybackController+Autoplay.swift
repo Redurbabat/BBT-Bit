@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -17,7 +17,7 @@ extension PlaybackController {
     /// listener does — a skip, a like, a new pick — steers the *next* fill,
     /// because the next fill is seeded from whatever is playing then. It never
     /// rewrites the fill already shown.
-    /// In Party-Sitzungen liefert nur der per BitChord-Regel gewählte Teilnehmer.
+    /// In Party-Sitzungen liefert nur der per RedBit-Regel gewählte Teilnehmer.
     private var canSupplyRecommendations: Bool {
         PartyAutoplayRules.shared.canSupply(
             party: PartyStore.shared.state, localPreference: autoplayEnabled
@@ -45,11 +45,12 @@ extension PlaybackController {
             // A forced fill tops the tail up to its target; it does not replace it.
             guard autoplayRoom() > 0 else { return }
         }
-        // BitChord füllt nach jedem Titelwechsel auf zehn Empfehlungen auf,
+        // RedBit füllt nach jedem Titelwechsel auf zehn Empfehlungen auf,
         // nicht erst bei weniger als drei vorausliegenden Queue-Einträgen.
         let due = force || (lowWaterRefill && autoplayRoom() > 0)
         guard due else { return }
         guard let context = recommendationContext else {
+            matchAutoplaySeedIfNeeded()
             if effectiveAutoplayEnabled {
                 PlaybackDebugLog.shared.record(
                     "autoplay: no context (repeatAll=\(repeatMode == .all) state=\(state) youtube=\(current.flatMap { youtubeVideoID(for: $0) } != nil))",
@@ -121,7 +122,9 @@ extension PlaybackController {
                     ? serverEntries.filter { $0.id != kept[self.playingIndex].id }
                     : kept.enumerated().filter { $0.offset != self.playingIndex }.map(\.element))
                     + [kept[self.playingIndex]]
-                let existing = (try? JSONEncoder().encode(filteringEntries.map { $0.asSongJSON(videoIDOverride: self.youtubeVideoID(for: $0)) }))
+                let existing = (try? JSONEncoder().encode(filteringEntries.map {
+                    $0.asSongJSON(videoIDOverride: $0.id == self.current?.id ? currentVideoId : self.youtubeVideoID(for: $0))
+                }))
                     .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
                 let extraJson = QueueBuilderBridge.shared.extendJson(
                     existingJson: existing, candidatesJson: json,
@@ -142,7 +145,7 @@ extension PlaybackController {
                         fromAutoplay: true, isVideo: $0.isVideo ?? false
                     )
                 }
-                // Original-BitChord respektiert die Reihenfolge der Radio-Antwort.
+                // Original-RedBit respektiert die Reihenfolge der Radio-Antwort.
                 // Nur ein ausdrücklich eingeschaltetes AutoMix kann später den
                 // noch nicht abgespielten Bereich neu ordnen.
                 let ordered = extras
@@ -272,6 +275,23 @@ extension PlaybackController {
         if let recommendationFetchOverride { recommendationFetchOverride(videoId, response); return }
         #endif
         AutoPlayBridge.shared.related(videoId: videoId, preferVideo: preferVideo, callback: AutoPlayAdapter(response))
+    }
+
+    private func matchAutoplaySeedIfNeeded() {
+        guard effectiveAutoplayEnabled, repeatMode != .all, state != .stopped,
+              let entry = current, entry.source.hasPrefix("src:"),
+              let request = autoplaySeeds.begin(entryID: entry.id, playbackGeneration: playGeneration,
+                  sessionGeneration: PageSession.generation(), now: Date()),
+              let data = try? JSONEncoder().encode(entry.asSongJSON()),
+              let json = String(data: data, encoding: .utf8) else { return }
+        AutoPlayBridge.shared.seed(songJson: json, callback: AutoPlayAdapter { [weak self] seed, _ in
+            Task { @MainActor in
+                guard let self else { return }
+                let accepted = self.autoplaySeeds.finish(request, seed: seed, currentID: self.current?.id,
+                    playbackGeneration: self.playGeneration, sessionGeneration: PageSession.generation(), now: Date())
+                if accepted { self.maybeAutoplay(force: true) }
+            }
+        })
     }
 
     func tasteScores(_ entries: [QueueEntry], transitionFits: [Int: Double] = [:]) -> [Double] {

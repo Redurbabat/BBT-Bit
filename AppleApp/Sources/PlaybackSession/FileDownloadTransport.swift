@@ -1,6 +1,6 @@
 import Foundation
 import CryptoKit
-import BitChordShared
+import RedBitShared
 
 /// Ordinary files use the OS transfer service, not YouTube's ranged transport.
 /// Task identity and completed results survive process termination. No credentials
@@ -10,8 +10,8 @@ final class FileDownloadTransport: NSObject, URLSessionDownloadDelegate, @unchec
     // Background URLSession follows redirects without consulting the delegate.
     // Credential-bearing requests need a normal session to enforce our policy.
     static let credentialed = FileDownloadTransport(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("BitChord/Downloads/AuthenticatedTransfers", isDirectory: true), configuration: .default)
-    static let sessionIdentifier = "app.bitchord.offline-files.v1"
+        .appendingPathComponent("RedBit/Downloads/AuthenticatedTransfers", isDirectory: true), configuration: .default)
+    static let sessionIdentifier = "com.babat.bbtbit.offline-files.v1"
     static func requiresRedirectControl(url: URL? = nil, headers: [String: String]) -> Bool {
         let publicHeaders: Set<String> = ["user-agent", "accept", "accept-language", "accept-encoding", "content-type"]
         return url?.user != nil || url?.password != nil || headers.keys.contains { !publicHeaders.contains($0.lowercased()) }
@@ -31,7 +31,7 @@ final class FileDownloadTransport: NSObject, URLSessionDownloadDelegate, @unchec
 
     init(directory: URL? = nil, configuration: URLSessionConfiguration? = nil) {
         root = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("BitChord/Downloads/Transfers", isDirectory: true)
+            .appendingPathComponent("RedBit/Downloads/Transfers", isDirectory: true)
         self.configuration = configuration ?? URLSessionConfiguration.background(withIdentifier: Self.sessionIdentifier)
         self.configuration.isDiscretionary = false
         self.configuration.sessionSendsLaunchEvents = true

@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 #if os(iOS)
 import UIKit
@@ -20,11 +20,11 @@ struct SettingsBackupFile: FileDocument {
 }
 
 @MainActor
-enum BitChordBackup {
+enum RedBitBackup {
     static func suggestedName() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        return "bitchord-backup-\(formatter.string(from: Date()))"
+        return "redbit-backup-\(formatter.string(from: Date()))"
     }
 
     static func exportText() -> String {
@@ -35,7 +35,7 @@ enum BitChordBackup {
             prefs = prefs == "{}" ? "{\(insert)}" : String(prefs.dropLast()) + ",\(insert)}"
         }
         let listening = ListeningStore.shared.exportJSON().flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-        return "{\"app\":\"bitchord\",\"version\":1,\"prefs\":\(prefs),\"listening\":\(listening)}"
+        return "{\"app\":\"redbit\",\"version\":1,\"prefs\":\(prefs),\"listening\":\(listening)}"
     }
 
     static func importText(_ raw: String) {

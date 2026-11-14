@@ -36,7 +36,7 @@ private let automixModelLog = OSLog(
 /// hash is recomputed on this device, so neither a moved tag nor a truncated
 /// transfer can put a bad graph in the analyzer.
 ///
-/// Deliberately free of `BitChordShared` and SwiftUI:
+/// Deliberately free of `RedBitShared` and SwiftUI:
 /// `scripts/check-models.sh` compiles this file alone with the real network and
 /// real hashing, and a file that can only be exercised from inside the app is a
 /// file whose download logic is only ever tested by hand. Policy that belongs to
@@ -228,7 +228,7 @@ final class AutomixModelStore {
     static var defaultDirectory: URL {
         let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        return root.appendingPathComponent("BitChord/Models", isDirectory: true)
+        return root.appendingPathComponent("RedBit/Models", isDirectory: true)
     }
 
     /// One session per transfer, because a `URLSessionDataTask` takes its delegate
@@ -811,6 +811,37 @@ final class AutomixModelStore {
     /// Recompute the hash from disk. `false` means the file was not usable and has
     /// been removed, so nothing downstream should be pointed at it.
     @discardableResult
+    /// Rein lesende Diagnose, ohne Installation, Bereinigung oder Core-ML-Kompilierung.
+    func inspectIntegrity(_ id: ModelID) async -> Bool? {
+        let spec = spec(id), url = fileURL(for: spec)
+        let expectedBytes = spec.byteCount, expectedHash = spec.sha256
+        let work = Task.detached(priority: .utility) {
+            Self.inspectFile(url, bytes: expectedBytes, sha256: expectedHash)
+        }
+        return await withTaskCancellationHandler { await work.value } onCancel: { work.cancel() }
+    }
+
+    nonisolated static func inspectFile(_ url: URL, bytes: Int64, sha256: String) -> Bool? {
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        guard let before = try? FileManager.default.attributesOfItem(atPath: url.path) else { return nil }
+        guard (before[.size] as? NSNumber)?.int64Value == bytes else { return false }
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? handle.close() }
+        var digest = SHA256()
+        do {
+            while let chunk = try handle.read(upToCount: 4 * 1024 * 1024), !chunk.isEmpty {
+                guard !Task.isCancelled else { return nil }
+                digest.update(data: chunk)
+            }
+        } catch { return nil }
+        guard !Task.isCancelled else { return nil }
+        guard let after = try? FileManager.default.attributesOfItem(atPath: url.path),
+              (after[.size] as? NSNumber)?.int64Value == bytes,
+              (before[.modificationDate] as? Date) == (after[.modificationDate] as? Date),
+              (before[.systemFileNumber] as? NSNumber) == (after[.systemFileNumber] as? NSNumber) else { return nil }
+        return digest.finalize().map { String(format: "%02x", $0) }.joined() == sha256.lowercased()
+    }
+
     func verify(_ id: ModelID) async -> Bool {
         let spec = spec(id)
         let file = fileURL(for: spec)
@@ -1021,7 +1052,7 @@ final class AutomixModelStore {
     /// invalidate the compiled model, and the verified bytes are the repair.
     nonisolated static func compileCoreMLArchive(from archive: URL, to destination: URL) -> Bool {
         let work = FileManager.default.temporaryDirectory
-            .appendingPathComponent("bitchord-coreml-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("redbit-coreml-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: work) }
         do {
             try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)

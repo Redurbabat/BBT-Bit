@@ -1,4 +1,17 @@
 import SwiftUI
+
+/// Nur die gekennzeichnete Beispielgalerie aktiviert diesen gemeinsamen Wert.
+private struct LiquidDesignSampleKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var liquidDesignSample: Bool {
+        get { self[LiquidDesignSampleKey.self] }
+        set { self[LiquidDesignSampleKey.self] = newValue }
+    }
+}
+
 #if os(iOS)
 import UIKit
 import Observation
@@ -168,7 +181,7 @@ final class LiquidLiveScreenshotRecorder {
             capturedOnIPhone: true,
             limitations: "Only currently visible app window content was captured after each real Liquid Motion component appeared. Missing features were not simulated or marked as completed. These images do not certify functional correctness.",
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
-            buildRevision: Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String ?? "unknown",
+            buildRevision: Bundle.main.object(forInfoDictionaryKey: "RedBitRevision") as? String ?? "unknown",
             captured: captures.sorted { $0.index < $1.index }
         )
         do {
@@ -205,18 +218,6 @@ private struct LiquidWindowCaptureReport: Codable {
     let appVersion: String
     let buildRevision: String
     let captured: [LiquidWindowCapture]
-}
-
-/// Only the synthetic sample gallery sets this to true.
-private struct LiquidDesignSampleKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
-extension EnvironmentValues {
-    var liquidDesignSample: Bool {
-        get { self[LiquidDesignSampleKey.self] }
-        set { self[LiquidDesignSampleKey.self] = newValue }
-    }
 }
 
 /// Invisible hook which never alters the live feature's layout.

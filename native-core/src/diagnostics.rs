@@ -205,7 +205,7 @@ mod tests {
     fn capture_completeness_requires_present_finished_file() {
         assert!(!complete_file("https://example.invalid/audio"));
         let path =
-            std::env::temp_dir().join(format!("bitchord-capture-complete-{}", std::process::id()));
+            std::env::temp_dir().join(format!("redbit-capture-complete-{}", std::process::id()));
         let source = path.to_string_lossy().into_owned();
         assert!(!complete_file(&source));
         std::fs::write(&path, [0u8; 4]).unwrap();

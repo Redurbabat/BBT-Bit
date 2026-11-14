@@ -51,7 +51,7 @@ enum SignInUserAgent {
         return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
             + "AppleWebKit/605.1.15 (KHTML, like Gecko) "
             + "Version/\(safariVersion) Safari/605.1.15"
-            + " (bitchord; macOS \(major).\(minor).\(patch))"
+            + " (redbit; macOS \(major).\(minor).\(patch))"
     }
 
     static let safariVersion = "17.6"

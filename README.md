@@ -1,49 +1,38 @@
 # RED Bit
 
-RED Bit (repository name: BBT-Bit) is an independently maintained native music app for iPhone, iPad,
-and Apple Silicon Mac under the BABAT app family.
+RED Bit (ehemals BBT-Bit) ist eine eigenständig gepflegte native Musik-App für iPhone, iPad und Apple-Silicon-Macs aus der BABAT-Appfamilie.
 
-RED Bit is a derivative of the open-source BitChord Apple port by Martin BAGUMA,
-itself based on BitChord by Kushagra Singh. It is not an official BitChord release.
+Die Grundlage ist der offene BitChord-Apple-Port von Martin BAGUMA, der auf BitChord von Kushagra Singh basiert. RED Bit ist eine eigenständige Weiterentwicklung. Herkunft und Lizenzen bleiben erhalten.
 
-## Independent development
+## Projekt und Kompatibilität
 
-- Repository and source: https://github.com/Redurbabat/BBT-Bit
-- Display name: RED Bit (bundle identifier `com.babat.bbtbit`, the `bbtbit://` URL scheme, data folders and release file names keep their BBT-Bit/BitChord spelling for compatibility)
-- iOS/macOS bundle: com.babat.bbtbit
-- Widget bundle: com.babat.bbtbit.widget
-- Keychain and App Group use separate BBT-Bit namespaces.
-- Update checks target BBT-Bit's own GitHub Releases; upstream releases are never installed.
-- Automatic macOS updates are disabled pending independent signing keys.
-- The app icon is original. Internal BitChord Swift and Kotlin module symbols
-  remain to preserve build compatibility.
-- Optional verified Automix weight downloads target BBT-Bit's own release assets.
-  The weights are not bundled with the app.
-- External services such as YouTube Music, and third-party toolchains, still
-  require their respective providers.
+- Repository und Quellcode: https://github.com/Redurbabat/RED-Bit
+- Anzeigename: RED Bit. Die App-ID `com.babat.bbtbit`, das URL-Schema `bbtbit://`, App Group und Keychain bleiben für bestehende Installationen erhalten. Datenordner und interne Namen heißen seit [E-024](ENTSCHEIDUNGEN.md) `RedBit`; vorhandene Daten übernimmt die App beim ersten Start.
+- Widget-ID: `com.babat.bbtbit.widget`. Keychain und App Group verwenden eigene BBT-Bit-Namensräume.
+- SwiftUI zeigt die Oberfläche; Kotlin Multiplatform bündelt Daten und Netzwerk; Rust stellt die Audioengine bereit. Die Module heißen `RedBit` (Xcode-Ziel), `RedBitShared` (Kotlin-Framework) und `com.music.redbit` (Kotlin-Paket).
+- Optionale Automix-Modelle stammen aus den öffentlichen BitChord-Apple-Modellreleases und werden anhand festgelegter SHA-256-Prüfsummen geprüft. Sie sind nicht in der App gebündelt.
+- Externe Dienste wie YouTube Music bleiben von ihren jeweiligen Anbietern abhängig.
 
-## Building
+## Übernommene Original-Funktionen
 
-Building requires a Mac with Xcode, XcodeGen, JDK, Rust, CMake, and access to
-third-party dependencies. Follow the original detailed build steps in
-docs/ORIGINAL_BITCHORD_README.md but clone Redurbabat/BBT-Bit instead.
-The generated Xcode project and native scheme retain the internal BitChord
-name; the installed app displays BBT-Bit.
+PR #59 ergänzt Addon-Autoplay mit geprüftem YouTube-Startpunkt, einen Titelwechsel innerhalb der laufenden Mischung, gemessene Automix-Wellenformen und einen optionalen Abgleich von Offline-Playlists. [Umsetzung, Herkunft und Prüfgrenzen](docs/ORIGINAL_PARITAET_PR59.md).
 
-There is no signed BBT-Bit IPA yet. Configure your own signing identity, then
-build and test before releasing. The new app identifier does not migrate data
-from an existing BitChord installation.
+Der Playlist-Abgleich läuft bei aktiver App und holt fällige Prüfungen beim Öffnen nach. Er respektiert die WLAN-Regel und bewusste Löschungen. Bei älteren Download-Indizes setzt der erste vollständige Abgleich zunächst eine sichere Ausgangsliste.
 
-## Contributing
+## Bauen und aktualisieren
 
-See [AI_START_HERE.md](AI_START_HERE.md) for architecture, agent skills,
-versioning and the test matrix.
+Erforderlich sind ein Mac mit Xcode, XcodeGen, JDK, Rust, CMake und Zugriff auf die Abhängigkeiten. Die [ursprüngliche Bauanleitung](docs/ORIGINAL_BITCHORD_README.md) beschreibt die Werkzeuge; zu klonen ist `Redurbabat/RED-Bit`. Xcode-Projekt, Ziele und Scheme heißen `RedBit`; die installierte App heißt RED Bit.
 
-## Credits and licenses
+Die Updateprüfung verwendet ausschließlich RED-Bit-Veröffentlichungen. Das Repository ist öffentlich; Release-Dateien sind ohne Anmeldung erreichbar. Fehlt eine passende Veröffentlichung, bietet die App die Release-Seite im Browser an. Automatische Mac-Updates bleiben bis zu einem eigenen konfigurierten Signatur-Feed deaktiviert.
 
-The software remains GPLv3 where applicable. Copyright and original attribution
-are preserved in LICENSE, LICENSES, THIRD_PARTY_NOTICES.md, source headers and
-docs/ORIGINAL_BITCHORD_README.md. Keep those notices with redistributed builds.
+Ein RED-Bit-App-Installer wurde noch nicht veröffentlicht. Für eine Auslieferung sind passende Signierung, Paketprüfung und ein Gerätetest erforderlich. Von einer ursprünglichen BitChord-Installation findet keine automatische Datenmigration statt. [Release-Ablauf](docs/RELEASE.md).
 
-BBT-Bit is not affiliated with or endorsed by Google or YouTube, and the
-availability of third-party music services is outside this project's control.
+## Mitwirken
+
+[Einstieg](AI_START_HERE.md) · [Architektur](docs/ARCHITEKTUR.md) · [Skills und Arbeitsablauf](docs/AGENT_WORKFLOW.md) · [Testplan](docs/TESTPLAN.md).
+
+## Herkunft und Lizenzen
+
+Die Software bleibt, soweit anwendbar, GPLv3. Copyright und ursprüngliche Zuschreibungen sind in [LICENSE](LICENSE), [Lizenztexten](LICENSES/), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), Dateiheadern und der [ursprünglichen README](docs/ORIGINAL_BITCHORD_README.md) erhalten. Diese Hinweise gehören auch zu weitergegebenen Builds.
+
+RED Bit ist nicht mit Google oder YouTube verbunden und wird von diesen nicht unterstützt. Die Verfügbarkeit externer Musikdienste liegt bei den jeweiligen Anbietern.

@@ -2,7 +2,7 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 
 /// Account & Settings hub — Apple-style modal account sheet and profile switcher.
 ///
@@ -315,6 +315,9 @@ struct TopBarAccountButton: View {
         }
         .buttonStyle(ProfileCircleButtonStyle())
         .accessibilityLabel(auth.signedIn ? "Account and Settings" : "Sign In and Settings")
+        #if os(iOS)
+        .modifier(BloomToolbarBoundary())
+        #endif
         .contextMenu {
             if auth.signedIn {
                 Button {
@@ -534,7 +537,7 @@ struct Avatar: View {
 }
 
 #if os(iOS)
-/// A page's leading top-bar items: the BitChord mark and, on the iPad, back and
+/// A page's leading top-bar items: the RedBit mark and, on the iPad, back and
 /// forward through the tab's pages, beside it as the Mac's titlebar has them.
 struct TopBarLeadingItems: ToolbarContent {
     @Environment(\.pageHistory) private var history
@@ -621,6 +624,11 @@ struct TopBarLeadingMark: View {
             .accessibilityLabel("RED Bit: Glass Bloom öffnen")
             .accessibilityHint("Tippen für die Musikblase, halten oder nach unten ziehen für die Musiksteuerung. Beim Hochscrollen erscheint sie auch automatisch.")
             .accessibilityIdentifier("bbt.logoGlassBloom.trigger")
+            .onGeometryChange(for: CGRect.self) { proxy in
+                proxy.frame(in: .global)
+            } action: { frame in
+                bloom.updateLogoFrame(frame)
+            }
         } else {
             logoImage
         }
@@ -633,7 +641,7 @@ struct TopBarLeadingMark: View {
         Image(.bchLogo)
             .resizable()
             .scaledToFit()
-            .frame(width: 28, height: 18)
+            .frame(width: 24, height: 24)
             .accessibilityHidden(true)
     }
 }

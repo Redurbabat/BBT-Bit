@@ -114,7 +114,7 @@ fn texture_and_brake_round_trip_through_the_plan_record() {
 
 #[test]
 fn analyzed_plan_replaces_safety_plan_only_while_arming() {
-    let dir = std::env::temp_dir().join(format!("bitchord-am4-upgrade-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-am4-upgrade-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let outgoing = dir.join("out.wav");
     let incoming = dir.join("in.wav");
@@ -140,7 +140,7 @@ fn analyzed_plan_replaces_safety_plan_only_while_arming() {
 
 #[test]
 fn skip_mix_starts_a_two_beat_echo_when_an_armed_grid_exists() {
-    let dir = std::env::temp_dir().join(format!("bitchord-am5-skip-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-am5-skip-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let outgoing = dir.join("out.wav");
     let incoming = dir.join("in.wav");
@@ -165,7 +165,7 @@ fn skip_mix_starts_a_two_beat_echo_when_an_armed_grid_exists() {
 
 #[test]
 fn skip_mix_without_a_grid_keeps_the_existing_cut_fallback() {
-    let dir = std::env::temp_dir().join(format!("bitchord-am5-no-grid-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-am5-no-grid-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let outgoing = dir.join("out.wav");
     let incoming = dir.join("in.wav");
@@ -216,7 +216,7 @@ fn throttled_intro_fixture_keeps_analyzed_wins_at_or_above_ninety_percent() {
 /// the seek was refused as "nothing playing" and the output ran dry.
 #[test]
 fn a_seek_after_the_handoff_lands_on_the_incoming_track() {
-    let dir = std::env::temp_dir().join(format!("bitchord-seek-blend-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-seek-blend-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let outgoing = dir.join("out.wav");
     let incoming = dir.join("in.wav");
@@ -225,6 +225,8 @@ fn a_seek_after_the_handoff_lands_on_the_incoming_track() {
 
     let mut state = armed_test_state(&outgoing, &incoming, Phase::Arming);
     state.start_fade();
+    state.incoming.as_mut().unwrap().emitted_dev_frames = 2 * 44_100;
+    state.drive_fade();
     assert!(state.transition.as_ref().unwrap().handed_off);
 
     let (mut producer, _consumer) = rtrb::RingBuffer::<f32>::new(4096);

@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
@@ -11,7 +11,7 @@ import AppKit
 /// single declaration. Exactly four canonical tabs, upstream icons, search
 /// role pinned trailing. `@SceneStorage` keeps the last tab across launches.
 struct RootView: View {
-    @SceneStorage("bitchord.selectedTab") private var selection: Int = AppModel.Tab.home.rawValue
+    @SceneStorage("redbit.selectedTab") private var selection: Int = AppModel.Tab.home.rawValue
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(AuthController.self) private var auth
@@ -42,7 +42,6 @@ struct RootView: View {
     @Namespace private var nowPlayingZoom
     @State private var logoGlassBloom = LogoGlassBloomCoordinator.shared
     @State private var dockScroll = DockScrollCoordinator.shared
-    @Environment(\.accessibilityReduceMotion) private var reduceLogoMotion
     /// Regular width is the iPad layout — on any device. A Max phone turned
     /// sideways is a regular-width window too, and it has the room.
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -63,7 +62,7 @@ struct RootView: View {
     @State private var sidebarArtwork: [String: UIImage] = [:]
     /// The library section last chosen on the iPad, where a deep link to the
     /// Library lands.
-    @SceneStorage("bitchord.iPadLibrary") private var iPadLibraryTab: Int = AppModel.Tab.libraryYouTube.rawValue
+    @SceneStorage("redbit.iPadLibrary") private var iPadLibraryTab: Int = AppModel.Tab.libraryYouTube.rawValue
     #endif
     @AppStorage(OnboardingView.doneKey) private var onboardingDone = false
     @State private var onboardingPresented = false
@@ -86,8 +85,8 @@ struct RootView: View {
     }
 
     // iPhone: the floating music surface grows out of the native top-left
-    // BBT-Bit logo. It is absent by default; the logo or a playback event
-    // reveals it temporarily. iPad / macOS navigation remains independent.
+    // RED-Bit-Logo. Nur eine bewusste Logo-Interaktion öffnet diese Zusatzfläche;
+    // Wiedergabe und Scrollen bleiben beim nativen unteren Mini-Player.
     private var musicIslandShell: some View {
         #if os(iOS)
         logoBloomShell
@@ -110,16 +109,25 @@ struct RootView: View {
                 if logoGlassBloom.isVisible
                     && controller.current != nil
                     && canRevealLogoBloom {
-                    LogoGlassBloomIsland()
-                        .padding(.leading, 45)
-                        .padding(.top, 8)
-                        .transition(reduceLogoMotion ? .opacity :
-                            .asymmetric(
-                                insertion: .scale(scale: 0.36, anchor: .topLeading).combined(with: .opacity),
-                                removal: .scale(scale: 0.34, anchor: .topLeading).combined(with: .opacity)
-                            )
-                        )
-                        .zIndex(10)
+                    GeometryReader { proxy in
+                        let container = proxy.frame(in: .global)
+                        let source = logoGlassBloom.presentationLogoFrame
+                        let leading = min(max(16, (source?.minX ?? container.minX + 16) - container.minX),
+                                          max(16, proxy.size.width - 62))
+                        let top = (source?.midY ?? container.minY + 31) - container.minY - 23
+                        let boundary = logoGlassBloom.presentationTrailingFrame?.minX ?? container.maxX - 8
+                        let compactWidth = max(46, boundary - container.minX - leading - 8)
+                        let expanded = logoGlassBloom.phase == .expanded
+                        LogoGlassBloomIsland(maximumWidth: max(46, min(proxy.size.width - leading - 16,
+                                                                       expanded ? 292 : compactWidth)))
+                            // Nur der kurze Logo-Spark liegt am Ursprung.
+                            // Beide lesbaren Zustände bleiben unter dem Seitentitel.
+                            .offset(x: leading, y: logoGlassBloom.phase == .spark ? top : top + 54)
+                    }
+                    // Die Fläche selbst morpht; keine zweite Skalierung um
+                    // einen geratenen Bildschirmpunkt darüberlegen.
+                    .transition(.opacity)
+                    .zIndex(10)
                 }
             }
             .onChange(of: controller.current?.id) { _, trackID in
@@ -143,16 +151,11 @@ struct RootView: View {
             .onChange(of: canRevealLogoBloom) { _, canShow in
                 if !canShow { logoGlassBloom.dismiss() }
             }
-            // Logo-origin playback controls can now wake when the user reverses
-            // an existing scroll gesture, without a separate tap on the logo.
-            // Never invent a track or overlay a modal view.
+            // Scrollen schließt die manuell geöffnete Zusatzsteuerung und
+            // öffnet sie auch beim Richtungswechsel nicht automatisch erneut.
             .onChange(of: dockScroll.directionRevision) { _, _ in
-                if dockScroll.direction == .towardTop {
-                    guard canRevealLogoBloom, !logoGlassBloom.isVisible else { return }
-                    logoGlassBloom.playbackStartedOrTrackChanged()
-                } else if logoGlassBloom.phase != .expanded {
-                    logoGlassBloom.dismiss()
-                }
+                guard canRevealLogoBloom else { return }
+                logoGlassBloom.scrollChanged(dockScroll.direction)
             }
     }
 
@@ -405,6 +408,9 @@ struct RootView: View {
             Task { await loadSidebarPlaylists() }
         }
         .onChange(of: selection) { _, raw in
+            // Beim Tab-Wechsel keine eingefrorenen Toolbar-Koordinaten der
+            // vorherigen Seite weiterverwenden.
+            logoGlassBloom.dismiss()
             if let tab = AppModel.Tab(rawValue: raw), Self.isLibrarySection(tab) {
                 iPadLibraryTab = raw
             }
@@ -792,11 +798,11 @@ struct RootView: View {
                                 }
                             }
                         }
-                        .customizationID("bitchord.sidebar.playlist.\(playlist.playlistId)")
+                        .customizationID("redbit.sidebar.playlist.\(playlist.playlistId)")
                         .tabPlacement(.sidebarOnly)
                     }
                 }
-                .customizationID("bitchord.sidebar.playlists")
+                .customizationID("redbit.sidebar.playlists")
                 .defaultVisibility(.hidden, for: .tabBar)
             } else {
                 Tab("Home", systemImage: "house.fill", value: RootPage.tab(.home)) {
@@ -1104,7 +1110,6 @@ struct PlaybackPillMount: ViewModifier {
     /// is up the iPhone's pill rides on top of it instead (the iPad's per-tab
     /// inset does that on its own).
     @State private var keyboardUp = false
-    @State private var dockScroll = DockScrollCoordinator.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     #endif
 
@@ -1120,32 +1125,15 @@ struct PlaybackPillMount: ViewModifier {
             // the sidebar and keeps Music's 620 pt width.
             content
         } else if #available(iOS 26.0, *) {
-            // iOS 26: Die native Tab-Leiste schrumpft beim Scrollen nach unten,
-            // der systemeigene Bottom Accessory bewegt den Mini-Player mit.
-            // Bei Richtungsumkehr nach oben verhindert DockScrollCoordinator,
-            // dass die Leiste trotz Gegenbewegung eingeklappt bleibt.
-            // Die Keyboard-Safe-Area-Korrektur darunter bleibt erhalten.
+            // Eine stabile Systemregel hält Tab-Leiste und Accessory in derselben
+            // Transition. Ein Wechsel zu .never mitten im Scrollen entkoppelte
+            // ihre Platzierungen und legte den Player über die Tab-Symbole.
             accessory(
-                content.tabBarMinimizeBehavior(
-                    dockScroll.keepExpanded ? .never : .onScrollDown
-                )
+                content.tabBarMinimizeBehavior(.onScrollDown)
             )
-                // Das kompakte Pill belegt oberhalb der Tastatur echten
-                // Safe-Area-Platz, statt die Suchergebnisse zu überdecken.
-                // Der native Bottom Accessory wird währenddessen ausgeblendet.
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if keyboardUp {
-                        // PlaybackPill besitzt bereits seinen eigenen
-                        // MiniPlayerChrome mit Reduce-Transparency-Fallback.
-                        // Kein zweites Material über denselben Bedienelementen.
-                        PlaybackPill(inline: true)
-                            .frame(maxWidth: 440)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
-                            .frame(maxWidth: .infinity)
-                            .transition(.opacity)
-                    }
-                }
+                // Der Tastatur-Player gehört INNERHALB der Navigation über deren
+                // Suchleiste. Ein Inset außerhalb der TabView lag genau auf ihr.
+                .environment(\.keyboardPlaybackVisible, keyboardUp)
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
                     withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { keyboardUp = true }
                 }
@@ -1176,19 +1164,19 @@ struct PlaybackPillMount: ViewModifier {
                 PlaybackAccessory()
             }
         } else {
-            content.tabViewBottomAccessory {
-                PlaybackAccessory()
-            }
-        }
-        #else
-        if #available(iOS 26.1, *) {
+            // iOS 26.0 has no isEnabled overload. Do not render a second
+            // mini-player while the keyboard-safe-area pill is visible.
             content.tabViewBottomAccessory {
                 if !keyboardUp {
                     PlaybackAccessory()
                 }
             }
-        } else {
-            content.tabViewBottomAccessory {
+        }
+        #else
+        // Xcode 26.0 SDK: the accessory has no isEnabled parameter.
+        // Keep its content mutually exclusive with the keyboard pill.
+        content.tabViewBottomAccessory {
+            if !keyboardUp {
                 PlaybackAccessory()
             }
         }
@@ -1210,6 +1198,35 @@ struct PlaybackPillMount: ViewModifier {
 }
 
 #if os(iOS)
+extension EnvironmentValues {
+    @Entry var keyboardPlaybackVisible = false
+}
+
+/// Innerhalb des Navigationsinhalts montieren, damit Suchfeld und Schließen-
+/// Knopf zuerst ihren systemeigenen Safe-Area-Platz erhalten.
+struct KeyboardPlaybackChrome: ViewModifier {
+    @Environment(\.keyboardPlaybackVisible) private var visible
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var searchClearance: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
+            if visible, sizeClass == .compact {
+                PlaybackPill(inline: true)
+                    .frame(maxWidth: 440)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .padding(.bottom, searchClearance)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .background {
+            NativeSearchClearance(active: visible && sizeClass == .compact) { searchClearance = $0 }
+                .accessibilityHidden(true)
+        }
+    }
+}
+
 /// The pill in the iPhone's bottom accessory, told whether the minimized tab
 /// bar has it inline.
 @available(iOS 26.0, *)
@@ -1217,7 +1234,7 @@ private struct PlaybackAccessory: View {
     @Environment(\.tabViewBottomAccessoryPlacement) private var placement
 
     var body: some View {
-        PlaybackPill(inline: placement == .inline)
+        PlaybackPill(inline: placement == .inline, usesSystemChrome: true)
     }
 }
 
@@ -1293,11 +1310,9 @@ private struct NowPlayingSheetSizing: ViewModifier {
             content
                 .presentationDetents([.large])
                 .presentationSizing(.page)
-                .presentationDragIndicator(.visible)
         } else {
             content
                 .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
                 .presentationCornerRadius(24)
         }
     }

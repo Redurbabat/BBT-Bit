@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 import AVKit
 import CoreImage
@@ -38,8 +38,30 @@ extension NowPlayingView {
     // bodies and the two toolbars are platform-specific, and they are the
     // arrangement — which is the only thing that should differ.
     #if os(iOS)
+    private var immersiveLyricsVisible: Bool {
+        lyricsConstellation && pane == .lyrics && LyricsConstellationView.isAvailable(lines: controller.displayedLyrics)
+    }
+
     var iOSBody: some View {
         NavigationStack {
+            if immersiveLyricsVisible {
+                TimelineView(.animation(minimumInterval: 1.0 / 60, paused: !controller.isPlaying)) { timeline in
+                    LyricsConstellationView(
+                        lines: controller.displayedLyrics,
+                        position: controller.livePosition(at: timeline.date),
+                        offsetMs: lyricsOffsetMs,
+                        onClose: { pane = .main },
+                        immersive: true,
+                        trackTitle: controller.current?.title ?? "",
+                        sourceLabel: controller.lyricsSourceLabel,
+                        onShowList: { lyricsConstellation = false },
+                        duration: controller.duration
+                    )
+                    .id(controller.current?.id)
+                }
+                .toolbar(.hidden, for: .navigationBar)
+                .ignoresSafeArea(.container)
+            } else {
             // The arrangement is the only thing that differs between the
             // shapes, so the arrangement is the only thing decided here. Every
             // slot below — the sleeve, the panes, the deck — is built once and
@@ -111,7 +133,12 @@ extension NowPlayingView {
             // Keep the established edge-to-edge phone artwork. The iPad page
             // respects its system top inset so the player has room for chrome.
             .ignoresSafeArea(.container, edges: isIPad ? [] : .top)
+            }
         }
+        // Der erste Zug aus dem Sternbild führt zum Player zurück; erst dort
+        // übernimmt wieder die systemeigene Sheet-/Zoom-Schließgeste.
+        .interactiveDismissDisabled(immersiveLyricsVisible)
+        .presentationDragIndicator(immersiveLyricsVisible ? .hidden : .visible)
     }
     #endif
 
@@ -145,6 +172,7 @@ extension NowPlayingView {
             if pane != .lyrics || lyricsControlsOpen || keepsLyricsPlaybackDeckVisible {
                 deck
                     .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                SleepEclipseView()
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: lyricsControlsOpen)
@@ -339,6 +367,8 @@ extension NowPlayingView {
 
     var lyricsToolsButton: some View {
         Menu {
+            lyricsDisplayPicker
+            Divider()
             Button("Change Lyrics Source", systemImage: "text.magnifyingglass") {
                 showLyricsSources = true
             }

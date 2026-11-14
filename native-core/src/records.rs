@@ -287,6 +287,20 @@ pub struct DecodedRegion {
     pub start_seconds: f64,
 }
 
+/// Stimm- und Klangkontur eines Liedtext-Wortes für das Lyrics-Sternbild.
+/// Tonhöhe stammt aus dem Gesamtmix und gilt nur mit hoher Konfidenz.
+#[derive(uniffi::Record, Debug, Clone, PartialEq)]
+pub struct VoiceContourRec {
+    /// RMS-Pegel im Wortfenster in dBFS (−120 bei Stille).
+    pub energy_db: f32,
+    /// Spektraler Schwerpunkt in Hz: hoch bei hellem, zischendem Klang.
+    pub brightness_hz: f32,
+    /// Geschätzte Grundfrequenz der dominanten Stimme in Hz, 0 wenn keine.
+    pub pitch_hz: f32,
+    /// 0 bis 1; unter etwa 0,6 ist die Tonhöhe nicht verlässlich.
+    pub pitch_confidence: f32,
+}
+
 #[derive(uniffi::Record, Debug, Clone)]
 pub struct TrackMetadata {
     pub title: String,

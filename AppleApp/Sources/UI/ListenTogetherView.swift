@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 #if os(iOS)
 import UIKit
 #else

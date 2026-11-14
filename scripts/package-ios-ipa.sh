@@ -12,7 +12,7 @@ Usage:
 without a Release archive. The default keeps the Release archive path.
 
 The script archives the iOS app with code signing disabled, removes embedded
-provisioning profiles, and writes BBT-Bit-VERSION-buildBUILD-ios-unsigned.ipa.
+provisioning profiles, and writes RedBit-VERSION-buildBUILD-ios-unsigned.ipa.
 USAGE
 }
 fail() { printf 'Error: %s\n' "$*" >&2; exit 1; }
@@ -37,13 +37,14 @@ command -v xcodebuild >/dev/null 2>&1 || fail 'xcodebuild is required'
 command -v ditto >/dev/null 2>&1 || fail 'ditto is required'
 command -v zipinfo >/dev/null 2>&1 || fail 'zipinfo is required'
 command -v codesign >/dev/null 2>&1 || fail 'codesign is required'
+bash "$repo_root/scripts/ensure-metal-toolchain.sh"
 mkdir -p "$output_dir"
 output_dir="$(cd "$output_dir" && pwd)"
-stage="$(mktemp -d "${TMPDIR:-/tmp}/bitchord-ipa.XXXXXX")"
+stage="$(mktemp -d "${TMPDIR:-/tmp}/redbit-ipa.XXXXXX")"
 trap 'rm -rf "$stage"' EXIT
-archive="$stage/BitChord.xcarchive"
-app="$archive/Products/Applications/BitChord.app"
-staged_app="$stage/package/Payload/BitChord.app"
+archive="$stage/RedBit.xcarchive"
+app="$archive/Products/Applications/RedBit.app"
+staged_app="$stage/package/Payload/RedBit.app"
 
 build_revision="$(git -C "$repo_root" rev-parse --short=12 HEAD)"
 if ! git -C "$repo_root" diff --quiet HEAD -- || [[ -n "$(git -C "$repo_root" ls-files --others --exclude-standard)" ]]; then build_revision="$build_revision-dirty"; fi
@@ -51,16 +52,16 @@ xcode_started="$(date +%s)"
 if [[ "$fast" -eq 1 ]]; then
   # xcodebuild build is faster than a Release archive for iterative testing.
   # This Debug IPA is still unsigned and requires external signing to install.
-  app="$stage/DerivedData/Build/Products/Debug-iphoneos/BitChord.app"
+  app="$stage/DerivedData/Build/Products/Debug-iphoneos/RedBit.app"
   xcodebuild \
-    -project "$repo_root/AppleApp/BitChord.xcodeproj" \
-    -scheme BitChord \
+    -project "$repo_root/AppleApp/RedBit.xcodeproj" \
+    -scheme RedBit \
     -configuration Debug \
     -sdk iphoneos \
     -destination 'generic/platform=iOS' \
     -derivedDataPath "$stage/DerivedData" \
     build \
-    BITCHORD_BUILD_REVISION="$build_revision" \
+    REDBIT_BUILD_REVISION="$build_revision" \
     COMPILATION_CACHE_ENABLE_CACHING=YES \
     CODE_SIGNING_ALLOWED=NO \
     CODE_SIGNING_REQUIRED=NO \
@@ -68,15 +69,15 @@ if [[ "$fast" -eq 1 ]]; then
   echo "BBT_IPA_BUILD_MODE=fast-debug"
 else
   xcodebuild \
-    -project "$repo_root/AppleApp/BitChord.xcodeproj" \
-    -scheme BitChord \
+    -project "$repo_root/AppleApp/RedBit.xcodeproj" \
+    -scheme RedBit \
     -configuration Release \
     -sdk iphoneos \
     -destination 'generic/platform=iOS' \
     -archivePath "$archive" \
     -derivedDataPath "$stage/DerivedData" \
     archive \
-    BITCHORD_BUILD_REVISION="$build_revision" \
+    REDBIT_BUILD_REVISION="$build_revision" \
     COMPILATION_CACHE_ENABLE_CACHING=YES \
     CODE_SIGNING_ALLOWED=NO \
     CODE_SIGNING_REQUIRED=NO \
@@ -84,7 +85,7 @@ else
   echo "BBT_IPA_BUILD_MODE=release-archive"
 fi
 echo "BBT_XCODE_BUILD_SECONDS=$(($(date +%s) - xcode_started))"
-[[ -d "$app" ]] || fail "archive did not contain BitChord.app: $app"
+[[ -d "$app" ]] || fail "archive did not contain RedBit.app: $app"
 plist="$app/Info.plist"
 short_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")"
 [[ "$short_version" == "$version" ]] || fail "archive is version $short_version, not requested version $version"
@@ -92,23 +93,23 @@ build_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist")"
 [[ "$build_version" =~ ^[0-9]+$ ]] || fail 'archive has no numeric build number'
 ipa_suffix="ios-unsigned"
 if [[ "$fast" -eq 1 ]]; then ipa_suffix="ios-debug-unsigned"; fi
-ipa="$output_dir/BBT-Bit-$version-build$build_version-$ipa_suffix.ipa"
+ipa="$output_dir/RedBit-$version-build$build_version-$ipa_suffix.ipa"
 [[ ! -e "$ipa" || "$overwrite" -eq 1 ]] || fail "IPA already exists: $ipa (pass --overwrite to replace it)"
 mkdir -p "$stage/package/Payload"
-ditto "$app" "$stage/package/Payload/BitChord.app"
-find "$stage/package/Payload/BitChord.app" -name embedded.mobileprovision -type f -delete
+ditto "$app" "$stage/package/Payload/RedBit.app"
+find "$stage/package/Payload/RedBit.app" -name embedded.mobileprovision -type f -delete
 # A release IPA is deliberately unsigned; don't leave export/archive profiles
 # behind even if Xcode emitted one for a nested extension.
-find "$stage/package/Payload/BitChord.app" -name embedded.provisionprofile -type f -delete
+find "$stage/package/Payload/RedBit.app" -name embedded.provisionprofile -type f -delete
 # zip updates an existing archive instead of clearing entries that disappeared
 # from a rebuilt app, so start fresh when the caller explicitly allows overwrite.
 rm -f "$ipa"
 (cd "$stage/package" && /usr/bin/zip -qry "$ipa" Payload)
 zipinfo -1 "$ipa" > "$stage/ipa-list.txt"
-grep -Fxq 'Payload/BitChord.app/Info.plist' "$stage/ipa-list.txt" || fail 'IPA archive is missing Payload/BitChord.app'
-grep -Fxq 'Payload/BitChord.app/BitChord' "$stage/ipa-list.txt" || fail 'IPA archive is missing the BitChord executable'
-if [[ -d "$app/PlugIns/BitChordWidget.appex" ]]; then
-  grep -E '^Payload/BitChord\.app/PlugIns/BitChordWidget\.appex(/|$)' "$stage/ipa-list.txt" >/dev/null || fail 'IPA archive is missing BitChordWidget.appex'
+grep -Fxq 'Payload/RedBit.app/Info.plist' "$stage/ipa-list.txt" || fail 'IPA archive is missing Payload/RedBit.app'
+grep -Fxq 'Payload/RedBit.app/RedBit' "$stage/ipa-list.txt" || fail 'IPA archive is missing the RedBit executable'
+if [[ -d "$app/PlugIns/RedBitWidget.appex" ]]; then
+  grep -E '^Payload/RedBit\.app/PlugIns/RedBitWidget\.appex(/|$)' "$stage/ipa-list.txt" >/dev/null || fail 'IPA archive is missing RedBitWidget.appex'
 fi
 if grep -E '(^|/)embedded\.(mobileprovision|provisionprofile)$' "$stage/ipa-list.txt" >/dev/null; then
   fail 'IPA archive contains an embedded provisioning profile'

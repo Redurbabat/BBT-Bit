@@ -15,7 +15,7 @@ with wave.open(sys.argv[1], 'wb') as wav:
 PY
 /usr/bin/afconvert -f m4af -d alac "$scratch/hires.wav" "$scratch/hires.m4a"
 fw="$repo/AppleApp/Frameworks/NativeCoreFFI.xcframework/macos-arm64"
-xcrun swiftc -O -module-cache-path /tmp/bitchord-swift-module-cache -o "$scratch/verify" \
+xcrun swiftc -O -module-cache-path /tmp/redbit-swift-module-cache -o "$scratch/verify" \
   -F "$fw" -framework NativeCoreFFI \
   -framework CoreAudio -framework AudioToolbox -framework CoreFoundation \
   -Xlinker -rpath -Xlinker "$fw/NativeCoreFFI.framework/Versions/A" \

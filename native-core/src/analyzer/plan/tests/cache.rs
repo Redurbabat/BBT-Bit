@@ -4,7 +4,7 @@ use super::*;
 
 #[test]
 fn changed_overlay_cannot_reuse_an_old_disk_analysis() {
-    let dir = std::env::temp_dir().join(format!("bitchord-overlay-disk-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-overlay-disk-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     analysis_cache::set_test_disk_dir(dir.clone());
@@ -41,7 +41,7 @@ fn changed_overlay_cannot_reuse_an_old_disk_analysis() {
 /// half-downloaded file's analysis forever would misplace every cue.
 #[test]
 fn analysis_cache_hits_by_identity_and_misses_when_the_file_grows() {
-    let dir = std::env::temp_dir().join("bitchord-plan-cache");
+    let dir = std::env::temp_dir().join("redbit-plan-cache");
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("growing.bin");
     std::fs::write(&path, vec![0u8; 1024]).unwrap();
@@ -85,7 +85,7 @@ fn analysis_cache_hits_by_identity_and_misses_when_the_file_grows() {
 
 #[test]
 fn disk_cache_hit_skips_compute_and_corrupt_entry_is_rewritten() {
-    let dir = std::env::temp_dir().join(format!("bitchord-analysis-disk-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-analysis-disk-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     analysis_cache::set_test_disk_dir(dir.clone());

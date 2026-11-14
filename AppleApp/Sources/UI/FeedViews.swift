@@ -41,10 +41,19 @@ final class FeedLoader {
     /// page under whoever is reading it.
     private(set) var loadedDuringTrackId: String?
     private var continuation: String?
+    var canLoadMore: Bool { loadTask == nil && continuation?.isEmpty == false }
+    var sessionGeneration: Int64? { context?.generation }
     private var loadedEpoch: Int?
+    /// Zeitpunkt der letzten vollständigen Antwort. Die App läuft durch die
+    /// Wiedergabe oft tagelang im Hintergrund weiter; ohne Ablauf blieben
+    /// Empfehlungen und Neuheiten bis zum manuellen Aktualisieren alt.
+    private var loadedAt: Date?
+    /// Nach dieser Zeit lädt ein normaler Aufruf (Erscheinen, App aktiv) neu.
+    static let freshness: TimeInterval = 30 * 60
     private var context: PageContext?
     private var loadTask: Task<Void, Never>?
     private var requestID = UUID()
+    private var pagingRequestID: UUID?
     private let source: Source
     private var pageName: String { source == .home ? "home" : "explore" }
 
@@ -59,13 +68,15 @@ final class FeedLoader {
     func load(force: Bool, epoch: Int?) async {
         let current = PageSession.capture()
         if let loadTask, context == current { await loadTask.value; return }
-        if !force, context == current, loadedEpoch == epoch, case .loaded = phase { return }
+        let stale = loadedAt.map { Date().timeIntervalSince($0) > Self.freshness } ?? false
+        if !force, !stale, context == current, loadedEpoch == epoch, case .loaded = phase { return }
         if context != current {
             loadTask?.cancel(); loadTask = nil
             phase = .loading; continuation = nil
         }
         context = current
         let id = UUID(); requestID = id
+        pagingRequestID = nil; loadingMore = false
         let task = Task { await self.fetch(epoch: epoch, context: current, id: id) }
         loadTask = task
         await task.value
@@ -73,6 +84,7 @@ final class FeedLoader {
     }
 
     private func fetch(epoch: Int?, context: PageContext, id: UUID) async {
+        let probe = AppTestEvents.begin(.homeFeed)
         refreshError = nil
         continuation = nil
         do {
@@ -92,9 +104,15 @@ final class FeedLoader {
                 loadedEpoch = epoch
 
             }
+            guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
+            loadedEpoch = epoch
+            loadedAt = Date()
+            if first { phase = .loaded([]) }
+            AppTestEvents.finish(probe, .success, first ? .emptyResponse : .responseReceived)
         } catch {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             continuation = nil
+            AppTestEvents.finish(probe, .failure, .requestFailed)
             // A refused session is not a load failure the reader can retry: say
             // so once, and let the auth state (and every screen) follow.
             AuthController.reportIfSessionExpired(error)
@@ -104,24 +122,29 @@ final class FeedLoader {
     }
 
     func loadMore() async {
-        guard let context, PageSession.generation() == context.generation,
+        guard loadTask == nil, let context, PageSession.generation() == context.generation,
               let token = continuation, !token.isEmpty, !loadingMore else { return }
         let id = requestID
-        loadingMore = true
-        defer { loadingMore = false }
+        let pageID = UUID(); pagingRequestID = pageID
+        let probe = AppTestEvents.begin(.feedPaging)
+        loadingMore = true; refreshError = nil
+        defer {
+            if pagingRequestID == pageID { pagingRequestID = nil; loadingMore = false }
+        }
         do {
             let result = source == .home ? try await InnertubeFeed.shared.moreHome(token: token)
                 : try await InnertubeFeed.shared.moreExplore(token: token)
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             continuation = result.continuation
             if case .loaded(let existing) = phase {
-                let seen = Set(existing.map(\.title))
-                phase = .loaded(existing + result.shelves.filter { !seen.contains($0.title) })
+                phase = .loaded(FeedShelfMerge.append(result.shelves, to: existing))
+                AppTestEvents.finish(probe, .success, .responseReceived)
             }
         } catch {
             guard requestID == id, PageSession.generation() == context.generation, !Task.isCancelled else { return }
             AuthController.reportIfSessionExpired(error)
             refreshError = UserFacingRequestError.message(error)
+            AppTestEvents.finish(probe, .failure, .requestFailed)
         }
     }
 }
@@ -150,8 +173,7 @@ struct FeedSectionHeader: View {
     private var editorialBody: some View {
         VStack(spacing: 8) {
             Text(title)
-                .scaledFont(size: 32, weight: .regular, design: .serif, relativeTo: .title)
-                .italic()
+                .font(.custom("SnellRoundhand", size: 34, relativeTo: .largeTitle))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
             if let subtitle, !subtitle.isEmpty {
@@ -230,9 +252,11 @@ struct ShelfCarousel: View {
     /// Karussell-Stil der Künstlerseite: kippende Karten, redaktionelle Überschrift
     /// und Seitenpunkte. Aus, wo ein Regal keine Schiene sein soll.
     var rail = false
+    var records = false
     @Environment(PlaybackController.self) private var controller
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var activeDot = 0
+    @State private var recordsChosen = true
     /// The shelf's own width, measured: an inspector or a split view narrows it
     /// without changing the window.
     @State private var width: CGFloat = 0
@@ -240,16 +264,29 @@ struct ShelfCarousel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             FeedSectionHeader(title: shelf.title, subtitle: shelf.subtitle, onShowAll: onShowAll, editorial: rail)
+            if records {
+                Picker("Album presentation", selection: $recordsChosen) {
+                    Text("Records").tag(true)
+                    Text("Cards").tag(false)
+                }.pickerStyle(.segmented).padding(.horizontal, inset)
+            }
+            if records && recordsChosen {
+                MusicCollectionShowcase(items: items ?? shelf.items, style: .records, preferTrack: preferTrack)
+                    .padding(.horizontal, inset)
+            } else {
             ShelfScroller(inset: inset, onProgress: rail ? { updateDot($0) } : nil) {
                 LazyHStack(alignment: .top, spacing: 14) {
                     ForEach(items ?? shelf.items) { card in
-                        ShelfCardView(card: card, artworkSide: cardSide, preferTrack: preferTrack)
+                        ShelfCardView(card: card, artworkSide: cardSide,
+                                      artworkAspectRatio: shelfArtworkAspectRatio,
+                                      preferTrack: preferTrack, horizon: rail)
                             .modifier(HorizonRailMotion(enabled: rail))
                     }
                 }
-                .padding(.vertical, 2)
+                .padding(.vertical, rail ? 14 : 2)
             }
-            if rail, dotCount > 1 {
+            }
+            if rail, !(records && recordsChosen), dotCount > 1 {
                 HorizonRailDots(count: dotCount, active: min(activeDot, dotCount - 1))
                     .frame(maxWidth: .infinity)
             }
@@ -258,6 +295,14 @@ struct ShelfCarousel: View {
     }
 
     private var dotCount: Int { min((items ?? shelf.items).count, 5) }
+
+    // Eine gemeinsame Bildform hält Titel und Untertitel auf derselben Höhe.
+    // Gemischte Regale folgen den quadratischen Karten der Apple-Referenz;
+    // reine Videoregale behalten ihr breites Vorschaubild.
+    private var shelfArtworkAspectRatio: CGFloat {
+        let cards = items ?? shelf.items
+        return !cards.isEmpty && cards.allSatisfy(\.isVideo) ? 16.0 / 9.0 : 1
+    }
 
     private func updateDot(_ progress: Double) {
         let target = Int((progress * Double(max(dotCount - 1, 0))).rounded())
@@ -350,6 +395,7 @@ struct ShelfScroller<Content: View>: View {
 struct ShelfCardTap<Content: View>: View {
     let card: ShelfCard
     var preferTrack: Bool = false
+
     @ViewBuilder var content: Content
     @Environment(PlaybackController.self) private var controller
 
@@ -358,7 +404,9 @@ struct ShelfCardTap<Content: View>: View {
             if preferTrack, let videoId = card.videoId, !videoId.isEmpty {
                 trackButton(videoId)
             } else if let browseId = card.browseId, !browseId.isEmpty {
-                PushLink(destination: DetailView(browseId: browseId, initialTitle: card.title)) {
+                NativeCardZoomLink(id: browseId) {
+                    DetailView(browseId: browseId, initialTitle: card.title)
+                } label: {
                     content
                 }
                 .buttonStyle(.plain)
@@ -368,6 +416,8 @@ struct ShelfCardTap<Content: View>: View {
                 content
             }
         }
+        .modifier(QueueCardDragSource(card: card, preferTrack: preferTrack))
+        .modifier(CollectionPeekAccess(card: card))
     }
 
     private func trackButton(_ videoId: String) -> some View {
@@ -417,7 +467,9 @@ struct ShelfCardView: View {
     /// The sleeve's side, and with it the card's width. A carousel on a wide
     /// window passes a larger one; everywhere else this is the phone size.
     var artworkSide: CGFloat = Theme.Metrics.shelfCard
+    var artworkAspectRatio: CGFloat? = nil
     @Environment(PlaybackController.self) private var controller
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     /// Whether the pointer is over the card. A card is a target, not just a
     /// picture, and on the Mac that has to show before the click.
     @State private var hovering = false
@@ -438,6 +490,9 @@ struct ShelfCardView: View {
     /// caller passes `preferTrack` and the videoId wins.
     var preferTrack: Bool = false
 
+    /// Eingefasste Künstlerkarte aus der Videoreferenz; andere Regale bleiben gleich.
+    var horizon = false
+
     /// Whether this card's collection is in `pinned_playlists`. Read live so a
     /// pin toggled from a detail page or menu shows without a feed reload.
     private var isPinned: Bool {
@@ -446,15 +501,17 @@ struct ShelfCardView: View {
     }
 
     private var cardContent: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: horizon ? .center : .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
                 ArtworkView(
-                    url: card.thumbnailUrl, data: nil, side: artworkSide,
+                    url: card.thumbnailUrl, data: nil, side: horizon ? artworkSide - 16 : artworkSide,
                     fill: card.isVideo
                 )
-                    // Wie im Original sind Home-Musikvideos 16:9 statt
-                    // quadratischer Albumcover; die Kartenbreite bleibt stabil.
-                    .frame(width: artworkSide, height: card.isVideo ? artworkSide * 9 / 16 : artworkSide)
+                    // Das Regal bestimmt die gemeinsame Form; einzeln verwendete
+                    // Videokarten behalten ihren bisherigen 16:9-Fallback.
+                    .frame(width: horizon ? artworkSide - 16 : artworkSide,
+                           height: (horizon ? artworkSide - 16 : artworkSide)
+                            / (artworkAspectRatio ?? (card.isVideo ? 16.0 / 9.0 : 1)))
                     .clipShape(.rect(cornerRadius: 10, style: .continuous))
                     .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
                     .modifier(NowPlayingCardAccent(
@@ -472,17 +529,31 @@ struct ShelfCardView: View {
                 }
             }
             Text(card.title)
-                .font(.callout.weight(.semibold))
+                .font(horizon ? .caption.weight(.semibold) : .callout.weight(.semibold))
+                .textCase(horizon ? .uppercase : nil)
+                .tracking(horizon ? 0.4 : 0)
                 .foregroundStyle(isCurrentTrack ? Theme.accent : .primary)
-                .lineLimit(1)
+                .lineLimit(horizon ? 2 : 1)
+                .multilineTextAlignment(horizon ? .center : .leading)
             if let subtitle = card.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(.caption)
+                    .font(horizon ? .system(.caption2, design: .serif) : .caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
         }
-        .frame(width: artworkSide, alignment: .leading)
+        .padding(.vertical, horizon ? 8 : 0)
+        .frame(width: artworkSide, alignment: horizon ? .center : .leading)
+        .background {
+            if horizon {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(reduceTransparency ? AnyShapeStyle(Theme.Materials.opaque) : AnyShapeStyle(.thinMaterial))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(0.16), lineWidth: 1)
+                    }
+            }
+        }
         // The highlight reaches past the card's own bounds so the sleeve and the
         // two lines under it read as one target.
         .background {

@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 /// Library tab — on iOS, renders upstream's unified LibraryScreen (Replay banner,
@@ -100,6 +100,7 @@ struct LibraryView: View {
                         }
                         .padding(.horizontal, 6)
                         .toolbarChrome(in: Capsule())
+                        .modifier(BloomToolbarBoundary())
 
                         TopBarAccountButton()
                     }
@@ -122,6 +123,7 @@ struct LibraryView: View {
         }
         .onAppear {
             local.restoreViewPreferences()
+            AppTestEvents.emit(.library, .success, .screenDisplayed)
         }
         .fileImporter(isPresented: $pickingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result {

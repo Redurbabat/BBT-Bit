@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// Addon catalogue search for the search screen's Addons source.
 ///

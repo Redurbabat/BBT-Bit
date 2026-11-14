@@ -78,17 +78,17 @@ jobs:
           assert 'CFBundleDisplayName: RED Bit' in p
           assert re.search(r'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"', p)
           package = Path('scripts/package-ios-ipa.sh').read_text()
-          assert 'BBT-Bit-$version-' in package
+          assert 'RedBit-$version-' in package
           assert 'COMPILATION_CACHE_ENABLE_CACHING=YES' in package
           assert '--fast)' in package
           # Verify real-device test target and launch-only harness are wired.
           app = yaml.safe_load(Path('AppleApp/project.yml').read_text())
-          assert app['targets']['BitChordUITests']['type'] == 'bundle.ui-testing'
-          assert app['targets']['BitChordUITests']['platform'] == 'iOS'
-          assert 'BitChordUITests' in app['targets']['BitChord']['scheme']['testTargets']
+          assert app['targets']['RedBitUITests']['type'] == 'bundle.ui-testing'
+          assert app['targets']['RedBitUITests']['platform'] == 'iOS'
+          assert 'RedBitUITests' in app['targets']['RedBit']['scheme']['testTargets']
           assert Path('AppleApp/UITests/LiquidMotionUITests.swift').exists()
           assert Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').exists()
-          assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/BitChordApp.swift').read_text()
+          assert '--bbt-ui-test-designs' in Path('AppleApp/Sources/App/RedBitApp.swift').read_text()
           assert 'Alle 15 Designs prüfen' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
           assert '.navigationTitle("Vorschau-Selbsttest")' in Path('AppleApp/Sources/UI/LiquidMotion/LiquidMotionDeviceSelfTestView.swift').read_text()
           # Real screenshots must capture the existing application window,
@@ -138,7 +138,9 @@ jobs:
           assert 'case .idle' in bloom and 'case .spark' in bloom
           assert '.seconds(8)' in bloom and '.seconds(4)' in bloom
           assert 'LiquidLiveCaptureMarker(id: "island")' in bloom
-          assert 'LogoGlassBloomIsland()' in root
+          assert 'LogoGlassBloomIsland(maximumWidth:' in root
+          assert 'logoGlassBloom.presentationLogoFrame' in root
+          assert 'bloom.updateLogoFrame(frame)' in mark
           assert '.overlay(alignment: .topLeading)' in root
           assert 'logoGlassBloom.isVisible' in root
           assert '.onChange(of: canRevealLogoBloom)' in root
@@ -192,7 +194,8 @@ jobs:
           assert 'isArtworkMiniTintActive' not in miniPill
           assert 'content.glassEffect(.regular, in: Capsule())' in miniPill
           assert 'NowPlayingZoomSource()' in miniPill
-          assert 'controller.duration > 0' in miniPill
+          assert 'duration.isFinite && duration > 0 && position.isFinite' in miniPill
+          assert 'min(1, max(0, position / duration))' in miniPill
           assert 'NowPlayingZoomSource()' in miniPill
           assert 'CoverMorphFullBackdrop(entry: controller.current)' in fullLayout
           assert '.navigationTransition(.zoom(sourceID:' in zoomRoot
@@ -205,12 +208,13 @@ jobs:
           assert 'onScrollPhaseChange' in dock
           assert 'onScrollGeometryChange' in dock
           assert 'if phase == .interacting' in dock
-          assert 'keepExpanded = newDirection == .towardTop' in dock
+          assert 'directionRevision &+= 1' in dock
+          assert 'keepExpanded = newDirection == .towardTop' not in dock
           assert 'final class DockDirectionTracker' in tracker
           assert 'lastEmittedDirection' in tracker
           assert 'DockScrollDirectionObserver()' in home and 'DockScrollDirectionObserver()' in explore
           assert 'DockScrollDirectionObserver()' in libraryLanding
-          assert 'dockScroll.keepExpanded ? .never : .onScrollDown' in root
+          assert 'content.tabBarMinimizeBehavior(.onScrollDown)' in root
           assert 'dockScroll.directionRevision' in root
           assert 'DragGesture(minimumDistance: 14)' in mark
           assert Path('scripts/test-dock-direction-tracker.swift').exists()

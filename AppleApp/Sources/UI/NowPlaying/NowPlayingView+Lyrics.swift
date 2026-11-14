@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 import AVKit
 import CoreImage
@@ -26,6 +26,7 @@ extension NowPlayingView {
                     canvasURL: controller.canvasURL,
                     fallbackURL: controller.canvasFallbackURL,
                     isPlaying: controller.isPlaying,
+                    isBuffering: controller.isBuffering,
                     side: PlayerLayout.sleeveCollapsedSide
                 )
                 .id(controller.current?.id)

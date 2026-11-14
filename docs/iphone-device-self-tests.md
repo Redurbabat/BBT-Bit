@@ -18,31 +18,88 @@ Automix-Songübergänge, Handoff, Geräteausgabe noch Party-Synchronisation.
 Es werden keine persönlichen Songs, Fotos oder Zugangsdaten gelesen.
 Ein PNG-Render-Erfolg ist kein vollständiger Funktionstest.
 
-## 1b. BBT-Bit Testzentrale – produktive App im Alltag prüfen
+## 1b. RED Bit Testzentrale – produktive App im Alltag prüfen
 
-Zusätzlich zum reinen Design-Selbsttest besitzt die BitChord-v1.9.1-Portierungsbranche
-`feature/bitchord-v1-9-1-port-20261106` die **BBT-Bit Testzentrale**:
-`Einstellungen → Wiedergabe → BBT-Bit Testzentrale` (direkt oben)
-oder `Einstellungen → Erweiterte Optionen → BBT-Bit Testzentrale`
-oder `Automix Models → BBT-Bit Testzentrale öffnen`.
+PR #59: **Einstellungen → Tests & Diagnose → RED Bit Testzentrale**.
+Es gibt keine manuellen Bewertungsfelder. Der Nutzer startet den Lauf, nutzt die
+App normal und wählt anschließend **Beenden und speichern**. **In Dateien sichern**
+und Teilen exportieren den aktuellen Bericht; gespeicherte Läufe bleiben im Archiv.
 
-- Bis zu 30 Minuten **echte** Player-Zustände während der normalen App-Nutzung
-  aufzeichnen, ohne die Queue zu ersetzen oder künstliche Testtöne abzuspielen.
-- Die drei optionalen Modelle einschließlich Bytezahl und SHA-256 prüfen;
-  die tatsächliche Rust-/Core-ML-/Open-Unmix-Verwendung bei **neuen**
-  Automix-Planungen erkennen.
-- Decoder, Queue, Netzwerk, Ausgabestream, Audio-Session und Fehlerindikatoren
-  einsehen. 14 manuelle Bereiche selbst mit `Offen`/`Bestanden`/`Fehler` bewerten.
-- Einen **lokalen JSON-Bericht** speichern und nur auf eigenen Wunsch teilen.
-  Er enthält keine Songtitel, YouTube-IDs, Stream-URLs oder Zugangsdaten.
+### Automatische Prüfungen
 
-Dies ist ein **Passivtest plus Handcheckliste**, kein vollständiger automatischer
-UI-Robotertest. Die App kann nicht beweisen, dass Lautsprecher physisch hörbar
-ausgeben; das muss die testende Person bestätigen. Xcode-Kompilierung, signierte
-IPA, GitHub-CI und alle externen Tests bleiben separat erforderlich.
+Der vorhandene Monitor bewertet 33 klar benannte Softwareprüfungen anhand echter
+Zustände und Ereignisse. Fortschritt, Queue, Decoder, Ausgabestream, aktive
+Audiositzung, Fehler und Netzwerkstatus werden aus derselben PlaybackSession
+gelesen. Pause/Fortsetzen, Titelwechsel, lokale Wiedergabe, abgeschlossene neue
+Downloads, Lyricsdaten, Hintergrundfortschritt und Fortschritt nach einem
+Routenwechsel werden erkannt, sobald sie auftreten.
 
-**Status:** Implementierter Quellcode auf Draft-Branch; erfolgreiche iPhone-IPA,
-tatsächliche Wiedergabe und UI-Prüfung **NICHT GETESTET**.
+Home-/Paging-Antworten, Suchantworten, Album-Vorschau, Übernahme des Tagesmixes,
+Einreihen und erfolgreicher Cover-Drop liefern Nachweise an ihren tatsächlichen
+Erfolgs-/Fehlerpfaden. Bibliothek, Einstellungen und Vollplayer bestätigen ihre
+Anzeige über den View-Lebenszyklus. Die Inline-Prüfung verlangt die tatsächliche
+native Bottom-Accessory-Pill, nicht die separate Tastaturdarstellung. Der
+Party-Nachweis prüft lokalen Track-/Transport-/Zeitabgleich zum Serverzustand;
+er behauptet keine physisch synchrone Wiedergabe mehrerer Geräte.
+
+Vorhandene Modell-Dateien werden beim Start automatisch mit einer rein lesenden
+Größen-/SHA-256-Prüfung geprüft. Sie kompiliert, repariert oder entfernt keine Datei;
+anders als die bisherige Installer-Prüfung ändert sie auch keine Modell-Einträge.
+Die Berechnung läuft außerhalb des Main Actors und lässt sich abbrechen.
+Optionale fehlende oder vorübergehend nicht lesbare Modelle erhalten „Nicht verfügbar“;
+es werden keine Modelle heruntergeladen. Bei laufenden Downloads oder später
+verfügbaren Dateien wird nach 30 Messpunkten erneut geprüft. Auf iOS rendert der
+vorhandene Vorschauweg zusätzlich alle 15 gekennzeichneten Beispielkarten. Nur
+wenn alle PNGs die Größen-/Byteprüfung bestehen, ist diese Prüfung erfolgreich.
+Der Renderer wartet im Hintergrund auf die Rückkehr in den Vordergrund und
+beendet sich bei Testabbruch. Die PNGs werden nicht als private App-Screenshots
+exportiert. macOS/ältere Systeme kennzeichnen nicht verfügbare iPhone-Prüfungen.
+
+**Nicht beobachtet**, **Beobachtet – Prüfung offen**, **Automatisch geprüft**,
+**Fehler beobachtet** und **Nicht verfügbar** sind getrennte Zustände. Nicht
+verwendete Funktionen werden nicht pauschal grün. Ein Fehler bleibt im Bericht,
+auch wenn später eine Wiederholung gelingt. Neue Ereignisse alter asynchroner
+Anfragen dürfen keinen neuen Testlauf bewerten. Der Export enthält nur feste
+Prüf-/Ergebniscodes, Zähler und Zeitpunkte; keine Song-IDs, Suchtexte, Pfade,
+Zugangsdaten oder privaten Fehlertexte.
+
+### Speichern und Kompatibilität
+
+Automatische Ergebnisse ersetzen die früheren Handbewertungen. Neue Berichte
+verwenden **JSON v5**, mit `automaticChecks` und automatischen Summen; sie enthalten
+keine `manualChecks` oder manuell gesetzten Urteile. Vorhandene v4-Dateien werden
+weiter unverändert gelesen und als ältere Berichte angezeigt. Ihre ursprünglichen
+Bewertungen bleiben in der exportierbaren Originaldatei; sie werden niemals als
+automatische Nachweise umgedeutet.
+
+Zwischenstände und Abschluss bleiben atomar je UUID unter Application Support in
+`RED-Bit/Testberichte`. Ein neuer Lauf verwirft bei Schreibfehlern keinen alten.
+30-Messpunkt-/Hintergrundspeicherung, maximal 1800 Messpunkte, Unterbrechungsstatus
+nach Neustart und eindeutiger Dateiexport bleiben bestehen. Der Monitor verändert
+keine Queue, Lautstärke, Konten oder Downloads. Fehler-/Statusübergänge werden
+zusätzlich gesichert. Hintergrundausführung bleibt vom OS abhängig.
+
+Automatische Softwarewerte bestätigen keine physische Hörbarkeit oder vollständige
+Bildschirmqualität. Die PNG-Prüfung bestätigt Renderbarkeit, kein Durchklicken
+sämtlicher Oberflächen. Dafür gibt es im App-Bericht keine manuelle Bewertung.
+
+### Tatsächliche Nachweise
+
+Linux / Swift 6.2.1: `SWIFTC=…/swiftc bash scripts/check-automix-live-test.sh`
+verwendet Produktionsmonitor, Ereignisregister und Archiv einschließlich
+Observation-Typprüfung. Kontrollierte Laufzeittests prüfen automatische Bewertung,
+fehlende Nachweise, bleibende Fehler, alte Ereignisse nach Neustart, automatischen
+Modellstart, fehlende optionale Dateien ohne Download, JSON v5, Datenschutz,
+Erhalt von v4, Archiv-/Schreibfehler und die 1800-Punkte-Grenze. Home-/Queue- und
+17 Feed-Regressionsfälle verwenden dieselben instrumentierten Produktionspfade.
+`bash scripts/check-test-model-integrity.sh` prüft auf Apple mit echtem CryptoKit
+die Produktionsfunktion an korrektem Inhalt, falscher Größe, falschem Hash und
+fehlender Datei. Dabei dürfen weder Dateien gelöscht noch Zusatzdateien erzeugt
+werden. Dieser zusätzliche native Nachweis wird im PR-Job ausgeführt.
+
+Apple-SDK-/Simulator-/iPhone-Ergebnisse werden für die neue Revision separat
+festgehalten. BBT-028 hält die Abnahme von automatischen Modell-/PNG-Prüfungen,
+Dateiexport, Lifecycle und tatsächlicher Nutzung auf Apple offen.
 
 ## 2. Echte automatische Fingertipps auf deinem iPhone
 

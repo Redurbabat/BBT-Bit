@@ -16,14 +16,14 @@ final class PlaybackDebugLog: @unchecked Sendable {
     init(capacity: Int = 80, directory: URL? = nil) {
         self.capacity = capacity
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("BitChord/Diagnostics", isDirectory: true)
+            .appendingPathComponent("RedBit/Diagnostics", isDirectory: true)
         self.runFile = self.directory.appendingPathComponent(String(format: "%.6f", Date().timeIntervalSince1970) + "-" + UUID().uuidString + ".log")
         writer.async { [self] in
             try? FileManager.default.createDirectory(at: self.directory, withIntermediateDirectories: true)
             let old = self.runFiles()
             for file in old.dropLast(4) { try? FileManager.default.removeItem(at: file) }
             // Revision und Gerätesprache machen gleich nummerierte Reparaturbuilds unterscheidbar.
-            self.append("RUN START version=\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "development") build=\(Bundle.main.infoDictionary?["CFBundleVersion"] ?? "unknown") revision=\(Bundle.main.infoDictionary?["BitChordRevision"] ?? "unknown") language=\(Locale.preferredLanguages.first ?? "unknown") os=\(ProcessInfo.processInfo.operatingSystemVersionString)\n")
+            self.append("RUN START version=\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "development") build=\(Bundle.main.infoDictionary?["CFBundleVersion"] ?? "unknown") revision=\(Bundle.main.infoDictionary?["RedBitRevision"] ?? "unknown") language=\(Locale.preferredLanguages.first ?? "unknown") os=\(ProcessInfo.processInfo.operatingSystemVersionString)\n")
         }
         for name in ["NSApplicationWillTerminateNotification", "UIApplicationWillTerminateNotification"] {
             observers.append(NotificationCenter.default.addObserver(forName: .init(name), object: nil, queue: nil) { [weak self] _ in self?.markCleanExit() })
@@ -86,13 +86,13 @@ final class PlaybackDebugLog: @unchecked Sendable {
     }
     func saveReport(snapshot: String) throws -> URL {
         try writer.sync {
-            var report = "BitChord diagnostic report\n\(Date().ISO8601Format())\n\nENGINE SNAPSHOT\n\(Self.sanitize(snapshot))\n"
+            var report = "RedBit diagnostic report\n\(Date().ISO8601Format())\n\nENGINE SNAPSHOT\n\(Self.sanitize(snapshot))\n"
             for file in runFiles() {
                 let text = (try? String(contentsOf: file, encoding: .utf8)) ?? "unavailable"
                 let state = file == runFile ? "current" : (text.contains("RUN CLEAN EXIT") ? "clean exit" : "interrupted; no clean-exit marker")
                 report += "\nRUN \(file.lastPathComponent) (\(state))\n" + Self.sanitize(text, limit: nil)
             }
-            let target = FileManager.default.temporaryDirectory.appendingPathComponent("BitChord-Diagnostics-\(UUID().uuidString).txt")
+            let target = FileManager.default.temporaryDirectory.appendingPathComponent("RedBit-Diagnostics-\(UUID().uuidString).txt")
             try Data(report.utf8).write(to: target, options: .atomic)
             return target
         }

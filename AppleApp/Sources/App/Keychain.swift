@@ -66,7 +66,7 @@ enum Keychain {
         let update = SecItemUpdate(baseQuery(account) as CFDictionary, attributes as CFDictionary)
         if update == errSecSuccess { return true }
         guard update == errSecItemNotFound else {
-            NSLog("[BitChord] Keychain update failed for %@: %d", account, update)
+            NSLog("[RED Bit] Keychain update failed for %@: %d", account, update)
             return false
         }
         var item = baseQuery(account)
@@ -75,7 +75,7 @@ enum Keychain {
         item[kSecAttrSynchronizable as String] = false
         let added = SecItemAdd(item as CFDictionary, nil)
         if added == errSecSuccess { return true }
-        NSLog("[BitChord] Keychain add failed for %@: %d", account, added)
+        NSLog("[RED Bit] Keychain add failed for %@: %d", account, added)
         return false
     }
 
@@ -83,7 +83,7 @@ enum Keychain {
     static func clear(_ account: String) -> Bool {
         let status = SecItemDelete(baseQuery(account) as CFDictionary)
         if status == errSecSuccess || status == errSecItemNotFound { return true }
-        NSLog("[BitChord] Keychain delete failed for %@: %d", account, status)
+        NSLog("[RED Bit] Keychain delete failed for %@: %d", account, status)
         return false
     }
 

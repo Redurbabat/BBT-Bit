@@ -4,10 +4,10 @@ import Foundation
 enum PlaybackController { enum RepeatMode: Int { case off, all, one } }
 @main struct VerifySessionRestore {
     static func main() {
-        let domain = "app.bitchord.tests.session.\(UUID().uuidString)"
+        let domain = "com.babat.bbtbit.tests.session.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: domain)!
         defer { defaults.removePersistentDomain(forName: domain) }
-        let key = "bitchord_last_played"
+        let key = "redbit_last_played"
         func track(_ index: Int, explicit: Bool? = nil) -> QueueEntry {
             QueueEntry(id: "track-\(index)", title: "Song \(index)", artist: "Artist", source: "yt:track-\(index)", isLocal: false, contextOrder: index, isExplicit: explicit)
         }

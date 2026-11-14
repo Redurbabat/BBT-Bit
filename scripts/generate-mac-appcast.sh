@@ -22,7 +22,7 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 derived_data="$HOME/Library/Developer/Xcode/DerivedData"
 generate_appcast="$(find "$derived_data" -path '*/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast' -type f -print -quit 2>/dev/null || true)"
 if [[ -z "$generate_appcast" ]]; then
-  echo "Sparkle's generate_appcast was not found. Open/resolve AppleApp/BitChord.xcodeproj once in Xcode first." >&2
+  echo "Sparkle's generate_appcast was not found. Open/resolve AppleApp/RedBit.xcodeproj once in Xcode first." >&2
   exit 1
 fi
 
@@ -64,7 +64,7 @@ cp "$dmg_path" "$stage/$archive_name"
 cp "$notes_path" "$stage/$notes_name"
 
 "$generate_appcast" \
-  --account BitChord \
+  --account RedBit \
   --download-url-prefix "$github_repo_url/releases/download/$tag/" \
   --full-release-notes-url "$github_repo_url/releases/tag/$tag" \
   --embed-release-notes \

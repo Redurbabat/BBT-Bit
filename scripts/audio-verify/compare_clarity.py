@@ -8,7 +8,7 @@ ref=pathlib.Path(sys.argv[1]);revision=subprocess.check_output(['git','-C',str(r
 assert revision=='ec11a430fcf6e7f06bbae450e768d48f1d97d161',revision
 subprocess.run(['cargo','build','--release','--example','clarity_response','--manifest-path',str(root/'native-core/Cargo.toml')],check=True)
 results=[]
-with tempfile.TemporaryDirectory(prefix='bitchord-clarity-') as d:
+with tempfile.TemporaryDirectory(prefix='redbit-clarity-') as d:
  exe=pathlib.Path(d)/'lastwave'
  subprocess.run(['clang++','-O2','-std=c++17','-I'+str(ref/'app/src/main/cpp'),str(root/'scripts/audio-verify/lastwave_reference.cpp'),str(ref/'app/src/main/cpp/DspProcessor.cpp'),'-o',str(exe)],check=True)
  for preset in range(4):

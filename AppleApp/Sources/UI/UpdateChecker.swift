@@ -4,13 +4,14 @@ import Observation
 /// One latest-release record supplies version, notes and the platform download.
 @MainActor @Observable final class UpdateChecker {
     static let shared = UpdateChecker()
-    static let latestReleaseURL = URL(string: "https://github.com/Redurbabat/BBT-Bit/releases/latest")!
+    static let latestReleaseURL = ReleaseRepository.latestPage
     private(set) var available: AppReleaseUpdate?
     private(set) var latest: AppReleaseUpdate?
     private(set) var checking = false
     private(set) var lastCheckedAt: Date?
     var problem: String?
     private var checkedThisSession = false
+    private var lookupProblem: String?
 
     var currentIdentity: ReleaseIdentity {
         ReleaseIdentity(version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0",
@@ -26,7 +27,7 @@ import Observation
         #endif
     }
     var revision: String? {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "BitChordRevision") as? String,
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "RedBitRevision") as? String,
               !value.isEmpty, value != "unknown", !value.contains("$(") else { return nil }
         return value
     }
@@ -53,9 +54,10 @@ import Observation
         checkedThisSession = true
         checking = true
         problem = nil
+        lookupProblem = nil
         defer { checking = false }
         guard let release = await fetchLatest() else {
-            problem = "Couldn’t check GitHub. The last known release may be out of date; try again."
+            problem = lookupProblem ?? "Die RED-Bit-Veröffentlichungen konnten nicht geprüft werden. Bitte später erneut versuchen."
             return nil
         }
         latest = release
@@ -73,11 +75,10 @@ import Observation
     }
     private func fetchLatest() async -> AppReleaseUpdate? {
         do {
-            let data = try await fetch(URL(string: "https://api.github.com/repos/Redurbabat/BBT-Bit/releases/latest")!)
+            let data = try await fetch(ReleaseRepository.latestAPI)
             let payload = try JSONDecoder().decode(GitHubReleasePayload.self, from: data)
             guard !payload.draft, !payload.prerelease,
-                  let page = URL(string: payload.html_url), page.scheme == "https", page.host == "github.com",
-                  page.path.hasPrefix("/Redurbabat/BBT-Bit/releases/tag/") else { return nil }
+                  let page = URL(string: payload.html_url), ReleaseRepository.accepts(page: page) else { return nil }
             let version = payload.tag_name.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "^[vV]", with: "", options: .regularExpression)
             guard ReleaseIdentity(version: version, build: nil).compared(to: currentIdentity) != nil else { return nil }
             #if os(iOS)
@@ -85,7 +86,7 @@ import Observation
             #else
             let platform = "macos"
             #endif
-            let prefix = "/Redurbabat/BBT-Bit/releases/download/\(payload.tag_name)/"
+            let prefix = ReleaseRepository.assetPrefix(tag: payload.tag_name)
             let assets = payload.assets.filter { $0.url?.path.hasPrefix(prefix) == true }
             var manifest: ReleaseManifest?
             let manifests = assets.filter { $0.name == "release.json" }
@@ -110,15 +111,19 @@ import Observation
     private func fetch(_ url: URL) async throws -> Data {
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("BBT-Bit Apple updater", forHTTPHeaderField: "User-Agent")
+        request.setValue("RED Bit Apple updater", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw URLError(.badServerResponse) }
+        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        if url == ReleaseRepository.latestAPI && http.statusCode == 404 {
+            lookupProblem = "Keine öffentlich erreichbare RED-Bit-App-Veröffentlichung vorhanden. Private GitHub-Releases benötigen eine Anmeldung im Browser."
+        }
+        guard (200..<300).contains(http.statusCode) else { throw URLError(.badServerResponse) }
         return data
     }
 }
 
 enum UpdateAcknowledgementStore {
-    private static let key = "bitchord.acknowledgedUpdateVersions"
+    private static let key = "redbit.acknowledgedUpdateVersions"
     static func contains(_ version: String) -> Bool { (UserDefaults.standard.stringArray(forKey: key) ?? []).contains(version) }
     static func record(_ version: String) {
         var versions = Set(UserDefaults.standard.stringArray(forKey: key) ?? [])
@@ -161,8 +166,12 @@ struct ReleaseInstallationView: View {
                 Link("View older release", destination: release.releaseUrl)
             } else {
                 #if os(macOS)
-                Text("Use RED Bit’s Mac updater to download, verify and replace the app. It uses the project’s signed update feed.")
-                Button("Open Mac Updater") { MacUpdateManager.shared.checkNow() }.buttonStyle(.borderedProminent)
+                if MacUpdateManager.isConfigured {
+                    Text("Der Mac-Updater prüft den signierten RED-Bit-Feed vor der Installation.")
+                    Button("Open Mac Updater") { MacUpdateManager.shared.checkNow() }.buttonStyle(.borderedProminent)
+                } else {
+                    Text("Automatische Mac-Updates sind noch nicht eingerichtet. Verwende ein geprüftes RED-Bit-DMG für die manuelle Installation.")
+                }
                 Text("For a first installation or manual recovery, download the DMG, open it and move RED Bit into Applications, replacing the existing app.").font(.footnote).foregroundStyle(.secondary)
                 #else
                 Text("Download the IPA, then sign and install it with the same signing app and identity used for your current RED Bit. Keeping the same app identity preserves its local data.")

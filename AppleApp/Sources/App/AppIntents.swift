@@ -39,13 +39,13 @@ final class AppServices {
 
 // MARK: - What an intent may say
 
-/// The ways a BitChord intent can fail, in words Siri can say.
+/// The ways a RedBit intent can fail, in words Siri can say.
 ///
 /// `LocalizedError` rather than a bare error carrying a message: Shortcuts speaks
 /// the error's `localizedDescription`, and an ordinary struct reads "The operation
-/// couldn't be completed. (BitChordIntentError error 1.)" — the same trap the
+/// couldn't be completed. (RedBitIntentError error 1.)" — the same trap the
 /// session-expiry matcher hit in I10a-1.
-enum BitChordIntentError: LocalizedError {
+enum RedBitIntentError: LocalizedError {
     case emptyQuery
     case nothingPlaying
     case signedOut
@@ -183,7 +183,7 @@ enum AppIntentActions {
     /// Play or pause, and say which happened.
     static func togglePlayback() async throws -> String {
         let controller = AppServices.shared.controller
-        guard let current = controller.current else { throw BitChordIntentError.nothingPlaying }
+        guard let current = controller.current else { throw RedBitIntentError.nothingPlaying }
         // The state is read *before* the toggle: `togglePlayPause` starts (or
         // keeps) an asynchronous load, so what it leaves behind is not always the
         // outcome this call asked for, and reading it after named the wrong one.
@@ -231,12 +231,12 @@ enum AppIntentActions {
     /// Like or unlike what is playing.
     static func likeCurrent() async throws -> String {
         let services = AppServices.shared
-        guard services.auth.signedIn else { throw BitChordIntentError.signedOut }
+        guard services.auth.signedIn else { throw RedBitIntentError.signedOut }
         guard let current = services.controller.current, let videoId = current.videoId else {
-            throw BitChordIntentError.nothingPlaying
+            throw RedBitIntentError.nothingPlaying
         }
         if let failure = await services.controller.toggleLikeAndWait(videoId: videoId) {
-            throw BitChordIntentError.refused(failure)
+            throw RedBitIntentError.refused(failure)
         }
         return services.controller.isLiked
             ? "Liked \(current.title)"
@@ -273,7 +273,7 @@ enum AppIntentActions {
 
     private static func cleaned(_ query: String) throws -> String {
         let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !term.isEmpty else { throw BitChordIntentError.emptyQuery }
+        guard !term.isEmpty else { throw RedBitIntentError.emptyQuery }
         return term
     }
 }
@@ -384,7 +384,7 @@ struct AddToQueueIntent: AppIntent {
 /// Shortcuts does not need this: every intent above is already a Shortcuts action
 /// by existing. These phrases are what make them reachable by voice and from a
 /// Spotlight search for the app.
-struct BitChordShortcuts: AppShortcutsProvider {
+struct RedBitShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: PlaySongIntent(),
@@ -440,6 +440,6 @@ enum AppShortcutRefresh {
         let now = Date()
         guard now.timeIntervalSince(lastUpdate) >= interval else { return }
         lastUpdate = now
-        BitChordShortcuts.updateAppShortcutParameters()
+        RedBitShortcuts.updateAppShortcutParameters()
     }
 }

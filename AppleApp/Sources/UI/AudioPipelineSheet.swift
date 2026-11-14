@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import AVKit
 import AVFoundation
 #if os(iOS)

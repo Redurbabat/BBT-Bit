@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -17,6 +17,9 @@ struct PlaybackPill: View {
     /// Squeezed between the tab button and Search after the iPhone's tab bar
     /// minimizes on scroll (iOS 26's inline bottom accessory, as in Music).
     var inline = false
+    /// Nur der native Bottom Accessory stellt die Glasfläche selbst bereit.
+    /// Tastatur- und Safe-Area-Montagen brauchen eine eigene Oberfläche.
+    var usesSystemChrome = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(PlaybackController.self) private var controller
@@ -41,6 +44,10 @@ struct PlaybackPill: View {
                     .transition(.opacity)
                     .allowsHitTesting(false)
             }
+        }
+        .modifier(QueueCoverDropDestination())
+        .onChange(of: inline, initial: true) { _, value in
+            if value, usesSystemChrome { AppTestEvents.emit(.dockInline, .success, .screenDisplayed) }
         }
     }
 
@@ -94,11 +101,13 @@ struct PlaybackPill: View {
                     info
                     Spacer(minLength: 4)
                 }
+                .frame(minHeight: 44)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("\(controller.current?.title ?? "Not Playing"), \(controller.current?.artist ?? "")")
+            .accessibilityLabel("\(controller.current?.title ?? AppLanguage.localized("Not Playing")), \(controller.current?.artist ?? "")")
             .accessibilityHint("Opens Now Playing")
+            .accessibilityIdentifier("bbt.playback.pill.open")
 
             if isRegularWidth {
                 padTrailingControls
@@ -107,11 +116,12 @@ struct PlaybackPill: View {
             }
         }
         .padding(.horizontal, inline ? 8 : 12)
-        .padding(.vertical, inline ? 4 : 8)
+        .padding(.vertical, inline ? 0 : 8)
         // Native TabView bottom accessory on iOS 26 owns its Liquid Glass.
         // Do not paint artwork gradients beneath this translucent control.
         // The full-screen player still gets its artwork-led CoverMorph backdrop.
-        .modifier(MiniPlayerChrome(fill: chromeFill, reduceTransparency: reduceTransparency || reduceBlur))
+        .modifier(MiniPlayerChrome(fill: chromeFill, reduceTransparency: reduceTransparency || reduceBlur,
+                                  usesSystemChrome: usesSystemChrome))
         .overlay(alignment: .bottom) { progressHairline.clipShape(Capsule()) }
         .contentShape(.rect)
         // Long press: what is coming next. Upstream's mini player answers a long
@@ -362,13 +372,13 @@ struct PlaybackPill: View {
 
     private var info: some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(controller.current?.title ?? "Not Playing")
+            Text(controller.current?.title ?? AppLanguage.localized("Not Playing"))
                 .font(.callout.weight(.semibold))
                 .foregroundStyle(controller.current == nil ? Color.secondary : Color.primary)
                 .lineLimit(1)
             // Inline there is room for the title alone, as in Music.
             if !inline {
-                Text(controller.current?.artist ?? "Music you start appears here")
+                Text(controller.current?.artist ?? AppLanguage.localized("Music you start appears here"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -499,7 +509,7 @@ struct PlaybackPill: View {
             return AnyShapeStyle(Color.primary.opacity(0.12))
         }
         #if os(iOS)
-        if #available(iOS 26.0, *), horizontalSizeClass == .compact {
+        if #available(iOS 26.0, *), horizontalSizeClass == .compact, usesSystemChrome {
             // On compact width (iPhone), the system bottom accessory draws its
             // own glass shell; a material inside it would be a second, opaque
             // surface inside the first. On regular width (iPad), the pill is
@@ -513,12 +523,16 @@ struct PlaybackPill: View {
     /// Progress hairline hugging the iOS mini-player's bottom edge.
     private var progressHairline: some View {
         GeometryReader { geo in
-            let progress = controller.duration > 0
-                ? controller.position / controller.duration
+            // Keep the hairline inside the pill even when a stream reports
+            // a stale position, an unknown duration or non-finite metadata.
+            let duration = controller.duration
+            let position = controller.position
+            let progress: Double = duration.isFinite && duration > 0 && position.isFinite
+                ? min(1, max(0, position / duration))
                 : 0
             Capsule()
                 .fill(.tertiary)
-                .frame(width: geo.size.width * progress, height: 2)
+                .frame(width: geo.size.width * CGFloat(progress), height: 2)
                 .frame(maxHeight: .infinity, alignment: .bottom)
         }
         .allowsHitTesting(false)
@@ -532,11 +546,12 @@ struct PlaybackPill: View {
     private struct MiniPlayerChrome: ViewModifier {
         var fill: AnyShapeStyle
         var reduceTransparency: Bool
+        var usesSystemChrome: Bool
         @Environment(\.horizontalSizeClass) private var sizeClass
 
         @ViewBuilder
         func body(content: Content) -> some View {
-            if #available(iOS 26.0, *), sizeClass == .compact {
+            if #available(iOS 26.0, *), sizeClass == .compact, usesSystemChrome {
                 if reduceTransparency {
                     content.background(Capsule().fill(Theme.Materials.opaque))
                 } else {
@@ -544,13 +559,11 @@ struct PlaybackPill: View {
                     // system-managed bottom accessory.
                     content
                 }
-            } else if sizeClass == .regular {
+            } else if #available(iOS 26.0, *) {
                 if reduceTransparency {
                     content.background(Capsule().fill(Theme.Materials.opaque))
-                } else if #available(iOS 26.0, *) {
-                    content.glassEffect(.regular, in: Capsule())
                 } else {
-                    content.background(.regularMaterial, in: Capsule())
+                    content.glassEffect(.regular, in: Capsule())
                 }
             } else {
                 if reduceTransparency {
@@ -629,17 +642,21 @@ struct PlaybackPill: View {
                 Haptics.play(controller.isPlaying ? .pause : .resume)
                 controller.togglePlayPause()
             } label: {
-                if controller.isBuffering {
-                    ProgressView().controlSize(.small).frame(width: 22, height: 22)
-                } else {
-                    Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
-                        .scaledFont(size: 20, weight: .semibold)
+                Group {
+                    if controller.isBuffering {
+                        ProgressView().controlSize(.small).frame(width: 22, height: 22)
+                    } else {
+                        Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
+                            .scaledFont(size: 20, weight: .semibold)
+                    }
                 }
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .frame(width: inline ? 34 : 40, height: inline ? 34 : 40)
             .disabled(controller.current == nil && !controller.isBuffering)
             .accessibilityLabel(controller.isPlaying ? "Pause" : "Play")
+            .accessibilityIdentifier("bbt.playback.pill.play")
 
             Button {
                 Haptics.play(.skipNext)
@@ -647,12 +664,14 @@ struct PlaybackPill: View {
             } label: {
                 Image(systemName: "forward.fill")
                     .scaledFont(size: 19, weight: .semibold)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .frame(width: inline ? 34 : 40, height: inline ? 34 : 40)
             .foregroundStyle(Color.primary.opacity(PartyStore.shared.state.controlsLocked ? 0.3 : 1))
             .disabled(!controller.canPlayNext || PartyStore.shared.state.controlsLocked)
             .accessibilityLabel("Next")
+            .accessibilityIdentifier("bbt.playback.pill.next")
 
             if !inline {
                 partyButton.frame(width: 40, height: 40)
@@ -753,6 +772,7 @@ struct PlaybackPill: View {
 private struct MacNowPlayingSlot<Artwork: View, Info: View>: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ViewBuilder var artwork: Artwork
     @ViewBuilder var info: Info
 

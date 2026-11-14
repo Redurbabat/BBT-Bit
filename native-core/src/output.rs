@@ -11,7 +11,7 @@ use cpal::ErrorKind;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
-/// BitChord v1.9.1: Nach 30 Sekunden Pause einen exklusiven DAC freigeben.
+/// RedBit v1.9.1: Nach 30 Sekunden Pause einen exklusiven DAC freigeben.
 /// Auf macOS bleibt der vorhandene CoreAudio-Stream samt PCM-Ring erhalten.
 #[cfg(any(target_os = "macos", test))]
 pub(crate) const BITPERFECT_IDLE_RELEASE_MS: u64 = 30_000;

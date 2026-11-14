@@ -2,7 +2,7 @@
 import AppKit
 #endif
 import Observation
-import BitChordShared
+import RedBitShared
 
 /// One scanned local audio file.
 struct LocalTrack: Identifiable, Hashable {
@@ -48,11 +48,11 @@ final class LocalLibrary {
     private var scanID = UUID()
     private var securityURL: URL?
 
-    /// Restores the persisted bookmark and rescans. BITCHORD_LIBRARY_PATH is
+    /// Restores the persisted bookmark and rescans. REDBIT_LIBRARY_PATH is
     /// a dev-only override so automated UI tests can seed the library without
     /// driving the modal open panel.
     func restore() {
-        if let override = ProcessInfo.processInfo.environment["BITCHORD_LIBRARY_PATH"],
+        if let override = ProcessInfo.processInfo.environment["REDBIT_LIBRARY_PATH"],
            !override.isEmpty {
             scan(folder: URL(fileURLWithPath: override))
             return

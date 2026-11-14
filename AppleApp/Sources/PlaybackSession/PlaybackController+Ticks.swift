@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -13,9 +13,17 @@ import AppKit
 // The periodic ticks: sleep, history, scrobbling, listening and widgets.
 extension PlaybackController {
     func tickSleep() {
-        if let mixFadeUntil, Date() >= mixFadeUntil {
+        let mixFinished: Bool
+        if smartMixInProgress, let request = automixPreviewRequest, request.incoming.id == current?.id {
+            mixFinished = position >= request.incomingWindow.blendStart + request.fade * request.rate
+        } else {
+            mixFinished = mixFadeUntil.map { isPlaying && Date() >= $0 } ?? false
+        }
+        if mixFinished {
             self.mixFadeUntil = nil
             smartMixInProgress = false
+            automixPreviewRequest = queuedAutomixPreviewRequest
+            queuedAutomixPreviewRequest = nil
             // An upgrade that arrived during the ramp was shelved so it would
             // not cut the blend. The new song is on its own now.
             if let entry = current, QualityUpgrade.shelvedFor(entry.id) != nil {

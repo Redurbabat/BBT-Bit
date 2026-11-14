@@ -1,6 +1,6 @@
 import SwiftUI
 import Combine
-import BitChordShared
+import RedBitShared
 
 /// Carries an addressable Settings page from the scene URL handler to the
 /// settings window, which may not exist yet when the URL arrives.

@@ -75,8 +75,8 @@ fn webm_opus_bytes(duration_seconds: Option<f32>, timestamp_scale: u32) -> Vec<u
     // expressed in these ticks — 1 ms by default, 2 ms in the case that
     // pins the decoder reading the time base rather than assuming it.
     info.extend(element(&[0x2A, 0xD7, 0xB1], &uint(timestamp_scale as u64))); // TimestampScale
-    info.extend(element(&[0x4D, 0x80], b"bitchord-test")); // MuxingApp
-    info.extend(element(&[0x57, 0x41], b"bitchord-test")); // WritingApp
+    info.extend(element(&[0x4D, 0x80], b"redbit-test")); // MuxingApp
+    info.extend(element(&[0x57, 0x41], b"redbit-test")); // WritingApp
     if let Some(seconds) = duration_seconds {
         let ticks = seconds * 1e9 / timestamp_scale as f32;
         info.extend(element(&[0x44, 0x89], &ticks.to_be_bytes())); // Duration
@@ -283,14 +283,32 @@ fn opus_uses_the_bundled_libopus_decoder() {
 
 #[test]
 fn growing_file_waits_only_with_grow_marker() {
-    assert!(!GrowingFile::is_growing("/tmp/bitchord-no-such.mp4"));
+    assert!(!GrowingFile::is_growing("/tmp/redbit-no-such.mp4"));
+}
+
+#[test]
+fn failed_completed_download_is_rejected_before_container_probe() {
+    let path = write_generated_webm("failed-completed-transfer", Some(20.0), 1_000_000);
+    for suffix in ["grow", "failed", "complete"] {
+        std::fs::write(format!("{}.{suffix}", path.display()), []).unwrap();
+    }
+    let result = SymphoniaDecoder::open_available(
+        &SourceKind::Path(path.to_string_lossy().into()),
+        &Default::default(),
+    );
+    for suffix in ["grow", "failed", "complete"] {
+        std::fs::remove_file(format!("{}.{suffix}", path.display())).unwrap();
+    }
+    std::fs::remove_file(path).unwrap();
+    let error = result.err().expect("Fehlgeschlagener Download wurde als Audio geöffnet");
+    assert!(error.0.contains("download failed"), "Falsche Fehlerstufe: {error}");
 }
 
 /// A still-downloading file ends where the bytes end, for analysis. The
 /// playback opener would sit here for two minutes waiting on `.complete`.
 #[test]
 fn an_analysis_read_does_not_wait_for_the_rest_of_the_download() {
-    let dir = std::env::temp_dir().join("bitchord-growing-analysis");
+    let dir = std::env::temp_dir().join("redbit-growing-analysis");
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("partial.wav");
     let rate = 44_100u32;
@@ -392,7 +410,7 @@ fn pcm_layout_and_pull_size_are_independent() {
     use std::io::Write;
     for channels in [1u16, 2, 6] {
         let path = std::env::temp_dir().join(format!(
-            "bitchord-layout-{}-{channels}.wav",
+            "redbit-layout-{}-{channels}.wav",
             std::process::id()
         ));
         let frames = 4097usize;
@@ -467,7 +485,7 @@ fn pcm_layout_and_pull_size_are_independent() {
 #[test]
 fn cancelling_a_stalled_progressive_reader_releases_the_mixer() {
     use std::io::Read;
-    let path = std::env::temp_dir().join(format!("bitchord-cancelled-growing-{}", std::process::id()));
+    let path = std::env::temp_dir().join(format!("redbit-cancelled-growing-{}", std::process::id()));
     std::fs::write(&path, []).unwrap();
     let marker = format!("{}.playback-cancelled", path.display());
     let _ = std::fs::remove_file(&marker);

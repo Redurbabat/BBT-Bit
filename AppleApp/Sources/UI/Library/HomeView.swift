@@ -4,7 +4,7 @@ import AppKit
 #else
 import UIKit
 #endif
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 
 /// Home tab — upstream's "Play" tab: signed out it leads with the sign-in
@@ -20,22 +20,51 @@ struct HomeView: View {
     /// is a singleton while the reader's place in it was not (upstream hoists
     /// `homeListState` outside its tab switch for the same reason).
     var scrollPosition: Binding<ScrollPosition>? = nil
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("hide_recents") private var hideRecents = false
     @AppStorage("hide_home_videos") private var hideHomeVideos = false
+    @AppStorage("redbit.home.media_filter") private var mediaFilterRaw = HomeMediaFilter.all.rawValue
+    @AppStorage("redbit.home.mix_mood") private var mixMoodRaw = HomeMixMood.balanced.rawValue
+    @State private var discovery = HomeDiscoveryModel()
+
+    private var mediaFilter: HomeMediaFilter { HomeMediaFilter(rawValue: mediaFilterRaw) ?? .all }
+    private var mixMood: Binding<HomeMixMood> {
+        Binding(get: { HomeMixMood(rawValue: mixMoodRaw) ?? .balanced }, set: { mixMoodRaw = $0.rawValue })
+    }
 
     var body: some View {
         PageStack {
             content
                 .navigationTitle("Listen Now")
+                #if os(iOS)
+                .toolbarBackground(.visible, for: .navigationBar)
+                #endif
                 .toolbar {
                     #if os(iOS)
-                    // Upstream FrostedTopBar's root-page leading BitChord logo.
+                    // Upstream FrostedTopBar's root-page leading RedBit logo.
                     TopBarLeadingItems()
                     ToolbarItem(placement: .topBarTrailing) { TopBarAccountButton() }
                     #endif
                 }
                 .refreshable { await loadFeed(force: true) }
-                .task(id: auth.sessionEpoch) { await loadFeed(force: false) }
+                // Zurück in die App: Ist der Feed älter als FeedLoader.freshness,
+                // kommen frische Empfehlungen und Neuheiten statt der alten.
+                .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active else { return }
+                    Task { await loadFeed(force: false) }
+                }
+                .task(id: auth.sessionEpoch) {
+                    discovery.clear(); discovery.seedHistory()
+                    await loadFeed(force: false)
+                    if case .failed = feed.phase {
+                        await discovery.refresh(shelves: [], session: PageSession.generation())
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: PlaylistPinning.didChange)) { _ in
+                    if case .loaded(let shelves) = feed.phase {
+                        Task { await discovery.refresh(shelves: shelves, session: feed.sessionGeneration) }
+                    }
+                }
                 .onChange(of: NetworkQuality.shared.pathChanges) { oldValue, newValue in
                     guard newValue != oldValue, NetworkQuality.shared.connected else { return }
                     if case .failed = feed.phase {
@@ -76,60 +105,95 @@ struct HomeView: View {
     private var content: some View {
         switch feed.phase {
         case .loading:
-            ScrollView { HomeFeedSkeleton() }
-                #if os(iOS)
-                .modifier(DockScrollDirectionObserver())
-                #endif
+            homeScroll(shelves: [], loading: true)
         case .failed(let message):
-            EmptyStateView(
-                icon: Image(.bchMusicNote),
-                title: "Your feed couldn't load",
-                subtitle: message,
-                buttonTitle: "Retry"
-            ) { Task { await feed.load() } }
+            homeScroll(shelves: [], failure: message)
         case .loaded(let shelves):
-            let withoutRecents = hideRecents ? shelves.filter { !isRecentsShelf($0) } : shelves
-            // Der Originalfeed bleibt erhalten; nur die sichtbaren Videos und
-            // dadurch leere Regale verschwinden bei eingeschalteter Option.
-            let visibleShelves = hideHomeVideos ? withoutRecents.compactMap { shelf -> FeedShelf? in
-                let items = shelf.items.filter { !$0.isVideo }
-                return items.isEmpty ? nil : FeedShelf(
-                    title: shelf.title, items: items, subtitle: shelf.subtitle
-                )
-            } : withoutRecents
-            ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
-                    if !auth.signedIn {
-                        SignInBanner { auth.loginPresented = true }
-                    }
-                    ForEach(Array(visibleShelves.enumerated()), id: \.element.id) { index, shelf in
-                        if index == 0, isRecentsShelf(shelf) {
-                            RecentShelf(shelf: shelf)
-                                .onAppear {
-                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
-                                }
-                        } else if index == 0 {
-                            HeroShelf(shelf: shelf, preferTrack: true)
-                                .onAppear {
-                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
-                                }
-                        } else {
-                            ShelfCarousel(shelf: shelf, preferTrack: true)
-                                .onAppear {
-                                    if shelf.id == visibleShelves.last?.id {
-                                        Task { await feed.loadMore() }
-                                    }
-                                }
+            homeScroll(shelves: shelves)
+                .task(id: shelves.hashValue) {
+                    await discovery.refresh(shelves: shelves, session: feed.sessionGeneration)
+                }
+        }
+    }
+
+    private func filtered(_ shelves: [FeedShelf]) -> [FeedShelf] {
+        shelves.compactMap { shelf in
+            if hideRecents && isRecentsShelf(shelf) { return nil }
+            let cards = shelf.items.filter { (!hideHomeVideos || !$0.isVideo) && mediaFilter.includes(video: $0.isVideo) }
+            return cards.isEmpty ? nil : FeedShelf(title: shelf.title, items: cards, subtitle: shelf.subtitle)
+        }
+    }
+
+    private func homeScroll(shelves: [FeedShelf], loading: Bool = false, failure: String? = nil) -> some View {
+        let visible = filtered(shelves)
+        return ScrollView {
+            LazyVStack(alignment: .leading, spacing: 26) {
+                Picker("Inhalt", selection: $mediaFilterRaw) {
+                    ForEach(HomeMediaFilter.allCases) { Text(LocalizedStringKey($0.title)).tag($0.rawValue) }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("red.home.filter")
+                if !auth.signedIn { SignInBanner { auth.loginPresented = true } }
+                if mediaFilter != .videos {
+                    TimelineView(.periodic(from: .now, by: 60)) { timeline in
+                        let mood = HomeMixMood(rawValue: mixMoodRaw) ?? .balanced
+                        let title = HomeDayPart.at(timeline.date).title
+                        let entries = HomeMixBuilder.build(history: discovery.history, feed: discovery.feedTracks,
+                            mood: mood, date: timeline.date)
+                        VStack(alignment: .leading, spacing: 26) {
+                            HomeDiscoveryDashboard(model: discovery, mix: entries, mixTitle: title)
+                            HomeDayMixSection(entries: entries, title: title, mood: mixMood)
                         }
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+                if loading {
+                    ProgressView("Dein Feed wird geladen …").frame(maxWidth: .infinity, minHeight: 80)
+                } else if let failure {
+                    EmptyStateView(icon: Image(.bchMusicNote), title: "Your feed couldn't load", subtitle: failure,
+                        buttonTitle: "Retry") { Task { await loadFeed(force: true) } }
+                } else if visible.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(mediaFilter == .videos && hideHomeVideos ? "Videos sind in deinen Einstellungen ausgeblendet."
+                            : "Für diesen Filter sind noch keine Inhalte geladen.")
+                            .font(.subheadline).foregroundStyle(.secondary)
+                        if feed.canLoadMore, !(mediaFilter == .videos && hideHomeVideos) {
+                            Button("Weitere Inhalte laden") { Task { await feed.loadMore() } }
+                                .frame(minHeight: 44).disabled(feed.loadingMore)
+                        }
+                    }
+                }
+                ForEach(Array(visible.enumerated()), id: \.element.id) { index, shelf in
+                    Group {
+                        if index == 0, isRecentsShelf(shelf) { RecentShelf(shelf: shelf) }
+                        else {
+                            ShelfCarousel(shelf: shelf, preferTrack: true,
+                                records: shelf.items.contains { $0.browseId?.hasPrefix("MPRE") == true })
+                        }
+                    }
+                    .onAppear {
+                        if shelf.id == visible.last?.id { Task { await feed.loadMore() } }
+                    }
+                }
+                if feed.loadingMore { ProgressView().frame(maxWidth: .infinity, minHeight: 44) }
+                if !visible.isEmpty, feed.canLoadMore {
+                    Button("Weitere Inhalte laden") { Task { await feed.loadMore() } }
+                        .frame(maxWidth: .infinity, minHeight: 44).disabled(feed.loadingMore)
+                }
             }
-            .modifier(ExternalScrollPosition(position: scrollPosition))
-            #if os(iOS)
-            .modifier(DockScrollDirectionObserver())
-            #endif
+            .padding(.horizontal, 24).padding(.vertical, 20)
+        }
+        .modifier(ExternalScrollPosition(position: scrollPosition))
+        #if os(iOS)
+        .modifier(DockScrollDirectionObserver())
+        #endif
+        .task(id: "\(mediaFilterRaw)-\(hideHomeVideos)-\(hideRecents)-\(feed.canLoadMore)") {
+            // Bei einem leeren Filter begrenzt vorblättern; weitere Seiten
+            // bleiben bewusst über den sichtbaren Ladebutton erreichbar.
+            for _ in 0..<3 {
+                guard !Task.isCancelled, !(mediaFilter == .videos && hideHomeVideos), case .loaded(let current) = feed.phase,
+                      filtered(current).isEmpty, feed.canLoadMore, !feed.loadingMore else { return }
+                await feed.loadMore()
+            }
         }
     }
 

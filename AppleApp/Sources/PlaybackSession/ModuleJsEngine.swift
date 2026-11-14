@@ -1,6 +1,6 @@
 import Foundation
 import JavaScriptCore
-import BitChordShared
+import RedBitShared
 
 /// JavaScriptCore engine for the legacy module protocol, registered as
 /// `ModuleEngine.Impl` at launch.

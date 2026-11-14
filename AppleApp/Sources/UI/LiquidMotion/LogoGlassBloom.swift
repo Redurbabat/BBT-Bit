@@ -21,13 +21,36 @@ final class LogoGlassBloomCoordinator {
     private(set) var phase: LogoGlassBloomPhase = .idle
     private var revealTask: Task<Void, Never>?
     private var hideTask: Task<Void, Never>?
+    @ObservationIgnored private var latestLogoFrame: CGRect?
+    @ObservationIgnored private var toolbarFrames: [UUID: CGRect] = [:]
+    private(set) var presentationLogoFrame: CGRect?
+    private(set) var presentationTrailingFrame: CGRect?
 
     var isVisible: Bool { phase != .idle }
 
     private init() {}
 
     func playbackStartedOrTrackChanged() {
-        present(expanded: false)
+        // Die normale Wiedergabe bleibt im nativen Mini-Player. Nur eine
+        // bewusst geöffnete Logo-Steuerung darf beim Titelwechsel offen bleiben.
+        guard isVisible else { return }
+        keepOpenBriefly()
+    }
+
+    func updateLogoFrame(_ frame: CGRect) {
+        guard frame.minX.isFinite, frame.minY.isFinite,
+              frame.width > 0, frame.height > 0 else { return }
+        latestLogoFrame = frame
+    }
+
+    func updateToolbarFrame(_ frame: CGRect?, id: UUID) {
+        toolbarFrames[id] = frame
+    }
+
+    func scrollChanged(_ direction: DockScrollDirection) {
+        // Beide Scrollrichtungen geben dem Inhalt Platz. Die gekoppelte native
+        // Tab-/Mini-Player-Animation bleibt allein für Scrollen zuständig.
+        if isVisible { dismiss() }
     }
 
     func logoTapped() {
@@ -71,10 +94,17 @@ final class LogoGlassBloomCoordinator {
         }
     }
 
-    private func present(expanded: Bool) {
+    private func present(expanded: Bool, fromLogo: Bool = true) {
         revealTask?.cancel()
         hideTask?.cancel()
         if phase == .idle {
+            presentationLogoFrame = latestLogoFrame
+            presentationTrailingFrame = toolbarFrames.values.filter { frame in
+                guard let logo = latestLogoFrame else { return false }
+                return frame.minX > logo.maxX && abs(frame.midY - logo.midY) < 24
+            }.min(by: { $0.minX < $1.minX })
+        }
+        if phase == .idle && fromLogo && !UIAccessibility.isReduceMotionEnabled {
             withAnimation(motion(.easeOut(duration: 0.16))) {
                 phase = .spark
             }
@@ -109,10 +139,22 @@ final class LogoGlassBloomCoordinator {
     }
 }
 
-/// Position this at the very same top-leading screen anchor as the native
-/// BBT-Bit toolbar logo. Scale from that point; do not overlay the center
-/// of the screen or leave a second always-visible player there.
+/// Misst sichtbare Toolbar-Aktionen ohne eigene UIKit- oder Layout-Eingriffe.
+struct BloomToolbarBoundary: ViewModifier {
+    @State private var id = UUID()
+
+    func body(content: Content) -> some View {
+        content.onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+            guard frame.minX.isFinite, frame.minY.isFinite, frame.width > 0, frame.height > 0 else { return }
+            LogoGlassBloomCoordinator.shared.updateToolbarFrame(frame, id: id)
+        }
+        .onDisappear { LogoGlassBloomCoordinator.shared.updateToolbarFrame(nil, id: id) }
+    }
+}
+
+/// Temporäre Musiksteuerung am gemessenen Ursprung des Toolbar-Logos.
 struct LogoGlassBloomIsland: View {
+    var maximumWidth: CGFloat = 292
     @Environment(PlaybackController.self) private var controller
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -126,7 +168,7 @@ struct LogoGlassBloomIsland: View {
 
     private var isSpark: Bool { bloom.phase == .spark }
     private var isExpanded: Bool { bloom.phase == .expanded }
-    private var width: CGFloat { isSpark ? 46 : (isExpanded ? 292 : 252) }
+    private var width: CGFloat { min(maximumWidth, isSpark ? 46 : (isExpanded ? 292 : 252)) }
     private var radius: CGFloat { isSpark ? 23 : 25 }
 
     var body: some View {
@@ -213,7 +255,7 @@ struct LogoGlassBloomIsland: View {
                 if isExpanded {
                     Button { bloom.collapse() } label: {
                         Image(systemName: "chevron.up")
-                            .frame(width: 30, height: 38)
+                            .frame(width: 44, height: 44)
                     }
                     .accessibilityLabel("Glass Bloom einklappen")
                 } else {
@@ -223,7 +265,7 @@ struct LogoGlassBloomIsland: View {
                     } label: {
                         Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
                             .foregroundStyle(.primary)
-                            .frame(width: 33, height: 40)
+                            .frame(width: 44, height: 44)
                     }
                     .accessibilityLabel(controller.isPlaying ? "Pause" : "Wiedergabe")
                 }

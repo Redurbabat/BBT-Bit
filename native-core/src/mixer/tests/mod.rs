@@ -350,7 +350,7 @@ fn level_spread(samples: &[f32]) -> (f64, f32) {
 }
 
 fn levels() -> (std::path::PathBuf, std::path::PathBuf) {
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-levels-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-levels-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let loud = dir.join("loud.wav");
     let quiet = dir.join("quiet.wav");
@@ -483,7 +483,7 @@ fn armed_test_state(
                 reason: "safety:".into(),
                 ..TransitionPlan::default()
             },
-            arm_deadline: Instant::now() + Duration::from_secs(30),
+            arm_position_s: 0.0,
             swap: false,
             fx: None,
             effect_start_frame: 0,
@@ -642,9 +642,18 @@ fn drain_until_handoff(
     events: &RecordedEvents,
     seconds: u64,
 ) -> Option<f64> {
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(seconds);
+    // Budget in Wiedergabeposition des laufenden Titels, nicht in Wanduhrzeit
+    // und nicht in ausgegebenen Samples: Auf einem ausgelasteten CI-Rechner
+    // (Simulator und Gradle laufen nebenher) läuft der Mixer langsamer als
+    // Echtzeit, und ein Decoder-Stau füllt die Ausgabe mit Stille. Beides wurde
+    // dort zu einem falschen „no handoff fired“ (macOS-Runner, 11.11.2026).
+    // Die Wanduhr bleibt nur als großzügiger Schutz gegen echte Hänger.
+    let started = std::time::Instant::now();
+    let mut drained: u64 = 0;
+    let hang_guard = started + std::time::Duration::from_secs(seconds.max(30) * 9);
     loop {
         while consumer.pop().is_ok() {
+            drained += 1;
             let mut current = buffered.load(Ordering::Relaxed);
             while current > 0 {
                 match buffered.compare_exchange_weak(
@@ -666,7 +675,17 @@ fn drain_until_handoff(
             // is close enough for a margin measured in seconds.
             return Some(position.load(Ordering::Relaxed) as f64 / 1000.0);
         }
-        if std::time::Instant::now() > deadline {
+        let played = position.load(Ordering::Relaxed) as f64 / 1000.0;
+        // Gestoppt ohne Handoff ist endgültig: Der nächste Titel kommt nicht mehr.
+        let stopped = events.states.lock().unwrap().last() == Some(&"stopped");
+        if stopped || played >= seconds as f64 || std::time::Instant::now() > hang_guard {
+            eprintln!(
+                "drain_until_handoff: no handoff at {played:.2}s playhead after {:.1}s wall, {drained} samples drained, states={:?} ended={:?} errors={:?}",
+                started.elapsed().as_secs_f64(),
+                events.states.lock().unwrap(),
+                events.ended.lock().unwrap(),
+                events.errors.lock().unwrap(),
+            );
             return None;
         }
         std::thread::sleep(std::time::Duration::from_millis(5));
@@ -723,7 +742,7 @@ struct SwapHarness {
 
 impl SwapHarness {
     fn new(tag: &str) -> (SwapHarness, std::path::PathBuf, std::path::PathBuf) {
-        let dir = std::env::temp_dir().join(format!("bitchord-mixer-{tag}"));
+        let dir = std::env::temp_dir().join(format!("redbit-mixer-{tag}"));
         std::fs::create_dir_all(&dir).unwrap();
         let low = dir.join("low.wav");
         let high = dir.join("high.wav");

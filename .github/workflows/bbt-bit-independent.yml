@@ -26,7 +26,7 @@ jobs:
       - name: Remove unused upstream comparison submodule and one-time importer
         run: |
           git rm -f -- .gitmodules vendor/bitchord-upstream
-          git rm -f -- .github/workflows/import-bitchord.yml
+          git rm -f -- .github/workflows/import-redbit.yml
       - name: Check independent runtime URLs and identity
         shell: bash
         run: |
@@ -38,9 +38,9 @@ jobs:
           assert 'PRODUCT_BUNDLE_IDENTIFIER: com.babat.bbtbit' in p
           assert 'group.com.babat.bbtbit' in p
           assert 'CFBundleURLSchemes: [bbtbit]' in p
-          assert 'bagumamartin/BitChord' not in p
-          for file in ['AppleApp/Sources/UI/UpdateChecker.swift', 'AppleApp/Sources/PlaybackSession/AutomixModelStore.swift', 'shared/src/commonMain/kotlin/com/music/bitchord/data/AppUpdateChecker.kt']:
-              assert 'bagumamartin/BitChord' not in Path(file).read_text(), file
+          assert 'Redurbabat/RED-Bit' not in p
+          for file in ['AppleApp/Sources/UI/UpdateChecker.swift', 'AppleApp/Sources/PlaybackSession/AutomixModelStore.swift', 'shared/src/commonMain/kotlin/com/music/redbit/data/AppUpdateChecker.kt']:
+              assert 'Redurbabat/RED-Bit' not in Path(file).read_text(), file
           assert not Path('.gitmodules').exists()
           assert not Path('vendor/bitchord-upstream').exists()
           for file in ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'docs/ORIGINAL_BITCHORD_README.md']:

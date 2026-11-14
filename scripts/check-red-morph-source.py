@@ -17,6 +17,7 @@ def source(path: str) -> str:
 
 search = source("AppleApp/Sources/UI/SearchView.swift")
 root = source("AppleApp/Sources/UI/RootView.swift")
+browse = source("AppleApp/Sources/UI/BrowseNavigation.swift")
 pill = source("AppleApp/Sources/UI/PlaybackPill.swift")
 home = source("AppleApp/Sources/UI/Library/HomeView.swift")
 explore = source("AppleApp/Sources/UI/Library/ExploreView.swift")
@@ -35,6 +36,9 @@ localization_keys = (
     "Automix transition planned",
     "Top result",
     "Add to Playlist",
+    "Not Playing",
+    "Music you start appears here",
+    "Opens Now Playing",
 )
 
 checks = {
@@ -49,6 +53,8 @@ checks = {
     "Top-Ergebnis hat getrennte Aktionen": (
         ".onTapGesture(perform: play)" not in top
         and "ViewThatFits(in: .horizontal)" in top
+        and ".fixedSize(horizontal: false, vertical: true)" in top
+        and ".labelStyle(.titleAndIcon)" in top
     ),
     "Kein ausklappbares Dock im Player": "InfinityDock(" not in stage,
     "Automix innerhalb der Zeitzeile": (
@@ -58,24 +64,27 @@ checks = {
     ),
     "Tastatur-Inset ohne doppelte Glasfläche": (
         ".safeAreaInset(edge: .bottom, spacing: 0)" in root
-        and "PlaybackPill(inline: true)\n                            .frame(maxWidth: 440)" in root
+        and "PlaybackPill(inline: true)\n                    .frame(maxWidth: 440)" in root
         and "#if compiler(>=6.2.3)" in root
-        and "#else\n        if #available(iOS 26.1, *)" in root
         and "if #available(iOS 26.1, *)" in root
         and "content.tabViewBottomAccessory(isEnabled: !keyboardUp)" in root
         and "if !keyboardUp {\n                    PlaybackAccessory()" in root
-        and "content.tabViewBottomAccessory {\n                PlaybackAccessory()" in root
+        and "if !keyboardUp {\n                PlaybackAccessory()" in root
+        and "var usesSystemChrome = false" in pill
+        and "usesSystemChrome: usesSystemChrome" in pill
+        and "horizontalSizeClass == .compact, usesSystemChrome" in pill
     ),
     "Native Tab-Leiste und Mini-Player minimieren beim Scrollen": (
         "private struct PlaybackAccessory: View" in root
         and ".tabViewBottomAccessory" in root
         and "@State private var dockScroll = DockScrollCoordinator.shared" in root
-        and "dockScroll.keepExpanded ? .never : .onScrollDown" in root
+        and ".modifier(KeyboardPlaybackChrome())" in browse
+        and "content.tabBarMinimizeBehavior(.onScrollDown)" in root
         and "content.tabBarMinimizeBehavior(.never)" not in root
         and ".modifier(DockScrollDirectionObserver())" in home
         and ".modifier(DockScrollDirectionObserver())" in explore
-        and "keepExpanded = newDirection == .towardTop" in dock
-        and "inline: placement == .inline" in root
+        and "keepExpanded = newDirection == .towardTop" not in dock
+        and "inline: placement == .inline, usesSystemChrome: true" in root
         and ".modifier(NowPlayingZoomSource())" in pill
         and "matchedTransitionSource(id: NowPlayingZoom.sourceID" in pill
         and ".navigationTransition(.zoom(sourceID: NowPlayingZoom.sourceID" in root

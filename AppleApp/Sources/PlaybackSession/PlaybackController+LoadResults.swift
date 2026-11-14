@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -39,7 +39,7 @@ extension PlaybackController {
             pending.firstBufferAt = firstBufferAt
             pendingPlaybackLatency = pending
         }
-        NSLog("[BitChord] loaded track at %.2fs (duration %.2fs)", startAt, info.durationSeconds)
+        NSLog("[RED Bit] loaded track at %.2fs (duration %.2fs)", startAt, info.durationSeconds)
         loadingGeneration = nil
         playingIndex = index
         current = entry
@@ -191,7 +191,7 @@ extension PlaybackController {
                 about: entry.id
             )
             let format = AppLanguage.localized("Couldn't play “%@” — %@")
-            lastError = String(format: format, entry.title, error.localizedDescription)
+            reportPlaybackFailure(.load, message: String(format: format, entry.title, error.localizedDescription))
         }
         // Somebody (pause, another load, sleep, interruption) owns the
         // transport now; their state stands and only the message is new.
@@ -392,12 +392,13 @@ extension PlaybackController {
                     await MainActor.run { [weak self] in
                         guard let self, self.playGeneration == generation,
                               self.queueNextRevision == revision, self.current?.id == outgoingId else { return }
-                        self.adoptAutomixPlan(safetyPlan)
+                        self.adoptAutomixPlan(safetyPlan, outgoingSource: currentSource,
+                            incomingSource: resolved.source, incomingHeaders: resolved.headers)
                     }
                 }
                 if automix {
                     NSLog(
-                        "[BitChord] automix queued %@%@ with an immediate %.1fs overlap",
+                        "[RED Bit] automix queued %@%@ with an immediate %.1fs overlap",
                         next.title,
                         selfMix ? " (self-mix)" : "",
                         safetyPlan?.fadeSeconds ?? 0
@@ -450,7 +451,7 @@ extension PlaybackController {
                         )
                         if outOk || inOk {
                             NSLog(
-                                "[BitChord] Music Understanding overlay out=%@ in=%@",
+                                "[RED Bit] Music Understanding overlay out=%@ in=%@",
                                 outOk ? "yes" : "no",
                                 inOk ? "yes" : "no"
                             )
@@ -500,7 +501,7 @@ extension PlaybackController {
                     if delivered {
                         let shown = Self.displayAutomixReason(plan.reason)
                         NSLog(
-                            "[BitChord] automix plan %d for %@%@: %@, cue %.2fs, fade %.2fs, end %.1fs — %@",
+                            "[RED Bit] automix plan %d for %@%@: %@, cue %.2fs, fade %.2fs, end %.1fs — %@",
                             attempt, next.title, selfMix ? " (self-mix)" : "",
                             String(describing: plan.style),
                             plan.cueSeconds, plan.fadeSeconds, plan.transitionEndSeconds,
@@ -517,7 +518,8 @@ extension PlaybackController {
                         )
                         await MainActor.run { [weak self] in
                             guard let self, self.queueNextRevision == revision else { return }
-                            self.adoptAutomixPlan(plan)
+                            self.adoptAutomixPlan(plan, outgoingSource: currentSource,
+                                incomingSource: resolved.source, incomingHeaders: resolved.headers)
                         }
                     }
                     // Replan after delivery too: the incoming/outgoing windows

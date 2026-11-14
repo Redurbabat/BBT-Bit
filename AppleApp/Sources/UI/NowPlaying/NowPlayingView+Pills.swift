@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 import AVKit
 import CoreImage
@@ -46,6 +46,7 @@ extension NowPlayingView {
                     controller.toggleLike()
                 }
                 .help(controller.isLiked ? "Remove from Liked Music" : "Like")
+                .modifier(FavoriteStarConfirmation(videoID: controller.current?.videoId))
             }
             moreMenu
         }

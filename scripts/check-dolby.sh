@@ -4,7 +4,7 @@ repo="$(cd "$(dirname "$0")/.." && pwd)"
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
 fw="$repo/AppleApp/Frameworks/NativeCoreFFI.xcframework/macos-arm64"
-xcrun swiftc -O -module-cache-path /tmp/bitchord-swift-module-cache -o "$scratch/verify" \
+xcrun swiftc -O -module-cache-path /tmp/redbit-swift-module-cache -o "$scratch/verify" \
   -F "$fw" -framework NativeCoreFFI -framework AVFoundation \
   -framework CoreAudio -framework AudioToolbox -framework CoreFoundation \
   -Xlinker -rpath -Xlinker "$fw/NativeCoreFFI.framework/Versions/A" \

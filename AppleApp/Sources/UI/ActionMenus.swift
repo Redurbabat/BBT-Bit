@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 
 /// Apple equivalent of upstream `SongActionsSheet` / `BrowseActionsSheet`:
 /// context menu on both platforms, swipe actions on iOS.
@@ -360,7 +360,11 @@ extension View {
         liftPreview {
             ShelfCardActionButtons(card: card)
         } preview: {
-            ContextMenuPreview(card: card, roundArtwork: roundArtwork)
+            if card.supportsCollectionPeek, !roundArtwork {
+                AlbumPeekPreview(card: card)
+            } else {
+                ContextMenuPreview(card: card, roundArtwork: roundArtwork)
+            }
         }
     }
 }
@@ -429,6 +433,7 @@ struct BrowseActionButtons: View {
 
     @ViewBuilder
     private func browseRows(_ browseId: String) -> some View {
+        QueueCollectionNextButton(browseID: browseId, title: card.title)
         Button("Open") {
             appModel.pendingDetail = .detail(browseId: browseId, title: card.title)
         }

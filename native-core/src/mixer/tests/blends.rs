@@ -45,7 +45,7 @@ fn crossfade_headroom_stays_smooth_at_stereo_chunk_boundaries() {
 
 #[test]
 fn reusable_voice_output_matches_fixed_input_bit_for_bit() {
-    let dir = std::env::temp_dir().join(format!("bitchord-reused-pull-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-reused-pull-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("fixed.wav");
     level_wav(&path, 3.0, 440.0, 0.2);
@@ -83,7 +83,7 @@ fn reusable_voice_output_matches_fixed_input_bit_for_bit() {
 /// equality, not a resemblance.
 #[test]
 fn a_bridge_repeats_the_unit_and_continues_where_it_stopped() {
-    let dir = std::env::temp_dir().join(format!("bitchord-bridge-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-bridge-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("bridge.wav");
     level_wav(&path, 12.0, 220.0, 0.4);
@@ -161,7 +161,7 @@ fn a_bridge_repeats_the_unit_and_continues_where_it_stopped() {
 /// The owner hears the old shape as "the next song blasts, then corrects".
 #[test]
 fn a_transition_match_is_settled_before_the_first_audible_frame() {
-    let dir = std::env::temp_dir().join(format!("bitchord-match-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-match-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let loud = dir.join("loud.wav");
     let quiet = dir.join("quiet.wav");
@@ -224,7 +224,7 @@ fn a_correlated_dj_blend_does_not_bump_at_the_midpoint() {
     const BEAT: f64 = 0.5;
     const FADE: f64 = 8.0;
     const CHUNK: usize = 512;
-    let dir = std::env::temp_dir().join(format!("bitchord-djcorr-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-djcorr-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let outgoing_path = dir.join("kick-a.wav");
     let incoming_path = dir.join("kick-b.wav");
@@ -295,7 +295,7 @@ fn a_correlated_dj_blend_does_not_bump_at_the_midpoint() {
 
 #[test]
 fn priming_a_voice_does_not_advance_its_audible_position() {
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-prime-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-prime-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("prime.wav");
     level_wav(&path, 2.0, 440.0, 0.2);
@@ -321,7 +321,7 @@ fn priming_a_voice_does_not_advance_its_audible_position() {
 
 #[test]
 fn a_planned_cue_inside_a_quiet_lead_in_starts_at_the_audible_edge() {
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-cue-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-cue-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("cue-lead.wav");
     noise_wav(&path, 1.5, 4.0, 0.2, 0xDEAD_BEEF);
@@ -358,7 +358,7 @@ fn a_planned_cue_inside_a_quiet_lead_in_starts_at_the_audible_edge() {
 
 #[test]
 fn mix_into_ramps_between_chunk_targets() {
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-ramp-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-ramp-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("ramp.wav");
     level_wav(&path, 1.0, 440.0, 0.2);
@@ -400,7 +400,7 @@ fn mix_into_ramps_between_chunk_targets() {
 
 #[test]
 fn every_style_has_no_hole_at_the_handover() {
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-hole-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-hole-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let outgoing = dir.join("out.wav");
     let incoming = dir.join("in.wav");
@@ -520,7 +520,7 @@ fn every_style_has_no_hole_at_the_handover() {
 #[test]
 fn a_cold_ending_renders_flat_through_its_chord() {
     const RATE: usize = 48_000;
-    let dir = std::env::temp_dir().join(format!("bitchord-mixer-cold-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("redbit-mixer-cold-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let outgoing = dir.join("out.wav");
     let incoming = dir.join("in.wav");

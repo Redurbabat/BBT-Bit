@@ -3,7 +3,7 @@ import CryptoKit
 import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
-import BitChordShared
+import RedBitShared
 
 private final class ArtworkFetchCount: @unchecked Sendable {
     private let lock = NSLock()
@@ -98,7 +98,7 @@ enum ArtworkChecks {
         await cache.trim(limitBytes: 0)
         check(!FileManager.default.fileExists(atPath: cachedPath!) && !FileManager.default.fileExists(atPath: OfflineArtworkStore.coverURL(audioPath: cachedPath!).path), "audio-cache eviction removes its retained cover in the same budget")
 
-        let base = URL(string: ProcessInfo.processInfo.environment["BITCHORD_DOWNLOAD_TEST_BASE_URL"]!)!
+        let base = URL(string: ProcessInfo.processInfo.environment["REDBIT_DOWNLOAD_TEST_BASE_URL"]!)!
         let journal = FileDownloadTransport(directory: root.appendingPathComponent("artwork-transfer"), configuration: .ephemeral)
         defer { journal.invalidate() }
         _ = try await journal.download(id: "artwork-job", url: base.appendingPathComponent("audio"), headers: [:], allowsCellular: true, progress: { _, _ in })

@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -145,7 +145,15 @@ final class PlaybackController {
     }
     var position: Double = 0
     var duration: Double = 0
-    var lastError: String?
+    var lastError: String? {
+        didSet { lastPlaybackFailure = nil }
+    }
+    var lastPlaybackFailure: PlaybackDiagnosticFailure?
+
+    func reportPlaybackFailure(_ kind: PlaybackDiagnosticFailure, message: String) {
+        lastError = message
+        lastPlaybackFailure = kind
+    }
     var recoveringEntryID: String?
     var recoveryNeedsFreshResolution = false
     var sourceDecisionNotes: [String: String] = [:]
@@ -252,7 +260,7 @@ final class PlaybackController {
     var isBuffering: Bool { state == .buffering }
 #if os(iOS)
     private(set) var mixWithOtherAudio = PlatformSettings.shared.getBoolean(
-        key: "mix_with_other_audio", default: true
+        key: "mix_with_other_audio", default: false
     )
     private var mixingPreferenceGeneration: UInt64 = 0
 
@@ -313,6 +321,9 @@ final class PlaybackController {
     /// `id` of the track that was current when [repeatAllStash] was taken.
     var repeatAllStashSeed: String?
     @ObservationIgnored var autoplayRefresh = AutoplayRefreshState()
+    @ObservationIgnored var autoplaySeeds = AutoplaySeedState()
+    var automixPreviewRequest: AutomixPreviewRequest?
+    var queuedAutomixPreviewRequest: AutomixPreviewRequest?
     // Wartet auf die Rückmeldung des Party-Servers, bevor neu aufgefüllt wird.
     @ObservationIgnored var partyAutoplayPendingIDs: Set<String> = []
     @ObservationIgnored var partyAutoplayEchoTask: Task<Void, Never>?
@@ -405,6 +416,7 @@ final class PlaybackController {
     var sleepDeadline: ContinuousClock.Instant?
     var sleepTask: Task<Void, Never>?
     var sleepSecondsRemaining: Int?
+    var sleepDurationSeconds: Double?
     var sleepAfterTrack = false
     var autoplayEnabled = PlatformSettings.shared.getBoolean(key: "autoplay", default: true)
     var automixEnabled = PlatformSettings.shared.getBoolean(key: "smart_fade_enabled", default: true)
@@ -619,14 +631,14 @@ final class PlaybackController {
             began: { [weak self] in
                 Task { @MainActor in
                     guard let self else { return }
-                    NSLog("[BitChord] Audio interruption began")
+                    NSLog("[RED Bit] Audio interruption began")
                     self.audioInterruptionBegan()
                 }
             },
             ended: { [weak self] shouldResume in
                 Task { @MainActor in
                     guard let self else { return }
-                    NSLog("[BitChord] Audio interruption ended, shouldResume=\(shouldResume)")
+                    NSLog("[RED Bit] Audio interruption ended, shouldResume=\(shouldResume)")
                     self.audioInterruptionEnded(shouldResume: shouldResume)
                 }
             }
@@ -634,7 +646,7 @@ final class PlaybackController {
         // Log secondary audio events and media reset notifications
         routeObservers += AudioSessionManager.observeSessionEvents { [weak self] event in
             PlaybackDebugLog.shared.record(event)
-            NSLog("[BitChord] %@", event)
+            NSLog("[RED Bit] %@", event)
             if event == "audio media services were reset" {
                 Task { @MainActor in
                     self?.nowPlaying.audioSessionUnavailable()
@@ -769,7 +781,7 @@ final class PlaybackController {
                     self.started = false
                     self.positionTimer?.invalidate()
                     self.positionTimer = nil
-                    self.lastError = "Audio engine failed to start: \(error)"
+                    self.reportPlaybackFailure(.engine, message: "Audio engine failed to start: \(error)")
                 }
                 throw error
             }
@@ -853,7 +865,7 @@ final class PlaybackController {
     func audioActivationFailed(_ error: Error) {
         nowPlaying.audioSessionUnavailable()
         if isPlaying || isBuffering { pausePlayback(releaseAudioSession: true) }
-        lastError = "Audio session could not activate: \(error)"
+        reportPlaybackFailure(.audioSession, message: "Audio session could not activate: \(error)")
     }
 
     /// The output route moved under us — AirPods put down, a device connected,
@@ -872,6 +884,7 @@ final class PlaybackController {
     ///    even if CoreAudio's own rebuild beat us to it.
     private var routeRecoveryGeneration: UInt64 = 0
     private func outputRouteChanged() {
+        AppTestEvents.emit(.audioRoute, .observation, .routeChanged)
         let route = AudioRouteState.shared
         let returnedFromBluetooth = route.previousKind.lowercased().contains("bluetooth") && route.carriesLossless
         routeRecoveryGeneration &+= 1
@@ -913,7 +926,7 @@ final class PlaybackController {
                     }
                     self.nowPlaying.requestPrimaryIfPossible(reason: "route activation")
                 } catch {
-                    NSLog("[BitChord] output rebuild after route change failed: \(error)")
+                    NSLog("[RED Bit] output rebuild after route change failed: \(error)")
                 }
             }
         }

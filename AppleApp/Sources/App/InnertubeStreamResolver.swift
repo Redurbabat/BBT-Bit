@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// A resolved YouTube Music stream: the URL the engine fetches plus the
 /// headers the CDN demands and the quality description for display.

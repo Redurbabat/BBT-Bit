@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 final class ProgressSamples: @unchecked Sendable {
     private let lock = NSLock()
@@ -32,7 +32,7 @@ private final class StreamProgress: StreamDownloadBridgeProgressCallback {
 enum NetworkChecks {
     @MainActor static func run(root: URL) async throws {
         func check(_ condition: Bool, _ text: String) { precondition(condition, text); print("PASS \(text)"); fflush(stdout) }
-        let base = URL(string: ProcessInfo.processInfo.environment["BITCHORD_DOWNLOAD_TEST_BASE_URL"]!)!
+        let base = URL(string: ProcessInfo.processInfo.environment["REDBIT_DOWNLOAD_TEST_BASE_URL"]!)!
         check(FileDownloadTransport.requiresRedirectControl(headers: ["Authorization": "fixture"]) &&
               FileDownloadTransport.requiresRedirectControl(headers: ["X-API-Key": "fixture"]) &&
               !FileDownloadTransport.requiresRedirectControl(headers: ["User-Agent": "fixture"]), "requests carrying credentials or custom headers use a session with redirect control")
@@ -107,6 +107,18 @@ enum NetworkChecks {
                 })
         }
         check(try Data(contentsOf: URL(fileURLWithPath: ranged)) == expected && rangedProgress.last?.0 == Int64(expected.count), "ranged audio survives an outage and a 503 without restarting or changing bytes")
+        for endpoint in ["ranges-ignored-once", "ranges-wrong-start-once"] {
+            let invalidURL = base.appendingPathComponent(endpoint).absoluteString + "?clen=\(expected.count)"
+            let recovered: String = try await withCheckedThrowingContinuation { continuation in
+                StreamDownloadBridge.shared.download(downloadId: endpoint, url: invalidURL, headers: [:], callback: StreamDone { path, message in
+                    if let path { continuation.resume(returning: path) }
+                    else { continuation.resume(throwing: NSError(domain: "Range fixture", code: 2, userInfo: [NSLocalizedDescriptionKey: message ?? "Failed"])) }
+                })
+            }
+            check(try Data(contentsOf: URL(fileURLWithPath: recovered)) == expected,
+                  "a single invalid audio range after the first 128 KiB is asked again instead of ending the song (\(endpoint))")
+            for suffix in ["", ".len", ".grow", ".complete", ".failed"] { try? FileManager.default.removeItem(atPath: recovered + suffix) }
+        }
         for temporary in [streamed, resumed, emptyFirst, ranged] { for suffix in ["", ".len", ".grow", ".complete", ".failed"] { try? FileManager.default.removeItem(atPath: temporary + suffix) } }
 
         let cache = StreamFileCache(directory: root.appendingPathComponent("audio-cache"))

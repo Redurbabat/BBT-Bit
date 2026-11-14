@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 #if os(iOS)
 import UIKit
@@ -272,13 +272,21 @@ extension SettingsView {
         rows.row("Version", "version", "build", "release", "credits", "licence", "license",
                  "acknowledgements", "privacy policy") {
             LabeledContent("Version", value: update.currentVersion)
+            LabeledContent("Build-Revision", value: update.revision ?? "Nicht verfügbar")
+                .font(.caption.monospaced())
+                .textSelection(.enabled)
         }
         buildUpdateRows(&rows)
         rows.row("GitHub", "github", "source", "code", "repository") {
-            Link("GitHub", destination: URL(string: "https://github.com/bagumamartin/BitChord")!)
+            Link("GitHub", destination: URL(string: "https://github.com/Redurbabat/RED-Bit")!)
         }
         rows.row("Developer", "developer", "author", "github") {
-            Link("Developer", destination: URL(string: "https://github.com/bagumamartin")!)
+            Link("Developer", destination: URL(string: "https://github.com/Redurbabat")!)
+        }
+        // Dank an die Apple-Grundlage: zeigt auf das fremde Projekt, von dem
+        // RED Bit abstammt, nicht auf RED Bit selbst.
+        rows.row("BitChord-Apple-Grundlage", "bitchord", "upstream", "credits") {
+            Link("BitChord-Apple-Grundlage", destination: URL(string: "https://github.com/bagumamartin/BitChord")!)
         }
         rows.row("Open-source licenses", "open source", "licenses", "license", "acknowledgements", "third party") {
             PushLink {

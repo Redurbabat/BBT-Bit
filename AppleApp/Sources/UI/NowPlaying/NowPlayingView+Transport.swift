@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 import AVKit
 import CoreImage
@@ -36,7 +36,8 @@ extension NowPlayingView {
                 Text(Self.timestamp(controller.position))
                     .fixedSize(horizontal: true, vertical: false)
                 Spacer(minLength: 0)
-                if controller.automixEnabled, let window = controller.smartTransitionWindow {
+                if controller.automixEnabled, controller.smartTransitionWindow != nil || controller.smartMixInProgress {
+                    let window = controller.smartTransitionWindow ?? TransitionWindow(start: 0, end: 0)
                     AutomixWeave(
                         start: window.start, end: window.end,
                         position: controller.position,
@@ -182,6 +183,7 @@ extension NowPlayingView {
             .disabled(controller.current == nil && !controller.isBuffering)
             .help(controller.isPlaying ? "Pause" : "Play")
             .accessibilityLabel(controller.isBuffering ? "Buffering" : (controller.isPlaying ? "Pause" : "Play"))
+            .accessibilityIdentifier("bbt.nowPlaying.play")
 
             Button {
                 Haptics.play(.skipNext)
@@ -220,12 +222,23 @@ extension NowPlayingView {
             if !controller.displayedLyrics.isEmpty {
                 Divider()
                 Button("Lyrics Offset…") { showLyricsOffset = true }
-                Toggle("Lyrics Constellation", isOn: $lyricsConstellation)
+                lyricsDisplayPicker
             }
             // Alle bisherigen Infinity-Dock-Aktionen bleiben erreichbar,
             // ohne die Transportsteuerung durch zusätzliche Reihen zu verdrängen.
             if controller.current != nil {
                 Section("Music tools") {
+                    #if os(iOS)
+                    Toggle("Mix with Other Apps", isOn: Binding(
+                        get: { controller.mixWithOtherAudio },
+                        set: { controller.setMixWithOtherAudio($0) }
+                    ))
+                    Toggle("Music Videos", isOn: $showMusicVideos)
+                    #endif
+                    Button(party.inParty ? LocalizedStringKey("People listening") : LocalizedStringKey("Listen Together")) {
+                        if party.inParty { appModel.partyMembersPresented = true }
+                        else { appModel.listenTogetherPresented = true }
+                    }
                     Button {
                         pane = .lyrics
                     } label: {
@@ -278,6 +291,14 @@ extension NowPlayingView {
         // Der bestehende Live-Screenshot-Marker bleibt nach dem Entfernen
         // des Dock-Regals beim neuen Zugang zu den Player-Werkzeugen.
         .background { LiquidLiveCaptureMarker(id: "dock") }
+    }
+
+    var lyricsDisplayPicker: some View {
+        Picker("Lyrics Display", selection: $lyricsConstellation) {
+            Text("List").tag(false)
+            Text("Constellation").tag(true)
+        }
+        .accessibilityIdentifier("bbt.lyrics.display")
     }
 
     static func timestamp(_ seconds: Double) -> String {

@@ -1,5 +1,5 @@
 import AVFoundation
-import BitChordShared
+import RedBitShared
 
 /// Background audio session (spec §3.2). iOS needs `.playback` + activation
 /// for lock-screen / Control Center continuity; macOS has no AVAudioSession.
@@ -48,7 +48,7 @@ enum AudioSessionManager {
             + "policy=\(session.routeSharingPolicy.rawValue) "
             + "active=\(isActive) otherAudio=\(session.isOtherAudioPlaying)"
         PlaybackDebugLog.shared.record(message)
-        NSLog("[BitChord] %@", message)
+        NSLog("[RED Bit] %@", message)
         #endif
     }
 
@@ -101,7 +101,7 @@ enum AudioSessionManager {
                 // Playback already supports AirPlay and Bluetooth A2DP without
                 // the category options intended for play-and-record sessions.
                 let mixing = PlatformSettings.shared.getBoolean(
-                    key: "mix_with_other_audio", default: true
+                    key: "mix_with_other_audio", default: false
                 )
                 let options: AVAudioSession.CategoryOptions = mixing ? [.mixWithOthers] : []
                 // Long-form routing rejects mixWithOthers with OSStatus -50.
@@ -160,7 +160,7 @@ enum AudioSessionManager {
         // counters cannot show: the output ring can be full and the callback
         // punctual while the system takes the audio away underneath both.
         let output = session.currentRoute.outputs.first
-        NSLog("[BitChord] audio session %@",
+        NSLog("[RED Bit] audio session %@",
               "category=\(session.category.rawValue) mode=\(session.mode.rawValue) "
               + "options=\(session.categoryOptions.rawValue) volume=\(session.outputVolume) "
               + "policy=\(session.routeSharingPolicy.rawValue) "
@@ -233,12 +233,12 @@ enum AudioSessionManager {
             else { return }
             switch reason {
             case .oldDeviceUnavailable:
-                NSLog("[BitChord] audio route device unavailable (e.g. headphones unplugged)")
+                NSLog("[RED Bit] audio route device unavailable (e.g. headphones unplugged)")
                 onOldDeviceUnavailable?()
                 handler()
             case .newDeviceAvailable,
                  .routeConfigurationChange, .categoryChange, .override:
-                NSLog("[BitChord] audio route changed (reason %d)", raw)
+                NSLog("[RED Bit] audio route changed (reason %d)", raw)
                 handler()
             default:
                 break

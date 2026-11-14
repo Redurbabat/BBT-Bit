@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 
 /// One shelf of the signed-out Home/Explore feeds, decoded from the shared
 /// module's serialized `HomeFeed` (the bridge crosses FFI as JSON, same
@@ -61,6 +61,29 @@ struct ShelfCard: Codable, Identifiable, Hashable {
     init(title: String, subtitle: String? = nil, thumbnailUrl: String? = nil, videoId: String? = nil, browseId: String? = nil, isVideo: Bool = false) {
         self.title = title; self.subtitle = subtitle; self.thumbnailUrl = thumbnailUrl
         self.videoId = videoId; self.browseId = browseId; self.isVideo = isVideo
+    }
+}
+
+/// Folgeseiten erweitern vorhandene Zeilen, ohne deren Position zu verändern.
+enum FeedShelfMerge {
+    static func append(_ incoming: [FeedShelf], to existing: [FeedShelf]) -> [FeedShelf] {
+        var result: [FeedShelf] = []
+        var positions: [String: Int] = [:]
+        for shelf in existing + incoming {
+            if let index = positions[shelf.id] {
+                let current = result[index]
+                var seen = Set(current.items.map(\.id))
+                let additions = shelf.items.filter { seen.insert($0.id).inserted }
+                result[index] = FeedShelf(title: current.title, items: current.items + additions,
+                    subtitle: current.subtitle ?? shelf.subtitle)
+            } else {
+                var seen: Set<String> = []
+                positions[shelf.id] = result.count
+                result.append(FeedShelf(title: shelf.title,
+                    items: shelf.items.filter { seen.insert($0.id).inserted }, subtitle: shelf.subtitle))
+            }
+        }
+        return result
     }
 }
 

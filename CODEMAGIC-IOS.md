@@ -6,7 +6,7 @@ Im Repo-Verzeichnis liegt `codemagic.yaml`. Es definiert den manuellen Workflow
 ## Auf deinem iPhone oder iPad starten
 
 1. Öffne [codemagic.io](https://codemagic.io/) und melde dich über GitHub an.
-2. Füge das GitHub-Repository **Redurbabat/BBT-Bit** in Codemagic hinzu.
+2. Füge das GitHub-Repository **Redurbabat/RED-Bit** in Codemagic hinzu.
 3. Wähle das Repository und den Zweig **main** aus. Lass Codemagic die Datei
    `codemagic.yaml` im Repository-Stammverzeichnis erkennen; falls erforderlich
    klicke auf **Check for configuration file**.
@@ -17,7 +17,7 @@ Im Repo-Verzeichnis liegt `codemagic.yaml`. Es definiert den manuellen Workflow
 Der Workflow kompiliert eine native SwiftUI-Anwendung mit Kotlin/Native und Rust:
 - Codemagic Mac mini M2, Xcode 26.0, Java 21
 - installiert/prüft XcodeGen, CMake und Rust;
-- kompiliert `BitChordShared.xcframework` im Release-Modus (interner Modulname);
+- kompiliert `RedBitShared.xcframework` im Release-Modus (interner Modulname);
 - kompiliert Rust `NativeCoreFFI.xcframework`;
 - erzeugt das Xcode-Projekt mit XcodeGen;
 - archiviert eine iOS/iPadOS-App **ohne Signierung** und verpackt sie als IPA;
@@ -42,7 +42,7 @@ Dieses Workflow-Rezept wurde eingerichtet, **aber noch nicht auf Codemagic
 ausgeführt oder durch einen echten IPA-Download bestätigt**.
 
 Die Paketdatei heißt BBT-Bit, obwohl das intern bewahrte Xcode-Schema und das
-ausgelieferte App-Verzeichnis `BitChord.app` heißen. Ausschlaggebend für die
+ausgelieferte App-Verzeichnis `RedBit.app` heißen. Ausschlaggebend für die
 Anzeige auf dem Gerät ist die `CFBundleDisplayName` `BBT-Bit`. Die Original-Lizenzen
 und Quellennachweise bleiben erhalten.
 

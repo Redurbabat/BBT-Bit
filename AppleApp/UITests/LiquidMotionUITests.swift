@@ -9,6 +9,230 @@ final class LiquidMotionUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// Prüft die native Suche mit sichtbarer leerer Pill, Tastatur-Handoff
+    /// und anschließendem Öffnen des Vollplayers. Kein Audio-Nachweis.
+    func testSearchKeyboardCanOpenAndDismissOnRegularAppLaunch() throws {
+        let app = XCUIApplication()
+        // Beide vorhandenen Erststart-Fragen sind für diesen wiederkehrenden
+        // Nutzerweg schon beantwortet. Die echte App startet ohne Test-Preview.
+        app.launchArguments += ["-onboarding_done", "YES",
+                                "-automix_models_prompt_dismissed_v2", "YES"]
+        app.launch()
+
+        // Die Kennung gehört zum Bild im nativen Button, nicht zum Button
+        // selbst. Der echte Accessibility-Baum trennt diese beiden Elemente.
+        let searchTab = app.tabBars.buttons.containing(.image, identifier: "magnifyingglass").firstMatch
+        if !searchTab.waitForExistence(timeout: 20) {
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "BBT-Bit-Search-Tab-Missing"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+        }
+        XCTAssertTrue(searchTab.exists,
+                      "Search tab unavailable on regular app launch. Accessibility tree: \(app.debugDescription)")
+        let searchReady = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: searchTab)
+        wait(for: [searchReady], timeout: 15)
+        searchTab.tap()
+
+        let searchField = app.searchFields.firstMatch
+        if !searchField.waitForExistence(timeout: 15) {
+            let missing = XCTAttachment(screenshot: app.screenshot())
+            missing.name = "RED-Bit-Suchfeld-fehlt"
+            missing.lifetime = .keepAlways
+            add(missing)
+        }
+        XCTAssertTrue(searchField.exists,
+                      "Natives iPhone-Suchfeld fehlt. Hierarchie: \(app.debugDescription)")
+        let pillID = "bbt.playback.pill.open"
+        let pill = app.buttons[pillID]
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player must be present even in the empty playback state")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Expected exactly one mini-player before keyboard focus")
+
+        searchField.tap()
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 10),
+                      "Search field did not display the keyboard")
+        // Ein frischer iOS-Simulator zeigt zuerst die QuickPath-Einführung.
+        // Dieser Systemdialog gehört nicht zur App und muss beantwortet sein.
+        let keyboardIntroduction = app.buttons.matching(
+            NSPredicate(format: "label IN %@", ["Continue", "Fortfahren"])
+        ).firstMatch
+        if keyboardIntroduction.waitForExistence(timeout: 2) {
+            keyboardIntroduction.tap()
+        }
+        // Keep a diagnostic screenshot even when a subsequent geometry
+        // assertion fails. XCTest otherwise loses the interesting layout.
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "BBT-Bit-Search-Keyboard-Visible"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player disappeared when the search keyboard opened")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Native bottom accessory and keyboard inset duplicated the mini-player")
+        XCTAssertTrue(pill.isHittable, "Mini-player is not reachable above the keyboard")
+        XCTAssertGreaterThanOrEqual(pill.frame.height, 44,
+                                    "Öffnen-Trefffläche des Mini-Players ist zu klein")
+        for identifier in ["bbt.playback.pill.play", "bbt.playback.pill.next"] {
+            let control = app.buttons[identifier]
+            XCTAssertTrue(control.exists, "Transport-Bedienelement fehlt: \(identifier)")
+            XCTAssertGreaterThanOrEqual(control.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(control.frame.height, 44)
+        }
+        XCTAssertLessThanOrEqual(pill.frame.maxY, keyboard.frame.minY + 4,
+                                 "Mini-player overlaps the native keyboard")
+        XCTAssertFalse(pill.frame.intersects(searchField.frame),
+                       "Der Mini-Player überlagert das native Suchfeld")
+        XCTAssertLessThanOrEqual(pill.frame.maxY, searchField.frame.minY + 1,
+                                 "Der Player muss oberhalb der Suchleiste liegen")
+        XCTAssertTrue(searchField.isHittable, "Das Suchfeld ist vom Player verdeckt")
+
+        // Native return-key labels are localized (e.g. "Suchen" on a
+        // German simulator). A missing key must fail, not skip the whole
+        // test and conceal already-executed keyboard layout assertions.
+        searchField.typeText("red bit")
+        let searchKey = ["Suchen", "Search", "search"].map { keyboard.buttons[$0] }
+            .first(where: { $0.exists })
+        if searchKey == nil {
+            let noKey = XCTAttachment(screenshot: app.screenshot())
+            noKey.name = "BBT-Bit-Search-Key-Unavailable"
+            noKey.lifetime = .keepAlways
+            add(noKey)
+        }
+        XCTAssertNotNil(searchKey, "Native search keyboard has no recognized submit key")
+        searchKey?.tap()
+        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: keyboard)
+        wait(for: [dismissed], timeout: 10)
+        XCTAssertTrue(pill.waitForExistence(timeout: 10),
+                      "Mini-player missing after keyboard dismissal")
+        XCTAssertEqual(app.buttons.matching(identifier: pillID).count, 1,
+                       "Mini-player duplicated after keyboard dismissal")
+        pill.tap()
+        XCTAssertTrue(app.buttons["bbt.nowPlaying.play"].waitForExistence(timeout: 15),
+                      "Der Mini-Player öffnet den Vollplayer nach dem Tastaturwechsel nicht")
+    }
+
+    func testVideoReferenceViewsAndLyricsSwitch() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["--bbt-ui-test-video-references"]
+        app.launch()
+        let rail = app.otherElements["bbt.video.artist.rail"]
+        XCTAssertTrue(rail.waitForExistence(timeout: 20), "Das echte Künstlerkarten-Fixture fehlt")
+        let before = XCTAttachment(screenshot: app.screenshot())
+        before.name = "RED-Bit-Videoreferenz-Karussell-und-Bogen"
+        before.lifetime = .keepAlways
+        add(before)
+        rail.swipeLeft(velocity: .slow)
+        let moved = XCTAttachment(screenshot: app.screenshot())
+        moved.name = "RED-Bit-Videoreferenz-Karussell-nach-Wischen"
+        moved.lifetime = .keepAlways
+        add(moved)
+        let open = app.buttons["bbt.video.constellation.open"]
+        if !open.isHittable { app.swipeUp() }
+        XCTAssertTrue(open.isHittable)
+        open.tap()
+        let list = app.buttons["bbt.lyrics.constellation.list"]
+        XCTAssertTrue(list.waitForExistence(timeout: 10), "Sternbild muss einen direkten Listen-Rückweg besitzen")
+        let stars = XCTAttachment(screenshot: app.screenshot())
+        stars.name = "RED-Bit-Videoreferenz-Sternbild"
+        stars.lifetime = .keepAlways
+        add(stars)
+        list.tap()
+        XCTAssertTrue(open.waitForExistence(timeout: 10), "Rückkehr aus dem Sternbild zur Liste fehlt")
+    }
+
+    func testCreativeCollectionsAndTimedConstellationFinale() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["--red-ui-test-creative"]
+        app.launch()
+        let next = app.buttons.matching(identifier: "red.collection.next").firstMatch
+        XCTAssertTrue(next.waitForExistence(timeout: 20))
+        if !next.isHittable { app.swipeUp() }
+        next.tap()
+        XCTAssertTrue(app.staticTexts["Farbenspiel"].firstMatch.waitForExistence(timeout: 5))
+        app.swipeDown()
+        let lyrics = app.buttons["red.fixture.lyrics"]
+        XCTAssertTrue(lyrics.isHittable)
+        lyrics.tap()
+        let map = app.buttons["red.lyrics.map"]
+        XCTAssertTrue(map.waitForExistence(timeout: 10))
+        app.swipeLeft()
+        XCTAssertTrue(app.staticTexts["red.lyrics.history"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["red.lyrics.current"].exists)
+        app.buttons["red.fixture.finale"].tap()
+        XCTAssertTrue(app.staticTexts["red.lyrics.finale"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["red.lyrics.finale"].value as? String, "0 %")
+        app.buttons["red.fixture.middle"].tap()
+        XCTAssertEqual(app.staticTexts["red.lyrics.finale"].value as? String, "50 %")
+        let middle = XCTAttachment(screenshot: app.screenshot())
+        middle.name = "RED-Bit-Sternkarte-fuenf-Sekunden-vor-Ende"
+        middle.lifetime = .keepAlways
+        add(middle)
+        app.buttons["red.fixture.end"].tap()
+        XCTAssertEqual(app.staticTexts["red.lyrics.finale"].value as? String, "100 %")
+        let end = XCTAttachment(screenshot: app.screenshot())
+        end.name = "RED-Bit-Sternkarte-vollstaendiger-Verlauf"
+        end.lifetime = .keepAlways
+        add(end)
+        app.buttons["Start"].tap()
+        XCTAssertFalse(app.staticTexts["red.lyrics.finale"].exists)
+        app.buttons["bbt.lyrics.constellation.list"].tap()
+        XCTAssertTrue(lyrics.waitForExistence(timeout: 5))
+    }
+
+    func testTopResultAndNativeMinimizedAccessoryDoNotStretchOrOverlap() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["--bbt-ui-test-playback-chrome"]
+        app.launch()
+        let play = app.buttons["bbt.search.topResult.play"]
+        XCTAssertTrue(play.waitForExistence(timeout: 20))
+        let playlist = app.buttons["bbt.search.topResult.playlist"]
+        for button in [play, playlist] {
+            XCTAssertTrue(button.exists)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44)
+            XCTAssertLessThan(button.frame.height, 110,
+                              "Die Top-Ergebnis-Aktion streckt sich zur vertikalen Kapsel")
+        }
+        let card = app.otherElements["bbt.search.topResult"]
+        XCTAssertLessThan(card.frame.height, 350, "Das Top-Ergebnis belegt fast den ganzen Bildschirm")
+        let initial = XCTAttachment(screenshot: app.screenshot())
+        initial.name = "RED-Bit-Top-Ergebnis-begrenzte-Hoehe"
+        initial.lifetime = .keepAlways
+        add(initial)
+
+        app.swipeUp(velocity: .slow)
+        app.swipeUp(velocity: .slow)
+        assertNativePlaybackDoesNotCoverTabs(app)
+        let minimized = XCTAttachment(screenshot: app.screenshot())
+        minimized.name = "RED-Bit-Nativer-Dock-nach-Abwaertsscrollen"
+        minimized.lifetime = .keepAlways
+        add(minimized)
+        app.swipeDown(velocity: .slow)
+        assertNativePlaybackDoesNotCoverTabs(app)
+    }
+
+    private func assertNativePlaybackDoesNotCoverTabs(_ app: XCUIApplication) {
+        let pill = app.buttons["bbt.playback.pill.open"]
+        XCTAssertTrue(pill.waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons.matching(identifier: "bbt.playback.pill.open").count, 1)
+        // Das inline Accessory kann selbst AX-Nachfahre der Tab-Bar sein.
+        // Nur die vier tatsächlichen Tab-Aktionen mit dem Player vergleichen.
+        var checkedTabs = 0
+        let tabNames = ["Home", "Start", "Jetzt hören", "Explore", "Entdecken", "Library", "Bibliothek", "Mediathek", "Search", "Suchen"]
+        let tabs = app.buttons.matching(NSPredicate(format: "label IN %@", tabNames)).allElementsBoundByIndex
+        for tab in tabs where tab.isHittable {
+            checkedTabs += 1
+            for identifier in ["bbt.playback.pill.open", "bbt.playback.pill.play", "bbt.playback.pill.next"] {
+                XCTAssertFalse(tab.frame.insetBy(dx: 1, dy: 1).intersects(app.buttons[identifier].frame),
+                               "Player überlagert nativen Tab: \(tab.label)")
+            }
+        }
+        XCTAssertGreaterThan(checkedTabs, 0, "Kein nativer Tab für die Überlagerungsprüfung erreichbar")
+    }
+
     func testEveryDesignPreviewIsRenderedAndOpenableOnIPhone() throws {
         let app = XCUIApplication()
         app.launchArguments += ["--bbt-ui-test-designs"]
@@ -58,15 +282,16 @@ final class LiquidMotionUITests: XCTestCase {
                 let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: done)
                 wait(for: [dismissed], timeout: 5)
             case 2:
-                let flip = app.buttons["Translated lyric"]
+                let flip = app.buttons["red.lyrics.mirror.toggle"]
                 XCTAssertTrue(flip.exists, "Lyrics switch is missing")
                 flip.tap()
-                XCTAssertTrue(app.buttons["Original lyric"].exists)
+                let original = expectation(for: NSPredicate(format: "value == %@", "Wir hören den Rhythmus"), evaluatedWith: flip)
+                wait(for: [original], timeout: 5)
             case 3:
-                let prism = app.buttons["Audio signal prism"]
+                let prism = app.buttons["red.signal.prism.toggle"]
                 XCTAssertTrue(prism.exists, "Audio pipeline preview control is missing")
                 prism.tap()
-                XCTAssertTrue(app.staticTexts["Source"].exists)
+                XCTAssertTrue(app.staticTexts["red.signal.stage.0.label"].exists)
             default:
                 break
             }

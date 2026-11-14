@@ -6,7 +6,7 @@ exe=root/'native-core/target/release/examples/playback_render'
 def read_float(path):
  data=path.read_bytes();assert data[:4]==b'RIFF' and data[8:12]==b'WAVE'
  rate=struct.unpack_from('<I',data,24)[0];x=array.array('f');x.frombytes(data[44:]);return rate,x
-with tempfile.TemporaryDirectory(prefix='bitchord-pipeline-') as tmp:
+with tempfile.TemporaryDirectory(prefix='redbit-pipeline-') as tmp:
  d=pathlib.Path(tmp);source=d/'tone.wav';rate=48000;hz=997
  pcm=b''.join(struct.pack('<hh', *([int(.2*32768*math.sin(2*math.pi*hz*i/rate))]*2)) for i in range(rate))
  with wave.open(str(source),'wb') as w:

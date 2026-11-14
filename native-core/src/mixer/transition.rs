@@ -13,7 +13,6 @@ use super::{
 };
 use crate::sound::SoundMode;
 use std::sync::atomic::Ordering;
-use std::time::{Duration, Instant};
 
 impl MixerState {
     /// A later plan for the track already armed, applied only while the fade
@@ -269,13 +268,18 @@ impl MixerState {
                 // seconds ahead, and this is the only cold decode in the path.
                 prime_voice(&mut voice, self.device_rate);
                 log::info!("armed next track: {}", request.title);
+                let arm_position_s = self
+                    .current
+                    .as_ref()
+                    .map(|voice| voice.emitted_position_seconds())
+                    .unwrap_or(0.0);
                 self.incoming = Some(voice);
                 self.transition = Some(TransitionState {
                     phase: Phase::Arming,
                     fade_frames,
                     handed_off: false,
                     plan,
-                    arm_deadline: Instant::now() + Duration::from_millis(ARM_TIMEOUT_MS),
+                    arm_position_s,
                     swap: false,
                     fx: None,
                     effect_start_frame: 0,
@@ -369,7 +373,11 @@ impl MixerState {
         let Some(_incoming) = &self.incoming else {
             return;
         };
-        if Instant::now() > t.arm_deadline {
+        // Gemessen in abgespielter Musik des laufenden Titels. Eine Uhrzeit-Frist
+        // verwarf die vorbereitete Überblendung samt nächstem Titel, sobald
+        // zwischen Vorbereitung und Blendenstart pausiert oder gepuffert wurde
+        // (Pause > 8 s kurz vor Liedende); die App lud dann hart nach.
+        if current.emitted_position_seconds() - t.arm_position_s > ARM_TIMEOUT_MS as f64 / 1000.0 {
             // Incoming never became ready; queue moves on plainly.
             log::warn!("arm timeout; dropping transition");
             self.incoming = None;
@@ -412,9 +420,7 @@ impl MixerState {
         }
         voice.set_plan_rate(voice.base_plan_rate);
         let info = voice.info.clone();
-        log::info!("fade start + handoff: {}", info.title);
-        self.duration_ms
-            .store((info.duration_seconds * 1000.0) as u64, Ordering::Relaxed);
+        log::info!("fade start: {}", info.title);
         // G's open point: a route or loudness-mode change between arm and
         // fade re-arms the match here, while the incoming is still silent, so
         // the first frame is never corrected after it is audible.
@@ -436,7 +442,7 @@ impl MixerState {
             .filter(|error| error.is_finite());
         if let Some(t) = &mut self.transition {
             t.phase = Phase::Fading;
-            t.handed_off = true;
+            t.handed_off = false;
             t.fx = if t.plan.reason.starts_with("skip-mix:") {
                 fx::DeckFx::new_skip_echo(device_rate, t.plan.beat_seconds)
             } else {
@@ -497,12 +503,27 @@ impl MixerState {
                 }
             }
         }
-        let db = self.incoming.as_ref().and_then(|v| v.loudness_db);
-        self.publish_nerd(&info, db);
-        // Playhead follows the incoming track from this moment — upstream
-        // swaps the session player at handoff. Leaving it on the outgoing
-        // voice published a time near that track's end under the new
-        // duration, so the next song appeared to start in its outro.
+        // Beide Stimmen spielen bereits; die Sitzung bleibt bis zum
+        // Übergabepunkt beim ausgehenden Titel.
+        self.publish_audible_position();
+        if self.transition.as_ref().is_some_and(|t| t.plan.reason.starts_with("skip-mix:")) {
+            // Ein ausdrückliches Weiter hat seine Queue bereits umgeschaltet.
+            self.handoff_if_due(1.0);
+        }
+    }
+
+    fn handoff_if_due(&mut self, progress: f64) {
+        let Some(t) = self.transition.as_ref() else { return };
+        let point = if t.plan.bass_swap && t.plan.bass_swap_fraction.is_finite() {
+            t.plan.bass_swap_fraction.clamp(0.05, 0.95)
+        } else { 0.5 };
+        if t.swap || t.handed_off || t.phase != Phase::Fading || progress < point { return }
+        let Some(voice) = self.incoming.as_ref() else { return };
+        let info = voice.info.clone();
+        let loudness = voice.loudness_db;
+        self.transition.as_mut().unwrap().handed_off = true;
+        self.duration_ms.store((info.duration_seconds * 1000.0) as u64, Ordering::Relaxed);
+        self.publish_nerd(&info, loudness);
         self.publish_audible_position();
         self.events.handoff(info);
     }
@@ -533,6 +554,7 @@ impl MixerState {
             let (rise, fall) = effect_intro_gains(p, hold, effect_intro_db(&t.plan));
             let landing = effect_landing(&t.plan, hold);
             let band = t.plan.filter_sweep;
+            self.handoff_if_due(p);
             if let Some(current) = &mut self.current {
                 current.gain = fall;
                 current.filter.open();
@@ -605,6 +627,7 @@ impl MixerState {
         } else {
             fade_gains(p, false)
         };
+        self.handoff_if_due(p);
         if let (Some(current), Some(incoming), Some((plan, _))) =
             (&mut self.current, &mut self.incoming, plan)
         {
@@ -631,6 +654,9 @@ impl MixerState {
     }
 
     pub(super) fn finish_transition(&mut self) {
+        // Auch ein sehr kurzes oder erschöpftes Incoming meldet genau eine
+        // Übergabe, bevor seine Stimme zum aktuellen Titel wird.
+        self.handoff_if_due(1.0);
         let swap = self.transition.as_ref().is_some_and(|t| t.swap);
         if let Some(t) = &self.transition {
             if t.handed_off {

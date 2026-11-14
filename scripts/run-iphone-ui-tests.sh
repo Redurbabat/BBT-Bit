@@ -11,7 +11,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 for tool in xcodegen xcodebuild xcrun python3 zip; do
   command -v "$tool" >/dev/null 2>&1 || { echo "Missing: $tool" >&2; exit 2; }
 done
-for path in AppleApp/Frameworks/BitChordShared.xcframework AppleApp/Frameworks/NativeCoreFFI.xcframework AppleApp/Generated/NativeCore.swift; do
+for path in AppleApp/Frameworks/RedBitShared.xcframework AppleApp/Frameworks/NativeCoreFFI.xcframework AppleApp/Generated/NativeCore.swift; do
   if [[ ! -e "$ROOT/$path" ]]; then
     echo "Missing $path; first compile shared frameworks:" >&2
     echo "CONFIG=release ./scripts/build-shared-framework.sh" >&2
@@ -32,8 +32,8 @@ fi
 
 set +e
 xcodebuild \
-  -project AppleApp/BitChord.xcodeproj \
-  -scheme BitChord \
+  -project AppleApp/RedBit.xcodeproj \
+  -scheme RedBit \
   -configuration Debug \
   -destination "platform=iOS,id=$DEVICE_ID" \
   -parallel-testing-enabled NO \

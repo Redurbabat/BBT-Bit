@@ -89,7 +89,7 @@ func readPosition(after engine: PlayerEngine, _ seconds: Double) -> Double {
     return engine.positionSeconds()
 }
 
-let tmp = NSTemporaryDirectory() + "bitchord-engine-verify"
+let tmp = NSTemporaryDirectory() + "redbit-engine-verify"
 try? FileManager.default.createDirectory(atPath: tmp, withIntermediateDirectories: true)
 let wav = tmp + "/tone.wav"
 makeWav(wav, seconds: 6.0, hz: 440)

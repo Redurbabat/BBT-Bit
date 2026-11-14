@@ -1,5 +1,5 @@
 import SwiftUI
-import BitChordShared
+import RedBitShared
 import UniformTypeIdentifiers
 import AVKit
 import CoreImage
@@ -19,12 +19,13 @@ struct SleeveArt: View {
     var canvasURL: URL?
     var fallbackURL: URL? = nil
     var isPlaying: Bool
+    var isBuffering = false
     var canvasActive = true
     var side: CGFloat
 
     var body: some View {
         ZStack {
-            ArtworkView(entry: entry, side: side)
+            GlassArtworkTransition(entry: entry, side: side)
             if let canvasURL {
                 CanvasVeil(url: canvasURL, fallbackURL: fallbackURL,
                            isPlaying: isPlaying && canvasActive, side: side)
@@ -33,8 +34,10 @@ struct SleeveArt: View {
         .frame(width: side, height: side)
         .clipShape(.rect(cornerRadius: 12, style: .continuous))
         .shadow(color: .black.opacity(0.45), radius: 24, y: 10)
-        .scaleEffect(isPlaying ? 1 : 0.86)
-        .animation(.spring(response: 0.85, dampingFraction: 0.75), value: isPlaying)
+        // Beim Titelwechsel bleibt der Cover-Rahmen während des Ladens stabil.
+        // Nur bewusstes Pausieren verkleinert ihn leicht, ohne Spring-/Boom-Zoom.
+        .scaleEffect(isPlaying || isBuffering ? 1 : 0.86)
+        .animation(.easeOut(duration: 0.18), value: isPlaying || isBuffering)
         .frame(width: side, height: side)
     }
 }
@@ -55,7 +58,7 @@ struct HeroArtwork: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                ArtworkView(entry: entry, side: max(geo.size.width, geo.size.height))
+                GlassArtworkTransition(entry: entry, side: max(geo.size.width, geo.size.height))
                     .frame(width: geo.size.width, height: geo.size.height)
                     .clipped()
                     .allowsHitTesting(false)

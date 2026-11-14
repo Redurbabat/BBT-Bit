@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -12,7 +12,14 @@ import AppKit
 
 // AutoMix UI state: the adopted plan, the smart window, and artwork.
 extension PlaybackController {
-    func adoptAutomixPlan(_ plan: TransitionPlanRec) {
+    var hasActiveAutomixOverlap: Bool {
+        if smartMixInProgress { return true }
+        guard let request = automixPreviewRequest, request.outgoing.id == current?.id else { return false }
+        return position >= request.outgoingWindow.blendStart && position < request.outgoingWindow.blendEnd
+    }
+
+    func adoptAutomixPlan(_ plan: TransitionPlanRec, outgoingSource: String? = nil,
+                          incomingSource: String? = nil, incomingHeaders: [String: String] = [:]) {
         pendingAutomixPlan = plan
         automixPlanRevision &+= 1
         let rateNote = abs(plan.playbackRate - 1) > 0.001
@@ -31,6 +38,19 @@ extension PlaybackController {
         }
         automixCueSeconds = plan.cueSeconds
         publishSmartWindow()
+        if let outgoing = current, let incoming = nextEntry,
+           let outgoingSource, let incomingSource, plan.fadeSeconds.isFinite, plan.fadeSeconds > 0,
+           plan.playbackRate.isFinite, plan.playbackRate > 0 {
+            let end = plan.transitionEndSeconds > 0 ? plan.transitionEndSeconds : duration
+            let request = AutomixPreviewRequest(outgoing: outgoing, incoming: incoming,
+                outgoingSource: outgoingSource, incomingSource: incomingSource,
+                outgoingHeaders: loadedSourceHeaders, incomingHeaders: incomingHeaders,
+                outgoingWindow: MixWaveformWindow(blendStart: max(0, end - plan.fadeSeconds), fade: plan.fadeSeconds, duration: duration),
+                incomingWindow: MixWaveformWindow(blendStart: plan.cueSeconds, fade: plan.fadeSeconds * plan.playbackRate, duration: incoming.durationSeconds),
+                fade: plan.fadeSeconds, rate: plan.playbackRate)
+            if smartMixInProgress { queuedAutomixPreviewRequest = request }
+            else { automixPreviewRequest = request }
+        }
     }
 
     nonisolated static func displayAutomixReason(_ reason: String) -> String {

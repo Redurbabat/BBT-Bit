@@ -1,16 +1,16 @@
 # macOS automatic updates
 
-BitChord uses Sparkle 2.10 for macOS updates. It checks the `appcast.xml` feed
+RED Bit uses Sparkle 2.10 for macOS updates. It checks the `appcast.xml` feed
 in this repository, downloads the DMG attached to a GitHub Release, and verifies
 Sparkle's EdDSA signature before installing it. iPhone and iPad builds instead
 show an update alert and link to the same repository's release notes; the user
-updates through the channel they originally used to install BitChord.
+updates through the channel they originally used to install RED Bit.
 
 ## Preferences
 
 The About section on macOS has a manual **Check for Updates** action, an automatic
 check toggle, and an automatic download/install toggle. With automatic installation
-enabled, Sparkle downloads a verified update and installs it when BitChord quits.
+enabled, Sparkle downloads a verified update and installs it when RED Bit quits.
 When it is disabled, Sparkle can still check automatically and present its normal
 update prompt for the user to install. Sparkle exposes these two independent
 preferences; there is no separate built-in “download automatically, then ask before
@@ -29,17 +29,17 @@ install” setting.
 
    ```sh
    scripts/generate-mac-appcast.sh v0.1.2 \
-     "/path/to/BitChord-0.1.2.dmg" \
+     "/path/to/RedBit-0.1.2.dmg" \
      "/path/to/0.1.2-release-notes.md"
    ```
 
-   The script uses Sparkle's `generate_appcast` with the `BitChord` signing key in
+   The script uses Sparkle's `generate_appcast` with the `RedBit` signing key in
    the login Keychain, embeds the notes, and writes the signed enclosure entry to
    `appcast.xml`. Resolve the Xcode package once if that tool is not present yet.
 4. Commit and push the updated `appcast.xml` to `main`. Confirm the raw feed is
-   reachable at `https://raw.githubusercontent.com/bagumamartin/BitChord/main/appcast.xml`.
+   reachable at `https://raw.githubusercontent.com/Redurbabat/RED-Bit/main/appcast.xml`.
 
-The private EdDSA key stays in the login Keychain under the `BitChord` account.
+The private EdDSA key stays in the login Keychain under the `RedBit` account.
 Only the corresponding `SUPublicEDKey` is in `AppleApp/project.yml`. Never commit
 the private key or leave an export unencrypted. Keep a protected backup outside
 the repository so it can be imported on a replacement Mac; without the key,

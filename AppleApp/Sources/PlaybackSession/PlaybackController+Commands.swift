@@ -1,5 +1,5 @@
 import Foundation
-import BitChordShared
+import RedBitShared
 import os
 #if os(iOS)
 import UIKit
@@ -23,6 +23,7 @@ extension PlaybackController {
         cancelSleep()
         let deadline = ContinuousClock.now.advanced(by: .seconds(max(0, seconds)))
         sleepDeadline = deadline; sleepSecondsRemaining = Int(seconds.rounded(.up))
+        sleepDurationSeconds = max(0, seconds)
         let engine = self.engine
         sleepTask = Task.detached(priority: .userInitiated) { [weak self, engine] in
             var displayedSeconds = -1
@@ -36,7 +37,7 @@ extension PlaybackController {
                     try? engine.setSleepGain(gain: 1)
                     await MainActor.run { [weak self] in
                         guard let self, self.sleepDeadline == deadline else { return }
-                        self.sleepDeadline = nil; self.sleepSecondsRemaining = nil; self.sleepTask = nil
+                        self.sleepDeadline = nil; self.sleepSecondsRemaining = nil; self.sleepDurationSeconds = nil; self.sleepTask = nil
                         self.pausePlayback(releaseAudioSession: true)
                         self.debugLog.record("sleep deadline expired; output paused and gain restored")
                     }
@@ -71,6 +72,7 @@ extension PlaybackController {
     func cancelSleep() {
         sleepTask?.cancel(); sleepTask = nil
         sleepDeadline = nil; sleepSecondsRemaining = nil
+        sleepDurationSeconds = nil
         sleepAfterTrack = false
         try? engine.setSleepGain(gain: 1)
         dolbyRenderer?.volume = targetOutputGain
@@ -116,7 +118,7 @@ extension PlaybackController {
         AppSettings.shared.setAutoplay(value: autoplayEnabled)
         if !autoplayEnabled {
             autoplayRefresh.invalidate()
-            // BitChord entfernt beim Abschalten alle noch nicht gehörten
+            // RedBit entfernt beim Abschalten alle noch nicht gehörten
             // automatischen Titel, nicht die manuell hinzugefügte Queue.
             let before = queue.count
             queue = queue.enumerated().filter {

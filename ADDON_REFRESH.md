@@ -1,6 +1,6 @@
 # Optional addon renewal
 
-BitChord does not ship an addon directory, add providers automatically, or guess a
+RED Bit does not ship an addon directory, add providers automatically, or guess a
 provider from its hostname. The listener finds and adds each addon themselves.
 Automatic renewal is off by default, including for sources saved by older builds.
 
@@ -22,7 +22,7 @@ A renewal link may answer a GET with JSON containing an absolute HTTPS
 ```
 
 `expiresAt` can instead be Unix seconds, Unix milliseconds, or an ISO-8601 string.
-BitChord uses the advertised lifetime, including short lifetimes, and renews
+RED Bit uses the advertised lifetime, including short lifetimes, and renews
 shortly before expiry when the addon is used. With no advertised expiry it reuses
 the lease until it is rejected. No fixed 48-hour schedule is assumed.
 
@@ -40,7 +40,7 @@ A service using a SHA-256 prefix challenge may expose a JSON descriptor instead:
 ```
 
 The challenge GET returns `challenge` and `difficulty` (one to five leading zero
-hex digits). BitChord finds a decimal `nonce` for SHA-256(`challenge` + `nonce`),
+hex digits). RED Bit finds a decimal `nonce` for SHA-256(`challenge` + `nonce`),
 then POSTs those two fields as JSON to the issuing endpoint. That response uses
 the URL/lifetime format above. Both endpoints must stay on the renewal link's
 HTTPS origin. Renewal documents are limited to 16 KiB, redirects are rejected,
@@ -49,7 +49,7 @@ bounded, cancellable, and does not execute server code.
 
 A provider's HTML renewal page is also supported when it explicitly contains
 literal GET and POST `fetch` endpoints and a `SHA-256` declaration for that same
-flow. BitChord reads those declarations; it never runs the page's JavaScript.
+flow. RED Bit reads those declarations; it never runs the page's JavaScript.
 Other JavaScript flows, account sign-in, CAPTCHAs and unsupported APIs require
 manual renewal or a provider-compatible endpoint. This is a supported protocol
 set, not a claim that every website can be refreshed automatically.

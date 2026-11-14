@@ -5,7 +5,7 @@ use super::*;
 #[test]
 fn a_voice_skips_regions_once_and_releases_its_file_reader() {
     let path =
-        std::env::temp_dir().join(format!("bitchord-voice-regions-{}.wav", std::process::id()));
+        std::env::temp_dir().join(format!("redbit-voice-regions-{}.wav", std::process::id()));
     test_wav(&path, 3.0, 440.0);
     let source = path.to_string_lossy().to_string();
     crate::playback_regions::put(
@@ -62,7 +62,7 @@ fn aac_region_cuts_advance_without_reseeking_preroll() {
         ));
         for late in [false, true] {
             let path = std::env::temp_dir().join(format!(
-                "bitchord-aac-regions-{}-{late}.m4a",
+                "redbit-aac-regions-{}-{late}.m4a",
                 std::process::id()
             ));
             std::fs::write(&path, fixture).unwrap();
